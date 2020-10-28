@@ -2,7 +2,7 @@ import openhivenpy
 import asyncio
 
 # Simple test to get a simple response from the Hiven API
-client = openhivenpy.HivenClient(client_type="user")
+client = openhivenpy.UserClient()
 response = asyncio.run(client.get())
 
 if response.status_code == 200:

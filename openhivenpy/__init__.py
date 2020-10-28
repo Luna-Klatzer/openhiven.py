@@ -1,4 +1,4 @@
-from .client import HivenClient
-from .client import BotClient
-from .client import UserClient
+from .Client import HivenClient
+from .Client import BotClient
+from .Client import UserClient
 from .Websocket import Websocket
