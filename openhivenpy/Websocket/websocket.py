@@ -3,6 +3,7 @@ import websocket
 import asyncio
 import json
 import time
+import sys
 try:
     import thread
 except ImportError:
@@ -24,58 +25,92 @@ class Websocket():
         # Activate Debug Mode for a lot of spam
         websocket.enableTrace(True) if debug_mode == True else None
 
+        self.connection_status = "closed"
         # Creating the WebSocket that will listen to the API and general events
-        self.websocket = websocket.WebSocketApp(self.WEBSOCKET_URL, on_message=lambda websocket, msg: self.on_resp_message(websocket, msg), 
+        self.hiven_websocket = websocket.WebSocketApp(self.WEBSOCKET_URL, on_message=lambda websocket, msg: self.on_resp_message(websocket, msg), 
                                                 on_open=lambda resp_websocket: self.on_open(resp_websocket), on_error=self.on_error, on_close=self.on_close)
 
     # Opens the event loop. Thanks for the nice work NexInfinite/hivenpy
-    def on_open(self, websocket):
-        websocket.send('{"op": 2, "d":{"token": "' + self.TOKEN + '"}}')
+    def on_open(self, hiven_websocket):
+        try:
+            hiven_websocket.send('{"op": 2, "d":{"token": "' + self.TOKEN + '"}}')
 
-        def run():
-            while True:
-                time.sleep(self.HEARTBEAT / 1000)
-                websocket.send('{"op": 3}')
+            async def start_connection():
+                while True:
+                    time.sleep(self.HEARTBEAT / 1000)
+                    hiven_websocket.send('{"op": 3}')
+                    if self.connection_status == "closing" or self.connection_status == "closed":
+                        break
+                return 
 
-        thread.start_new_thread(run, ())
+            self.connection_status = "open"
+            asyncio.get_event_loop().run_until_complete(start_connection())
 
-    def on_resp_message(self, websocket, ctx):
-        # print(json.loads(ctx))
-        pass
+        except Exception as e:
+            raise Exception(f"An error appeared while trying to connect to Hiven. Errormessage:\n{e}")
 
-    def on_error(self, websocket, error):
+    def on_resp_message(self, hiven_websocket, ctx):
+        print(json.loads(ctx))
+
+    def on_error(self, hiven_websocket, error):
         raise Exception(error)
 
-    def on_close(self, websocket):
-        asyncio.get_event_loop().stop()
-        asyncio.get_event_loop().close()
+    def on_close(self, hiven_websocket):
+        try:
+            asyncio.get_event_loop().stop()
+            asyncio.get_event_loop().close()
+            self.connection_status = "closed"
+
+        except Exception as e:
+            raise Exception(f"An error appeared while closing the connection to Hiven. Errormessage:\n{e}")
 
     async def get(self, keyword: str = "", headers={'content_type': 'text/plain'}):
         resp = requests.get(url=f"{self.api_url}/{keyword}")
         return resp
 
-    async def start_and_close_event_loop(self, websocket):
-        try:
-            websocket.run_forever()
-            await asyncio.sleep(5)
-            websocket.close()
-        except Exception as e:
-            print(e)
+
+    # Does not work yet
+    async def start_and_close_event_loop(self, websocket=None):
+
+        ws = self.hiven_websocket if websocket == None else websocket
+
+        ws.send('{"op": 2, "d":{"token": "' + self.TOKEN + '"}}')
+        
+        async def start_connection():
+            i = 0
+            while i < 1000:
+                time.sleep(self.HEARTBEAT / 1000)
+                ws.send('{"op": 3}')
+                if self.connection_status != "closing" or self.connection_status != "closed":
+                    break
+                i += 1
             return 
 
-    async def start_event_loop(self, websocket):
-        try:
-            websocket.run_forever()
-        except Exception as e:
-            print(e)
-            return 
+        asyncio.get_event_loop().run_until_complete(start_connection())
 
-    async def end_event_loop(self):
+        # Waiting 5 seconds before actually closing the websocket
+        await asyncio.sleep(5)
+        ws.close()
+
+
+    async def start_event_loop(self, websocket=None):
+        # If the user specifies a websocket that one will be used here else the default Hiven Websocket will be used
+        ws = self.hiven_websocket if websocket == None else websocket
+
+        ws.run_forever()
+
+    async def stop_event_loop(self, websocket=None):
         try:
-            websocket.close()
+            # If the user specifies a websocket that one will be used here else the default Hiven Websocket will be used
+            ws = self.hiven_websocket if websocket == None else websocket
+
+            self.connection_status = "closing"
+            ws.close()
             asyncio.get_event_loop().stop()
             asyncio.get_event_loop().close()
-        except Exception as e:
-            print(e)
-            return 
 
+        except Exception as e:
+            raise Exception(f"An error appeared while trying to close the connection to Hiven. Errormessage:\n{e}")
+
+    async def get_connection_status(self):
+        return self.connection_status
