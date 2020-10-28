@@ -3,7 +3,7 @@ import requests
 import sys
 
 from openhivenpy.Websocket import Websocket
-import openhivenpy.Error as err
+import openhivenpy.Error.Exception as errs #Kinda started working on this before I pulled lol
 
 API_URL = "https://api.hiven.io"
 API_VERSION = "v1"
@@ -15,7 +15,7 @@ class HivenClient(Websocket):
         elif client_type == "bot" or client_type == "HivenClient.BotClient":
             self.client_type = "HivenClient.BotClient"
         else:
-            raise ValueError(f"Expected 'user' or 'bot', got '{client_type}'")
+            raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'") #Could use the diff lib here, and if that doesnt get anything then raise an error :thinking:
 
         self.heartbeat = heartbeat
         self.token = token
@@ -27,9 +27,8 @@ class HivenClient(Websocket):
     async def deactivate_print_output(self):
         try:
             self.PRINT_OUTPUT = False
-
         except AttributeError as e:
-            raise AttributeError(f"The attribute display_info_mode does not exist! The HivenClient Object was possibly not initialized correctly! Errormessage: \n{e}")
+            raise errs.NoDisplayInfo(f"The attribute display_info_mode does not exist! The HivenClient Object was possibly not initialized correctly!\n{e}")
         except Exception as e:
             sys.stdout.write(str(e))
 
