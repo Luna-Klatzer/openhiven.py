@@ -23,6 +23,8 @@ class HivenClient(Websocket):
         
         if token == None or token == "":
             raise errs.InvalidToken("Token was not set")
+        elif len(token) != 128:
+            raise errs.InvalidToken("Invalid Token was passed!")
 
         self.heartbeat = heartbeat
         self.token = token
