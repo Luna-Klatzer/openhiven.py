@@ -4,6 +4,8 @@ import asyncio
 import json
 import time
 import sys
+import json
+import openhivenpy.Types as types
 try:
     import thread
 except ImportError:
@@ -47,10 +49,14 @@ class Websocket():
             thread.start_new_thread(start_connection, ())
 
         except Exception as e:
-            raise Exception(f"An error appeared while trying to connect to Hiven. Errormessage:\n{e}")
+            raise Exception(f"An error appeared while trying to connect to Hiven.\n{e}")
 
     def on_resp_message(self, hiven_websocket, ctx):
-        print(json.loads(ctx))
+        data = json.loads(ctx)
+        print(data["e"])
+        if data["e"] == "HOUSE_JOIN":
+            print(types.House(data["d"]).name)
+
 
     def on_error(self, hiven_websocket, error):
         raise Exception(error)
@@ -62,7 +68,7 @@ class Websocket():
             self.connection_status = "closed"
 
         except Exception as e:
-            raise Exception(f"An error appeared while closing the connection to Hiven. Errormessage:\n{e}")
+            raise Exception(f"An error appeared while closing the connection to Hiven.\n{e}")
 
     async def get(self, keyword: str = "", headers={'content_type': 'text/plain'}):
         resp = requests.get(url=f"{self.api_url}/{keyword}")

@@ -3,13 +3,13 @@ import asyncio
 import sys
 
 # Simple test to get a simple response from the Hiven API
-TOKEN = ""
+TOKEN = "TOKEN"
 client = openhivenpy.UserClient(token=TOKEN, heartbeat=10)
 response = asyncio.run(client.get())
 
 # If response is 200 that means the program can interact with Hiven
 if response.status_code == 200:
-    print("Success")
+    print("Success!")
 else:
     print(f"The process failed. STATUSCODE={response.status_code}")
 
