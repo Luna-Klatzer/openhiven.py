@@ -1,6 +1,7 @@
 import asyncio
 import requests
 import sys
+import warnings
 
 from openhivenpy.Websocket import Websocket
 import openhivenpy.Error.Exception as errs #Kinda started working on this before I pulled lol
@@ -14,13 +15,19 @@ class HivenClient(Websocket):
             self.client_type = "HivenClient.UserClient"
         elif client_type == "bot" or client_type == "HivenClient.BotClient":
             self.client_type = "HivenClient.BotClient"
+        elif client_type == None:
+            warnings.warn(errs.NoneClientType("Client type is None. Defaulting to BotClient."))
+            self.client_type = "HivenClient.BotClient"
         else:
             raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'") #Could use the diff lib here, and if that doesnt get anything then raise an error :thinking:
+        
+        if token == None or token == "":
+            raise errs.InvalidToken("Token was not set")
 
         self.heartbeat = heartbeat
         self.token = token
-        self.debug_mode = debug_mode
-        self.print_output = print_output
+        self.debug_mode = bool(debug_mode)
+        self.print_output = bool(print_output)
 
         super().__init__(API_URL, API_VERSION, self.debug_mode, self.print_output, self.token, self.heartbeat)
 
@@ -34,6 +41,10 @@ class HivenClient(Websocket):
 
     async def connect(self, TOKEN):
         self.start_event_loop(TOKEN)
+
+    # Just for ease
+    def run(self):
+        asyncio.run(self.start_event_loop())
 
 class UserClient(HivenClient):
     def __init__(self, token: str, heartbeat=0, debug_mode=False, print_output=False):
