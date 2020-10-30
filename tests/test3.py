@@ -1,9 +1,10 @@
 import openhivenpy
 import asyncio
 import sys
+import os
 
 # Simple test to get a simple response from the Hiven API
-TOKEN = "TOKEN"
+TOKEN = os.getenv("token") or "TOKEN" #Just to prevent mishaps
 client = openhivenpy.UserClient(token=TOKEN, heartbeat=10)
 response = asyncio.run(client.get())
 

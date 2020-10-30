@@ -6,6 +6,7 @@ import time
 import sys
 import json
 import openhivenpy.Types as types
+import openhivenpy.Error.Exception as errs
 try:
     import thread
 except ImportError:
@@ -29,7 +30,7 @@ class Websocket():
 
         self.connection_status = "closed"
         # Creating the WebSocket that will listen to the API and general events
-        self.hiven_websocket = websocket.WebSocketApp(self.WEBSOCKET_URL, on_message=lambda websocket, msg: self.on_resp_message(websocket, msg), 
+        self.hiven_websocket = websocket.WebSocketApp(self.WEBSOCKET_URL, on_message=lambda websocket, msg: self.on_response(websocket, msg), 
                                                 on_open=lambda ws: self.on_open(ws), on_error=self.on_error, on_close=self.on_close)
 
     # Opens the event loop. Thanks for the nice work NexInfinite/hivenpy
@@ -49,13 +50,15 @@ class Websocket():
             thread.start_new_thread(start_connection, ())
 
         except Exception as e:
-            raise Exception(f"An error appeared while trying to connect to Hiven.\n{e}")
+            raise errs.UnableToConnect(f"An error occured while trying to connect to Hiven.\n{e}")
 
-    def on_resp_message(self, hiven_websocket, ctx):
+    def on_response(self, hiven_websocket, ctx):
         data = json.loads(ctx)
         print(data["e"])
         if data["e"] == "HOUSE_JOIN":
-            print(types.House(data["d"]).name)
+            print("trying to convert")
+            house = types.House(data["d"]) #I have no clue why this shiz wont convert
+            print(type(house))
 
 
     def on_error(self, hiven_websocket, error):

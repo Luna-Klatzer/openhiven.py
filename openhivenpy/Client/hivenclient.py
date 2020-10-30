@@ -24,7 +24,7 @@ class HivenClient(Websocket):
         if token == None or token == "":
             raise errs.InvalidToken("Token was not set")
         elif len(token) != 128:
-            raise errs.InvalidToken("Invalid Token was passed!")
+            raise errs.InvalidToken("Invalid Token")
 
         self.heartbeat = heartbeat
         self.token = token
@@ -41,12 +41,13 @@ class HivenClient(Websocket):
         except Exception as e:
             sys.stdout.write(str(e))
 
-    async def connect(self, TOKEN):
-        self.start_event_loop(TOKEN)
+    async def connect(self, token=None):
+        await self.start_event_loop()
 
     # Just for ease
     def run(self):
         asyncio.run(self.start_event_loop())
+        
 
 class UserClient(HivenClient):
     def __init__(self, token: str, heartbeat=0, debug_mode=False, print_output=False):

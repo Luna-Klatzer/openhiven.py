@@ -13,5 +13,8 @@ class InvalidToken(HivenException):
 class NoneClientType(Warning):
     pass
 
+class UnableToConnect(HivenException):
+    pass
+
 class CommandException(Exception):
     pass #ToDo
