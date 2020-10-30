@@ -5,8 +5,8 @@
 <p align="center">
   <a href="https://github.com/FrostbyteBot/openhiven.py">
     <img alt="Package Version" src="https://img.shields.io/badge/package%20version-not%20released-red" />
-    <img alt="Python Version" src="https://img.shields.io/badge/python->=3.8-blue" />
-    <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteBot/openhiven.py/CodeQL" />
+    <img alt="Python Version" src="https://img.shields.io/badge/python->=3.8-blue?logo=python" />
+    <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteBot/openhiven.py/CodeQL?logo=github" />
   </a>
   <br>
 </p>
