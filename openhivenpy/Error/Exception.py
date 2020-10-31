@@ -18,6 +18,8 @@ class NoneClientType(Warning):
 class UnableToConnect(HivenException):
     pass
 
+class WebsocketConnectionError(HivenException):
+    pass
 
 # Command Exceptions #
 

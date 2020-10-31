@@ -6,11 +6,12 @@ import warnings
 from openhivenpy.Websocket import Websocket
 from openhivenpy.Events import Events
 import openhivenpy.Error.Exception as errs
+from openhivenpy.Types import Client
 
 API_URL = "https://api.hiven.io"
 API_VERSION = "v1"
 
-class HivenClient(Websocket, Events):
+class HivenClient(Websocket, Events, Client):
     def __init__(self, token: str, client_type: str = "user",  heartbeat=0, print_output=False, debug_mode=False):
         if client_type == "user" or client_type == "HivenClient.UserClient":
             self.client_type = "HivenClient.UserClient"
@@ -28,6 +29,9 @@ class HivenClient(Websocket, Events):
             raise errs.InvalidToken("Invalid Token")
 
         super().__init__(API_URL, API_VERSION, debug_mode, print_output, token, heartbeat)
+
+        # Calling the function without any data so it's an empty object with setted attributes that are None at the moment
+        self.initialize_client_data({})
 
     async def deactivate_print_output(self):
         try:
