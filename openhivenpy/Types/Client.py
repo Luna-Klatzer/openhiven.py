@@ -1,4 +1,4 @@
-class User():
+class Client():
     def __init__(self, data):
         try:
             self.username = data['user']['username']

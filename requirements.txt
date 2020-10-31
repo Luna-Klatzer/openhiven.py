@@ -2,3 +2,4 @@ asyncio
 websocket
 requests
 websocket_client
+functools
