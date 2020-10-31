@@ -1,5 +1,4 @@
 asyncio
-websocket
 requests
-websocket_client
+websockets
 functools
