@@ -1,7 +1,10 @@
+from .Room import Room
+
 class Message():
-    def __init__(self, id, name, author, author_id, time):
-        self.id = id
-        self.name = name
-        self.author = author 
-        self.author_id = author_id
-        self.time = time
+    def __init__(self, data):
+        self.id = data['id']
+        self.name = data['name']
+        self.author = data['author'] 
+        self.author_id = data['author_id']
+        self.time = data['time']
+        self.room = Room(data)

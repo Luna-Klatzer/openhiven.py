@@ -1,4 +1,4 @@
 class Room():
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
+    def __init__(self, data):
+        self.id = data['id']
+        self.name = data['name']
