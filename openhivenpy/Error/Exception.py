@@ -1,3 +1,5 @@
+# Hiven Exceptions #
+
 class HivenException(Exception):
     pass
     
@@ -15,6 +17,9 @@ class NoneClientType(Warning):
 
 class UnableToConnect(HivenException):
     pass
+
+
+# Command Exceptions #
 
 class CommandException(Exception):
     pass #ToDo

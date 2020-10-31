@@ -9,20 +9,16 @@ client = openhivenpy.UserClient(token=TOKEN, heartbeat=10)
 
 @client.event() 
 async def on_init(client):
-    print("it works")
-    print(client.id)
-    print(client.name)
-    print(client.username)
+    print(dir(client))
 
 async def run():
-
     response = await client.get()
 
     # If response is 200 that means the program can interact with Hiven
     if response.status_code == 200:
         print("Success!")
     else:
-        print(f"The process fail´6ed. STATUSCODE={response.status_code}")
+        print(f"The process failed. STATUSCODE={response.status_code}")
 
     # Starts the Event loop with the a specified websocket => can also be a different websocket
     print(await client.create_connection())

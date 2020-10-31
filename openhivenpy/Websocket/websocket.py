@@ -93,8 +93,7 @@ class Websocket():
 
         elif response_data['e'] == "HOUSE_JOIN":
             ctx = types.Context(response_data['d'])
-            client = types.Client(response_data['d'])
-            await self.HOUSE_JOIN(ctx, client)
+            await self.HOUSE_JOIN(ctx)
 
         elif response_data['e'] == "HOUSE_MEMBER_ENTER":
             ctx = types.Context(response_data['d'])

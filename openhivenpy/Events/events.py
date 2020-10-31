@@ -18,9 +18,9 @@ class Events():
         if hasattr(self, 'on_init'):
             await self.on_init(client)
 
-    async def HOUSE_JOIN(self, ctx, client):
+    async def HOUSE_JOIN(self, ctx):
         if hasattr(self, 'on_house_add'):
-            await self.on_house_join(ctx, client)
+            await self.on_house_join(ctx)
 
     async def HOUSE_MEMBER_ENTER(self, ctx, member):
         if hasattr(self, 'on_house_enter'):
