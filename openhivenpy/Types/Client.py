@@ -40,7 +40,7 @@ class Client():
             try: self._location = self._location if self._location != None else None
             except: self._location = None
             try: self._website = self._website if self._website != None else None
-            except: self._website = None
+            except: self._website = None #Didnt need to do this kudo
 
         except Exception as e: 
             raise Exception(e)
@@ -59,11 +59,11 @@ class Client():
 
     @property
     def icon(self):
-        return self._icon
+        return f"http://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
 
     @property
     def header(self):
-        return self._header
+        return f"http://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
 
     @property
     def location(self):

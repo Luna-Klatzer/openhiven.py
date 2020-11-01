@@ -9,6 +9,7 @@ import datetime
 
 import openhivenpy.Types as types
 import openhivenpy.Error.Exception as errs
+import openhivenpy.utils as utils
 
 class Websocket():
     def __init__(self, api_url: str, api_version: str, debug_mode: bool, print_output: bool, token: str, heartbeat: int or float):
@@ -27,6 +28,8 @@ class Websocket():
 
         self._open = False
         self._closed = True
+        self._HOUSES = [] #Python no likey appending to a read-only list
+        self._USERS = []
 
     @property
     def api_url(self):
@@ -183,8 +186,17 @@ class Websocket():
             self._initalized = True
 
         elif response_data['e'] == "HOUSE_JOIN":
-            ctx = types.Context(response_data['d'])
+            ctx = types.House(response_data['d'])
             await self.HOUSE_JOIN(ctx)
+            self._HOUSES.append(ctx)
+            for usr in ctx["users"]:
+                if not utils.get(self._USERS,id=usr["id"]):
+                    self._USERS.append(types.User(usr))    
+                
+
+        elif response_data["e"] == "HOUSE_EXIT":
+            ctx = types.Context(response_data['d'])
+            await self.HOUSE_EXIT(ctx)
 
         elif response_data['e'] == "HOUSE_MEMBER_ENTER":
             ctx = types.Context(response_data['d'])
@@ -192,12 +204,12 @@ class Websocket():
             await self.HOUSE_MEMBER_ENTER8(ctx, member)
 
         elif response_data['e'] == "HOUSE_MEMBER_EXIT":
-            ctx = types.context(response_data['d'])
+            ctx = types.Context(response_data['d'])
             member = types.Member(response_data['d'])
             await self.HOUSE_MEMBER_EXIT(ctx, member)
 
         elif response_data['e'] == "PRESENCE_UPDATE":
-            precence = types.precence(response_data['d'])
+            precence = types.Precence(response_data['d'])
             member = types.Member(response_data['d'])
             await self.PRESENCE_UPDATE(precence, member)
 
@@ -214,18 +226,18 @@ class Websocket():
             await self.MESSAGE_UPDATE(message)
 
         elif response_data['e'] == "TYPING_START":
-            member = types.Member(response_data['d'])
+            member = types.Typing(response_data['d'])
             await self.TYPING_START(member)
 
         elif response_data['e'] == "TYPING_END":
-            member = types.Member(response_data['d'])
+            member = types.Typing(response_data['d'])
             await self.TYPING_END(member)
 
         else:
             print(response_data['e'])
 
     # Gets a json file from the hiven api
-    async def get(self, keyword: str = "", headers={'content_type': 'text/plain'}):
+    async def get(self, keyword: str = "", headers={'content_type': 'application/json'}):
         resp = requests.get(url=f"{self.api_url}/{keyword}")
         return resp
 

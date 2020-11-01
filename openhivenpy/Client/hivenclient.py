@@ -44,6 +44,14 @@ class HivenClient(Websocket, Events, Client):
     async def connect(self, token=None):
         connection = await self.create_connection()
         return connection
+    
+    @property
+    def houses(self):
+        return self._HOUSES
+
+    @property
+    def users(self):
+        return self._USERS
 
     # Just for ease
     def run(self):

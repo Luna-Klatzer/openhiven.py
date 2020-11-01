@@ -22,6 +22,10 @@ class Events():
         if hasattr(self, 'on_house_add'):
             await self.on_house_join(ctx)
 
+    async def HOUSE_EXIT(self,ctx):
+        if hasattr(self, "on_house_exit"):
+            await self.on_house_exit(ctx)
+
     async def HOUSE_MEMBER_ENTER(self, ctx, member):
         if hasattr(self, 'on_house_enter'):
             await self.on_house_enter(ctx, member)
