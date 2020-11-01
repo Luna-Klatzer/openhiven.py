@@ -13,6 +13,6 @@
 </p>
 
 <h2 align="center">Install (PyPi Release)</h2>
-`pip install openhiven.py`
+` pip install openhiven.py `
 <h2 align="center">Install (Github Build)</h2>
-`pip install https://github.com/FrostbyteBot/openhiven.py/archive/main.zip`
+` pip install https://github.com/FrostbyteBot/openhiven.py/archive/main.zip `
