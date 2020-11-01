@@ -6,13 +6,13 @@
   <a href="https://github.com/FrostbyteBot/openhiven.py">
     <img alt="Package Version" src="https://img.shields.io/badge/package%20version-not%20released-red" />
     <img alt="Python Version" src="https://img.shields.io/badge/python->=3.8-blue" />
-    <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteBot/openhiven.py/CodeQL?logo=github&color=blue" />
-    <img alt="Last Commit" src="https://img.shields.io/github/last-commit/FrostbyteBot/openhiven.py?logo=github&color=blue" />
+    <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteBot/openhiven.py/CodeQL?logo=github" />
+    <img alt="Latest Commit" src="https://img.shields.io/github/last-commit/FrostbyteBot/openhiven.py?logo=github&color=violet" />
   </a>
   <br>
 </p>
 
 <h2 align="center">Install (PyPi Release)</h2>
-` pip install openhiven.py `
+<h3 aling="center"> `pip install openhiven.py` `as`</h3>
 <h2 align="center">Install (Github Build)</h2>
 ` pip install https://github.com/FrostbyteBot/openhiven.py/archive/main.zip `
