@@ -8,6 +8,9 @@
     <img alt="Python Version" src="https://img.shields.io/badge/python->=3.8-blue?logo=python" />
     <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github" />
     <img alt="Latest Commit" src="https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet" />
+    <a href='https://openhivenpy.readthedocs.io/en/latest/?badge=latest'>
+      <img src='https://readthedocs.org/projects/openhivenpy/badge/?version=latest' alt='Documentation Status' />
+    </a>
   </a>
   <br>
 </p>
