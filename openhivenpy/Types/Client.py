@@ -1,5 +1,20 @@
-class Client():
-    def initialize_client_data(self, data): #Maybe make a ClientUser object to make this cleaner? :thinking:
+from .User import User
+
+class Client(User):
+    """openhivenpy.Types.Client: Data Class for the general HivenClient
+    
+    Used for the general data in the HivenClient and inherits all the avaible data from Hiven(attr -> readonly)!
+    
+    Returned as HivenClient(or specified Client Type) in on_init() and with UserClient(), BotClient() and HivenClient()
+    
+    """
+    def update_client_data(self, data): #Maybe make a ClientUser object to make this cleaner? :thinking:
+        """
+        Updates or creates the standard data of the HivenClient
+        
+        Returns if the Client class inherited the caller class and else the Client Class itself
+        
+        """
         try: 
             self._username = data['user']['username'] if data['user']['username'] != None else None 
             self._name = data['user']['name'] if data['user']['name'] != None else None 
@@ -18,6 +33,9 @@ class Client():
             
             try: self._website = data["user"]["website"] if data["user"]["website"] != None else None
             except: self._website = None
+
+            self._HOUSES = [] #Python no likey appending to a read-only list
+            self._USERS = []
 
             return self
 
@@ -44,31 +62,3 @@ class Client():
 
         except Exception as e: 
             raise Exception(e)
-    
-    @property
-    def username(self):
-        return self._username
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def icon(self):
-        return f"http://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
-
-    @property
-    def header(self):
-        return f"http://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
-
-    @property
-    def location(self):
-        return self._location
-
-    @property
-    def website(self):
-        return self._website

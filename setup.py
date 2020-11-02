@@ -11,7 +11,7 @@ setuptools.setup(
     version="0.0.dev1",
     author="NicolasK",
     author_email="nicolas.klatzer@gmail.com",
-    description="An unofficial Opensource API wrapper for Hiven",
+    description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteBot",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/FrostbyteBot/openhiven.py",

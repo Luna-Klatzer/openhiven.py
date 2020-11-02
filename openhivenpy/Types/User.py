@@ -1,4 +1,11 @@
 class User():
+    """openhivenpy.Types.User: Data Class for a Hiven User
+    
+    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    
+    Returned with events, guilds user lists, client user attribute and get_user()
+    
+    """
     def __init__(self, data):
         try:
             self._username = data['user']['username']
@@ -10,39 +17,40 @@ class User():
             self._location = data["user"]["location"] if data["user"]["location"] != None else None
             self._website = data["user"]["website"] if data["user"]["website"] != None else None
             #self._presence = data["user"]["presence"] if data["user"]["presence"] != None else None #ToDo: Presence class
+            
         except AttributeError: 
             raise AttributeError("The data of the object User was not initialized correctly")
         except Exception as e: 
             raise Exception(e)
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._username
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         return self._icon
 
     @property
-    def header(self):
+    def header(self) -> dict:
         return self._header
     
     @property
-    def bot(self):
+    def bot(self) -> bool:
         return self._bot
 
     @property
-    def location(self):
+    def location(self) -> str:
         return self._location
 
     @property
-    def website(self):
+    def website(self) -> str:
         return self._website

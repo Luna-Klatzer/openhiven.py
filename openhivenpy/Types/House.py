@@ -1,17 +1,32 @@
 class House():
+    """openhivenpy.Types.House: Data Class for a Hiven House
+    
+    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    
+    Returned with events, the client guilds attribute and get_guild()
+    
+    """
     def __init__(self, data):
-        self.id = data["id"]
-        print("id set")
-        self.name = data["name"]
-        print("name set")
+        self._ID = data["id"]
+        self._NAME = data["name"]
+        self._BANNER = data["banner"]
+        self._ICON = data["icon"]
         #self.members = members #ToDo
         #self.rooms = data["rooms"]
-        self.banner = data["banner"]
-        print("banner set")
-        self.icon = data["icon"]
-        print("icon set")
         
 
     @property
-    def name(self):
-        return self.name
+    def id(self) -> int:
+        return self._ID
+
+    @property
+    def name(self) -> str:
+        return self._NAME
+
+    @property
+    def banner(self) -> str:
+        return self._BANNER
+
+    @property
+    def icon(self) -> str:
+        return self._ICON
