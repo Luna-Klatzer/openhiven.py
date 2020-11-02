@@ -12,11 +12,11 @@ class User():
             self._name = data['user']['name']
             self._id = data['user']['id']
             self._icon = data['user']['icon'] if data['user']['icon'] != None else None
-            self._header = data["user"]["header"] if data["user"]["header"] != None else None
-            self._bot = data["user"]["bot"] if data["user"]["bot"] != None else False
-            self._location = data["user"]["location"] if data["user"]["location"] != None else None
-            self._website = data["user"]["website"] if data["user"]["website"] != None else None
-            #self._presence = data["user"]["presence"] if data["user"]["presence"] != None else None #ToDo: Presence class
+            self._header = data['user']['header'] if data['user']['header'] != None else None
+            self._bot = data['user']['bot'] if data['user']['bot'] != None else False
+            self._location = data['user']['location'] if data['user']['location'] != None else None
+            self._website = data['user']['website'] if data['user']['website'] != None else None
+            #self._presence = data['user']['presence'] if data['user']['presence'] != None else None #ToDo: Presence class
             
         except AttributeError: 
             raise AttributeError("The data of the object User was not initialized correctly")

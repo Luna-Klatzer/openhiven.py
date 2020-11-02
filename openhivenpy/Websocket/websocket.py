@@ -252,15 +252,15 @@ class Websocket():
             await self.HOUSE_JOIN(ctx)
             self._HOUSES.append(ctx)
 
-            for usr in response_data["d"]["users"]:
-                if not utils.get(self._USERS,id=usr["id"]):
+            for usr in response_data['d']['users']:
+                if not utils.get(self._USERS,id=usr['id']):
                     self._USERS.append(types.User(usr))         
 
-        elif response_data["e"] == "HOUSE_EXIT":
+        elif response_data['e'] == "HOUSE_EXIT":
             ctx = types.Context(response_data['d'])
             await self.HOUSE_EXIT(ctx)
 
-        elif response_data["e"] == "HOUSE_DOWN":
+        elif response_data['e'] == "HOUSE_DOWN":
             house = None #ToDo
             await self.HOUSE_DOWN(house)
             

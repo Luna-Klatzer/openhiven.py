@@ -7,12 +7,12 @@ class House():
     
     """
     def __init__(self, data):
-        self._ID = data["id"]
-        self._NAME = data["name"]
-        self._BANNER = data["banner"]
-        self._ICON = data["icon"]
+        self._ID = data['id']
+        self._NAME = data['name']
+        self._BANNER = data['banner']
+        self._ICON = data['icon']
         #self.members = members #ToDo
-        #self.rooms = data["rooms"]
+        #self.rooms = data['rooms']
         
 
     @property
