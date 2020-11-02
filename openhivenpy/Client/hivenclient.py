@@ -70,7 +70,7 @@ class HivenClient(Websocket, Events, Client):
         
         """
         try:
-            self.PRINT_OUTPUT = False
+            self.PRINT_OUTPUT = True
             
         except AttributeError as e:
             raise errs.NoDisplayInfo(f"The attribute display_info_mode does not exist! The HivenClient Object was possibly not initialized correctly!\n{e}")
