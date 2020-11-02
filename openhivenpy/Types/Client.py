@@ -34,7 +34,7 @@ class Client():
 
             self._HOUSES = [] #Python no likey appending to a read-only list
             self._USERS = []
-            #self._USERCLIENT = ClientUser(data)
+            self._USERCLIENT = ClientUser(data)
             return self
 
         except AttributeError: #Audible pain.

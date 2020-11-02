@@ -9,6 +9,9 @@ class ClientUser(User):
 
     async def edit(self,data) -> bool:
         """openhivenpy.ClientUser.edit
-        Change the signed in user's data. Available options: header, banner, bio.
+        Change the signed in user's data. Available options: header, icon, bio, location, website.
         """
-        res = requests.patch("https://api.hiven.io/v1/users/@me")
+        if not type(data) == dir:
+            raise SyntaxError(f"Expected dir, got {type(data)}")
+        res = requests.patch("https://api.hiven.io/v1/users/@me",headers={"authorization":self._TOKEN,"User-Agent":"openhiven.py","Content-Type":"application/json"},data=data)
+        return res.status_code == 200
