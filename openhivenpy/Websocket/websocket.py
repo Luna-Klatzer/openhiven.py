@@ -12,12 +12,14 @@ import openhivenpy.Error.Exception as errs
 import openhivenpy.Utils as utils
 
 class Websocket():
-    """openhivenpy.Websocket.Websocket: Websocket 
+    """openhivenpy.Websocket: Websocket Class
     
     Websocket Class that will listen to the Hiven Websocket and will listen for Events 
     
     """    
-    def __init__(self, api_url: str, api_version: str, debug_mode: bool, print_output: bool, token: str, heartbeat: int or float):
+    def __init__(self, api_url: str, api_version: str, debug_mode: bool, print_output: bool, token: str, 
+                 heartbeat: int or float, ping_timeout: int, close_timeout: int, ping_interval: int):
+        
         self._api_url = api_url
         self._api_version = api_version
 
@@ -38,9 +40,25 @@ class Websocket():
 
         self._connection_start = None
         self._startup_time = None
+        
+        self._ping_timeout = ping_timeout
+        self._close_timeout = close_timeout
+        self._ping_interval = ping_interval
 
         if not hasattr(self, '_CUSTOM_HEARBEAT'):
             raise errs.FaultyInitializationError("The client attribute _CUSTOM_HEARTBEAT does not exist! The class might be initialized faulty!")
+
+    @property
+    def ping_timeout(self) -> int:
+        return self._ping_timeout
+
+    @property
+    def close_timeout(self) -> int:
+        return self._close_timeout
+
+    @property
+    def ping_interval(self) -> int:
+        return self._ping_interval
 
     @property
     def api_url(self) -> str:
@@ -122,7 +140,8 @@ class Websocket():
                 # Connection Start variable for later calculation the time how long it took to start
                 self._connection_start = time.time()
 
-                async with websockets.connect(uri=self._WEBSOCKET_URL, ping_timeout=100, close_timeout=20, ping_interval=60) as websocket:
+                async with websockets.connect(uri = self._WEBSOCKET_URL, ping_timeout = self._ping_timeout, 
+                                              close_timeout = self._close_timeout, ping_interval = self._ping_interval) as websocket:
 
                     websocket = await self.websocket_init(websocket)
 
@@ -133,6 +152,7 @@ class Websocket():
                     response = json.loads(await websocket.recv())
                     if response['op'] == 1 and self._CUSTOM_HEARBEAT == False:
                         self._HEARTBEAT = response['d']['hbt_int']
+                        if self._debug_mode == True: print(f"Heartbeat Updated to the Heartbeat received from Hiven: {self._HEARTBEAT}!")
                         websocket.heartbeat = self._HEARTBEAT
 
                     self._closed = websocket.closed
@@ -168,6 +188,9 @@ class Websocket():
         Initialization Function for the Websocket. Not supposed to be called by user!
         
         """        
+        
+        if self._debug_mode == True: print(f"Websocket Initialized with Heartbeat {self._HEARTBEAT}!")
+        
         websocket.url = self._WEBSOCKET_URL
         websocket.heartbeat = self._HEARTBEAT
         websocket.debug_mode = self._debug_mode
@@ -186,6 +209,7 @@ class Websocket():
         while True:
             response = await websocket.recv()
             if response != None:
+                if self._debug_mode == True: print(f"Response from Hiven at {datetime.datetime.now().strftime('%H:%M:%S')}")
                 await self.on_response(websocket, response)
 
     # Opens the event loop
@@ -201,13 +225,14 @@ class Websocket():
                     # Sleeping the wanted time (Pause for the Heartbeat)
                     await asyncio.sleep(self._HEARTBEAT / 1000)
 
-                    if self._debug_mode == True: print(f"[OPENHIVEN_PY] >> WEBSOCKET ON '{self._WEBSOCKET_URL}' [{datetime.datetime.now().strftime('%H:%M:%S:%f')}] Data was sent!") 
+                    if self._debug_mode == True: print(f"WEBSOCKET ON '{self._WEBSOCKET_URL}' [{datetime.datetime.now().strftime('%H:%M:%S:%f')}] Life Signal was sent!") 
 
                     # Sending messages to the Hiven Api to show a live Signal
                     await websocket.send(json.dumps({"op": 3}))
 
                     # If the connection is closing the loop will break
                     if self._connection_status == "closing" or self._connection_status == "closed":
+                        
                         break
 
                 return 
@@ -237,7 +262,9 @@ class Websocket():
         """    
         response_data = json.loads(ctx_data)
 
-        print(response_data) if self._print_output == True else None
+        if self._print_output == True: print(response_data) 
+
+        if self._debug_mode == True: print(f"Event {response_data['e']} was triggered!")
 
         if response_data['e'] == "INIT_STATE":
             client = self.update_client_data(response_data['d'])
@@ -261,9 +288,9 @@ class Websocket():
             await self.HOUSE_EXIT(ctx)
 
         elif response_data['e'] == "HOUSE_DOWN":
+            if self._debug_mode == True: print(f"Downtime of {response_data['d']['name']} reported!")
             house = None #ToDo
             await self.HOUSE_DOWN(house)
-            
 
         elif response_data['e'] == "HOUSE_MEMBER_ENTER":
             ctx = types.Context(response_data['d'])
@@ -300,7 +327,6 @@ class Websocket():
             member = types.Typing(response_data['d'])
             await self.TYPING_END(member)
         
-
         else:
             print(response_data['e'])
             
@@ -318,6 +344,7 @@ class Websocket():
     # Stops the websocket connection
     async def stop_event_loop(self) -> None:
         try:
+            if self._debug_mode == True: print(f"Connection to the Hiven Websocket closed!")
             self._connection_status = "closing"
             asyncio.get_event_loop().stop()
             asyncio.get_event_loop().close()

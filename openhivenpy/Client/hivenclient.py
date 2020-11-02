@@ -17,7 +17,8 @@ class HivenClient(Websocket, Events, Client):
     Main Class in openhivenpy and will be used to connect to the Hiven API and interact with it. Inherits from Websocket, Events and Client
     
     """
-    def __init__(self, token: str, client_type: str = None,  heartbeat=30000, print_output=False, debug_mode=False):
+    def __init__(self, token: str, client_type: str = None,  heartbeat: int = 30000, print_output: bool = False, 
+                 debug_mode: bool = False, ping_timeout: int = 100, close_timeout: int = 20, ping_interval: int = 60):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
             self._CLIENT_TYPE = "HivenClient.UserClient"
@@ -40,8 +41,12 @@ class HivenClient(Websocket, Events, Client):
             raise errs.InvalidToken("Invalid Token")
 
         self._CUSTOM_HEARBEAT = False if heartbeat == 30000 else True
+        
+        # If debug mode is true, print_ouput will be automatically set to also True
+        if debug_mode == True: print_output = True 
+        
 
-        super().__init__(API_URL, API_VERSION, debug_mode, print_output, token, heartbeat)
+        super().__init__(API_URL, API_VERSION, debug_mode, print_output, token, heartbeat, ping_timeout, close_timeout, ping_interval)
 
         # Calling the function without any data so it's an empty object with setted attributes that are None at the moment
         #self.update_client_data({})
