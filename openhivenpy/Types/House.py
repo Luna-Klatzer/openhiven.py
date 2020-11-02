@@ -7,26 +7,47 @@ class House():
     
     """
     def __init__(self, data):
-        self._ID = data['id']
-        self._NAME = data['name']
-        self._BANNER = data['banner']
-        self._ICON = data['icon']
-        #self.members = members #ToDo
-        #self.rooms = data['rooms']
-        
+        self._id = data['id']
+        self._name = data['name']
+        self._banner = data['banner']
+        self._icon = data['icon']
+        self._owner_id = data['owner_id']
+        self._roles = list(data['entities'])
+        self._members = list()
+        self._rooms = list()
 
     @property
     def id(self) -> int:
-        return self._ID
+        return self._id
 
     @property
     def name(self) -> str:
-        return self._NAME
+        return self._name
 
     @property
     def banner(self) -> str:
-        return self._BANNER
+        return self._banner
 
     @property
     def icon(self) -> str:
-        return self._ICON
+        return self._icon
+    
+    @property
+    def owner_id(self) -> int:
+        return self._owner_id     
+        
+    @property
+    def roles(self) -> list:
+        return self._roles  
+
+    @property
+    def users(self) -> list:
+        return self._members    
+    
+    @property
+    def members(self) -> list:
+        return self._members    
+    
+    @property
+    def rooms(self) -> list:
+        return self._rooms    

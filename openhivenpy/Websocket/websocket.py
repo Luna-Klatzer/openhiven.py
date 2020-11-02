@@ -168,10 +168,8 @@ class Websocket():
             except Exception as e:
                 # Getting the place of error(line of error) 
                 # and appending it to the error message
-                try: line_of_error = sys.exc_info()[-1].tb_lineno
-                except Exception as e: line_of_error = "Unknown"
 
-                await self.on_error(f"In Line {line_of_error}: " + str(e).capitalize())
+                await self.on_error(e)
 
         connection = asyncio.create_task(websocket_connect())
         # Running the task in the background
@@ -252,7 +250,10 @@ class Websocket():
         Handler for Errors in the Websocket. Not supposed to be called by the user! 
         
         """    
-        raise sys.exc_info()[0](error)
+        try: line_of_error = sys.exc_info()[-1].tb_lineno
+        except Exception as e: line_of_error = "Unknown"
+        
+        raise sys.exc_info()[0](f"In Line {line_of_error}: " + str(error).capitalize())
 
     async def on_response(self, websocket, ctx_data) -> None:
         """
@@ -260,76 +261,82 @@ class Websocket():
         Handler for the Websocket Events and the message data. Not supposed to be called by the user! 
         
         """    
-        response_data = json.loads(ctx_data)
+        try:
+            response_data = json.loads(ctx_data)
 
-        if self._print_output == True: print(response_data) 
+            if self._print_output == True: print(response_data) 
 
-        if self._debug_mode == True: print(f"Event {response_data['e']} was triggered!")
+            if self._debug_mode == True: print(f"Event {response_data['e']} was triggered!")
 
-        if response_data['e'] == "INIT_STATE":
-            client = self.update_client_data(response_data['d'])
-            await self.INIT_STATE(client)
-            self._initalized = True
+            if response_data['e'] == "INIT_STATE":
+                client = self.update_client_data(response_data['d'])
+                await self.INIT_STATE(client)
+                self._initalized = True
 
-        elif response_data['e'] == "HOUSE_JOIN":
-            if not hasattr(self, '_HOUSES') and not hasattr(self, '_USERS'):
-                raise errs.FaultyInitializationError("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
+            elif response_data['e'] == "HOUSE_JOIN":
+                if not hasattr(self, '_HOUSES') and not hasattr(self, '_USERS'):
+                    raise errs.FaultyInitializationError("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
 
-            ctx = types.House(response_data['d'])
-            await self.HOUSE_JOIN(ctx)
-            self._HOUSES.append(ctx)
+                ctx = types.House(response_data['d'])
+                await self.HOUSE_JOIN(ctx)
 
-            for usr in response_data['d']['users']:
-                if not utils.get(self._USERS,id=usr['id']):
-                    self._USERS.append(types.User(usr))         
+                for usr in response_data['d']['members']:
+                    if not utils.get(self._USERS, id=usr['id']):
+                        self._USERS.append(types.User(usr))         
+                        ctx._members.append(types.Member(usr)) 
+                
+                self._HOUSES.append(ctx)
 
-        elif response_data['e'] == "HOUSE_EXIT":
-            ctx = types.Context(response_data['d'])
-            await self.HOUSE_EXIT(ctx)
+            elif response_data['e'] == "HOUSE_EXIT":
+                ctx = types.Context(response_data['d'])
+                await self.HOUSE_EXIT(ctx)
 
-        elif response_data['e'] == "HOUSE_DOWN":
-            if self._debug_mode == True: print(f"Downtime of {response_data['d']['name']} reported!")
-            house = None #ToDo
-            await self.HOUSE_DOWN(house)
+            elif response_data['e'] == "HOUSE_DOWN":
+                if self._debug_mode == True: print(f"Downtime of {response_data['d']['name']} reported!")
+                house = None #ToDo
+                await self.HOUSE_DOWN(house)
 
-        elif response_data['e'] == "HOUSE_MEMBER_ENTER":
-            ctx = types.Context(response_data['d'])
-            member = types.Member(response_data['d'])
-            await self.HOUSE_MEMBER_ENTER8(ctx, member)
+            elif response_data['e'] == "HOUSE_MEMBER_ENTER":
+                ctx = types.Context(response_data['d'])
+                member = types.Member(response_data['d'])
+                await self.HOUSE_MEMBER_ENTER8(ctx, member)
 
-        elif response_data['e'] == "HOUSE_MEMBER_EXIT":
-            ctx = types.Context(response_data['d'])
-            member = types.Member(response_data['d'])
-            await self.HOUSE_MEMBER_EXIT(ctx, member)
+            elif response_data['e'] == "HOUSE_MEMBER_EXIT":
+                ctx = types.Context(response_data['d'])
+                member = types.Member(response_data['d'])
+                await self.HOUSE_MEMBER_EXIT(ctx, member)
 
-        elif response_data['e'] == "PRESENCE_UPDATE":
-            precence = types.Precence(response_data['d'])
-            member = types.Member(response_data['d'])
-            await self.PRESENCE_UPDATE(precence, member)
+            elif response_data['e'] == "PRESENCE_UPDATE":
+                precence = types.Precence(response_data['d'])
+                member = types.Member(response_data['d'])
+                await self.PRESENCE_UPDATE(precence, member)
 
-        elif response_data['e'] == "MESSAGE_CREATE":
-            message = types.Message(response_data['d'])
-            await self.MESSAGE_CREATE(message)
+            elif response_data['e'] == "MESSAGE_CREATE":
+                message = types.Message(response_data['d'])
+                await self.MESSAGE_CREATE(message)
 
-        elif response_data['e'] == "MESSAGE_DELETE":
-            message = types.Message(response_data['d'])
-            await self.MESSAGE_DELETE(message)
+            elif response_data['e'] == "MESSAGE_DELETE":
+                message = types.Message(response_data['d'])
+                await self.MESSAGE_DELETE(message)
 
-        elif response_data['e'] == "MESSAGE_UPDATE":
-            message = types.Message(response_data['d'])
-            await self.MESSAGE_UPDATE(message)
+            elif response_data['e'] == "MESSAGE_UPDATE":
+                message = types.Message(response_data['d'])
+                await self.MESSAGE_UPDATE(message)
 
-        elif response_data['e'] == "TYPING_START":
-            member = types.Typing(response_data['d'])
-            await self.TYPING_START(member)
+            elif response_data['e'] == "TYPING_START":
+                member = types.Typing(response_data['d'])
+                await self.TYPING_START(member)
 
-        elif response_data['e'] == "TYPING_END":
-            member = types.Typing(response_data['d'])
-            await self.TYPING_END(member)
-        
-        else:
-            print(response_data['e'])
+            elif response_data['e'] == "TYPING_END":
+                member = types.Typing(response_data['d'])
+                await self.TYPING_END(member)
             
+            else:
+                print(response_data['e'])
+                
+        except Exception as e:
+            raise sys.exc_info()[0](e)
+        
         return
 
     # Gets a json file from the hiven api
@@ -350,6 +357,6 @@ class Websocket():
             asyncio.get_event_loop().close()
 
         except Exception as e:
-            raise Exception(f"An error appeared while trying to close the connection to Hiven.{e}")
+            raise sys.exc_info()[0](f"An error appeared while trying to close the connection to Hiven.{e}")
         
         return

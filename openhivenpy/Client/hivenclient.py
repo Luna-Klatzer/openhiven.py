@@ -6,7 +6,7 @@ import warnings
 from openhivenpy.Websocket import Websocket
 from openhivenpy.Events import Events
 import openhivenpy.Error.Exception as errs
-from openhivenpy.Types import Client,ClientUser
+from openhivenpy.Types import Client, ClientUser
 
 API_URL = "https://api.hiven.io"
 API_VERSION = "v1"
@@ -43,8 +43,7 @@ class HivenClient(Websocket, Events, Client):
         self._CUSTOM_HEARBEAT = False if heartbeat == 30000 else True
         
         # If debug mode is true, print_ouput will be automatically set to also True
-        if debug_mode == True: print_output = True 
-        
+        if debug_mode == True: print_output = True         
 
         super().__init__(API_URL, API_VERSION, debug_mode, print_output, token, heartbeat, ping_timeout, close_timeout, ping_interval)
 
