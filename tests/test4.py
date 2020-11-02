@@ -5,12 +5,11 @@ import os
 
 # Simple test to get a simple response from the Hiven API
 TOKEN = os.getenv("token") or "" #Just to prevent mishaps
-client = openhivenpy.HivenClient(token=TOKEN)
+client = openhivenpy.UserClient(token=TOKEN)
 
 @client.event() 
 async def on_init(client):
-    print(dir(client))
-    print(client)
+    print("Init'd")
 
 async def run():
     response = await client.get()

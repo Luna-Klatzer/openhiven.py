@@ -6,7 +6,7 @@ import warnings
 from openhivenpy.Websocket import Websocket
 from openhivenpy.Events import Events
 import openhivenpy.Error.Exception as errs
-from openhivenpy.Types import Client
+from openhivenpy.Types import Client,ClientUser
 
 API_URL = "https://api.hiven.io"
 API_VERSION = "v1"
@@ -90,7 +90,8 @@ class HivenClient(Websocket, Events, Client):
         return 
 
 
-    # Just for ease
+    # Begin User Functions # 
+
     def run(self) -> None:
         """openhivenpy.Client.HivenClient.run()
         
@@ -98,6 +99,13 @@ class HivenClient(Websocket, Events, Client):
         
         """
         asyncio.run(self.start_event_loop())
+
+    # End User Functions #
+    # Begin User Properties #
+
+    @property
+    def user(self) -> ClientUser:
+        return self._USERCLIENT
 
     @property
     def client_type(self) -> str:

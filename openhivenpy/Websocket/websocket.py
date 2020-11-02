@@ -252,13 +252,18 @@ class Websocket():
             await self.HOUSE_JOIN(ctx)
             self._HOUSES.append(ctx)
 
-            for usr in ctx["users"]:
+            for usr in response_data["d"]["users"]:
                 if not utils.get(self._USERS,id=usr["id"]):
                     self._USERS.append(types.User(usr))         
 
         elif response_data["e"] == "HOUSE_EXIT":
             ctx = types.Context(response_data['d'])
             await self.HOUSE_EXIT(ctx)
+
+        elif response_data["e"] == "HOUSE_DOWN":
+            house = None #ToDo
+            await self.HOUSE_DOWN(house)
+            
 
         elif response_data['e'] == "HOUSE_MEMBER_ENTER":
             ctx = types.Context(response_data['d'])
@@ -294,6 +299,7 @@ class Websocket():
         elif response_data['e'] == "TYPING_END":
             member = types.Typing(response_data['d'])
             await self.TYPING_END(member)
+        
 
         else:
             print(response_data['e'])

@@ -9,7 +9,7 @@ with open("requirements.txt") as file:
 setuptools.setup(
     name="openhiven-py", 
     version="0.0.dev1",
-    author="NicolasK",
+    author="NicolasK", #Wait who is the actual author :thinking:
     author_email="nicolas.klatzer@gmail.com",
     description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteBot",
     long_description=long_description,

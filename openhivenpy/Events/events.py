@@ -46,6 +46,10 @@ class Events():
         if hasattr(self, 'on_house_exit'):
             await self.on_house_exit(ctx)
 
+    async def HOUSE_DOWN(self,house) -> None:
+        if hasattr(self,"on_house_downage"):
+            await self.on_house_downage(house)
+
     async def HOUSE_MEMBER_ENTER(self, ctx, member) -> None:
         if hasattr(self, 'on_house_enter'):
             await self.on_house_enter(ctx, member)

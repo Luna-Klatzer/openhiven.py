@@ -24,6 +24,13 @@ class InvalidClientType(HivenException):
     """
     pass
 
+class NoDisplayInfo(HivenException):
+    """openhiven.py.Exception.NoDisplayInfo
+
+    The library was unable to set the display info.
+    """
+    pass
+
 class InvalidToken(HivenException):
     """openhivenpy.Exception.InvalidToken
     
