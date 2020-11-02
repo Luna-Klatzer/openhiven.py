@@ -46,6 +46,8 @@ class HivenClient(Websocket, Events, Client):
         # Calling the function without any data so it's an empty object with setted attributes that are None at the moment
         self.update_client_data({})
 
+        self._USERCLIENT = None
+
     async def deactivate_print_output(self) -> None:
         """openhivenpy.Client.HivenClient.deactivate_print_output()
         
