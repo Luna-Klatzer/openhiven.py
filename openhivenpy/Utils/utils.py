@@ -1,25 +1,27 @@
 from operator import attrgetter
 
-def get(iterable,**attrs): #Sorry Rapptz
-    # global -> local
+def get(iterable, **attrs):
     _all = all
-    attrget = attrgetter
 
-    # Special case the single element call
+    # There is only one element in the dict attrs
     if len(attrs) == 1:
-        k, v = attrs.popitem()
-        pred = attrget(k.replace('__', '.'))
+        key, val = attrs.popitem()
+        pred = attrgetter(key.replace('__', '.'))
         for elem in iterable:
-            if pred(elem) == v:
+            if pred(elem) == val:
                 return elem
+            
+        # Returns if nothing is true
         return None
 
     converted = [
-        (attrget(attr.replace('__', '.')), value)
+        (attrgetter(attr.replace('__', '.')), value)
         for attr, value in attrs.items()
     ]
 
     for elem in iterable:
+        # Checks if the element exists with the same value
         if _all(pred(elem) == value for pred, value in converted):
             return elem
+    # Returns if nothing is true
     return None

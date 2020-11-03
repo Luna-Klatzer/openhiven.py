@@ -10,9 +10,12 @@ class Member(User):
     """
     def __init__(self, data):
         super().__init__(data)
-        self._user_id = data['user_id']
-        self._house_id = data['house_id']
-        self._joined_at = data['joined_at']
+        if hasattr(data, 'user_id'): self._user_id = data['user_id']
+        else: self._user_id = self._id
+        if hasattr(data, 'house_id'): self._house_id = data['house_id']
+        else: self._user_id = None
+        if hasattr(data, 'joined_at'): self._joined_at = data['joined_at']
+        else: self._joined_at = None
         if hasattr(data, 'roles'): self._roles = list(data['roles'])
         else: self._roles = None
         

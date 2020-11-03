@@ -281,7 +281,7 @@ class Websocket():
                 await self.HOUSE_JOIN(ctx)
 
                 for usr in response_data['d']['members']:
-                    if not utils.get(self._USERS, id=usr['id']):
+                    if not utils.get(self._USERS, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
                         self._USERS.append(types.User(usr))         
                         ctx._members.append(types.Member(usr)) 
                 
