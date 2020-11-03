@@ -13,6 +13,7 @@ class User():
             self._username = data['user']['username']
             self._name = data['user']['name']
             self._id = data['user']['id']
+            self._flags = data["user"]["user_flags"] #ToDo: Discord.py-esque way of user flagss
             if hasattr(data['user'], 'bot'): self._icon = data['user']['icon'] if data['user']['icon'] != None else None
             else: self._icon = None
             if hasattr(data['user'], 'header'): self._header = data['user']['header'] if data['user']['header'] != None else None
