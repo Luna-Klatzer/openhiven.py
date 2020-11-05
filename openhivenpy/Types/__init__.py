@@ -7,4 +7,4 @@ from .Client import *
 from .Member import *
 from .Client import *
 from .Typing import *
-from .Presence import *
+#from .Presence import *

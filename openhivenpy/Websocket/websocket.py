@@ -6,10 +6,13 @@ import time
 import sys
 import json
 import datetime
+import logging
 
 import openhivenpy.Types as types
 import openhivenpy.Error.Exception as errs
 import openhivenpy.Utils as utils
+
+log = logging.Logger("openhiven")
 
 class Websocket():
     """openhivenpy.Websocket: Websocket Class
@@ -283,7 +286,11 @@ class Websocket():
                 for usr in response_data['d']['members']:
                     if not utils.get(self._USERS, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
                         self._USERS.append(types.User(usr))         
-                        ctx._members.append(types.Member(usr)) 
+                        ctx._members.append(types.Member(usr))
+                        try:
+                           print(types.User(usr).joined_at.year) 
+                        except:
+                           pass 
                 
                 self._HOUSES.append(ctx)
 
@@ -333,7 +340,9 @@ class Websocket():
             
             else:
                 print(response_data['e'])
-                
+
+            log.info(response_data)
+            
         except Exception as e:
             raise sys.exc_info()[0](e)
         
