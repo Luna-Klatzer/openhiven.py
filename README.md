@@ -1,5 +1,5 @@
 <h1 align="center"><img src="https://images.nxybi.me/da4e88d64f12.png"><br>OpenHiven.py</h1>
-<h2 align="center">The non-official OpenSource Python Library for Hiven.</h2> <!-- Always close your tags, kids. -->
+<h2 align="center">The non-official OpenSource Python API Wrapper for Hiven.</h2> <!-- Always close your tags, kids. -->
 <h3 align="center">Currently still under heavy development and build up!</h3>
 <p align="center">
   <a href="https://github.com/FrostbyteSpace/openhiven.py">
