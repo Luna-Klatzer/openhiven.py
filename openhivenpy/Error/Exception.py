@@ -71,6 +71,13 @@ class FaultyInitializationError(Exception):
     """
     pass
 
+class Forbidden(Exception):
+    """openhivenpy.Exception.Forbidden
+
+    The client was forbidden to do a certain exception
+    """
+    pass
+
 # Command Exceptions #
 
 class CommandException(Exception):

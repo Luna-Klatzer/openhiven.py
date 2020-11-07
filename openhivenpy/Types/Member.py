@@ -1,7 +1,9 @@
 from openhivenpy.Types import User
+import requests
+from openhivenpy.Error import Exception as errs
 
 class Member(User):
-    """openhivenpy.Types.Message: Data Class for a standard Hiven message
+    """openhivenpy.Types.Member: Data Class for a Hiven member
     
     The class inherits all the avaible data from Hiven(attr -> read-only) and the User Class!
     
@@ -34,3 +36,17 @@ class Member(User):
     @property
     def roles(self) -> list:
         return self._roles
+
+    async def kick(self) -> bool:
+        """
+            openhiven.py.Types.Member.kick(): Kicks a user from the house.
+
+            The client needs permissions to kick, or else this will raise HivenException.Forbidden. Returns True if succesful.
+        """
+
+        #DELETE api.hiven.io/houses/HOUSEID/members/MEMBERID
+        res = await requests.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._id}")
+        if not res.response_code == 204: #Why not continue using 200 instead of using 204 i have no idea.
+            raise errs.Forbidden()
+        else:
+            return True
