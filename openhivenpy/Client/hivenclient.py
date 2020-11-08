@@ -3,6 +3,7 @@ import requests
 import sys
 import warnings
 import logging
+import time
 
 from openhivenpy.Websocket import Websocket
 from openhivenpy.Events import Events
@@ -37,6 +38,10 @@ class HivenClient(Websocket, Events, Client):
             logger.warning("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
             warnings.warn("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!", errs.NoneClientType)
             self._CLIENT_TYPE = "HivenClient.BotClient"
+        
+        elif client_type == "discord": #Okay i couldnt help myself.
+            print("https://github.com/Rapptz/discord.py")
+            return
 
         else:
             logger.error(f"Expected 'user' or 'bot', got '{client_type}'")
@@ -90,6 +95,11 @@ class HivenClient(Websocket, Events, Client):
     def users(self) -> list:
         return self._USERS
 
+    @property
+    def ping(self) -> float:
+        start = time.time()
+        requests.get("https://api.hiven.io/")
+        return time.time() - start
         
 
 

@@ -40,6 +40,7 @@ class Member(User):
     def roles(self) -> list:
         return self._roles
 
+
     async def kick(self) -> bool:
         """`openhivenpy.Types.Member.kick()`
         

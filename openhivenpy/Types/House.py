@@ -1,3 +1,5 @@
+from .Room import Room
+import requests
 class House():
     """`openhivenpy.Types.House`
     
@@ -54,3 +56,10 @@ class House():
     @property
     def rooms(self) -> list:
         return self._rooms    
+
+    def create_room(self,name) -> Room:
+        """openhivenpy.Types.House.createroom(name)
+
+        Creates a Room in the house with the specified name. Returns the Room that was created if successful
+        """
+        res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms")

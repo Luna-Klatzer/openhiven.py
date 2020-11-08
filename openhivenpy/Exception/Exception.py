@@ -74,7 +74,7 @@ class FaultyInitializationError(Exception):
 class Forbidden(Exception):
     """`openhivenpy.Exception.Forbidden`
 
-    The client was forbidden to do a certain exception
+    The client was forbidden to do a certain event
     """
     pass
 

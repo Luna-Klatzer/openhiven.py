@@ -354,6 +354,20 @@ class Websocket():
         resp = requests.get(url=f"{self.api_url}/{keyword}")
         return resp
 
+    # Sends a request to the API. Mostly so I dont have to auth 24/7.
+    async def api(self, method: str, endpoint: str, body):
+        resp = None
+        headers = {"content_type": "application/json","authorization": self._TOKEN}
+        if method == "get":
+            resp = requests.get(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "post":
+            resp = requests.post(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "patch":
+            resp = requests.patch(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "delete":
+            resp = requests.delete(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+
+        return resp
 
     # Gets the current connection_status
     async def get_connection_status(self) -> str:

@@ -1,6 +1,7 @@
 from .Room import Room
 from .Member import Member
 import datetime
+import requests
 
 class Message():
     """`openhivenpy.Types.Message`
@@ -16,7 +17,7 @@ class Message():
     def __init__(self, data: dict):
         self._id = data['id']
         self._author = Member(data['author'])
-        self._time = data['time']
+        self._roomid = data["room_id"]
         self._room = None #Need to get room list as this returns room_id
         self._attatchment = data['attatchment']
         self._content = data['content']
@@ -37,8 +38,42 @@ class Message():
 
     @property
     def created_at(self):
-        return self._time
+        return self._timestamp
 
     @property
     def edited_at(self):
         return self._edited_at
+
+    @property
+    def room(self):
+        return self._room
+
+    @property
+    def attatchment(self):
+        return self._attatchment
+
+    @property
+    def content(self):
+        return self._content
+
+    @property
+    def mentions(self):
+        return self._mentions
+
+    async def ack(self) -> bool:
+        """openhivenpy.Types.Message.ack
+
+        Marks the message as read. This doesn't need to be done for bot clients. Returns `True` if successful.
+        """
+        res = requests.post(f"https://api.hiven.io/v1/rooms/{self._roomid}/messages/{self._id}/ack")
+        if not res.status_code == 204:
+            return False
+        else:
+            return True
+
+    async def delete(self) -> bool:
+        """openhivenpy.Types.Message.delete()
+
+        Deletes the message. Raises Forbidden if not allowed. Returns True if successful
+        """
+        print()
