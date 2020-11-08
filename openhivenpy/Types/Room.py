@@ -1,11 +1,14 @@
 class Room():
-    """openhivenpy.Types.Room: Data Class for a Hiven Room
+    """`openhivenpy.Types.Room`
+    
+    Data Class for a Hiven Room
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     The class inherits all the avaible data from Hiven(attr -> read-only)!
     
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data):
+    def __init__(self, data: dict):
         self.id = data['id']
         self.name = data['name']

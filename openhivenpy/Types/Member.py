@@ -1,6 +1,6 @@
-from openhivenpy.Types import User
 import requests
-from openhivenpy.Error import Exception as errs
+from .User import User
+import openhivenpy.Exception as errs
 
 class Member(User):
     """openhivenpy.Types.Member: Data Class for a Hiven member
@@ -10,7 +10,7 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data):
+    def __init__(self, data: dict):
         super().__init__(data)
         if hasattr(data, 'user_id'): self._user_id = data['user_id']
         else: self._user_id = self._id
@@ -20,6 +20,9 @@ class Member(User):
         else: self._joined_at = None
         if hasattr(data, 'roles'): self._roles = list(data['roles'])
         else: self._roles = None
+        
+    def __str__(self):
+        return self.id()
         
     @property
     def user_id(self) -> int:
@@ -38,10 +41,17 @@ class Member(User):
         return self._roles
 
     async def kick(self) -> bool:
-        """
-            openhiven.py.Types.Member.kick(): Kicks a user from the house.
+        """`openhivenpy.Types.Member.kick()`
+        
+        Kick
+        ~~~~
 
-            The client needs permissions to kick, or else this will raise HivenException.Forbidden. Returns True if succesful.
+        Kicks a user from the house.
+
+        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`. 
+            
+        Returns `True` if succesful.
+        
         """
 
         #DELETE api.hiven.io/houses/HOUSEID/members/MEMBERID

@@ -1,12 +1,15 @@
 class House():
-    """openhivenpy.Types.House: Data Class for a Hiven House
+    """`openhivenpy.Types.House`
+    
+    Data Class for a Hiven House
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     The class inherits all the avaible data from Hiven(attr -> read-only)!
     
     Returned with events, the client guilds attribute and get_guild()
     
     """
-    def __init__(self, data):
+    def __init__(self, data: dict):
         self._id = data['id']
         self._name = data['name']
         self._banner = data['banner']

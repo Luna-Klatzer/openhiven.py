@@ -1,15 +1,22 @@
+import sys
+import logging
 from .User import User
 from .ClientUser import ClientUser
 
-class Client():
-    """openhivenpy.Types.Client: Data Class for the general HivenClient
+logger = logging.getLogger(__name__)
+
+class Client(User):
+    """`openhivenpy.Types.Client` 
+    
+    Data Class for HivenClient
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     Used for the general data in the HivenClient and inherits all the avaible data from Hiven(attr -> readonly)!
     
     Returned as HivenClient(or specified Client Type) in on_init() and with UserClient(), BotClient() and HivenClient()
     
     """
-    def update_client_data(self, data): #Maybe make a ClientUser object to make this cleaner? :thinking:
+    def update_client_data(self, data: dict) -> None: #Maybe make a ClientUser object to make this cleaner? :thinking:
         """
         Updates or creates the standard data of the HivenClient
         
@@ -17,20 +24,7 @@ class Client():
         
         """
         try: 
-            self._username = data['user']['username'] if data['user']['username'] != None else None 
-            self._name = data['user']['name'] if data['user']['name'] != None else None 
-            self._id = data['user']['id'] if data['user']['id'] != None else None 
-            try: self._icon = data['user']['icon'] if data['user']['icon'] != None else None 
-            except: self._icon = None
-
-            try: self._header = data["user"]["header"] if data["user"]["header"] != None else None
-            except: self._header = None
-                
-            try: self._location = data["user"]["location"] if data["user"]["location"] != None else None
-            except: self._location = None
-            
-            try: self._website = data["user"]["website"] if data["user"]["website"] != None else None
-            except: self._website = None
+            super().__init__(data)
 
             self._HOUSES = [] #Python no likey appending to a read-only list
             self._USERS = []
@@ -38,9 +32,11 @@ class Client():
             return self
 
         except AttributeError: #Audible pain.
+            logger.error(e)
             raise AttributeError("The data of the object User was not initialized correctly")
         except KeyError as e:
             pass
         except Exception as e:
-            raise e
+            logger.error(e)
+            raise sys.exc_info()[0](e)
 

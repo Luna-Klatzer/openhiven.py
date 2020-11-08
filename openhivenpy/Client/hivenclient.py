@@ -2,23 +2,30 @@ import asyncio
 import requests
 import sys
 import warnings
+import logging
 
 from openhivenpy.Websocket import Websocket
 from openhivenpy.Events import Events
-import openhivenpy.Error.Exception as errs
+import openhivenpy.Exception as errs
 from openhivenpy.Types import Client, ClientUser
 
 API_URL = "https://api.hiven.io"
 API_VERSION = "v1"
+logger = logging.getLogger(__name__)
 
 class HivenClient(Websocket, Events, Client):
-    """openhivenpy.Client.HivenClient: Class HivenClient
+    """`openhivenpy.Client.HivenClient` 
     
-    Main Class in openhivenpy and will be used to connect to the Hiven API and interact with it. Inherits from Websocket, Events and Client
+    HivenClient
+    ~~~~~~~~~~~
+    
+    Main Class for connecint to Hiven and interacting with the API. 
+    
+    Inherits from Websocket, Events and Client
     
     """
-    def __init__(self, token: str, client_type: str = None,  heartbeat: int = 30000, print_output: bool = False, 
-                 debug_mode: bool = False, ping_timeout: int = 100, close_timeout: int = 20, ping_interval: int = 60):
+    def __init__(self, token: str, client_type: str = None,  heartbeat: int = 30000, ping_timeout: int = 100, 
+                 close_timeout: int = 20, ping_interval: int = None):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
             self._CLIENT_TYPE = "HivenClient.UserClient"
@@ -27,64 +34,25 @@ class HivenClient(Websocket, Events, Client):
             self._CLIENT_TYPE = "HivenClient.BotClient"
 
         elif client_type == None:
-            warnings.warn("Client type is None. Defaulting to BotClient. \nNote! This might be caused by using the HivenClient Class directly which leads to loss of some of the functions!", errs.NoneClientType)
+            logger.warning("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
+            warnings.warn("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!", errs.NoneClientType)
             self._CLIENT_TYPE = "HivenClient.BotClient"
 
         else:
-            raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'") #Could use the diff lib here, and if that doesnt get anything then raise an error :thinking:
-        
+            logger.error(f"Expected 'user' or 'bot', got '{client_type}'")
+            raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'")
 
         if token == None or token == "":
-            raise errs.InvalidToken("Token was not set")
+            logger.critical(f"Empty Token was passed")
+            raise errs.InvalidToken("Token was passed")
 
         elif len(token) != 128:
+            logger.critical(f"Invalid Token")
             raise errs.InvalidToken("Invalid Token")
 
         self._CUSTOM_HEARBEAT = False if heartbeat == 30000 else True
-        
-        # If debug mode is true, print_ouput will be automatically set to also True
-        if debug_mode == True: print_output = True         
 
-        super().__init__(API_URL, API_VERSION, debug_mode, print_output, token, heartbeat, ping_timeout, close_timeout, ping_interval)
-
-        # Calling the function without any data so it's an empty object with setted attributes that are None at the moment
-        #self.update_client_data({})
-
-        
-
-    async def deactivate_print_output(self) -> None:
-        """openhivenpy.Client.HivenClient.deactivate_print_output()
-        
-        Deactivates the output while listening to the Websocket of Hiven
-        
-        """
-        try:
-            self.PRINT_OUTPUT = False
-            
-        except AttributeError as e:
-            raise errs.FaultyInitializationError(f"The attribute display_info_mode does not exist! The HivenClient Object was possibly not initialized correctly!\n{e}")
-
-        except Exception as e:
-            sys.stdout.write(str(e))
-            
-        return
-
-    async def activate_print_output(self) -> None:
-        """openhivenpy.Client.HivenClient.activate_print_output()
-        
-        Activates the output while listening to the Websocket of Hiven
-        
-        """
-        try:
-            self.PRINT_OUTPUT = True
-            
-        except AttributeError as e:
-            raise errs.NoDisplayInfo(f"The attribute display_info_mode does not exist! The HivenClient Object was possibly not initialized correctly!\n{e}")
-
-        except Exception as e:
-            sys.stdout.write(str(e))
-            
-        return
+        super().__init__(API_URL, API_VERSION, token, heartbeat, ping_timeout, close_timeout, ping_interval)
 
     async def connect(self, token=None) -> None:
         """openhivenpy.Client.HivenClient.connect()
@@ -94,9 +62,6 @@ class HivenClient(Websocket, Events, Client):
         """
         await self.create_connection()
         return 
-
-
-    # Begin User Functions # 
 
     def run(self) -> None:
         """openhivenpy.Client.HivenClient.run()
