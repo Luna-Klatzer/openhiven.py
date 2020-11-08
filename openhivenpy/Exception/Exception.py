@@ -8,8 +8,8 @@ class HivenException(Exception):
     """
     pass
 
-class WebsocketException(Exception):
-    """`openhivenpy.Exception.WebsocketException`
+class GatewayException(Exception):
+    """`openhivenpy.Exception.GatewayException`
        
     General Exception in the Websocket!
     
@@ -21,13 +21,6 @@ class InvalidClientType(HivenException):
     
     Invalid Client type was passed and Initialization was not successful!
     
-    """
-    pass
-
-class NoDisplayInfo(HivenException):
-    """:class:`openhiven.py.Exception.NoDisplayInfo`
-
-    The library was unable to set the display info.
     """
     pass
 
@@ -44,10 +37,11 @@ class NoneClientType(Warning):
     
     A None Type was passed in the Initialization!
     
-    """
+    """    
     pass
 
-class UnableToConnect(WebsocketException):
+
+class ConnectionError(GatewayException):
     """`openhivenpy.Exception.UnableToConnect`
     
     The Websocket was unable to connect to the Hiven API. Possibly faulty Token!
@@ -55,16 +49,16 @@ class UnableToConnect(WebsocketException):
     """
     pass
 
-class WebsocketConnectionError(WebsocketException):
+class WebsocketConnectionError(GatewayException):
     """`openhivenpy.Exception.WebsocketConnectionError`
     
-    An Exception occured an error while trying to keep a connection alive to Hiven!
+    An Exception occured an error while trying to keep the connection alive to Hiven!
     
     """
     pass
 
-class FaultyInitializationError(Exception):
-    """`openhivenpy.Exception.FaultyInitializationError`
+class FaultyInitialization(Exception):
+    """`openhivenpy.Exception.FaultyInitialization`
     
     The objects were initialized correctly and values were not created or are entirely missing!
     
@@ -75,6 +69,7 @@ class Forbidden(Exception):
     """`openhivenpy.Exception.Forbidden`
 
     The client was forbidden to do a certain event
+    
     """
     pass
 

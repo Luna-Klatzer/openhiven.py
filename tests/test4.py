@@ -12,10 +12,11 @@ logger.addHandler(handler)
 
 # Simple test to get a simple response from the Hiven API
 TOKEN = os.getenv("token") or "" #Just to prevent mishaps
-client = openhivenpy.UserClient(token=TOKEN)
+event_loop = asyncio.new_event_loop()
+client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop)
 
 @client.event() 
-async def on_init(client):
+async def on_init(time):
     print("Init'd")
 
 async def run():
@@ -29,7 +30,8 @@ async def run():
 
     # Starts the Event loop with the a specified websocket 
     # => can also be a different websocket
-    print(await client.create_connection())
+    await client.create_connection()
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 
 if __name__ == '__main__':

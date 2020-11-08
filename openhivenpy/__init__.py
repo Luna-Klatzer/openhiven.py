@@ -18,7 +18,7 @@ import logging
 from .Client import *
 from .Events import *
 from .Types import *
-from .Websocket import *
+from .Gateway import *
 from .Utils import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

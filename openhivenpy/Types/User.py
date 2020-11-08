@@ -57,7 +57,7 @@ class User():
             
         except AttributeError: 
             logger.error(e)
-            raise errs.FaultyInitializationError("The data of the object User was not initialized correctly")
+            raise errs.FaultyInitialization("The data of the object User was not initialized correctly")
         
         except Exception as e: 
             logger.error(e)

@@ -7,6 +7,7 @@ import sys
 import json
 import datetime
 import logging
+from typing import Optional
 
 import openhivenpy.Types as types
 import openhivenpy.Exception as errs
@@ -14,8 +15,39 @@ import openhivenpy.Utils as utils
 
 logger = logging.getLogger(__name__)
 
-class Websocket():
-    """`openhivenpy.Websocket`
+
+class API():
+    """`openhivenpy.Gateway`
+    
+    API
+    ~~~
+    
+    API Class for interaction with the Hiven API
+    
+    
+    """
+    # Gets a json file from the hiven api
+    async def get(self, keyword: str = "", headers={'content_type': 'application/json'}) -> dict:
+        resp = requests.get(url=f"{self.api_url}/{keyword}")
+        return resp
+
+    # Sends a request to the API. Mostly so I dont have to auth 24/7.
+    async def api(self, method: str, endpoint: str, body):
+        resp = None
+        headers = {"content_type": "application/json","authorization": self._TOKEN}
+        if method == "get":
+            resp = requests.get(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "post":
+            resp = requests.post(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "patch":
+            resp = requests.patch(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+        elif method == "delete":
+            resp = requests.delete(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+
+        return resp
+
+class Websocket(API):
+    """`openhivenpy.Gateway`
     
     Websocket
     ~~~~~~~~~
@@ -24,16 +56,19 @@ class Websocket():
     
     Calls `openhivenpy.Events` and will execute the user code if registered
     
+    Parameter:
+    ----------
+    
+    
     """    
-    def __init__(self, api_url: str, api_version: str, token: str, heartbeat: int or float, 
-                 ping_timeout: int, close_timeout: int, ping_interval: int):
+    def __init__(self, api_url: str, api_version: str, token: str, heartbeat: int or float, ping_timeout: int, 
+                 close_timeout: int, ping_interval: int, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop()):
         
         self._api_url = api_url
         self._api_version = api_version
 
         self._WEBSOCKET_URL = "wss://swarm-dev.hiven.io/socket?encoding=json&compression=text_json"
         self._ENCODING = "json"
-        self._TOKEN = token
 
         # Heartbeat is the interval where messages are going to get sent. 
         # In miliseconds
@@ -50,10 +85,13 @@ class Websocket():
         self._ping_timeout = ping_timeout
         self._close_timeout = close_timeout
         self._ping_interval = ping_interval
+        
+        self._event_loop = event_loop
+        asyncio.set_event_loop(self._event_loop)
 
         if not hasattr(self, '_CUSTOM_HEARBEAT'):
             logger.critical("The client attribute _CUSTOM_HEARTBEAT does not exist! The class is likely faulty initialized!")
-            raise errs.FaultyInitializationError("The client attribute _CUSTOM_HEARTBEAT does not exist! The class is likely faulty initialized!")
+            raise errs.FaultyInitialization("The client attribute _CUSTOM_HEARTBEAT does not exist! The class is likely faulty initialized!")
 
 
     @property
@@ -85,16 +123,21 @@ class Websocket():
         return self._ENCODING
 
     @property
-    def token(self) -> str:
-        return self._TOKEN
-
-    @property
     def heartbeat(self) -> int:
         return self._HEARTBEAT
 
     @property
     def connection_status(self) -> str:
         return self._connection_status
+
+    # Simple async function for getting the connection_status
+    async def get_connection_status(self) -> str:
+        """
+            Simple async function for getting the connection_status
+            
+            Retursn the `str`: connection_status
+        """
+        return self.connection_status
 
     @property
     def open(self) -> bool:
@@ -148,7 +191,7 @@ class Websocket():
 
                     # Authorizing with token
                     logger.info("Logging in with token")
-                    await websocket.send(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
+                    await websocket.send(json.dumps( {"op": 2, "d": {"token": str(self._TOKEN)} } ))
 
                     # Receiving the first response from Hiven and setting the specified heartbeat
                     response = json.loads(await websocket.recv())
@@ -173,14 +216,20 @@ class Websocket():
 
                 await self.on_error(e)
 
-        connection = asyncio.create_task(websocket_connect())
+        # Creaing a task that wraps the courountine
+        self._connection  = asyncio.get_event_loop().create_task(websocket_connect())
+        
         # Running the task in the background
-        await connection
-
-        self._connection = connection
-
-        return
-
+        try:
+            await self._connection 
+        # Avoids that the user notices that the task was cancelled! aka. Silent Error
+        except asyncio.CancelledError:
+            logger.debug("Connection was cancelled!")
+            return 
+        except Exception as e:
+            logger.critical(e)
+            raise sys.exc_info()[0](e)
+            
 
     # Passing values to the Websocket for more information while executing
     async def websocket_init(self, websocket) -> websockets.client.WebSocketClientProtocol:
@@ -222,6 +271,8 @@ class Websocket():
         try:
             async def start_connection():
                 logger.info("Connection to Hiven established")
+                await self.ON_CONNECTION_START()
+                
                 while True:
                     # Sleeping the wanted time (Pause for the Heartbeat)
                     await asyncio.sleep(self._HEARTBEAT / 1000)
@@ -244,7 +295,7 @@ class Websocket():
 
         except Exception as e:
             logger.critical(f"An error occured while trying to connect to Hiven.")
-            raise errs.UnableToConnect(f"An error occured while trying to connect to Hiven.\n{e}")
+            raise errs.ConnectionError(f"An error occured while trying to connect to Hiven.\n{e}")
 
 
     # Error Handler for exceptions while running the websocket connection
@@ -257,10 +308,11 @@ class Websocket():
         try: line_of_error = sys.exc_info()[-1].tb_lineno
         except Exception as e: line_of_error = "Unknown"
         
-        logger.debug(str(error).capitalize())
+        logger.exception(str(error).capitalize())
         raise sys.exc_info()[0](f"In Line {line_of_error}: " + str(error).capitalize())
 
 
+    # Event Triggers
     async def on_response(self, websocket, ctx_data) -> None:
         """
         
@@ -273,26 +325,31 @@ class Websocket():
             logger.debug(f"Received Event {response_data['e']}")
 
             if response_data['e'] == "INIT_STATE":
-                client = self.update_client_data(response_data['d'])
-                await self.INIT_STATE(client)
+                self.update_client_data(response_data['d'])
+                await self.INIT_STATE(time.time())
                 self._initalized = True
 
             elif response_data['e'] == "HOUSE_JOIN":
                 
                 if not hasattr(self, '_HOUSES') and not hasattr(self, '_USERS'):
-                    raise errs.FaultyInitializationError("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
+                    raise errs.FaultyInitialization("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
 
                 house = types.House(response_data['d'])
                 await self.HOUSE_JOIN(house)
 
                 for usr in response_data['d']['members']:
                     if not utils.get(self._USERS, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
-                        self._USERS.append(types.User(usr))     
+                        # Appending to the client users list
+                        self._USERS.append(types.User(usr))    
+                         
+                        # Appending to the house users list
                         usr = types.Member(usr)    
                         house._members.append(usr)
+                        
                         if usr.joined_at != None:
                            print(types.User(usr).joined_at.year) 
                 
+                # Appending to the client houses list
                 self._HOUSES.append(house)
 
             elif response_data['e'] == "HOUSE_EXIT":
@@ -348,42 +405,49 @@ class Websocket():
         
         return
 
-
-    # Gets a json file from the hiven api
-    async def get(self, keyword: str = "", headers={'content_type': 'application/json'}) -> dict:
-        resp = requests.get(url=f"{self.api_url}/{keyword}")
-        return resp
-
-    # Sends a request to the API. Mostly so I dont have to auth 24/7.
-    async def api(self, method: str, endpoint: str, body):
-        resp = None
-        headers = {"content_type": "application/json","authorization": self._TOKEN}
-        if method == "get":
-            resp = requests.get(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
-        elif method == "post":
-            resp = requests.post(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
-        elif method == "patch":
-            resp = requests.patch(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
-        elif method == "delete":
-            resp = requests.delete(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
-
-        return resp
-
-    # Gets the current connection_status
-    async def get_connection_status(self) -> str:
-        return self.connection_status
-
-
     # Stops the websocket connection
     async def stop_event_loop(self) -> None:
+        """
+        
+        Kills the event loop and the running tasks! 
+        
+        Will likely throw `RuntimeError` if the Client was started in a courountine or if future courountines are going to get executed!
+        
+        """
+        
         try:
             logger.info(f"Connection to the Hiven Websocket closed!")
             self._connection_status = "closing"
+            
+            if not self._connection.cancelled():
+                self._connection.cancel()
+            
+            await asyncio.get_event_loop().shutdown_asyncgens()
             asyncio.get_event_loop().stop()
             asyncio.get_event_loop().close()
+            
+            self._connection_status = "closed"
 
         except Exception as e:
-            logger.critical(f"Error while trying to close the connection\n{e}")
-            raise sys.exc_info()[0](f"Error while trying to close the connection\n{e}")
+            logger.critical(f"Error while trying to close the connection{e}")
+            raise sys.exc_info()[0](e)
         
         return
+
+    async def close(self) -> None:
+        """
+        
+        Stops the active asyncio task that represents the connection.
+        
+        """
+        try:
+            logger.info(f"Connection to the Hiven Websocket closed!")
+            self._connection_status = "closing"
+            
+            if not self._connection.cancelled():
+                self._connection.cancel()
+                
+            self._connection_status = "closed"
+        except Exception as e:
+            logger.critical(f"An error occured while trying to close the connection to Hiven: {e}")
+            raise sys.exc_info()[0](e)
