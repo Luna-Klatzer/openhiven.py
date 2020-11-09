@@ -126,8 +126,8 @@ class HivenClient(Websocket, Events, Client, API):
     @property
     def ping(self) -> float:
         start = time.time()
-        requests.get("https://api.hiven.io/")
-        if requests.status_code == 200:
+        res = requests.get("https://api.hiven.io/")
+        if res.status_code == 200:
             return time.time() - start
         else:
             logger.error("Trying to ping Hiven failed!")

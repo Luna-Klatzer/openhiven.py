@@ -1,4 +1,5 @@
 from .Room import Room
+from .Member import Member
 import requests
 class House():
     """`openhivenpy.Types.House`
@@ -18,8 +19,8 @@ class House():
         self._icon = data['icon']
         self._owner_id = data['owner_id']
         self._roles = list(data['entities'])
-        self._members = list()
-        self._rooms = list()
+        self._members = list(Member(x) for x in data["members"])
+        self._rooms = list(Room(x) for x in data["rooms"])
 
     @property
     def id(self) -> int:
@@ -63,3 +64,4 @@ class House():
         Creates a Room in the house with the specified name. Returns the Room that was created if successful
         """
         res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms")
+        return res #ToDo
