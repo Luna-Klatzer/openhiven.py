@@ -1,7 +1,7 @@
-from .Message import Message
+from openhivenpy.Exception import Exception as errs
 
 class Context():
-    """`openhivenpy.Types.House` 
+    """`openhivenpy.Types.Context` 
     
     Data Class for a Command or Event Context
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

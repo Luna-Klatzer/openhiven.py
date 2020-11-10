@@ -26,6 +26,9 @@ class API():
     
     
     """
+    def __init__(self):
+        self.api_url = "https://api.hiven.io/v1"
+    
     # Gets a json file from the hiven api
     async def get(self, keyword: str = "", headers={'content_type': 'application/json'}) -> dict:
         resp = requests.get(url=f"{self.api_url}/{keyword}")
@@ -36,13 +39,13 @@ class API():
         resp = None
         headers = {"content_type": "application/json","authorization": self._TOKEN}
         if method == "get":
-            resp = requests.get(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+            resp = requests.get(f"{self.api_url}/{endpoint}",headers=headers,data=body)
         elif method == "post":
-            resp = requests.post(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+            resp = requests.post(f"{self.api_url}/{endpoint}",headers=headers,data=body)
         elif method == "patch":
-            resp = requests.patch(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+            resp = requests.patch(f"{self.api_url}/{endpoint}",headers=headers,data=body)
         elif method == "delete":
-            resp = requests.delete(f"https://api.hiven.io/{endpoint}",headers=headers,data=body)
+            resp = requests.delete(f"{self.api_url}/{endpoint}",headers=headers,data=body)
 
         return resp
 
@@ -321,6 +324,7 @@ class Websocket(API):
         """    
         try:
             response_data = json.loads(ctx_data)
+            
             
             logger.debug(f"Received Event {response_data['e']}")
 

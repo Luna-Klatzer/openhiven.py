@@ -71,6 +71,7 @@ class Message():
         else:
             return True
 
+
     async def delete(self) -> bool:
         """openhivenpy.Types.Message.delete()
 
