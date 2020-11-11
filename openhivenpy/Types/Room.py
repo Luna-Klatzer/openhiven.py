@@ -10,7 +10,7 @@ class Room():
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
+    def __init__(self, data: dict,token): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
         self._id = data['id']
         self._name = data['name']
         self._house = data["house_id"]
@@ -18,6 +18,7 @@ class Room():
         self._type = data["type"] # 0 = Text, 1 = Portal
         self._emoji = data["emoji"]
         self._description = data["description"]
+        self._TOKEN = token
 
     @property
     def id(self):

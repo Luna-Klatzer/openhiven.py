@@ -1,10 +1,10 @@
-from . import *
+from . import User
 import openhivenpy
 import requests
 
 class ClientUser(User):
-    def __init__(self, data: dict):
-        super().__init__(data)
+    def __init__(self, data: dict,token):
+        super().__init__(data,token)
 
 
     async def edit(self,data) -> bool:

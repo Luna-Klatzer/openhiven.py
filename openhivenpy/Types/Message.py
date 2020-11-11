@@ -14,7 +14,7 @@ class Message():
     Returned with house room message list and House.get_message()
     
     """
-    def __init__(self, data: dict):
+    def __init__(self, data: dict,token):
         self._id = data['id']
         self._author = Member(data['author'])
         self._roomid = data["room_id"]
@@ -26,7 +26,7 @@ class Message():
         self._mentions = [(Member(x) for x in data['mentions'])] #Thats the first time I've ever done that. Be proud of me kudo!
         self._type = data['type'] # I believe, 0 = normal message, 1 = system.
         self._exploding = data['exploding'] #..I have no idea.
-
+        self._TOKEN = token
 
     @property
     def id(self):

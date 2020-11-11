@@ -26,26 +26,28 @@ class API():
     
     
     """
-    def __init__(self):
-        self.api_url = "https://api.hiven.io/v1"
-    
+    @property
+    def api_url(self):
+        return "https://api.hiven.io/v1"
+
     # Gets a json file from the hiven api
     async def get(self, keyword: str = "", headers={'content_type': 'application/json'}) -> dict:
         resp = requests.get(url=f"{self.api_url}/{keyword}")
         return resp
 
     # Sends a request to the API. Mostly so I dont have to auth 24/7.
-    async def api(self, method: str, endpoint: str, body):
+    @staticmethod
+    async def api(self,method: str, endpoint: str, token: str, body : dict): #Wish there as an easier way to auth but there isnt so..
         resp = None
-        headers = {"content_type": "application/json","authorization": self._TOKEN}
+        headers = {"content_type": "application/json","authorization": token}
         if method == "get":
-            resp = requests.get(f"{self.api_url}/{endpoint}",headers=headers,data=body)
+            resp = requests.get(f"{self.api_url}{endpoint}",headers=headers,data=body)
         elif method == "post":
-            resp = requests.post(f"{self.api_url}/{endpoint}",headers=headers,data=body)
+            resp = requests.post(f"{self.api_url}{endpoint}",headers=headers,data=body)
         elif method == "patch":
-            resp = requests.patch(f"{self.api_url}/{endpoint}",headers=headers,data=body)
+            resp = requests.patch(f"{self.api_url}{endpoint}",headers=headers,data=body)
         elif method == "delete":
-            resp = requests.delete(f"{self.api_url}/{endpoint}",headers=headers,data=body)
+            resp = requests.delete(f"{self.api_url}{endpoint}",headers=headers,data=body)
 
         return resp
 
@@ -76,7 +78,7 @@ class Websocket(API):
         # Heartbeat is the interval where messages are going to get sent. 
         # In miliseconds
         self._HEARTBEAT = heartbeat
-
+        self._TOKEN = token
         self._connection_status = "closed"
 
         self._open = False
@@ -338,7 +340,7 @@ class Websocket(API):
                 if not hasattr(self, '_HOUSES') and not hasattr(self, '_USERS'):
                     raise errs.FaultyInitialization("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
 
-                house = types.House(response_data['d'])
+                house = types.House(response_data['d'],self._TOKEN)
                 await self.HOUSE_JOIN(house)
 
                 for usr in response_data['d']['members']:
@@ -347,7 +349,7 @@ class Websocket(API):
                         self._USERS.append(types.User(usr))    
                          
                         # Appending to the house users list
-                        usr = types.Member(usr)    
+                        usr = types.Member(usr,self._TOKEN)    
                         house._members.append(usr)
                         
                         if usr.joined_at != None:
@@ -357,7 +359,7 @@ class Websocket(API):
                 self._HOUSES.append(house)
 
             elif response_data['e'] == "HOUSE_EXIT":
-                ctx = types.Context(response_data['d'])
+                ctx = types.Context(response_data['d'],self._TOKEN)
                 await self.HOUSE_EXIT(ctx)
 
             elif response_data['e'] == "HOUSE_DOWN":
@@ -366,39 +368,39 @@ class Websocket(API):
                 await self.HOUSE_DOWN(house)
 
             elif response_data['e'] == "HOUSE_MEMBER_ENTER":
-                ctx = types.Context(response_data['d'])
-                member = types.Member(response_data['d'])
+                ctx = types.Context(response_data['d'],self._TOKEN)
+                member = types.Member(response_data['d'],self._TOKEN)
                 await self.HOUSE_MEMBER_ENTER(ctx, member)
 
             elif response_data['e'] == "HOUSE_MEMBER_EXIT":
-                ctx = types.Context(response_data['d'])
-                member = types.Member(response_data['d'])
+                ctx = types.Context(response_data['d'],self._TOKEN)
+                member = types.Member(response_data['d'],self._TOKEN)
                 
                 await self.HOUSE_MEMBER_EXIT(ctx, member)
 
             elif response_data['e'] == "PRESENCE_UPDATE":
-                precence = types.Precence(response_data['d'])
-                member = types.Member(response_data['d'])
+                precence = types.Precence(response_data['d'],self._TOKEN)
+                member = types.Member(response_data['d'],self._TOKEN)
                 await self.PRESENCE_UPDATE(precence, member)
 
             elif response_data['e'] == "MESSAGE_CREATE":
-                message = types.Message(response_data['d'])
+                message = types.Message(response_data['d'],self._TOKEN)
                 await self.MESSAGE_CREATE(message)
 
             elif response_data['e'] == "MESSAGE_DELETE":
-                message = types.Message(response_data['d'])
+                message = types.Message(response_data['d'],self._TOKEN)
                 await self.MESSAGE_DELETE(message)
 
             elif response_data['e'] == "MESSAGE_UPDATE":
-                message = types.Message(response_data['d'])
+                message = types.Message(response_data['d'],self._TOKEN)
                 await self.MESSAGE_UPDATE(message)
 
             elif response_data['e'] == "TYPING_START":
-                member = types.Typing(response_data['d'])
+                member = types.Typing(response_data['d'],self._TOKEN)
                 await self.TYPING_START(member)
 
             elif response_data['e'] == "TYPING_END":
-                member = types.Typing(response_data['d'])
+                member = types.Typing(response_data['d'],self._TOKEN)
                 await self.TYPING_END(member)
             
             else:

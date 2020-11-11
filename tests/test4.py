@@ -3,6 +3,7 @@ import asyncio
 import sys
 import os
 import logging
+import requests
 
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)

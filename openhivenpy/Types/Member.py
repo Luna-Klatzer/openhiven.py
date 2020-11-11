@@ -10,8 +10,8 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict):
-        super().__init__(data)
+    def __init__(self, data: dict,token):
+        super().__init__(data,token)
         if hasattr(data, 'user_id'): self._user_id = data['user_id']
         else: self._user_id = self._id
         if hasattr(data, 'house_id'): self._house_id = data['house_id']
@@ -20,7 +20,8 @@ class Member(User):
         else: self._joined_at = None
         if hasattr(data, 'roles'): self._roles = list(data['roles'])
         else: self._roles = None
-        
+        self._TOKEN = token
+
     def __str__(self):
         return self.id()
         
@@ -56,7 +57,7 @@ class Member(User):
         """
 
         #DELETE api.hiven.io/houses/HOUSEID/members/MEMBERID
-        res = await requests.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._id}") #Needs auth ;p
+        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._user_id}",headers={"Content-Type":"application/json","Authorization":self._TOKEN})
         if not res.response_code == 204: #Why not continue using 200 instead of using 204 i have no idea.
             raise errs.Forbidden()
         else:

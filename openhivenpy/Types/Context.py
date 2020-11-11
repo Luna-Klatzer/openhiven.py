@@ -11,5 +11,6 @@ class Context():
     Returned with events, commands and HivenClient.on_ready()
     
     """
-    def __init__(self, data: dict):
+    def __init__(self, data: dict,token):
+        self._TOKEN = token
         pass

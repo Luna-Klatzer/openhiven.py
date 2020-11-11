@@ -5,7 +5,7 @@ from .ClientUser import ClientUser
 
 logger = logging.getLogger(__name__)
 
-class Client(User):
+class Client(): #Why inherit User?
     """`openhivenpy.Types.Client` 
     
     Data Class for HivenClient
@@ -16,7 +16,7 @@ class Client(User):
     Returned as HivenClient(or specified Client Type) in on_init() and with UserClient(), BotClient() and HivenClient()
     
     """
-    def update_client_data(self, data: dict) -> None: #Maybe make a ClientUser object to make this cleaner? :thinking:
+    def update_client_data(self, data: dict) -> None:
         """
         Updates or creates the standard data of the HivenClient
         
@@ -24,11 +24,9 @@ class Client(User):
         
         """
         try: 
-            super().__init__(data)
-
             self._HOUSES = [] #Python no likey appending to a read-only list
             self._USERS = []
-            self._USERCLIENT = ClientUser(data)
+            self._USERCLIENT = ClientUser(data,self._TOKEN)
             return self
 
         except AttributeError: #Audible pain.
@@ -40,3 +38,5 @@ class Client(User):
             logger.error(e)
             raise sys.exc_info()[0](e)
 
+    def __init__(self,data,token):
+        self.update_client_data(data)

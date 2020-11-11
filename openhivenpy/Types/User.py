@@ -16,12 +16,14 @@ class User():
     Returned with on_member... events, guilds user lists, client user attribute and get_user()
     
     """
-    def __init__(self, data: dict):
+    def __init__(self, data: dict,token):
         try:
             # Messages have only a reduced version of the classic user/member object
             # So it needs to be checked if the user attribute even exists
             if 'user' in data:
                 data = data['user']
+
+            self._TOKEN = token
 
             if hasattr(data, "username"): self._username = data['username']
             else: self._username = None
