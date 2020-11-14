@@ -1,6 +1,7 @@
 import sys
 import datetime
 import logging
+
 import openhivenpy.Exception as errs
 
 logger = logging.getLogger(__name__)
@@ -16,48 +17,26 @@ class User():
     Returned with on_member... events, guilds user lists, client user attribute and get_user()
     
     """
-    def __init__(self, data: dict,token):
+    def __init__(self, data: dict, auth_token: str):
         try:
-            # Messages have only a reduced version of the classic user/member object
-            # So it needs to be checked if the user attribute even exists
-            if 'user' in data:
-                data = data['user']
+            # Messages have the user data nested
+            if data.get('user') != None:
+                data = data.get('user')
 
-            self._TOKEN = token
-
-            if hasattr(data, "username"): self._username = data['username']
-            else: self._username = None
-                
-            if hasattr(data, "name"): self._name = data['name']
-            else: self._name = None
+            self._AUTH_TOKEN = auth_token
+            self._username = data.get('username')
+            self._name = data.get('name')
+            self._id = data.get('id')
+            self._flags = data.get('user_flags') #ToDo: Discord.py-esque way of user flags     
+            self._icon = data.get('icon')   
+            self._header = data.get('header') 
+            self._bot = data.get('bot') 
+            self._location = data.get('location')
+            self._website = data.get('website')  
+            self._presence = data.get('presence') #ToDo: Presence class
+            self._joined_at = data.get('joined_at')
             
-            self._id = data['id']
-            
-            if hasattr(data, "user_flags"): self._flags = data['user_flags'] #ToDo: Discord.py-esque way of user flags
-            else: self._flags = None
-            
-            if hasattr(data, 'bot'): self._icon = data['icon'] 
-            else: self._icon = None
-            
-            if hasattr(data, 'header'): self._header = data['header'] 
-            else: self._header = None
-            
-            if hasattr(data, 'bot'): self._bot = data['bot'] 
-            else: self._bot = None
-            
-            if hasattr(data, 'location'): self._location = data['location']
-            else: self._location = None
-            
-            if hasattr(data, 'website'): self._website = data['website']  
-            else: self._website = None
-            
-            if hasattr(data, 'user'): self._presence = data['presence'] #ToDo: Presence class
-            else: self._presence = None
-            
-            if hasattr(data, 'joined_at'): self._joined_at = data['joined_at']
-            else: self._joined_at = None
-            
-        except AttributeError: 
+        except AttributeError as e: 
             logger.error(e)
             raise errs.FaultyInitialization("The data of the object User was not initialized correctly")
         
@@ -97,6 +76,11 @@ class User():
     def website(self) -> str:
         return self._website
 
+    # Still needs to be worked out
+    @property
+    def presence(self):
+        return self._presence
+
     @property
     def joined_at(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self._joined_at) if self._joined_at != None else None
+        return datetime.datetime.fromisoformat(self._joined_at[:10]) if self._joined_at != None else None

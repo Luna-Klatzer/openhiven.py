@@ -1,4 +1,11 @@
+import logging
+import sys
+
 from openhivenpy.Utils import utils
+import openhivenpy.Exception as errs
+
+logger = logging.getLogger(__name__)
+
 class Room():
     """`openhivenpy.Types.Room`
     
@@ -10,15 +17,24 @@ class Room():
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict,token): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
-        self._id = data['id']
-        self._name = data['name']
-        self._house = data["house_id"]
-        self._position = data["position"]
-        self._type = data["type"] # 0 = Text, 1 = Portal
-        self._emoji = data["emoji"]
-        self._description = data["description"]
-        self._TOKEN = token
+    def __init__(self, data: dict, auth_token: str): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
+        try:
+            self._id = data.get('id')
+            self._name = data.get('name')
+            self._house = data.get("house_id")
+            self._position = data.get("position")
+            self._type = data.get("type") # 0 = Text, 1 = Portal
+            self._emoji = data.get("emoji")
+            self._description = data.get("description")
+            self._AUTH_TOKEN = auth_token
+            
+        except AttributeError as e: 
+            logger.error(e)
+            raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")
+        
+        except Exception as e: 
+            logger.error(e)
+            raise sys.exc_info()[0](e)
 
     @property
     def id(self):
@@ -42,7 +58,7 @@ class Room():
 
     @property
     def emoji(self):
-        return self._emoji["data"] #Random type attrib there aswell
+        return self._emoji.get("data") #Random type attrib there aswell
     
     @property
     def description(self):

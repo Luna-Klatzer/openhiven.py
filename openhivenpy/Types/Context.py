@@ -1,4 +1,8 @@
-from openhivenpy.Exception import Exception as errs
+import logging
+import sys
+import openhivenpy.Exception as errs
+
+logger = logging.getLogger(__name__)
 
 class Context():
     """`openhivenpy.Types.Context` 
@@ -11,6 +15,6 @@ class Context():
     Returned with events, commands and HivenClient.on_ready()
     
     """
-    def __init__(self, data: dict,token):
-        self._TOKEN = token
+    def __init__(self, data: dict, auth_token: str):
+        self._AUTH_TOKEN = auth_token
         pass

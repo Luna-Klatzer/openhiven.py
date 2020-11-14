@@ -1,3 +1,10 @@
+import logging
+import sys
+
+import openhivenpy.Exception as errs
+
+logger = logging.getLogger(__name__)
+
 class Attatchment():
     def __init__(self,data):
         self._filename = data["filename"]

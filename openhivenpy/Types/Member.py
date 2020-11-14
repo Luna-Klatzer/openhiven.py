@@ -1,6 +1,12 @@
 import requests
-from .User import User
+import logging
+import sys
+
+from openhivenpy.Utils import raise_value_to_type
 import openhivenpy.Exception as errs
+from .User import User
+
+logger = logging.getLogger(__name__)
 
 class Member(User):
     """openhivenpy.Types.Member: Data Class for a Hiven member
@@ -10,17 +16,22 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict,token):
-        super().__init__(data,token)
-        if hasattr(data, 'user_id'): self._user_id = data['user_id']
-        else: self._user_id = self._id
-        if hasattr(data, 'house_id'): self._house_id = data['house_id']
-        else: self._user_id = None
-        if hasattr(data, 'joined_at'): self._joined_at = data['joined_at']
-        else: self._joined_at = None
-        if hasattr(data, 'roles'): self._roles = list(data['roles'])
-        else: self._roles = None
-        self._TOKEN = token
+    def __init__(self, data: dict, auth_token: str):
+        try:
+            super().__init__(data, auth_token)
+            self._user_id = data.get('user_id')
+            self._house_id = data.get('house_id')
+            self._joined_at = data.get('joined_at')
+            self._roles = raise_value_to_type(data.get('roles', []), list)
+            self._AUTH_TOKEN = auth_token
+            
+        except AttributeError as e: 
+            logger.error(e)
+            raise errs.FaultyInitialization("The data of the object House was not initialized correctly")
+        
+        except Exception as e: 
+            logger.error(e)
+            raise sys.exc_info()[0](e)
 
     def __str__(self):
         return self.id()
@@ -30,7 +41,7 @@ class Member(User):
         return self._user_id
 
     @property
-    def joined_at(self) -> str:
+    def joined_house_at(self) -> str:
         return self._joined_at
 
     @property
@@ -57,7 +68,7 @@ class Member(User):
         """
 
         #DELETE api.hiven.io/houses/HOUSEID/members/MEMBERID
-        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._user_id}",headers={"Content-Type":"application/json","Authorization":self._TOKEN})
+        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._user_id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         if not res.response_code == 204: #Why not continue using 200 instead of using 204 i have no idea.
             raise errs.Forbidden()
         else:

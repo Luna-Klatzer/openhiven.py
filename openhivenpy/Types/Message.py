@@ -1,7 +1,13 @@
-from .Room import Room
-from .Member import Member
 import datetime
 import requests
+import logging
+import sys
+
+import openhivenpy.Exception as errs
+from .Room import Room
+from .Member import Member
+
+logger = logging.getLogger(__name__)
 
 class Message():
     """`openhivenpy.Types.Message`
@@ -14,19 +20,28 @@ class Message():
     Returned with house room message list and House.get_message()
     
     """
-    def __init__(self, data: dict,token):
-        self._id = data['id']
-        self._author = Member(data['author'])
-        self._roomid = data["room_id"]
-        self._room = None #Need to get room list as this returns room_id
-        self._attatchment = data['attatchment']
-        self._content = data['content']
-        self._timestamp = datetime.datetime.fromtimestamp(data['timestamp'])
-        self._edited_at = datetime.datetime.fromtimestamp(data['edited_at']) if hasattr(data,"edited_at") else None
-        self._mentions = [(Member(x) for x in data['mentions'])] #Thats the first time I've ever done that. Be proud of me kudo!
-        self._type = data['type'] # I believe, 0 = normal message, 1 = system.
-        self._exploding = data['exploding'] #..I have no idea.
-        self._TOKEN = token
+    def __init__(self, data: dict, auth_token: str):
+        try:
+            self._id = data.get('id')
+            self._author = Member(data.get('author'))
+            self._roomid = data.get('room_id')
+            self._room = None #Need to get room list as this returns room_id
+            self._attatchment = data.get('attatchment')
+            self._content = data.get('content')
+            self._timestamp = datetime.datetime.fromtimestamp(data.get('timestamp'))
+            self._edited_at = datetime.datetime.fromtimestamp(data.get('edited_at')) if hasattr(data,"edited_at") else None
+            self._mentions = [(Member(x) for x in data.get('mentions'))] #Thats the first time I've ever done that. Be proud of me kudo!
+            self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
+            self._exploding = data.get('exploding') #..I have no idea.
+            self._AUTH_TOKEN = auth_token
+            
+        except AttributeError as e: 
+            logger.error(e)
+            raise errs.FaultyInitialization("The data of the object Message was not initialized correctly")
+        
+        except Exception as e: 
+            logger.error(e)
+            raise sys.exc_info()[0](e)
 
     @property
     def id(self):

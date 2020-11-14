@@ -23,7 +23,7 @@ class UserClient(HivenClient):
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default!
     
     """
-    def __init__(self, token: str, heartbeat=30000, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop()):
+    def __init__(self, token: str, heartbeat: Optional[int] = 30000, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop()):
 
         self._CLIENT_TYPE = "HivenClient.UserClient"
         super().__init__(token=token, client_type=self.client_type, heartbeat=heartbeat, event_loop=event_loop)

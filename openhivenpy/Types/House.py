@@ -1,6 +1,13 @@
+import logging
+import sys
+import requests
+
+import openhivenpy.Exception as errs
 from .Room import Room
 from .Member import Member
-import requests
+
+logger = logging.getLogger(__name__)
+
 class House():
     """`openhivenpy.Types.House`
     
@@ -12,17 +19,25 @@ class House():
     Returned with events, the client guilds attribute and get_guild()
     
     """
-    def __init__(self, data: dict,token: str):
-        self._id = data['id']
-        self._name = data['name']
-        self._banner = data['banner']
-        self._icon = data['icon']
-        self._owner_id = data['owner_id']
-        self._roles = list(data['entities'])
-        self._TOKEN = token
-        self._members = list(Member(x,self._TOKEN) for x in data["members"])
-        self._rooms = list(Room(x,self._TOKEN) for x in data["rooms"])
-
+    def __init__(self, data: dict, auth_token: str):
+        try:
+            self._id = data.get('id')
+            self._name = data.get('name')
+            self._banner = data.get('banner')
+            self._icon = data.get('icon')
+            self._owner_id = data.get('owner_id')
+            self._roles = list(data.get('entities'))
+            self._AUTH_TOKEN = auth_token
+            self._members = list(Member(x, self._AUTH_TOKEN) for x in data.get("members"))
+            self._rooms = list(Room(x, self._AUTH_TOKEN) for x in data.get("rooms"))
+            
+        except AttributeError as e: 
+            logger.error(e)
+            raise errs.FaultyInitialization("The data of the object House was not initialized correctly")
+        
+        except Exception as e: 
+            logger.error(e)
+            raise sys.exc_info()[0](e)
 
     @property
     def id(self) -> int:
@@ -66,7 +81,7 @@ class House():
 
         Creates a Room in the house with the specified name. Returns the Room that was created if successful
         """
-        res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms",headers={"Content-Type":"application/json","Authorization":self._TOKEN})
+        res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         return res #ToDo
 
     @staticmethod
@@ -74,5 +89,5 @@ class House():
         """openhivenpy.Types.House.leave()
 
         Leaves the House. Returns True if successful."""
-        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._id}",headers={"Content-Type":"application/json","Authorization":self._TOKEN})
+        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         return res.status_code == 200

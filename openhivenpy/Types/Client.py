@@ -1,11 +1,13 @@
 import sys
 import logging
+import requests
+import datetime
+
 from .User import User
-from .ClientUser import ClientUser
 
 logger = logging.getLogger(__name__)
 
-class Client(): #Why inherit User?
+class Client():
     """`openhivenpy.Types.Client` 
     
     Data Class for HivenClient
@@ -24,12 +26,10 @@ class Client(): #Why inherit User?
         
         """
         try: 
-            self._HOUSES = [] #Python no likey appending to a read-only list
-            self._USERS = []
-            self._USERCLIENT = ClientUser(data,self._TOKEN)
+            self._USER = User(data, self._TOKEN)
             return self
 
-        except AttributeError: #Audible pain.
+        except AttributeError as e: #Audible pain.
             logger.error(e)
             raise AttributeError("The data of the object User was not initialized correctly")
         except KeyError as e:
@@ -38,5 +38,57 @@ class Client(): #Why inherit User?
             logger.error(e)
             raise sys.exc_info()[0](e)
 
-    def __init__(self,data,token):
-        self.update_client_data(data)
+    def __init__(self):
+        self._HOUSES = [] #Python no likey appending to a read-only list
+        self._USERS = []
+
+    async def edit(self,data) -> bool:
+        """`openhivenpy.ClientUser.edit`
+        
+        Change the signed in user's data. Available options: header, icon, bio, location, website.
+        
+        """
+        if not type(data) == dir:
+            raise SyntaxError(f"Expected dir, got {type(data)}")
+        res = requests.patch("https://api.hiven.io/v1/users/@me", headers={"authorization": self._TOKEN,"User-Agent":"openhiven.py", "Content-Type":"application/json"},data=data)
+        return res.status_code == 200
+    
+    @property
+    def username(self) -> str:
+        return self._USER.username
+
+    @property
+    def name(self) -> str:
+        return self._USER.name
+
+    @property
+    def id(self) -> int:
+        return self._USER.id
+
+    @property
+    def icon(self) -> str:
+        return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
+
+    @property
+    def header(self) -> str:
+        return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
+    
+    @property
+    def bot(self) -> bool:
+        return self._USER.bot
+
+    @property
+    def location(self) -> str:
+        return self._USER.location
+
+    @property
+    def website(self) -> str:
+        return self._USER.website
+
+    @property
+    def presence(self):
+        return self._USER.presence
+
+    @property
+    def joined_at(self) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(self._joined_at) if self._joined_at != None else None

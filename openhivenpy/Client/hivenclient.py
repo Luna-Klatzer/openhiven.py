@@ -1,21 +1,20 @@
 import asyncio
 import requests
 import sys
-import warnings
 import logging
-import time
+from time import time
+from websockets import WebSocketClientProtocol
 from typing import Optional
+from datetime import datetime
 
-from openhivenpy.Gateway import *
-from openhivenpy.Events import Events
+from openhivenpy.Gateway import Connection, API
+from openhivenpy.Events import EventHandler
 import openhivenpy.Exception as errs
-from openhivenpy.Types import Client, ClientUser
+from openhivenpy.Types import Client
 
-API_URL = "https://api.hiven.io"
-API_VERSION = "v1"
 logger = logging.getLogger(__name__)
 
-class HivenClient(Websocket, Events, Client, API):
+class HivenClient(EventHandler, API):
     """`openhivenpy.Client.HivenClient` 
     
     HivenClient
@@ -23,7 +22,7 @@ class HivenClient(Websocket, Events, Client, API):
     
     Main Class for connecint to Hiven and interacting with the API. 
     
-    Inherits from Websocket, Events and Client
+    Inherits from EventHandler and API
     
     Parameter:
     ----------
@@ -43,23 +42,18 @@ class HivenClient(Websocket, Events, Client, API):
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default!
     
     """
-    def __init__(self, token: str, client_type: str = None, heartbeat: int = 30000, ping_timeout: int = 100, 
-                 close_timeout: int = 20, ping_interval: int = None, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop()):
+    def __init__(self, token: str, client_type: str = None, 
+                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), **kwargs):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
-            self._CLIENT_TYPE = "HivenClient.UserClient"
+            self._CLIENT_TYPE = "user"
             
         elif client_type == "bot" or client_type == "HivenClient.BotClient":
-            self._CLIENT_TYPE = "HivenClient.BotClient"
+            self._CLIENT_TYPE = "bot"
 
         elif client_type == None:
-            logger.warning("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
-            warnings.warn("Client type is None. Defaulting to BotClient. \nThis might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!", errs.NoneClientType)
-            self._CLIENT_TYPE = "HivenClient.BotClient"
-        
-        elif client_type == "discord": #Okay i couldnt help myself.
-            print("https://github.com/Rapptz/discord.py")
-            return
+            logger.warning("Client type is None. Defaulting to BotClient. \ This might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
+            self._CLIENT_TYPE = "bot"
 
         else:
             logger.error(f"Expected 'user' or 'bot', got '{client_type}'")
@@ -73,24 +67,32 @@ class HivenClient(Websocket, Events, Client, API):
             logger.critical(f"Invalid Token")
             raise errs.InvalidToken("Invalid Token")
 
-        self._CUSTOM_HEARBEAT = False if heartbeat == 30000 else True
         self._TOKEN = token
-        self._event_loop = event_loop
-
-        super().__init__(API_URL, API_VERSION, token, heartbeat, ping_timeout, close_timeout, ping_interval, event_loop)
-
+        self.loop = event_loop
+        self.event_handler = EventHandler(self)
+        
+        # Websocket and client data are now handled over the Connection Class
+        self.connection = Connection(event_handler = self.event_handler, token=token, event_loop=self.loop, **kwargs)
+        
+        asyncio.set_event_loop(self.loop)
+        
     @property
     def token(self) -> str:
         return self._TOKEN
-
-    async def connect(self, token=None) -> None:
+        
+    async def connect(self) -> None:
         """openhivenpy.Client.HivenClient.connect()
         
-        Async function for establishing a connection to Hiven. Triggers HivenClient.on_connection_start(), HivenClient.on_init() and HivenClient.on_ready()
+        Async function for establishing a connection to Hiven
         
         """
-        asyncio.get_event_loop.run_until_complete(self.create_connection())
-        return 
+        try:
+            await self.connection.connect()
+        except RuntimeError as e:
+            logger.exception(e)
+            raise sys.exc_info()[0](e)   
+        finally:
+            return 
 
     def run(self) -> None:
         """openhivenpy.Client.HivenClient.run()
@@ -99,17 +101,16 @@ class HivenClient(Websocket, Events, Client, API):
         
         """
         try:
-            asyncio.get_event_loop.run_until_complete(self.start_event_loop())
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
             logger.exception(e)
-            raise sys.exc_info()[0](e)
+            raise sys.exc_info()[0](e)   
+        finally:
+            return         
 
     # End User Functions #
     # Begin User Properties #
-
-    @property
-    def user(self) -> ClientUser:
-        return self._USERCLIENT
 
     @property
     def client_type(self) -> str:
@@ -117,22 +118,136 @@ class HivenClient(Websocket, Events, Client, API):
 
     @property
     def houses(self) -> list:
-        return self._HOUSES
+        return self.connection._HOUSES
 
     @property
     def users(self) -> list:
-        return self._USERS
+        return self.connection._USERS
+
+    # Client data
+    @property
+    def username(self) -> str:
+        return self.connection.username
+
+    @property
+    def name(self) -> str:
+        return self.connection.name
+
+    @property
+    def id(self) -> int:
+        return self.connection.id
+
+    @property
+    def icon(self) -> str:
+        return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
+
+    @property
+    def header(self) -> str:
+        return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
+    
+    @property
+    def bot(self) -> bool:
+        return self.connection.bot
+
+    @property
+    def location(self) -> str:
+        return self.connection.location
+
+    @property
+    def website(self) -> str:
+        return self.connection.website
+
+    @property
+    def joined_at(self) -> datetime:
+        return self.connection.joined_at
+
+    @property
+    def presence(self):
+        return self.connection.presence
 
     @property
     def ping(self) -> float:
-        start = time.time()
+        start = time()
         res = requests.get("https://api.hiven.io/")
         if res.status_code == 200:
-            return time.time() - start
+            return time() - start
         else:
-            logger.error("Trying to ping Hiven failed!")
-            raise errs.ConnectionError("Unable to ping Hiven!")
+            logger.warning("Trying to ping Hiven failed!")
+            return None
         
+    @property
+    def connection_possible(self) -> bool:
+        """openhivenpy.Client.HivenClient.connection_possible()
+        
+        Checks whetever the connection to Hiven is alive and possible!
+        
+        Alias for ping() but returns either True or False based on the response status code.
+        
+        """
+        res = requests.get("https://api.hiven.io/")
+        if res.status_code == 200:
+            return True
+        else:
+            logger.warning("Trying to ping Hiven failed!")
+            return False        
+        
+    async def stop(self):
+        """
+        
+        Kills the event loop and the running tasks! 
+        
+        Will likely throw a RuntimeError if the Client was started in a courountine or if future courountines are going to get executed!
+        
+        """
+        await self.connection.stop_event_loop()
+        
+    async def close(self):        
+        """
+        
+        Stops the active asyncio task that represents the connection.
+        
+        """
+        await self.connection.close()
+        return
 
+    # Websocket Properties
+    @property
+    def connection_status(self) -> str:
+        return self.connection.connection_status
+    
+    @property
+    def heartbeat(self) -> str:
+        return self.connection.heartbeat
+    
+    @property
+    def get_connection_status(self) -> str:
+        return self.connection.get_connection_status
+    
+    @property
+    def open(self) -> bool:
+        return self.connection.open
+    
+    @property
+    def closed(self) -> bool:
+        return self.connection.closed
 
-
+    @property
+    def websocket(self) -> WebSocketClientProtocol:
+        """
+        
+        Returns the ReadOnly Websocket with it's configuration
+        
+        """    
+        return self.ws.websocket
+    
+    @property
+    def initalized(self) -> bool:
+        return self.connection.initalized
+    
+    @property
+    def connection_start(self) -> float:
+        return self.connection.connection_start
+    
+    @property
+    def startup_time(self) -> float:
+        return self.connection.startup_time

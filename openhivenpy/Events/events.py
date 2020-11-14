@@ -2,10 +2,12 @@ import asyncio
 import logging
 from functools import wraps
 
-logger = logging.getLogger(__name__)
+from openhivenpy.Utils import dispatch_func_if_exists
 
-class Events():
-    """`openhivenpy.Events.Events` 
+logger = logging.getLogger(__name__) 
+    
+class EventHandler():
+    """`openhivenpy.Events.EventHandler` 
     
     Openhivenpy Event Handler
     ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,6 +17,11 @@ class Events():
     decorator @HivenClient.event, it will be called and executed.
     
     """
+    def __init__(self, call_obj: object):
+        self.call_obj = call_obj
+        if call_obj == None: 
+            logger.debug("Passed object where the events should be called from is None!")
+
     def event(self):
         """`openhivenpy.Events.Events.event`
         
@@ -37,114 +44,57 @@ class Events():
 
         return decorator
 
-    async def ON_CONNECTION_START(self) -> None:
-        if hasattr(self, 'on_connection_start'):
-            logger.debug("Dispatching on_connection_start")
-            await self.on_connection_start()
-        else:
-            logger.debug("on_connection_start not found. Returning")
-            return    
+    async def connection_start(self) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_connection_start') 
 
-    async def INIT_STATE(self, client) -> None:
-        if hasattr(self, 'on_init'):
-            logger.debug("Dispatching on_init")
-            await self.on_init(client)
-        else:
-            logger.debug("on_init not found. Returning")
-            return
+    async def init_state(self, time) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_init', 
+                                time=time) 
 
-    async def READY_STATE(self, ctx) -> None:
-        if hasattr(self, 'on_ready'):
-            logger.debug("Dispatching on_ready")
-            await self.on_ready(ctx)
-        else:
-            logger.debug("on_ready not found. Returning")
-            return    
+    async def ready_state(self, ctx) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_ready', 
+                                ctx=ctx) 
 
-    async def HOUSE_JOIN(self, ctx) -> None:
-        if hasattr(self, 'on_house_add'):
-            logger.debug("Dispatching on_house_add")
-            await self.on_house_join(ctx)
-        else:
-            logger.debug("on_house_join not found. Returning")
-            return
+    async def house_join(self, ctx, house) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_add', 
+                                ctx=ctx, house=house) 
 
-    async def HOUSE_EXIT(self, ctx) -> None:
-        if hasattr(self, 'on_house_exit'):
-            logger.debug("Dispatching on_house_exit")
-            await self.on_house_exit(ctx)
-        else:
-            logger.debug("on_house_exit not found. Returning")
-            return
+    async def house_exit(self, ctx, house) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_remove', 
+                                ctx=ctx, house=house) 
 
-    async def HOUSE_DOWN(self,house) -> None:
-        if hasattr(self,"on_house_downage"):
-            logger.debug("Dispatching on_house_downage")
-            await self.on_house_downage(house)
-        else:
-            logger.debug("on_house_downage not found. Returning")
-            return
+    async def house_down(self, ctx, house) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_downage', 
+                                ctx=ctx, house=house) 
 
-    async def HOUSE_MEMBER_ENTER(self, ctx, member) -> None:
-        if hasattr(self, 'on_house_enter'):
-            logger.debug("Dispatching on_house_enter")
-            await self.on_house_enter(ctx, member)
-        else:
-            logger.debug("on_house_enter not found. Returning")
-            return
+    async def house_member_enter(self, ctx, member) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_enter',
+                                ctx=ctx, member=member) 
 
-    async def HOUSE_MEMBER_EXIT(self, ctx, member) -> None:
-        if hasattr(self, 'on_house_exit'):
-            logger.debug("Dispatching on_house_exit")
-            await self.on_house_exit(ctx, member)
-        else:
-            logger.debug("on_house_exit not found. Returning")
-            return
+    async def house_member_exit(self, ctx, member) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_exit',
+                                ctx=ctx, member=member) 
 
-    async def PRESENCE_UPDATE(self, precence, member) -> None:
-        if hasattr(self, 'on_presence_update'):
-            logger.debug("Dispatching on_presence_update")
-            await self.on_presence_update(precence, member)
-        else:
-            logger.debug("on_presence_update not found. Returning")
-            return
+    async def presence_update(self, precence, member) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_presence_update',
+                                precence=precence, member=member) 
 
-    async def MESSAGE_CREATE(self, message) -> None:
-        if hasattr(self, 'on_message_create'):
-            logger.debug("Dispatching on_message_create")
-            await self.on_message_create(message)
-        else:
-            logger.debug("on_message_create not found. Returning")
-            return
+    async def message_create(self, message) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_create',
+                                message=message) 
 
-    async def MESSAGE_DELETE(self, message) -> None:
-        if hasattr(self, 'on_message_delete'):
-            logger.debug("Dispatching on_message_delete")
-            await self.on_message_delete(message)
-        else:
-            logger.debug("on_message_delete not found. Returning")
-            return
+    async def message_delete(self, message) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_delete',
+                                message=message) 
 
-    async def MESSAGE_UPDATE(self, message) -> None:
-        if hasattr(self, 'on_message_update'):
-            logger.debug("Dispatching on_message_update")
-            await self.on_message_update(message)
-        else:
-            logger.debug("on_message_update not found. Returning")
-            return
+    async def message_update(self, message) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_update',
+                                message=message) 
 
-    async def TYPING_START(self, member) -> None:
-        if hasattr(self, 'on_typing_start'):
-            logger.debug("Dispatching on_typing_start")
-            await self.on_typing_start(member)
-        else:
-            logger.debug("on_typing_start not found. Returning")
-            return
+    async def typing_start(self, member) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_start',
+                                member=member) 
 
-    async def TYPING_END(self, member) -> None:
-        if hasattr(self, 'on_typing_end'):
-            logger.debug("Dispatching on_typing_end")
-            await self.on_typing_end(member)
-        else:
-            logger.debug("on_typing_end not found. Returning")
-            return
+    async def typing_end(self, member) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_end',
+                                member=member) 
