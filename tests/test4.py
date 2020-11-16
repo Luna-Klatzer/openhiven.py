@@ -2,31 +2,41 @@ import openhivenpy
 import asyncio
 import sys
 import os
+import logging
+import requests
+
+logger = logging.getLogger("openhivenpy")
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 # Simple test to get a simple response from the Hiven API
-TOKEN = os.getenv("token") or "TOKEN" #Just to prevent mishaps
-client = openhivenpy.UserClient(token=TOKEN, heartbeat=10)
+TOKEN = os.getenv("token") or "" #Just to prevent mishaps
+event_loop = asyncio.new_event_loop()
+client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop)
+
+@client.event()
+async def on_connection_start():
+    print("Connection established")
 
 @client.event() 
-async def on_init(client):
-    print("it works")
-    print(client.id)
-    print(client.name)
-    print(client.username)
+async def on_init(time):
+    print("Init'd")
 
 async def run():
-
-    response = await client.get()
-
     # If response is 200 that means the program can interact with Hiven
-    if response.status_code == 200:
+    if client.connection_possible:
         print("Success!")
     else:
-        print(f"The process fail´6ed. STATUSCODE={response.status_code}")
+        print(f"The ping failed!")
 
-    # Starts the Event loop with the a specified websocket => can also be a different websocket
-    print(await client.create_connection())
+    # Starts the Event loop with the a specified websocket 
+    # => can also be a different websocket
+    await client.connect()
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 
 if __name__ == '__main__':
-    asyncio.run(run())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())

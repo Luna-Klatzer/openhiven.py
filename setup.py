@@ -9,12 +9,12 @@ with open("requirements.txt") as file:
 setuptools.setup(
     name="openhiven-py", 
     version="0.0.dev1",
-    author="NicolasK",
+    author="FrostbyteSpace",
     author_email="nicolas.klatzer@gmail.com",
-    description="An unofficial Opensource API wrapper for Hiven",
+    description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteSpace",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/FrostbyteBot/openhiven.py",
+    url="https://github.com/FrostbyteSpace/openhiven.py",
     license="MIT",
     packages=setuptools.find_packages(),
     classifiers=[

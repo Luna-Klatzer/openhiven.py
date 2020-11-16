@@ -1,3 +1,5 @@
 asyncio
 requests
-websockets==8.1
+websockets
+Typing
+nest_asyncio
