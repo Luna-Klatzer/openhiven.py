@@ -37,11 +37,11 @@ class User():
             self._joined_at = data.get('joined_at')
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a User object: {e}")
             raise errs.FaultyInitialization("The data of the object User was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a User object: {e}")
             raise sys.exc_info()[0](e)
 
     @property

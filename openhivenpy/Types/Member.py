@@ -26,11 +26,11 @@ class Member(User):
             self._AUTH_TOKEN = auth_token
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Member object: {e}")
             raise errs.FaultyInitialization("The data of the object House was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Member object: {e}")
             raise sys.exc_info()[0](e)
 
     def __str__(self):

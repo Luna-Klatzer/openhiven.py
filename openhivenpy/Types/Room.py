@@ -29,11 +29,11 @@ class Room():
             self._AUTH_TOKEN = auth_token
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Room object: {e}")
             raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Room object: {e}")
             raise sys.exc_info()[0](e)
 
     @property

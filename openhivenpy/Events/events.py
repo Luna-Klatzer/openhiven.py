@@ -53,48 +53,48 @@ class EventHandler():
 
     async def ready_state(self, ctx) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_ready', 
-                                ctx=ctx) 
+                                    ctx=ctx) 
 
     async def house_join(self, ctx, house) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_add', 
-                                ctx=ctx, house=house) 
+                                    ctx=ctx, house=house) 
 
     async def house_exit(self, ctx, house) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_remove', 
-                                ctx=ctx, house=house) 
+                                    ctx=ctx, house=house) 
 
     async def house_down(self, ctx, house) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_downage', 
-                                ctx=ctx, house=house) 
+                                    ctx=ctx, house=house) 
 
     async def house_member_enter(self, ctx, member) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_enter',
-                                ctx=ctx, member=member) 
+                                    ctx=ctx, member=member) 
 
     async def house_member_exit(self, ctx, member) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_exit',
-                                ctx=ctx, member=member) 
+                                    ctx=ctx, member=member) 
 
     async def presence_update(self, precence, member) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_presence_update',
-                                precence=precence, member=member) 
+                                    precence=precence, member=member) 
 
     async def message_create(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_create',
-                                message=message) 
+                                    message=message) 
 
     async def message_delete(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_delete',
-                                message=message) 
+                                    message=message) 
 
     async def message_update(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_update',
-                                message=message) 
+                                    message=message) 
 
     async def typing_start(self, member) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_start',
-                                member=member) 
+                                    member=member) 
 
     async def typing_end(self, member) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_end',
-                                member=member) 
+                                    member=member) 

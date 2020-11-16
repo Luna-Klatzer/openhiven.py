@@ -2,15 +2,15 @@ import asyncio
 import requests
 import sys
 import logging
+import nest_asyncio
 from time import time
 from websockets import WebSocketClientProtocol
 from typing import Optional
 from datetime import datetime
 
-from openhivenpy.Gateway import Connection, API
+from openhivenpy.Gateway import Connection, API, HTTPClient
 from openhivenpy.Events import EventHandler
 import openhivenpy.Exception as errs
-from openhivenpy.Types import Client
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +39,11 @@ class HivenClient(EventHandler, API):
     
     ping_interval: `int` - Interval for sending pings to the server. Defaults to `None` because else the websocket would timeout because the Hiven Websocket does not give a response
     
-    event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default!
+    event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default
     
     """
     def __init__(self, token: str, client_type: str = None, 
-                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), **kwargs):
+                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(), **kwargs):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
             self._CLIENT_TYPE = "user"
@@ -74,8 +74,9 @@ class HivenClient(EventHandler, API):
         # Websocket and client data are now handled over the Connection Class
         self.connection = Connection(event_handler = self.event_handler, token=token, event_loop=self.loop, **kwargs)
         
-        asyncio.set_event_loop(self.loop)
-        
+        # Not sure if that's a good solution to the issue but I will do this
+        nest_asyncio.apply(loop=self.loop)
+    
     @property
     def token(self) -> str:
         return self._TOKEN
@@ -87,7 +88,7 @@ class HivenClient(EventHandler, API):
         
         """
         try:
-            await self.connection.connect()
+            self.loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
             logger.exception(e)
             raise sys.exc_info()[0](e)   
@@ -101,8 +102,7 @@ class HivenClient(EventHandler, API):
         
         """
         try:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(self.connection.connect())
+            self.loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
             logger.exception(e)
             raise sys.exc_info()[0](e)   

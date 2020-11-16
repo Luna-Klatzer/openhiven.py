@@ -1,3 +1,3 @@
-from .gateway import *
-from .http import *
-from .connection import *
+from .gateway import Websocket, API
+from .http import HTTPClient
+from .connection import Connection

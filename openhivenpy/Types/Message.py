@@ -23,24 +23,25 @@ class Message():
     def __init__(self, data: dict, auth_token: str):
         try:
             self._id = data.get('id')
-            self._author = Member(data.get('author'))
+            self._author = None # Member(data.get('author_id'), auth_token)
             self._roomid = data.get('room_id')
             self._room = None #Need to get room list as this returns room_id
             self._attatchment = data.get('attatchment')
             self._content = data.get('content')
-            self._timestamp = datetime.datetime.fromtimestamp(data.get('timestamp'))
-            self._edited_at = datetime.datetime.fromtimestamp(data.get('edited_at')) if hasattr(data,"edited_at") else None
-            self._mentions = [(Member(x) for x in data.get('mentions'))] #Thats the first time I've ever done that. Be proud of me kudo!
+            # Converting to seconds because it's in miliseconds
+            self._timestamp = datetime.datetime.fromtimestamp(int(data.get('timestamp')) / 10000) if data.get('timestamp') != None else None
+            self._edited_at = datetime.datetime.fromtimestamp(data.get('edited_at')) if data.get('edited_at') != None else None
+            self._mentions = [(Member(x) for x in data.get('mentions', []))] #Thats the first time I've ever done that. Be proud of me kudo!
             self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding') #..I have no idea.
             self._AUTH_TOKEN = auth_token
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Message object: {e}")
             raise errs.FaultyInitialization("The data of the object Message was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Message object: {e}")
             raise sys.exc_info()[0](e)
 
     @property
@@ -75,10 +76,13 @@ class Message():
     def mentions(self):
         return self._mentions
 
-    async def ack(self) -> bool:
-        """openhivenpy.Types.Message.ack
+    async def mark_message_as_read(self) -> bool:
+        """`openhivenpy.Types.Message.ack`
 
-        Marks the message as read. This doesn't need to be done for bot clients. Returns `True` if successful.
+        Marks the message as read. This doesn't need to be done for bot clients. 
+        
+        Returns `True` if successful.
+        
         """
         res = requests.post(f"https://api.hiven.io/v1/rooms/{self._roomid}/messages/{self._id}/ack")
         if not res.status_code == 204:
@@ -88,8 +92,11 @@ class Message():
 
 
     async def delete(self) -> bool:
-        """openhivenpy.Types.Message.delete()
+        """`openhivenpy.Types.Message.delete()`
 
-        Deletes the message. Raises Forbidden if not allowed. Returns True if successful
+        Deletes the message. Raises Forbidden if not allowed. 
+        
+        Returns True if successful
+        
         """
-        print()
+        

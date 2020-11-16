@@ -30,19 +30,19 @@ class Client():
             return self
 
         except AttributeError as e: #Audible pain.
-            logger.error(e)
+            logger.error(f"Error while updating information of the client: {e}")
             raise AttributeError("The data of the object User was not initialized correctly")
         except KeyError as e:
             pass
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Error while updating information of the client: {e}")
             raise sys.exc_info()[0](e)
 
     def __init__(self):
         self._HOUSES = [] #Python no likey appending to a read-only list
         self._USERS = []
 
-    async def edit(self,data) -> bool:
+    async def edit(self, data) -> bool:
         """`openhivenpy.ClientUser.edit`
         
         Change the signed in user's data. Available options: header, icon, bio, location, website.

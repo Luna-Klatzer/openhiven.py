@@ -2,3 +2,4 @@ asyncio
 requests
 websockets
 Typing
+nest_asyncio

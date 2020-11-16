@@ -28,11 +28,11 @@ class Typing():
             self._timestamp = data.get('timestamp')
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Typing object: {e}")
             raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a Typing object: {e}")
             raise sys.exc_info()[0](e)
 
     @property

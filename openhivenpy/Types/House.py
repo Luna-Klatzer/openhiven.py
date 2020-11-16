@@ -32,11 +32,11 @@ class House():
             self._rooms = list(Room(x, self._AUTH_TOKEN) for x in data.get("rooms"))
             
         except AttributeError as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a House object: {e}")
             raise errs.FaultyInitialization("The data of the object House was not initialized correctly")
         
         except Exception as e: 
-            logger.error(e)
+            logger.error(f"Error while initializing a House object: {e}")
             raise sys.exc_info()[0](e)
 
     @property
@@ -76,18 +76,25 @@ class House():
         return self._rooms    
 
     @staticmethod
-    def create_room(self,name) -> Room:
+    def create_room(self, name) -> Room:
         """openhivenpy.Types.House.createroom(name)
 
-        Creates a Room in the house with the specified name. Returns the Room that was created if successful
+        Creates a Room in the house with the specified name. 
+        
+        Returns the Room that was created if successful
+        
         """
         res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         return res #ToDo
 
     @staticmethod
-    def leave(self) -> bool:
+    def leave(self, house_id: int) -> bool:
         """openhivenpy.Types.House.leave()
 
-        Leaves the House. Returns True if successful."""
+        Leaves the house.
+        
+        Returns `True` if successful.
+        
+        """
         res = requests.delete(f"https://api.hiven.io/v1/houses/{self._id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         return res.status_code == 200
