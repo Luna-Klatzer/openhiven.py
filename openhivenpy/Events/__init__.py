@@ -1,1 +1,1 @@
-from .events import EventHandler
+from .events import Events
