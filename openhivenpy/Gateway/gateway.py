@@ -12,10 +12,9 @@ import openhivenpy.Types as types
 import openhivenpy.Exception as errs
 import openhivenpy.Utils as utils
 from openhivenpy.Events import EventHandler
+from openhivenpy.Types import Client
 
 logger = logging.getLogger(__name__)
-
-from openhivenpy.Types import Client
 
 class API():
     """`openhivenpy.Gateway`
@@ -64,6 +63,8 @@ class Websocket(Client, API):
     
     Calls `openhivenpy.EventHandler` and will execute the user code if registered
     
+    Is directly inherited into connection and cannot be used as a standalone class!
+    
     Parameter:
     ----------
     
@@ -105,11 +106,11 @@ class Websocket(Client, API):
         self._ping_interval = kwargs.get('ping_interval', None)
         
         self._event_handler = event_handler
-        
         self._event_loop = event_loop
         
         self._CUSTOM_HEARBEAT = False if self._HEARTBEAT == 30000 else True
 
+        # Client data is inherited here and will be then passed to the connection class
         super().__init__()
 
 
@@ -179,9 +180,7 @@ class Websocket(Client, API):
 
                     # Triggering the user event for the connection start
                     await self._event_handler.connection_start()
-
-                    # Messages will be sent and received parallely
-                    # => both won't block each other
+                    
                     await asyncio.gather(self.ws_lifesignal(websocket), self.ws_receive_message(websocket))
 
             except Exception as e:
@@ -232,6 +231,7 @@ class Websocket(Client, API):
         
         """      
         try:
+            self._connection_status = "open"
             while True:
                 response = await ws.recv()
                 if response != None:
@@ -312,37 +312,38 @@ class Websocket(Client, API):
             logger.debug(f"Received Event {response_data['e']}")
 
             if response_data['e'] == "INIT_STATE":
-                super().update_client_data(response_data['d'])
+                await super().update_client_data(response_data['d'])
                 await self._event_handler.ready_state(time.time())
                 self._initalized = True
 
             elif response_data['e'] == "HOUSE_JOIN":
                 
-                if not hasattr(self, '_HOUSES') and not hasattr(self, '_USERS'):
-                    raise errs.FaultyInitialization("The client attributes _USERS and _HOUSES do not exist! The class might be initialized faulty!")
+                if not hasattr(self, '_houses') and not hasattr(self, '_users'):
+                    logger.error("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
+                    raise errs.FaultyInitialization("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
 
-                house = types.House(response_data['d'], self._TOKEN)
-                ctx = types.Context(response_data['d'], self._TOKEN)
+                house = types.House(response_data['d'], self.http_client)
+                ctx = types.Context(response_data['d'], self.http_client)
                 await self._event_handler.house_join(ctx, house)
 
                 for usr in response_data['d']['members']:
-                    if not utils.get(self._USERS, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
+                    if not utils.get(self._users, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
                         # Appending to the client users list
-                        self._USERS.append(types.User(usr, self._TOKEN))   
+                        self._users.append(types.User(usr, self.http_client))   
                          
                         # Appending to the house users list
                         usr = types.Member(usr, self._TOKEN)    
                         house._members.append(usr)
 
                 for room in response_data["d"]["rooms"]:
-                    self._ROOMS.append(types.Room(room,self._TOKEN))
+                    self._rooms.append(types.Room(room, self.http_client))
                 
                 # Appending to the client houses list
-                self._HOUSES.append(house)
+                self._houses.append(house)
 
             elif response_data['e'] == "HOUSE_EXIT":
                 house = None
-                ctx = types.Context(response_data['d'], self._TOKEN)
+                ctx = types.Context(response_data['d'], self.http_client)
                 await self._event_handler.house_exit(ctx, house)
 
             elif response_data['e'] == "HOUSE_DOWN":
@@ -352,39 +353,39 @@ class Websocket(Client, API):
                 await self._event_handler.house_down(ctx, house)
 
             elif response_data['e'] == "HOUSE_MEMBER_ENTER":
-                ctx = types.Context(response_data['d'], self._TOKEN)
-                member = types.Member(response_data['d'], self._TOKEN)
+                ctx = types.Context(response_data['d'], self.http_client)
+                member = types.Member(response_data['d'], self.http_client)
                 await self._event_handler.house_member_enter(ctx, member)
 
             elif response_data['e'] == "HOUSE_MEMBER_EXIT":
-                ctx = types.Context(response_data['d'], self._TOKEN)
-                member = types.Member(response_data['d'], self._TOKEN)
+                ctx = types.Context(response_data['d'], self.http_client)
+                member = types.Member(response_data['d'], self.http_client)
                 
                 await self._event_handler.house_member_exit(ctx, member)
 
             elif response_data['e'] == "PRESENCE_UPDATE":
-                precence = types.Presence(response_data['d'], self._TOKEN)
-                member = types.Member(response_data['d'], self._TOKEN)
+                precence = types.Presence(response_data['d'], self.http_client)
+                member = types.Member(response_data['d'], self.http_client)
                 await self._event_handler.presence_update(precence, member)
 
             elif response_data['e'] == "MESSAGE_CREATE":
-                message = types.Message(response_data['d'], self._TOKEN)
+                message = types.Message(response_data['d'], self.http_client)
                 await self._event_handler.message_create(message)
 
             elif response_data['e'] == "MESSAGE_DELETE":
-                message = types.Message(response_data['d'], self._TOKEN)
+                message = types.Message(response_data['d'], self.http_client)
                 await self._event_handler.message_delete(message)
 
             elif response_data['e'] == "MESSAGE_UPDATE":
-                message = types.Message(response_data['d'], self._TOKEN)
+                message = types.Message(response_data['d'], self.http_client)
                 await self._event_handler.message_update(message)
 
             elif response_data['e'] == "TYPING_START":
-                member = types.Typing(response_data['d'], self._TOKEN)
+                member = types.Typing(response_data['d'], self.http_client)
                 await self._event_handler.typing_start(member)
 
             elif response_data['e'] == "TYPING_END":
-                member = types.Typing(response_data['d'], self._TOKEN)
+                member = types.Typing(response_data['d'], self.http_client)
                 await self._event_handler.typing_end(member)
             
             else:

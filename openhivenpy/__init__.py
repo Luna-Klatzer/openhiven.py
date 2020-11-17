@@ -10,7 +10,7 @@ The non-official OpenSource Python API Wrapper for Hiven.
 __title__ = "openhiven.py"
 __author__ = "Nicolas Klatzer"
 __license__ = "MIT"
-__version__ = "0.0.dev1"
+__version__ = "0.0.1"
 __copyright__ = "FrostbyteSpace"
 
 import logging

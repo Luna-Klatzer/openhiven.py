@@ -3,6 +3,8 @@ import datetime
 import logging
 
 import openhivenpy.Exception as errs
+from ._get_type import getType
+from openhivenpy.Gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,24 +19,25 @@ class User():
     Returned with on_member... events, guilds user lists, client user attribute and get_user()
     
     """
-    def __init__(self, data: dict, auth_token: str):
+    def __init__(self, data: dict, http_client: HTTPClient):
         try:
             # Messages have the user data nested
             if data.get('user') != None:
                 data = data.get('user')
 
-            self._AUTH_TOKEN = auth_token
             self._username = data.get('username')
             self._name = data.get('name')
             self._id = data.get('id')
             self._flags = data.get('user_flags') #ToDo: Discord.py-esque way of user flags     
             self._icon = data.get('icon')   
             self._header = data.get('header') 
-            self._bot = data.get('bot') 
-            self._location = data.get('location')
-            self._website = data.get('website')  
-            self._presence = data.get('presence') #ToDo: Presence class
-            self._joined_at = data.get('joined_at')
+            self._bot = data.get('bot')
+            self._location = data.get('location', "")
+            self._website = data.get('website', "") 
+            self._presence = data.get('presence', "")#ToDo: Presence class
+            self._joined_at = data.get('joined_at', "")
+            
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a User object: {e}")

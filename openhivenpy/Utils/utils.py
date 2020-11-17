@@ -61,7 +61,7 @@ def get(iterable, **attrs):
         for elem in iterable:
             if pred(elem) == val:
                 return elem
-            
+
         # Returns if it does not already exist
         return None
 

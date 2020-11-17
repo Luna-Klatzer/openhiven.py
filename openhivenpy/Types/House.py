@@ -2,9 +2,9 @@ import logging
 import sys
 import requests
 
+from ._get_type import getType
+from openhivenpy.Gateway.http import HTTPClient
 import openhivenpy.Exception as errs
-from .Room import Room
-from .Member import Member
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class House():
     Returned with events, the client guilds attribute and get_guild()
     
     """
-    def __init__(self, data: dict, auth_token: str):
+    def __init__(self, data: dict, http_client: HTTPClient):
         try:
             self._id = data.get('id')
             self._name = data.get('name')
@@ -27,9 +27,10 @@ class House():
             self._icon = data.get('icon')
             self._owner_id = data.get('owner_id')
             self._roles = list(data.get('entities'))
-            self._AUTH_TOKEN = auth_token
-            self._members = list(Member(x, self._AUTH_TOKEN) for x in data.get("members"))
-            self._rooms = list(Room(x, self._AUTH_TOKEN) for x in data.get("rooms"))
+            self._members = list(getType.Member(x, http_client) for x in data.get("members"))
+            self._rooms = list(getType.Room(x, http_client) for x in data.get("rooms"))
+            
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a House object: {e}")
@@ -76,7 +77,7 @@ class House():
         return self._rooms    
 
     @staticmethod
-    def create_room(self, name) -> Room:
+    def create_room(self, name) -> getType.Room:
         """openhivenpy.Types.House.createroom(name)
 
         Creates a Room in the house with the specified name. 

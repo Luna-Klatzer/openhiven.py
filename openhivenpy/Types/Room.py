@@ -1,11 +1,10 @@
 import logging
 import sys
-import requests
+import asyncio
 
-from openhivenpy.Utils import utils
+from ._get_type import getType
 import openhivenpy.Exception as errs
-from typing import Optional
-from openhivenpy.Types import Message
+from openhivenpy.Gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ class Room():
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict, auth_token: str): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
+    def __init__(self, data: dict, http_client: HTTPClient): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
         try:
             self._id = data.get('id')
             self._name = data.get('name')
@@ -29,7 +28,8 @@ class Room():
             self._type = data.get("type") # 0 = Text, 1 = Portal
             self._emoji = data.get("emoji")
             self._description = data.get("description")
-            self._AUTH_TOKEN = auth_token
+            
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a Room object: {e}")
@@ -67,17 +67,27 @@ class Room():
     def description(self):
         return self._description
 
-    def send(self,content : str): #ToDo: Attatchments. Requires to be binary
+    async def send(self, content: str, delay: float) -> getType.Message: #ToDo: Attatchments. Requires to be binary
         """openhivenpy.Types.Room.send(content)
 
         Sends a message in the room. Returns the message if successful.
 
+        Parameter:
+        ----------
+        
+        content: `str` - Content of the message
+    
+        delay: `str` - Seconds to wait until sending the message
+
         """
         #POST /rooms/roomid/messages
-        #Media: POST /rooms/roomid/media_messages
-        res = requests.post(f"https://api.hiven.io/v1/rooms/{self.id}/messages",headers={"Content-Type":"application/json","Authorization": self._AUTH_TOKEN},data={"content": content})
+        #Media: POST /rooms/roomid/media_messages)
         try:
-            msg = Message((res.json())["data"],self._AUTH_TOKEN)
+            response = await self.http_client.post(endpoint="rooms/{self.id}/messages", 
+                                                    data={"content": content})
+            await asyncio.sleep(delay=delay)
+            msg = await getType.a_Message(response, self.http_client)
+            return msg
+        
         except Exception as e:
-            raise e
-        return msg
+            raise sys.exc_info()[0](e)

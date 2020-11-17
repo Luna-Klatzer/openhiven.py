@@ -1,3 +1,4 @@
+from ._get_type import getType
 from .Room import *
 from .House import *
 from .Message import *

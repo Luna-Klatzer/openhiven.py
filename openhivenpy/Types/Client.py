@@ -3,7 +3,7 @@ import logging
 import requests
 import datetime
 
-from .User import User
+from ._get_type import getType
 
 logger = logging.getLogger(__name__)
 
@@ -18,17 +18,16 @@ class Client():
     Returned as HivenClient(or specified Client Type) in on_init() and with UserClient(), BotClient() and HivenClient()
     
     """
-    def update_client_data(self, data: dict) -> None:
-        """
-        Updates or creates the standard data of the HivenClient
-        
-        Returns if the Client class inherited the caller class and else the Client Class itself
+    async def update_client_data(self, data: dict) -> None:
+        """`openhivenpy.Types.Client.update_client_data()`
+         
+        Updates or creates the standard user data attributes of the HivenClient
         
         """
         try: 
-            self._USER = User(data, self._TOKEN)
-            return self
-
+            # Using a USER object to actually store all user data
+            self._USER = await getType.a_User(data, self.http_client)
+            
         except AttributeError as e: #Audible pain.
             logger.error(f"Error while updating information of the client: {e}")
             raise AttributeError("The data of the object User was not initialized correctly")
@@ -39,21 +38,34 @@ class Client():
             raise sys.exc_info()[0](e)
 
     def __init__(self):
-        self._HOUSES = [] #Python no likey appending to a read-only list
-        self._USERS = []
-        self._ROOMS = []
+        self._houses = [] #Python no likey appending to a read-only list
+        self._users = []
+        self._rooms = []
 
-    async def edit(self, data) -> bool:
-        """`openhivenpy.ClientUser.edit`
+    async def edit(self, data: str, value: str) -> bool:
+        """`openhivenpy.ClientUser.edit()`
         
-        Change the signed in user's data. Available options: header, icon, bio, location, website.
+        Change the signed in user's/bot's data. 
+        
+        Available options: header, icon, bio, location, website.
+        
+        Returns `True` if successful
         
         """
-        if not type(data) == dir:
-            raise SyntaxError(f"Expected dir, got {type(data)}")
-        res = requests.patch("https://api.hiven.io/v1/users/@me", headers={"authorization": self._TOKEN,"User-Agent":"openhiven.py", "Content-Type":"application/json"},data=data)
-        return res.status_code == 200
+        execution_code = None
+        try:
+            if data in ['header', 'icon', 'bio', 'location', 'website']:
+                response = await self.http_client.patch(endpoint="/users/@me", data={data: value})
+                execution_code = response.status
+                return True
+            else:
+                logger.error("The passed value does not exist in the user context!")
+                raise KeyError("The passed value does not exist in the user context!")
     
+        except Exception as e:
+            logger.critical(f"Error while trying to change the value {data} on the Client Account. [CODE={execution_code}] {e}")
+            raise sys.exc_info()[0](e)    
+
     @property
     def username(self) -> str:
         return self._USER.username
@@ -68,12 +80,12 @@ class Client():
 
     @property
     def icon(self) -> str:
-        return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
-
+        return self._USER._icon
+    
     @property
     def header(self) -> str:
-        return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
-    
+        return self._USER._header
+
     @property
     def bot(self) -> bool:
         return self._USER.bot
@@ -87,9 +99,9 @@ class Client():
         return self._USER.website
 
     @property
-    def presence(self):
+    def presence(self) -> getType.Presence:
         return self._USER.presence
 
     @property
     def joined_at(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self._joined_at) if self._joined_at != None else None
+        return datetime.datetime.fromisoformat(self._USER._joined_at) if self._USER._joined_at != None else None

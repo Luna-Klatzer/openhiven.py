@@ -3,9 +3,9 @@ import requests
 import logging
 import sys
 
+from ._get_type import getType
 import openhivenpy.Exception as errs
-from .Room import Room
-from .Member import Member
+from openhivenpy.Gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +20,24 @@ class Message():
     Returned with house room message list and House.get_message()
     
     """
-    def __init__(self, data: dict, auth_token: str):
+    def __init__(self, data: dict, http_client: HTTPClient):
         try:
             self._id = data.get('id')
-            self._author = None # Member(data.get('author_id'), auth_token)
+            self._author = None # Member(data.get('author_id'), http_client)
             self._roomid = data.get('room_id')
             self._room = None #Need to get room list as this returns room_id
             self._attatchment = data.get('attatchment')
             self._content = data.get('content')
+            
             # Converting to seconds because it's in miliseconds
             self._timestamp = datetime.datetime.fromtimestamp(int(data.get('timestamp')) / 10000) if data.get('timestamp') != None else None
             self._edited_at = datetime.datetime.fromtimestamp(data.get('edited_at')) if data.get('edited_at') != None else None
-            self._mentions = [(Member(x) for x in data.get('mentions', []))] #Thats the first time I've ever done that. Be proud of me kudo!
+            self._mentions = [(getType.Member(x) for x in data.get('mentions', []))] #Thats the first time I've ever done that. Be proud of me kudo!
+            
             self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding') #..I have no idea.
-            self._AUTH_TOKEN = auth_token
+            
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a Message object: {e}")

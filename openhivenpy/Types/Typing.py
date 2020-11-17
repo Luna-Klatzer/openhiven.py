@@ -3,8 +3,8 @@ import logging
 import sys
 
 import openhivenpy.Exception as errs
-from openhivenpy.Types import *
-import openhivenpy.Utils as utils 
+from ._get_type import getType
+from openhivenpy.Gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +19,15 @@ class Typing():
     Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
     
     """
-    def __init__(self, data: dict, auth_token: str):
+    def __init__(self, data: dict, http_client: HTTPClient):
         try:
-            self.AUTH_TOKEN = auth_token
             self._member = data.get('author_id')
             self._house = data.get('house_id')
             self._room = data.get('room_id')
             self._timestamp = data.get('timestamp')
             
+            self._http_client = http_client
+                        
         except AttributeError as e: 
             logger.error(f"Error while initializing a Typing object: {e}")
             raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")

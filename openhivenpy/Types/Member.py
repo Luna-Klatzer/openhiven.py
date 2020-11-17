@@ -2,9 +2,11 @@ import requests
 import logging
 import sys
 
+from openhivenpy.Types._get_type import getType
+from .User import User
+from openhivenpy.Gateway.http import HTTPClient
 from openhivenpy.Utils import raise_value_to_type
 import openhivenpy.Exception as errs
-from .User import User
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +18,15 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict, auth_token: str):
+    def __init__(self, data: dict, http_client: HTTPClient):
         try:
-            super().__init__(data, auth_token)
+            super().__init__(data, http_client)
             self._user_id = data.get('user_id')
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
-            self._AUTH_TOKEN = auth_token
+            
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a Member object: {e}")

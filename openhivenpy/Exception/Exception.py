@@ -44,7 +44,7 @@ class NoneClientType(Warning):
 class ConnectionError(GatewayException):
     """`openhivenpy.Exception.UnableToConnect`
     
-    The Websocket was unable to connect to the Hiven API. Possibly faulty Token!
+    The Websocket or the HTTPClient was unable to connect to Hiven!
     
     """
     pass
