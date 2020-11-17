@@ -12,7 +12,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 # Simple test to get a simple response from the Hiven API
-TOKEN = os.getenv("token") or "" #Just to prevent mishaps
+TOKEN = os.getenv("token") or "" #Dear MS, MAKE VSC TERMINAL SUPPORT FILE ENVS!
 event_loop = asyncio.new_event_loop()
 client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop)
 

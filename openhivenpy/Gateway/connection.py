@@ -10,7 +10,7 @@ from . import API, Websocket, HTTPClient
 logger = logging.getLogger(__name__)
 
 def get_args(**kwargs):
-    args = {
+    return {
         "api_url": kwargs.get('api_url', "https://api.hiven.io"),
         "api_version": kwargs.get('api_version', "v1"),
         "token": kwargs.get('token', None),
@@ -20,7 +20,6 @@ def get_args(**kwargs):
         "ping_interval": kwargs.get('ping_interval', None),
         "event_loop": kwargs.get('event_loop')
     }
-    return args
 
 class Connection(Websocket, Client):
     """`openhivenpy.Gateway.Connection` 

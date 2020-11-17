@@ -1,8 +1,11 @@
 import logging
 import sys
+import requests
 
 from openhivenpy.Utils import utils
 import openhivenpy.Exception as errs
+from typing import Optional
+from openhivenpy.Types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -63,3 +66,18 @@ class Room():
     @property
     def description(self):
         return self._description
+
+    def send(self,content : str): #ToDo: Attatchments. Requires to be binary
+        """openhivenpy.Types.Room.send(content)
+
+        Sends a message in the room. Returns the message if successful.
+
+        """
+        #POST /rooms/roomid/messages
+        #Media: POST /rooms/roomid/media_messages
+        res = requests.post(f"https://api.hiven.io/v1/rooms/{self.id}/messages",headers={"Content-Type":"application/json","Authorization": self._AUTH_TOKEN},data={"content": content})
+        try:
+            msg = Message((res.json())["data"],self._AUTH_TOKEN)
+        except Exception as e:
+            raise e
+        return msg
