@@ -11,6 +11,8 @@ from datetime import datetime
 from openhivenpy.Gateway import Connection, API, HTTPClient
 from openhivenpy.Events import EventHandler
 import openhivenpy.Exception as errs
+import openhivenpy.Utils as utils
+from openhivenpy.Types import Room, House, Message
 
 logger = logging.getLogger(__name__)
 
@@ -251,3 +253,15 @@ class HivenClient(EventHandler, API):
     @property
     def startup_time(self) -> float:
         return self.connection.startup_time
+
+    @property
+    def getRoom(self,id : float) -> Room:
+        return utils.get(self._ROOMS,id=id)
+
+    @property
+    def getHouse(self,id : float) -> Room:
+        return utils.get(self._HOUSES,id=id)
+
+    @property
+    def getUser(self,id : float) -> Room:
+        return utils.get(self._USERS,id=id)

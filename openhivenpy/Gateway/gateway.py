@@ -333,6 +333,9 @@ class Websocket(Client, API):
                         # Appending to the house users list
                         usr = types.Member(usr, self._TOKEN)    
                         house._members.append(usr)
+
+                for room in response_data["d"]["rooms"]:
+                    self._ROOMS.append(types.Room(room,self._TOKEN))
                 
                 # Appending to the client houses list
                 self._HOUSES.append(house)

@@ -41,6 +41,7 @@ class Client():
     def __init__(self):
         self._HOUSES = [] #Python no likey appending to a read-only list
         self._USERS = []
+        self._ROOMS = []
 
     async def edit(self, data) -> bool:
         """`openhivenpy.ClientUser.edit`
