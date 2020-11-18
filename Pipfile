@@ -9,6 +9,7 @@ typing = "*"
 websockets = "*"
 requests = "*"
 asyncio = "*"
+aiohttp = "*"
 
 [dev-packages]
 
