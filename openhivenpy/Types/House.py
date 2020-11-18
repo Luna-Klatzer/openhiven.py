@@ -78,7 +78,7 @@ class House():
 
     @staticmethod
     def create_room(self, name) -> getType.Room:
-        """openhivenpy.Types.House.createroom(name)
+        """openhivenpy.Types.House.create_room(name)
 
         Creates a Room in the house with the specified name. 
         

@@ -1,4 +1,5 @@
 import logging
+
 from operator import attrgetter
 from functools import lru_cache
 # This is a surprise tool that will help us later

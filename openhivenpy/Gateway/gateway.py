@@ -12,7 +12,7 @@ import openhivenpy.Types as types
 import openhivenpy.Exception as errs
 import openhivenpy.Utils as utils
 from openhivenpy.Events import EventHandler
-from openhivenpy.Types import Client
+from openhivenpy.Types import HivenClient
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class API():
 
         return resp
 
-class Websocket(Client, API):
+class Websocket(HivenClient, API):
     """`openhivenpy.Gateway`
     
     Websocket

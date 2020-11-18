@@ -7,15 +7,13 @@ from ._get_type import getType
 
 logger = logging.getLogger(__name__)
 
-class Client():
-    """`openhivenpy.Types.Client` 
+class HivenClient():
+    """`openhivenpy.Types.HivenClient` 
     
-    Data Class for HivenClient
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Date Class for a HivenClient
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    Used for the general data in the HivenClient and inherits all the avaible data from Hiven(attr -> readonly)!
-    
-    Returned as HivenClient(or specified Client Type) in on_init() and with UserClient(), BotClient() and HivenClient()
+    Data Class that stores the data of the connected Client
     
     """
     async def update_client_data(self, data: dict) -> None:

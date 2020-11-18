@@ -3,7 +3,7 @@ import logging
 import sys
 import time
 
-from openhivenpy.Types import Client
+from openhivenpy.Types import HivenClient
 from openhivenpy.Events import EventHandler
 from openhivenpy.Types import Message, House, Room, User
 from . import Websocket, HTTPClient
@@ -21,7 +21,7 @@ def get_args(**kwargs):
         "event_loop": kwargs.get('event_loop')
     }
 
-class Connection(Websocket, Client):
+class Connection(Websocket, HivenClient):
     """`openhivenpy.Gateway.Connection` 
     
     HivenClient
@@ -29,7 +29,7 @@ class Connection(Websocket, Client):
     
     Class that wraps the Websocket, HTTPClient and the Data in the current connection to one class.
     
-    Inherits from Websocket, Client
+    Inherits from Websocket, HivenClient
     
     Parameter:
     ----------
@@ -133,7 +133,7 @@ class Connection(Websocket, Client):
         
         Kills the event loop and the running tasks! 
         
-        Will likely throw `RuntimeError` if the Client was started in a courountine or if future courountines are going to get executed!
+        Will likely throw `RuntimeError` if the HivenClient was started in a courountine or if future courountines are going to get executed!
         
         """
         
