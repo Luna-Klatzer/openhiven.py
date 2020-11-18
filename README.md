@@ -31,6 +31,9 @@
    <a href="https://pypi.org/project/nest-asyncio/">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/nest-asyncio/async-httpclient' alt='aiohttp' />
     </a>
+   <a href="https://docs.python.org/3/library/typing.html">
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/typing/async-httpclient' alt='aiohttp' />
+    </a>
   <br>
 </p>
 <h2 align="center">Installation</h2>
