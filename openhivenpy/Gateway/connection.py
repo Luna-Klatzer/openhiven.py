@@ -2,10 +2,10 @@ import asyncio
 import logging
 import sys
 import time
+from functools import wraps
 
 from openhivenpy.Types import HivenClient
 from openhivenpy.Events import EventHandler
-from openhivenpy.Types import Message, House, Room, User
 from . import Websocket, HTTPClient
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,95 @@ def get_args(**kwargs):
         "ping_interval": kwargs.get('ping_interval', None),
         "event_loop": kwargs.get('event_loop')
     }
+
+
+class ExecutionLoop():
+    """`openhivenpy.Gateway.ConnectionLoop` 
+    
+    ExecutionLoop
+    ~~~~~~~~~~~~~
+    
+    Loop that executs tasks in the background.
+    
+    Not yet ready for users
+    
+    Parameter:
+    ----------
+    
+    event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
+    
+    """
+    def __init__(self, event_loop: asyncio.AbstractEventLoop):
+        self.event_loop = event_loop
+        self.tasks = []
+
+    async def start_loop(self) -> None:
+        """`openhivenpy.Gateway.ConnectionLoop.stop_loop` 
+        
+        Starts the current execution_loop
+        
+        """
+        try:
+            async def execute_loop(tasks) -> None:
+                try:
+                    if not self.tasks == []:
+                        while True:
+                            methods_to_call = []
+                            for task in self.tasks:
+                                methods_to_call.append(self.event_loop.create_task(getattr(self, task)()))
+                            
+                            await asyncio.gather(*methods_to_call, loop=self.event_loop)
+                        
+                except Exception as e:
+                    raise sys.exc_info()[0](e)
+                finally:
+                    return
+                
+            loop = self.event_loop.create_task(execute_loop(self.tasks))
+            await loop
+            
+        except asyncio.CancelledError:
+            logger.debug("Connection was cancelled!")
+            return 
+
+    async def stop_loop(self) -> None:
+        """`openhivenpy.Gateway.ConnectionLoop.stop_loop` 
+        
+        Stops the current execution_loop
+        
+        """
+        try:
+            if not self.execution_loop.cancelled():
+                self.execution_loop.cancel()
+            return
+            
+        except Exception as e:
+            logger.critical(f"An error occured while trying to stopping the execution loop: {e}")
+            raise sys.exc_info()[0](e)
+        
+    def create_task(self):
+        """`openhivenpy.Gateway.ConnectionLoop.create_task` 
+        
+        Task Decorator
+        ---------------
+        
+        Decorator used for registering Tasks for the execution_loop
+        
+        """
+        def decorator(func):
+            @wraps(func) 
+            async def wrapper(*args, **kwargs): 
+                return await func(*args, **kwargs)
+            
+            setattr(self, func.__name__, wrapper)
+            self.tasks.append(func.__name__)
+            
+            logger.debug(f"Taks {func.__name__} added to loop")
+
+            return func # returning func means func can still be used normally
+
+        return decorator
+
 
 class Connection(Websocket, HivenClient):
     """`openhivenpy.Gateway.Connection` 
@@ -68,6 +157,7 @@ class Connection(Websocket, HivenClient):
         self._API_VERSION = args.get('api_version')
 
         self._event_loop = args.get('event_loop')
+        self._execution_loop = ExecutionLoop(self._event_loop)
         
         self.http_client = HTTPClient(loop=self._event_loop, token=token, **args)
         self.http_client.http_ready = False
@@ -117,13 +207,22 @@ class Connection(Websocket, HivenClient):
             self._connection_start = time.time()
             self._connection_status = "opening"
             
+            # Starting the HTTPClient Connection to Hiven
             client_data = await self.http_client.connect()
             self.http_client.http_ready = True
             
             await super().update_client_data(client_data['data'])
-            self._connection_status = "open"
-            await self.ws_connect()
+            
+            # Just here for testing
+            # @self._execution_loop.create_task()
+            # async def print_stuff():
+            #     print("test")
+            
+            # Starting the event loop with the websocket
+            await asyncio.gather(self.ws_connect(), self._execution_loop.start_loop())
+            
         finally:
+            self._connection_status = "closed"    
             return
         
         

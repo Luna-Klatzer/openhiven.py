@@ -39,6 +39,7 @@ class HivenClient():
         self._houses = [] #Python no likey appending to a read-only list
         self._users = []
         self._rooms = []
+        self._private_rooms = []
 
     async def edit(self, data: str, value: str) -> bool:
         """`openhivenpy.ClientUser.edit()`
@@ -64,6 +65,10 @@ class HivenClient():
             logger.critical(f"Error while trying to change the value {data} on the Client Account. [CODE={execution_code}] {e}")
             raise sys.exc_info()[0](e)    
 
+    @property
+    def private_rooms(self) -> str:
+        return self._private_rooms
+    
     @property
     def username(self) -> str:
         return self._USER.username

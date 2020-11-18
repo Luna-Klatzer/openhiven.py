@@ -1,9 +1,7 @@
 import openhivenpy
 import asyncio
-import sys
 import os
 import logging
-import requests
 
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
@@ -37,7 +35,7 @@ async def run():
     else:
         print(f"The ping failed!")
 
-    # Starts the Event loop with the a specified websocket 
+    # Starts the Event loop with the a specified websocket  
     # => can also be a different websocket
     await client.connect()
 

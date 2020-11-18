@@ -282,7 +282,7 @@ class Websocket(HivenClient, API):
 
 
     # Error Handler for exceptions while running the websocket connection
-    async def ws_on_error(self, error) -> None:
+    async def ws_on_error(self, error):
         """
         
         Handler for Errors in the Websocket. 
@@ -298,14 +298,14 @@ class Websocket(HivenClient, API):
 
 
     # Event Triggers
-    async def ws_on_response(self, ctx_data) -> None:
+    async def ws_on_response(self, ctx_data):
         """
-        
+
         Handler for the Websocket Events and the message data. 
-        
+
         Not supposed to be called by a user!
         
-        """    
+        """
         try:
             response_data = json.loads(ctx_data)
             
