@@ -7,7 +7,7 @@ with open("requirements.txt") as file:
     requirements = file.read()
 
 setuptools.setup(
-    name="openhiven-py", 
+    name="openhivenpy", 
     version="0.1beta",
     author="FrostbyteSpace",
     author_email="nicolas.klatzer@gmail.com",
