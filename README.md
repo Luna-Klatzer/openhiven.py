@@ -1,16 +1,18 @@
 <h1 align="center"><img src="https://images.nxybi.me/da4e88d64f12.png"><br>OpenHiven.py</h1>
 <h2 align="center">The unofficial OpenSource Python API Wrapper for Hiven.</h2> <!-- Always close your tags, kids. -->
-<h3 align="center">Currently still under heavy development and build up!</h3>
 <p align="center">
   <a href="https://github.com/FrostbyteSpace/openhiven.py">
     <img alt="Package Version" src="https://img.shields.io/badge/package%20version-not%20released-red?logo=python" />
-    <img alt="Python Version" src="https://img.shields.io/badge/python->=3.7-blue?logo=python" />
+    <a href='https://python.org'>
+      <img alt="Python Version" src="https://img.shields.io/badge/python->=3.7-blue?logo=python" />
+     </a>
     <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github" />
     <img alt="Latest Commit" src="https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet" />
     <a href='https://openhivenpy.readthedocs.io/en/latest/?badge=latest'>
       <img src='https://readthedocs.org/projects/openhivenpy/badge/?version=latest' alt='Documentation Status' />
     </a>
   </a>
+  
   <br>
 </p>
 <h2 align="center">Installation</h2>
