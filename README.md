@@ -4,7 +4,7 @@
 <p align="center">
   <a href="https://github.com/FrostbyteSpace/openhiven.py">
     <img alt="Package Version" src="https://img.shields.io/badge/package%20version-not%20released-red?logo=python" />
-    <img alt="Python Version" src="https://img.shields.io/badge/python->=3.8-blue?logo=python" />
+    <img alt="Python Version" src="https://img.shields.io/badge/python->=3.7-blue?logo=python" />
     <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github" />
     <img alt="Latest Commit" src="https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet" />
     <a href='https://openhivenpy.readthedocs.io/en/latest/?badge=latest'>
