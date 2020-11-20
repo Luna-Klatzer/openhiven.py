@@ -8,13 +8,13 @@ assignees: Nxybi, Nicolas-Klatzer
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of what the bug is. Add if possible Code and or the error log
 
 **To Reproduce**
 Reproduction steps.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Expected behaviour**
+A clear and concise description of what you expected to happen. Add if possible code and or the error log
 
 **Actual Behaviour**
 What happened
