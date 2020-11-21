@@ -368,15 +368,15 @@ class Websocket(HivenClient, API):
                 await self._event_handler.presence_update(precence, user)
 
             elif response_data['e'] == "MESSAGE_CREATE":
-                message = types.Message(response_data['d'], self.http_client)
+                message = types.Message(response_data['d'], self.http_client, None)
                 await self._event_handler.message_create(message)
 
             elif response_data['e'] == "MESSAGE_DELETE":
-                message = types.Message(response_data['d'], self.http_client)
+                message = types.Message(response_data['d'], self.http_client, None)
                 await self._event_handler.message_delete(message)
 
             elif response_data['e'] == "MESSAGE_UPDATE":
-                message = types.Message(response_data['d'], self.http_client)
+                message = types.Message(response_data['d'], self.http_client, None)
                 await self._event_handler.message_update(message)
 
             elif response_data['e'] == "TYPING_START":

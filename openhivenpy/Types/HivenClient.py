@@ -70,6 +70,10 @@ class HivenClient():
                 self._startup_time = time.time() - self.connection_start
                 await self._event_handler.ready_state(ctx=ctx)
                 break
+            elif (time.time() - self.connection_start) > 20 and self._houses >= 1:
+                ctx = None
+                await self._event_handler.ready_state(ctx=ctx)
+                break
             await asyncio.sleep(0.5)
 
     async def edit(self, **kwargs) -> bool:
