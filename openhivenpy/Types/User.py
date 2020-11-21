@@ -16,7 +16,7 @@ class User():
     
     The class inherits all the avaible data from Hiven(attr -> read-only)!
     
-    Returned with on_member... events, guilds user lists, client user attribute and get_user()
+    Returned with events, guilds user lists, getUser() and get_user()
     
     """
     def __init__(self, data: dict, http_client: HTTPClient):
@@ -27,7 +27,7 @@ class User():
 
             self._username = data.get('username')
             self._name = data.get('name')
-            self._id = data.get('id')
+            self._id = int(data.get('id')) if data.get('id') != None else None
             self._flags = data.get('user_flags') #ToDo: Discord.py-esque way of user flags     
             self._icon = data.get('icon')   
             self._header = data.get('header') 
@@ -41,7 +41,7 @@ class User():
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a User object: {e}")
-            raise errs.FaultyInitialization("The data of the object User was not initialized correctly")
+            raise errs.FaultyInitialization("The data of the object User is not in correct Format")
         
         except Exception as e: 
             logger.error(f"Error while initializing a User object: {e}")
@@ -86,4 +86,4 @@ class User():
 
     @property
     def joined_at(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self._joined_at[:10]) if self._joined_at != None else None
+        return datetime.datetime.fromisoformat(self._joined_at[:10]) if self._joined_at != None and self._joined_at != "" else None

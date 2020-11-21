@@ -38,10 +38,16 @@ class ExecutionLoop():
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
     
     """
+    
     def __init__(self, event_loop: asyncio.AbstractEventLoop):
         self.event_loop = event_loop
         self.tasks = []
-
+        self.startup_tasks = []
+        self.startup_methods = self.StartupTasks()
+        
+    class StartupTasks:
+        pass
+        
     async def start_loop(self) -> None:
         """`openhivenpy.Gateway.ConnectionLoop.stop_loop` 
         
@@ -51,6 +57,14 @@ class ExecutionLoop():
         try:
             async def execute_loop(tasks) -> None:
                 try:
+                    if not self.startup_tasks == []:
+                        methods_to_call = []
+                        for task in self.startup_tasks:
+                            task = getattr(self.startup_methods, task)
+                            methods_to_call.append(self.event_loop.create_task(task()))
+                            
+                        await asyncio.gather(*methods_to_call, loop=self.event_loop)
+                    
                     if not self.tasks == []:
                         while True:
                             methods_to_call = []
@@ -86,13 +100,15 @@ class ExecutionLoop():
             logger.critical(f"An error occured while trying to stopping the execution loop: {e}")
             raise sys.exc_info()[0](e)
         
-    def create_task(self):
+    def create_task(self, func=None):
         """`openhivenpy.Gateway.ConnectionLoop.create_task` 
         
-        Task Decorator
-        ---------------
-        
         Decorator used for registering Tasks for the execution_loop
+        
+        Parameter:
+        ----------
+        
+        func: `function` - Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
         
         """
         def decorator(func):
@@ -101,13 +117,46 @@ class ExecutionLoop():
                 return await func(*args, **kwargs)
             
             setattr(self, func.__name__, wrapper)
-            self.tasks.append(func.__name__)
+            self.one_time_tasks.append(func.__name__)
             
             logger.debug(f"Taks {func.__name__} added to loop")
 
             return func # returning func means func can still be used normally
 
-        return decorator
+        if func == None:    
+            return decorator
+        else:
+            return decorator(func)
+    
+    def create_one_time_task(self, func=None):
+        """`openhivenpy.Gateway.ConnectionLoop.create_task` 
+        
+        Decorator used for registering Startup Tasks for the execution_loop
+        
+        Note! Startup Tasks only get executed one time at start and will not be repeated!
+        
+        Parameter:
+        ----------
+        
+        func: `function` - Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
+        
+        """
+        def decorator(func):
+            @wraps(func) 
+            async def wrapper(*args, **kwargs): 
+                return await func(*args, **kwargs)
+            
+            setattr(self.startup_methods, func.__name__, wrapper)
+            self.startup_tasks.append(func.__name__)
+            
+            logger.debug(f"Startup Taks {func.__name__} added to loop")
+
+            return func # returning func means func can still be used normally
+
+        if func == None:    
+            return decorator
+        else:
+            return decorator(func)
 
 
 class Connection(Websocket, HivenClient):
@@ -195,7 +244,7 @@ class Connection(Websocket, HivenClient):
     @property
     def startup_time(self) -> float:
         return self._startup_time
-
+    
     async def connect(self) -> None:
         """`openhivenpy.Gateway.Connection.connect()`
 
@@ -211,12 +260,7 @@ class Connection(Websocket, HivenClient):
             client_data = await self.http_client.connect()
             self.http_client.http_ready = True
             
-            await super().update_client_data(client_data['data'])
-            
-            # Just here for testing
-            # @self._execution_loop.create_task()
-            # async def print_stuff():
-            #     print("test")
+            await super().update_client_user_data(client_data['data'])
             
             # Starting the event loop with the websocket
             await asyncio.gather(self.ws_connect(), self._execution_loop.start_loop())

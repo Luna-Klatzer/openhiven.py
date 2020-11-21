@@ -26,7 +26,10 @@ async def on_init(time):
 async def on_ready(ctx):
     print("Ready")
     
+    stuff = await client.connection.http_client.request("/users/1928928783")
+    
     house = await client.get_house(175036727902074248)
+    print(client.startup_time)
 
 async def run():
     # If response is 200 that means the program can interact with Hiven

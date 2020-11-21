@@ -30,7 +30,7 @@ class Typing():
                         
         except AttributeError as e: 
             logger.error(f"Error while initializing a Typing object: {e}")
-            raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")
+            raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
         
         except Exception as e: 
             logger.error(f"Error while initializing a Typing object: {e}")

@@ -252,9 +252,6 @@ class Websocket(HivenClient, API):
         try:
             async def start_connection():
                 logger.info("Connection to Hiven established")
-                self._startup_time =  time.time() - self._connection_start
-                await self._event_handler.init_state(time=self._startup_time)
-                
                 try:
                     while self._open:
                         # Sleeping the wanted time (Pause for the Heartbeat)
@@ -312,8 +309,10 @@ class Websocket(HivenClient, API):
             logger.debug(f"Received Event {response_data['e']}")
 
             if response_data['e'] == "INIT_STATE":
-                await super().update_client_data(response_data['d'])
-                await self._event_handler.ready_state(time.time())
+                await super().update_client_user_data(response_data['d'])
+                
+                init_time = time.time() - self._connection_start
+                await self._event_handler.init_state(time=init_time)
                 self._initalized = True
 
             elif response_data['e'] == "HOUSE_JOIN":
@@ -322,7 +321,7 @@ class Websocket(HivenClient, API):
                     logger.error("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
                     raise errs.FaultyInitialization("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
 
-                house = types.House(response_data['d'], self.http_client)
+                house = types.House(response_data['d'], self.http_client, super().id)
                 ctx = types.Context(response_data['d'], self.http_client)
                 await self._event_handler.house_join(ctx, house)
 
@@ -332,11 +331,11 @@ class Websocket(HivenClient, API):
                         self._users.append(types.User(usr, self.http_client))   
                          
                         # Appending to the house users list
-                        usr = types.Member(usr, self._TOKEN)    
+                        usr = types.Member(usr, self._TOKEN, house)    
                         house._members.append(usr)
 
                 for room in response_data["d"]["rooms"]:
-                    self._rooms.append(types.Room(room, self.http_client))
+                    self._rooms.append(types.Room(room, self.http_client, house))
                 
                 # Appending to the client houses list
                 self._houses.append(house)
@@ -354,19 +353,19 @@ class Websocket(HivenClient, API):
 
             elif response_data['e'] == "HOUSE_MEMBER_ENTER":
                 ctx = types.Context(response_data['d'], self.http_client)
-                member = types.Member(response_data['d'], self.http_client)
+                member = types.Member(response_data['d'], self.http_client, None) # In work
                 await self._event_handler.house_member_enter(ctx, member)
 
             elif response_data['e'] == "HOUSE_MEMBER_EXIT":
                 ctx = types.Context(response_data['d'], self.http_client)
-                member = types.Member(response_data['d'], self.http_client)
+                user = types.User(response_data['d'], self.http_client)
                 
-                await self._event_handler.house_member_exit(ctx, member)
+                await self._event_handler.house_member_exit(ctx, user)
 
             elif response_data['e'] == "PRESENCE_UPDATE":
                 precence = types.Presence(response_data['d'], self.http_client)
-                member = types.Member(response_data['d'], self.http_client)
-                await self._event_handler.presence_update(precence, member)
+                user = types.Member(response_data['d'], self.http_client, None) # In work
+                await self._event_handler.presence_update(precence, user)
 
             elif response_data['e'] == "MESSAGE_CREATE":
                 message = types.Message(response_data['d'], self.http_client)

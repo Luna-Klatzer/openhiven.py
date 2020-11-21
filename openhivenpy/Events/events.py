@@ -22,13 +22,15 @@ class EventHandler():
         if call_obj == None: 
             logger.debug("Passed object where the events should be called from is None!")
 
-    def event(self):
+    def event(self, func = None):
         """`openhivenpy.Events.Events.event`
         
-        Event Decorator
-        ---------------
-        
         Decorator used for registering HivenClient Events
+        
+        Parameter:
+        ----------
+        
+        func: `function` - Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
         
         """
         def decorator(func):
@@ -42,7 +44,10 @@ class EventHandler():
 
             return func # returning func means func can still be used normally
 
-        return decorator
+        if func == None:    
+            return decorator
+        else:
+            return decorator(func)
 
     async def connection_start(self) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_connection_start') 
@@ -71,13 +76,13 @@ class EventHandler():
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_enter',
                                     ctx=ctx, member=member) 
 
-    async def house_member_exit(self, ctx, member) -> None:
+    async def house_member_exit(self, ctx, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_exit',
-                                    ctx=ctx, member=member) 
+                                    ctx=ctx, user=user) 
 
-    async def presence_update(self, precence, member) -> None:
+    async def presence_update(self, precence, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_presence_update',
-                                    precence=precence, member=member) 
+                                    precence=precence, user=user) 
 
     async def message_create(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_create',
@@ -91,10 +96,10 @@ class EventHandler():
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_update',
                                     message=message) 
 
-    async def typing_start(self, member) -> None:
+    async def typing_start(self, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_start',
-                                    member=member) 
+                                    user=user) 
 
-    async def typing_end(self, member) -> None:
+    async def typing_end(self, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_end',
-                                    member=member) 
+                                    user=user) 

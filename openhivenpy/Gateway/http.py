@@ -42,6 +42,7 @@ class HTTPClient():
         
         self.http_ready = False
         
+        self.session = None
         self.loop = loop    
         
     async def connect(self) -> dict:
@@ -55,7 +56,16 @@ class HTTPClient():
             
             async with self.session.get(url=f"{self.request_url}/users/@me", headers=self.headers) as r:
                 if r.status == 200:
-                    return await r.json()
+                    json = await r.json()
+                    error = json.get('error', False)
+                    if error == False:
+                        return json
+                    else:
+                        error_code = ' '+json['error']['code'] if json['error'].get('code') != None else ''
+                        error_message = json['error']['code'] if json['error'].get('message') != None else 'Faulty request!'
+                        logger.debug(f"Error while inital request{error_code}: {error_message}")
+                        
+                        return None
                 else:
                     raise ConnectionError(f"The Request to Hiven failed! Statuscode: {r.status}")
                 
@@ -75,8 +85,8 @@ class HTTPClient():
         except Exception as e:
             logger.error(f"An error occured while trying to close the HTTP Connection to Hiven: {e}")
     
-    async def raw_request(self, endpoint: str, data: dict = None, timeout: int = 5) -> aiohttp.ClientResponse:
-        """`openhivenpy.Gateway.HTTPClient.delete()`
+    async def raw_request(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+        """`openhivenpy.Gateway.HTTPClient.raw_request()`
 
         Wrapped HTTP request for a specified endpoint. 
         
@@ -87,25 +97,49 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
         
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
         
+        method: `str` - HTTP Method that should be used to perform the request
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        
         """
+        method = kwargs.get('method', 'get')
         if self.http_ready:
-            async with self.session.request(method="get", url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, data=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
+            async with self.session.request(url=f"{self.request_url}{endpoint}", 
+                                            headers=self.headers, 
+                                            json=json_data, 
+                                            timeout=timeout,
+                                            **kwargs) as r:
+                json = await r.json()
+                error = json.get('error', False)
+                if error:
+                    error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown'
+                    error_message = json['error']['message'] if json['error'].get('message') != None else 'Faulty request!'
                 else:
-                    logger.error(f"An error occured while performing HTTP request with endpoint: {self.request_url}{endpoint}")
-                    return False
+                    error_code = "Unknown"
+                    error_message = "Faulty request!"
+                    
+                if r.status == 200 or r.status == 202 or r.status == 204:
+                    if error == False:
+                        return r
+                    else:
+                        logger.debug(f"An error with code {r.status} occured while performing HTTP {method} with endpoint: {self.request_url}{endpoint}")
+                        logger.debug(f"Errormessage: {error_code} - {error_message}")
+                        
+                        return None
+                else:
+                    logger.debug(f"An error with code {r.status} occured while performing HTTP {method} with endpoint: {self.request_url}{endpoint}")
+                    logger.debug(f"Errormessage: {error_code} - {error_message}")
+                    return None
         else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return False    
+            logger.error("The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")
+            return None    
     
-    async def request(self, endpoint: str, data: dict = None, timeout: int = 5) -> dict:
-        """`openhivenpy.Gateway.HTTPClient.delete()`
+    async def request(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> dict:
+        """`openhivenpy.Gateway.HTTPClient.request()`
 
         Wrapped HTTP request for a specified endpoint. 
         
@@ -116,24 +150,20 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
         
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
         
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        
         """
-        if self.http_ready:
-            async with self.session.request(method="get", url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, data=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return await r.json()
-                else:
-                    logger.error(f"An error occured while performing HTTP request with endpoint: {self.request_url}{endpoint}")
-                    return False
+        response = await self.raw_request(endpoint, method="get", timeout=timeout)
+        if response != None:
+            return await response.json()
         else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return False    
+            return None
     
-    async def post(self, endpoint: str, data: dict = None) -> aiohttp.ClientResponse:
+    async def post(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.Gateway.HTTPClient.post()`
 
         Wrapped HTTP Post for a specified endpoint.
@@ -145,22 +175,16 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
+        
+        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        if self.http_ready:
-            async with self.session.post(url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, json=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
-                else:
-                    logger.error(f"An error occured while performing HTTP post with endpoint: {self.request_url}{endpoint}")
-                    return None
-        else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return None
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="post", **kwargs)
             
-    async def delete(self, endpoint: str) -> aiohttp.ClientResponse:
+    async def delete(self, endpoint: str, *, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.Gateway.HTTPClient.delete()`
 
         Wrapped HTTP delete for a specified endpoint.
@@ -172,22 +196,17 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
+        
+        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        
         
         """
-        if self.http_ready:
-            async with self.session.delete(url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
-                else:
-                    logger.error(f"An error occured while performing HTTP delete with endpoint: {self.request_url}{endpoint}")
-                    return None
-        else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return None
+        return await self.raw_request(endpoint, timeout=timeout, method="delete", **kwargs)
         
-    async def put(self, endpoint: str, data: dict = None) -> aiohttp.ClientResponse:
+    async def put(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.Gateway.HTTPClient.put()`
 
         Wrapped HTTP put for a specified endpoint.
@@ -201,22 +220,17 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
+        
+        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        
         
         """
-        if self.http_ready:
-            async with self.session.put(url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, json=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
-                else:
-                    logger.error(f"An error occured while performing HTTP put with endpoint: {self.request_url}{endpoint}")
-                    return None
-        else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return None
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="put", **kwargs)
         
-    async def patch(self, endpoint: str, data: dict = None) -> aiohttp.ClientResponse:
+    async def patch(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.Gateway.HTTPClient.patch()`
 
         Wrapped HTTP patch for a specified endpoint.
@@ -228,22 +242,17 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
+        
+        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        
         
         """
-        if self.http_ready:
-            async with self.session.patch(url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, json=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
-                else:
-                    logger.error(f"An error occured while performing HTTP patch with endpoint: {self.request_url}{endpoint}")
-                    return None
-        else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return None
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="patch", **kwargs)
     
-    async def options(self, endpoint: str, data: dict = None) -> aiohttp.ClientResponse:
+    async def options(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.Gateway.HTTPClient.options()`
 
         Wrapped HTTP options for a specified endpoint.
@@ -257,18 +266,12 @@ class HTTPClient():
         
         endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
     
-        data: `str` - Version string for the API Version. Defaults to 'v1' 
+        json_data: `str` - JSON format data that will be appended to the request
+        
+        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 5
+        
+        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        if self.http_ready:
-            async with self.session.options(url=f"{self.request_url}{endpoint}", 
-                                           headers=self.headers, json=data) as r:
-                if r.status == 200 or r.status == 202 or r.status == 204:
-                    return r
-                else:
-                    logger.error(f"An error occured while performing HTTP options with endpoint: {self.request_url}{endpoint}")
-                    return None
-        else:
-            logger.error("HTTPClient is not ready! The connection is either faulty initalized or closed!")
-            return None    
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="options", **kwargs)
     

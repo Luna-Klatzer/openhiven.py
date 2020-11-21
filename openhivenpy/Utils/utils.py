@@ -35,7 +35,7 @@ async def dispatch_func_if_exists(obj: object, func_name: str, *args, **kwargs):
 def raise_value_to_type(val, data_type):
     """`openhivenpy.utils.raise_value_to_type()`
     
-    Returns the value if not None else returns the empty value in the specified data type instead of None
+    Returns the value if the value is not None else returns the empty value in the specified data type
     
     (Raises None values to the empty Type Value)
     

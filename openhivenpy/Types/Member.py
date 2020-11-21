@@ -2,8 +2,8 @@ import requests
 import logging
 import sys
 
-from openhivenpy.Types._get_type import getType
 from .User import User
+from openhivenpy.Types._get_type import getType
 from openhivenpy.Gateway.http import HTTPClient
 from openhivenpy.Utils import raise_value_to_type
 import openhivenpy.Exception as errs
@@ -18,19 +18,20 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http_client: HTTPClient, House):
         try:
             super().__init__(data, http_client)
-            self._user_id = data.get('user_id')
+            self._user_id = int(data['user_id']) if data.get('user_id') != None else None
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
             
+            self._house = House
             self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a Member object: {e}")
-            raise errs.FaultyInitialization("The data of the object House was not initialized correctly")
+            raise errs.FaultyInitialization("The data of the object House is not in correct Format")
         
         except Exception as e: 
             logger.error(f"Error while initializing a Member object: {e}")

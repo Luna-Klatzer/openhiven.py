@@ -44,7 +44,7 @@ class HivenClient(EventHandler, API):
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default
     
     """
-    def __init__(self, token: str, client_type: str = None, 
+    def __init__(self, token: str, *, client_type: str = None, 
                  event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(), **kwargs):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
@@ -81,10 +81,6 @@ class HivenClient(EventHandler, API):
         
         # Not sure if that's a good solution to the issue but I will do this
         nest_asyncio.apply(loop=self.loop)
-    
-    @property
-    def is_bot(self) -> bool:
-        return self._is_bot
     
     @property
     def token(self) -> str:
@@ -160,6 +156,12 @@ class HivenClient(EventHandler, API):
     def client_type(self) -> str:
         return self._CLIENT_TYPE
 
+    # Meta data
+    # -----------
+    @property
+    def amount_houses(self) -> list:
+        return self.connection._amount_houses
+    
     @property
     def houses(self) -> list:
         return self.connection._houses
@@ -171,6 +173,14 @@ class HivenClient(EventHandler, API):
     @property
     def rooms(self) -> list:
         return self.connection._rooms
+
+    @property
+    def private_rooms(self) -> list:
+        return self.connection._private_rooms
+
+    @property
+    def relationships(self) -> list:
+        return self.connection._relationships
 
     # Client data
     # -----------
@@ -223,8 +233,8 @@ class HivenClient(EventHandler, API):
         """
         if self.connection.http_client.http_ready:
             start = time()
-            res = self.connection.http_client.get("https://api.hiven.io/")
-            if res.status_code == 200:
+            res = asyncio.run(self.connection.http_client.raw_request("/users/@me", method="get"))
+            if res.status == 200:
                 return time() - start
             else:
                 logger.warning("Trying to ping Hiven failed!")
@@ -324,13 +334,16 @@ class HivenClient(EventHandler, API):
         Returns the House if it exists else returns None
         
         """
-        if utils.get(iterable=self.houses, id=id):
-            data = self.connection.http_client.request(endpoint=f"/houses/{id}")
-            return House(data, self.connection.http_client)
+        house = utils.get(iterable=self.houses, id=id)
+        if house != None:
+            return house
+            # Not possible yet
+            # data = await self.connection.http_client.request(endpoint=f"/houses/{id}")
+            # return House(data, self.connection.http_client, self.id)
         else:
             return None
             
-    async def get_user(self, id: id) -> User:
+    async def get_user(self, id: float) -> User:
         """`openhivenpy.HivenClient.get_user()`
         
         Returns a Hiven User Object based on the passed id.
@@ -338,9 +351,11 @@ class HivenClient(EventHandler, API):
         Returns the House if it exists else returns None
         
         """
-        if utils.get(self.users, id=id):
-            data = await self.connection.http_client.request(endpoint=f"/users/{id}")
-            return User(data, self.connection.http_client)
+        user = utils.get(iterable=self.users, id=id)
+        if user != None:
+            return user    
+            # data = await self.connection.http_client.request(endpoint=f"/users/{id}")
+            # return User(data, self.connection.http_client)
         else:
             return None
       
@@ -352,10 +367,11 @@ class HivenClient(EventHandler, API):
         Returns the Room if it exists else returns None
         
         """
-        if utils.get(self.houses, id=house_id):
-            if utils.get(self.connection._houses, id=room_id):
-                data = await self.connection.http_client.request(endpoint=f"/houses/{house_id}/rooms/{room_id}")
-                return Room(data, self.connection.http_client)
+        room = utils.get(self.rooms, id=house_id)
+        if room != None:
+            return room    
+            # data = await self.connection.http_client.request(endpoint=f"/houses/{house_id}/rooms/{room_id}")
+            # return Room(data, self.connection.http_client)
         return None
             
 

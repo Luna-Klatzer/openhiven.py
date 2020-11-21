@@ -1,7 +1,8 @@
 import sys
 import logging
-import requests
 import datetime
+import asyncio
+import time
 
 from ._get_type import getType
 
@@ -16,8 +17,8 @@ class HivenClient():
     Data Class that stores the data of the connected Client
     
     """
-    async def update_client_data(self, data: dict) -> None:
-        """`openhivenpy.Types.Client.update_client_data()`
+    async def update_client_user_data(self, data: dict = None) -> None:
+        """`openhivenpy.Types.Client.update_client_user_data()`
          
         Updates or creates the standard user data attributes of the HivenClient
         
@@ -25,48 +26,88 @@ class HivenClient():
         try: 
             # Using a USER object to actually store all user data
             self._USER = await getType.a_User(data, self.http_client)
+            relationships = data.get('relationships', [])
+            for key in relationships:
+                self._relationships.append(await getType.a_Relationship(relationships.get(key, {}), self.http_client))
+                
+            private_rooms = data.get('private_rooms', [])
+            for private_room in private_rooms:
+                self._private_rooms.append(getType.PrivateRoom(private_room, self.http_client))
             
+            houses_ids = data.get('house_memberships', [])
+            self._amount_houses = len(houses_ids)
+                        
         except AttributeError as e: #Audible pain.
             logger.error(f"Error while updating information of the client: {e}")
-            raise AttributeError("The data of the object User was not initialized correctly")
+            raise AttributeError("The data of the object User is not in correct Format")
         except KeyError as e:
             pass
         except Exception as e:
             logger.error(f"Error while updating information of the client: {e}")
             raise sys.exc_info()[0](e)
 
-    def __init__(self):
-        self._houses = [] #Python no likey appending to a read-only list
+    def __init__(self, *, http_client = None, **kwargs):
+        self.http_client = http_client if http_client != None else self.http_client
+        
+        self._amount_houses = 0
+        self._houses = []
         self._users = []
         self._rooms = []
         self._private_rooms = []
+        self._relationships = []
+        self._USER = getType.User(data=kwargs, http_client=self.http_client)
 
-    async def edit(self, data: str, value: str) -> bool:
+        # Appends the ready check function to the execution_loop
+        self._execution_loop.create_one_time_task(self.check_meta_data)
+
+    async def check_meta_data(self):
+        """
+        Checks whether the meta data is complete and triggers on_ready
+        """
+        while True:
+            if self._amount_houses == len(self._houses) and self._initalized:
+                ctx = None
+                self._startup_time = time.time() - self.connection_start
+                await self._event_handler.ready_state(ctx=ctx)
+                break
+            await asyncio.sleep(0.5)
+
+    async def edit(self, **kwargs) -> bool:
         """`openhivenpy.ClientUser.edit()`
         
         Change the signed in user's/bot's data. 
         
-        Available options: header, icon, bio, location, website.
+        Available options: header, icon, bio, location, website
         
         Returns `True` if successful
         
         """
         execution_code = None
         try:
-            if data in ['header', 'icon', 'bio', 'location', 'website']:
-                response = await self.http_client.patch(endpoint="/users/@me", data={data: value})
-                execution_code = response.status
-                return True
-            else:
-                logger.error("The passed value does not exist in the user context!")
-                raise KeyError("The passed value does not exist in the user context!")
+            for key in kwargs.keys():
+                if key in ['header', 'icon', 'bio', 'location', 'website']:
+                    response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                    execution_code = response.status
+                    return True
+                else:
+                    logger.error("The passed value does not exist in the user context!")
+                    raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Error while trying to change the value {data} on the Client Account. [CODE={execution_code}] {e}")
+            keys = ""+(" "+key for key in kwargs.keys())
+            logger.critical(f"Error while trying to change the values {keys} on the Client Account. [CODE={execution_code}] {e}")
             raise sys.exc_info()[0](e)    
 
     @property
-    def private_rooms(self) -> str:
+    def amount_houses(self) -> int:
+        return self._amount_houses
+
+    @property
+    def relationships(self) -> list:
+        return self._relationships
+
+    @property
+    def private_rooms(self) -> list:
         return self._private_rooms
     
     @property
@@ -79,7 +120,7 @@ class HivenClient():
 
     @property
     def id(self) -> int:
-        return self._USER.id
+        return int(self._USER.id)
 
     @property
     def icon(self) -> str:
@@ -107,4 +148,5 @@ class HivenClient():
 
     @property
     def joined_at(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self._USER._joined_at) if self._USER._joined_at != None else None
+        return datetime.datetime.fromisoformat(self._joined_at[:10]) if self._USER._joined_at != None and self._USER._joined_at != "" else None
+    

@@ -19,21 +19,24 @@ class Room():
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
+    def __init__(self, data: dict, http_client: HTTPClient, House): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
         try:
-            self._id = data.get('id')
+            self._id = int(data.get('id')) if data.get('id') != None else None
             self._name = data.get('name')
-            self._house = data.get("house_id")
-            self._position = data.get("position")
-            self._type = data.get("type") # 0 = Text, 1 = Portal
-            self._emoji = data.get("emoji")
-            self._description = data.get("description")
+            self._house = data.get('house_id')
+            self._position = data.get('position')
+            self._type = data.get('type') # 0 = Text, 1 = Portal
+            self._emoji = data.get('emoji')
+            self._description = data.get('description')
+            self._last_message_id = data.get('last_message_id')
+            
+            self.House = House 
             
             self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Error while initializing a Room object: {e}")
-            raise errs.FaultyInitialization("The data of the object Room was not initialized correctly")
+            raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
         
         except Exception as e: 
             logger.error(f"Error while initializing a Room object: {e}")
@@ -61,7 +64,7 @@ class Room():
 
     @property
     def emoji(self):
-        return self._emoji.get("data") #Random type attrib there aswell
+        return self._emoji.get("data") if self._emoji != None else None #Random type attrib there aswell
     
     @property
     def description(self):
@@ -83,7 +86,7 @@ class Room():
         #POST /rooms/roomid/messages
         #Media: POST /rooms/roomid/media_messages)
         try:
-            response = await self.http_client.post(endpoint="rooms/{self.id}/messages", 
+            response = await self.http_client.post(endpoint="/rooms/{self.id}/messages", 
                                                     data={"content": content})
             await asyncio.sleep(delay=delay)
             msg = await getType.a_Message(response, self.http_client)
