@@ -38,7 +38,7 @@ async def run():
     else:
         print(f"The ping failed!")
 
-    # Starts the Event loop with the a specified websocket  
+    # Starts the Event loop with the specified websocket  
     # => can also be a different websocket
     await client.connect()
 

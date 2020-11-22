@@ -1,11 +1,10 @@
 """
+`openhivenpy.types`
 
-Openhiven.py
+Module types 
 ~~~~~~~~~~~~
 
-The unofficial OpenSource Python API Wrapper for Hiven.
-
-Made with love and time by © FrostbyteSpace
+Module for all data classes that create Hiven Objects.
 
 MIT License
 ~~~~~~~~~~~
@@ -29,22 +28,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 """
 
-__title__ = "openhiven.py"
-__author__ = "Nicolas Klatzer"
-__license__ = "MIT"
-__version__ = "0.1beta"
-__copyright__ = "FrostbyteSpace"
-
-import logging
-
-from .client import *
-from . import events
-from . import gateway
-from . import utils 
-from . import types
-from . import exceptions
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+from ._get_type import getType
+from .room import *
+from .house import *
+from .message import *
+from .user import *
+from .context import *
+from .member import *
+from .hiven_client import *
+from .typing import *
+from .attatchment import *
+from .presence import *
