@@ -31,6 +31,11 @@ async def on_ready(ctx):
     house = await client.get_house(175036727902074248)
     print(client.startup_time)
 
+@client.event()
+async def on_message_create(message):
+    print(message.id)
+    
+
 async def run():
     # If response is 200 that means the program can interact with Hiven
     if client.connection_possible:

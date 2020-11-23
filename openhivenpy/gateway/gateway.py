@@ -269,8 +269,8 @@ class Websocket(HivenClient, API):
             
         except websockets.exceptions.ConnectionClosedError as e:
             if e == "code = 1006 (connection closed abnormally [internal]), no reason":
-                logger.critical(f"Connection died abnormally! Error: {e}")
-                raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven.\n{e}")
+                logger.critical(f"Connection died abnormally! Cause of Error: {e}")
+                raise errs.WSConnectionError("Connection died abnormally! Cause of Error:", e)
 
         except Exception as e:
             logger.critical(f"An error occured while trying to connect to Hiven.")
@@ -331,7 +331,8 @@ class Websocket(HivenClient, API):
                 await self._event_handler.house_join(ctx, house)
 
                 for usr in response_data['d']['members']:
-                    if not utils.get(self._users, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id']):
+                    user = utils.get(self._users, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id'])
+                    if user == None:
                         # Appending to the client users list
                         self._users.append(types.User(usr, self.http_client))   
                          
@@ -373,15 +374,49 @@ class Websocket(HivenClient, API):
                 await self._event_handler.presence_update(precence, user)
 
             elif response_data['e'] == "MESSAGE_CREATE":
-                message = types.Message(response_data['d'], self.http_client, None)
+                if response_data['d'].get('house_id') != None:
+                    house = utils.get(self._houses, id=int(response_data['d'].get('house_id')))
+                else:
+                    house = None
+                    
+                room = utils.get(self._rooms, id=int(response_data['d']['room_id']))
+                
+                cached_author = utils.get(self._users, id=int(response_data['d']['author_id']))
+                if response_data['d'].get('author') != None:
+                    author = types.User(response_data['d']['author'], self.http_client)
+                    
+                    if cached_author:
+                        self._users.remove(cached_author)
+                    self._users.append(author)
+                else:
+                    author = cached_author
+                
+                message = types.Message(response_data['d'], self.http_client, house=house, room=room, author=author)
                 await self._event_handler.message_create(message)
 
             elif response_data['e'] == "MESSAGE_DELETE":
-                message = types.Message(response_data['d'], self.http_client, None)
+                message = types.DeletedMessage(response_data['d'], self.http_client, None)
                 await self._event_handler.message_delete(message)
 
             elif response_data['e'] == "MESSAGE_UPDATE":
-                message = types.Message(response_data['d'], self.http_client, None)
+                if response_data['d'].get('house_id') != None:
+                    house = utils.get(self._houses, id=int(response_data['d'].get('house_id')))
+                else:
+                    house = None
+                    
+                room = utils.get(self._rooms, id=int(response_data['d']['room_id']))
+                
+                cached_author = utils.get(self._users, id=int(response_data['d']['author_id']))
+                if response_data['d'].get('author') != None:
+                    author = types.User(response_data['d']['author'], self.http_client)
+                    
+                    if cached_author:
+                        self._users.remove(cached_author)
+                    self._users.append(author)
+                else:
+                    author = cached_author
+                
+                message = types.Message(response_data['d'], self.http_client, house=house, room=room, author=author)
                 await self._event_handler.message_update(message)
 
             elif response_data['e'] == "TYPING_START":

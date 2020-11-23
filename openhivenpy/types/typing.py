@@ -29,11 +29,11 @@ class Typing():
             self._http_client = http_client
                         
         except AttributeError as e: 
-            logger.error(f"Error while initializing a Typing object: {e}")
+            logger.error(f"Unable to initialize the Typing object! Cause of Error: {e}")
             raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Error while initializing a Typing object: {e}")
+            logger.error(f"Unable to initialize the Typing object! Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
 
     @property

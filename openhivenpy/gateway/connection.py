@@ -4,7 +4,7 @@ import sys
 import time
 from functools import wraps
 
-from openhivenpy.exceptions import ConnectionError
+import openhivenpy.exceptions as errs
 from openhivenpy.types import HivenClient
 from openhivenpy.events import EventHandler
 from . import Websocket, HTTPClient
@@ -96,7 +96,7 @@ class ExecutionLoop():
                             
                         await asyncio.gather(*methods_to_call, loop=self.event_loop)
                 except Exception as e:
-                    logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} {e}")
+                    logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
                     raise sys.exc_info()[-1](e)
                 
                 finally:
@@ -112,7 +112,7 @@ class ExecutionLoop():
                         await asyncio.gather(*methods_to_call, loop=self.event_loop)
                     
             except Exception as e:
-                logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} {e}")
+                logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
                 raise sys.exc_info()[-1](e)
             finally:
                 self._active = False
@@ -140,7 +140,7 @@ class ExecutionLoop():
             logger.debug("The execution loop was stopped and will now return")
             
         except Exception as e:
-            logger.critical(f"An error occured while trying to stopping the execution loop: {e}")
+            logger.critical(f"Stopping the execution loop failed: Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
         finally:
             return 
@@ -312,8 +312,8 @@ class Connection(Websocket, HivenClient):
             await asyncio.gather(self.ws_connect(), self._execution_loop.start_loop())
             
         except Exception as e:
-            logger.critical(f"Error while trying to establish the connection to Hiven, {e}")
-            raise ConnectionError(f"Error while trying to establish the connection to Hiven, {e}")
+            logger.critical(f"Error while trying to establish the connection to Hiven! Cause of Error: {e}")
+            raise errs.ConnectionError(f"Error while trying to establish the connection to Hiven! Cause of Error: {e}")
             
         finally:
             self._connection_status = "closed"    
@@ -344,8 +344,8 @@ class Connection(Websocket, HivenClient):
             self._connection_status = "closed"
 
         except Exception as e:
-            logger.critical(f"Error while trying to close the connection{e}")
-            raise sys.exc_info()[-1](e)
+            logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {e}")
+            raise errs.UnableToClose(e)
         finally:
             return
 
@@ -366,6 +366,6 @@ class Connection(Websocket, HivenClient):
             self.initalized = False
             
         except Exception as e:
-            logger.critical(f"An error occured while trying to close the connection to Hiven: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {e}")
+            raise errs.UnableToClose(e)
     

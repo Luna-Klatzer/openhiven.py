@@ -77,6 +77,13 @@ class getType():
         from .relationship import Relationship
         return Relationship(data, http_client)
     
+    @staticmethod
+    async def Embed(data: dict):
+        """
+        Async Function for getting a Embed Object with passed data 
+        """
+        from .embed import Embed
+        return Embed(data)
     
     @staticmethod
     def House(data: dict, http_client: HTTPClient, id: int):
@@ -141,5 +148,13 @@ class getType():
         """
         from .relationship import Relationship
         return Relationship(data, http_client)
+    
+    @staticmethod
+    def Embed(data: dict):
+        """
+        Regular Function for getting a Embed Object with passed data 
+        """
+        from .embed import Embed
+        return Embed(data)
         
         

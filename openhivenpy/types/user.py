@@ -10,7 +10,7 @@ import openhivenpy
 logger = logging.getLogger(__name__)
 
 class User():
-    r"""`openhivenpy.types.User` 
+    """`openhivenpy.types.User` 
     
     Data Class for a Hiven User
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,12 +23,6 @@ class User():
     
     Attributes
     ~~~~~~~~~~
-    
-    .. code-block:: python3
-        
-        member = stuff
-    
-    stuff
     
     """
     def __init__(self, data: dict, http_client: HTTPClient):
@@ -52,11 +46,11 @@ class User():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Error while initializing a User object: {e}")
+            logger.error(f"Unable to initialize the User object! Cause of Error: {e}")
             raise errs.FaultyInitialization("The data of the object User is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Error while initializing a User object: {e}")
+            logger.error(f"Unable to initialize the User object! Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
 
     @property

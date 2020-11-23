@@ -35,6 +35,8 @@ class HivenClient(EventHandler, API):
     
     client_type: `str` - Automatically set if UserClient or BotClient is used. Raises `HivenException.InvalidClientType` if set incorrectly. Defaults to `BotClient` 
     
+    event_handler: `openhivenpy.events.EventHandler` - Handler for the events. Can be modified and customized if wanted. Creates a new one on Default
+    
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
     
     ping_timeout: `int` - Seconds after the websocket will timeout after no succesful pong response. More information on the websockets documentation. Defaults to `100`
@@ -46,7 +48,7 @@ class HivenClient(EventHandler, API):
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default
     
     """
-    def __init__(self, token: str, *, client_type: str = None, 
+    def __init__(self, token: str, *, client_type: str = None, event_handler: EventHandler = None,
                  event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(), **kwargs):
 
         if client_type == "user" or client_type == "HivenClient.UserClient":
@@ -76,7 +78,7 @@ class HivenClient(EventHandler, API):
 
         self._TOKEN = token
         self.loop = event_loop
-        self.event_handler = EventHandler(self)
+        self.event_handler = EventHandler(self) if event_handler == None else event_handler
         
         # Websocket and client data are being handled over the Connection Class
         self.connection = Connection(event_handler = self.event_handler, 
@@ -135,7 +137,7 @@ class HivenClient(EventHandler, API):
                 logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Error while closing the connection to Hiven: {e}")
+            logger.error(f"Error while closing the connection to Hiven Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
         
     async def close(self) -> bool:        
@@ -154,7 +156,7 @@ class HivenClient(EventHandler, API):
                 logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Error while closing the connection to Hiven: {e}")
+            logger.error(f"Error while closing the connection to Hiven Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
 
     @property

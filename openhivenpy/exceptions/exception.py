@@ -14,64 +14,56 @@ __all__ = (
 class HivenException(Exception):
     """`openhivenpy.exception.HivenException`
     
-    Standard Exception in the openhivenpy library!
+    Base Exception in the openhivenpy library!
+    
+    All other exceptions inherit from this base class
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
+        if args:
+            msg = "".join(arg for arg in args)
+        else:
+            msg = f"{self.__name__}, Exception occured in the package openhivenpy"
             
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, Exception occured in the package openhivenpy"
-        else:
-            return f"{self.__name__}, {self.message}"
-        
-class GatewayException(Exception):
-    """`openhivenpy.exception.GatewayException`
-       
-    General Exception in the Websocket!
+        super().__init__(msg)     
+  
+    @property
+    def __name__(self):
+        return "HivenException"   
+  
+class ConnectionError(HivenException):
+    """`openhivenpy.exception.ConnectionError`
+    
+    The connection to Hiven failed to be kept alive or started!
     
     """
     def __init__(self, *args):
-        super().__init__(*args) 
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, Exception occured in the running Websocket"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
+            arg = "The connection to Hiven failed to be kept alive or started!"
+        super().__init__(arg)
+        
+    @property
+    def __name__(self):
+        return "ConnectionError"
 
-class Forbidden(Exception):
+class Forbidden(HivenException):
     """`openhivenpy.exception.Forbidden`
 
     The client was forbidden to execute a certain task or function
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, The client was forbidden to execute a certain task or function!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
-
-# Command Exceptions #
-
-class CommandException(Exception):
-    """`openhivenpy.exception.CommandException`
-    
-    General Exception while executing a command function on Hiven!
-    
-    """
-    def __init__(self, *args):
-        super().__init__(*args)
+            arg = "The client was forbidden to execute a certain task or function!"
+        super().__init__(arg)
         
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, An Exception occured while executing a command function on Hiven!"
-        else:
-            return f"{self.__name__}, {self.message}"
+    @property
+    def __name__(self):
+        return "Forbidden"
     
 class FaultyInitialization(HivenException):
     """`openhivenpy.exception.FaultyInitialization`
@@ -80,13 +72,11 @@ class FaultyInitialization(HivenException):
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, The object was not initialized correctly and values were faulty passed or are entirely missing!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
+            arg = "The object was not initialized correctly and values were faulty passed or are entirely missing!"
+        super().__init__(arg)
     
 class InvalidClientType(HivenException):
     """`openhivenpy.exception.InvalidClientType`
@@ -95,13 +85,11 @@ class InvalidClientType(HivenException):
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, Invalid client type was passed resulting in a failed initialization!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
+            arg = "Invalid client type was passed resulting in a failed initialization!"
+        super().__init__(arg)
 
 class InvalidToken(HivenException):
     """`openhivenpy.exception.InvalidToken`
@@ -110,44 +98,50 @@ class InvalidToken(HivenException):
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, Invalid Token was passed!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
-
-
-class ConnectionError(GatewayException):
-    """`openhivenpy.exception.ConnectionError`
+            arg = "Invalid Token was passed!"
+        super().__init__(arg)
+        
+class GatewayException(ConnectionError):
+    """`openhivenpy.exception.GatewayException`
+       
+    General Exception in the Websocket!
     
-    The connection to Hiven failed to be kept alive or started!
+    """    
+    def __init__(self, *args):
+        if args:
+            arg = "".join(arg for arg in args)
+        else:
+            arg = "Exception occured in the running Websocket!"
+        super().__init__(arg)
+
+class UnableToClose(GatewayException):
+    """`openhivenpy.exception.UnableToClose`
+    
+    The client is unable to close the connection to Hiven!
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, The connection to Hiven failed to be kept alive or started!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
-
-class WSConnectionError(ConnectionError):
+            arg = "The client is unable to close the connection to Hiven!"
+        super().__init__(arg)
+        
+class WSConnectionError(GatewayException):
     """`openhivenpy.exception.WSConnectionError`
     
-    An Exception occured an error while trying to keep the connection alive to Hiven!
+    An Exception occured while trying to establish/keep the connection alive to Hiven!
     
     """
     def __init__(self, *args):
-        super().__init__(*args)
-        
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, The Websocket or the HTTPClient was unable to connect to Hiven!!"
+        if args:
+            arg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
+            arg = "The Websocket was unable to establish/keep the connection alive to Hiven!"
+        super().__init__(arg)
         
 class NoneClientType(Warning):
     """`openhivenpy.exception.NoneClientType`
@@ -156,11 +150,24 @@ class NoneClientType(Warning):
     
     """    
     def __init__(self, *args):
-        super().__init__(*args)
-            
-    def __str__(self):
-        if self.message:
-            return f"{self.__name__}, A None Type was passed in the Initialization!"
+        if args:
+            msg = "".join(arg for arg in args)
         else:
-            return f"{self.__name__}, {self.message}"
+            msg = "A None Type was passed in the Initialization!"
+        super().__init__(msg)
+        
+# Command Exceptions #
+
+class CommandException(HivenException):
+    """`openhivenpy.exception.CommandException`
+    
+    General Exception while executing a command function on Hiven!
+    
+    """
+    def __init__(self, *args):
+        if args:
+            arg = args[0] + "".join(arg for arg in args)
+        else:
+            arg = "An Exception occured while executing a command function on Hiven!"
+        super().__init__(arg)
         

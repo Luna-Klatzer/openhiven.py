@@ -60,8 +60,9 @@ class HTTPClient():
         
         except Exception as e:
             self.http_ready = False
-            logger.error(f"An error occured while trying to create session: {e}")
-            raise sys.exc_info()[-1](f"An error occured while trying to create session: {e}")  
+            await self.session.close()
+            logger.error(f"Attempt to create session failed! Cause of Error: {e}")
+            raise sys.exc_info()[-1](f"Attempt to create session failed! Cause of Error: {e}")  
             
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTPClient.connect()`
@@ -127,13 +128,13 @@ class HTTPClient():
                         return None
                 
             except aiohttp.errors.HttpMethodNotAllowed as e:
-                logger.error(f"The HTTP method {method} is forbidden and was blocked: {e}")
+                logger.error(f"The HTTP method {method} is forbidden and was blocked! Cause of Error: {e}")
 
             except aiohttp.errors.BadHttpMessage as e:
-                logger.error(f"Bad request with HTTP {method}: {e}")
+                logger.error(f"Bad request with HTTP {method}! Cause of Error: {e}")
                    
             except Exception as e:
-                logger.error(f"An error occured while trying to request client data from Hiven: {e}")
+                logger.error(f"An error occured while trying to request client data from Hiven! Cause of Error: {e}")
                 raise aiohttp.HttpProcessingError(code="Unknown", message=f"The attempt to eequest to Hiven failed! Statuscode: Unknown")
                     
         else:

@@ -19,7 +19,7 @@ class Room():
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, House): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
+    def __init__(self, data: dict, http_client: HTTPClient, house): #These are all the attribs rooms have for now. Will add more when Phin says theyve been updated. Theres no functions. Yet.
         try:
             self._id = int(data.get('id')) if data.get('id') != None else None
             self._name = data.get('name')
@@ -30,16 +30,16 @@ class Room():
             self._description = data.get('description')
             self._last_message_id = data.get('last_message_id')
             
-            self.House = House 
+            self._house = house 
             
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Error while initializing a Room object: {e}")
+            logger.error(f"Unable to initialize the Room object! Cause of Error: {e}")
             raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Error while initializing a Room object: {e}")
+            logger.error(f"Unable to initialize the Room object! Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
 
     @property
@@ -52,7 +52,7 @@ class Room():
 
     @property
     def house(self):
-        return None #ToDo
+        return self._house
 
     @property
     def position(self):
