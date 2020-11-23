@@ -28,7 +28,7 @@ class PrivateRoom():
             self._name = f"Private chat with {recipients[0]['name']}"   
             self._type = data.get('type')
              
-            self.http_client = http_client
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Unable to initialize the PrivateRoom object! Cause of Error: {e}")

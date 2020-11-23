@@ -2,14 +2,14 @@
 
 
 __all__ = (
-        'HivenException', 'GatewayException', 'CommandException', 
+        'HivenException', 'ConnectionError', 'Forbidden', 
         
         'Forbidden', 'FaultyInitialization', 'InvalidClientType',
-        'InvalidToken', 
+        'InvalidToken', 'UnableToClose', 'NoneClientType',
             
-        'ConnectionError', 'WSConnectionError',
+        'GatewayException', 'WSConnectionError', 'HTTPError',
         
-        'NoneClientType')
+        'CommandException')
 
 class HivenException(Exception):
     """`openhivenpy.exception.HivenException`
@@ -116,6 +116,19 @@ class GatewayException(ConnectionError):
         else:
             arg = "Exception occured in the running Websocket!"
         super().__init__(arg)
+
+class HTTPError(ConnectionError):
+    """`openhivenpy.exception.GatewayException`
+       
+    Base Exception for exceptions in the HTTPClient and overall requesting
+    
+    """    
+    def __init__(self, code, *args):
+        if args:
+            arg = "".join(arg for arg in args)
+        else:
+            arg = f"Unable to process HTTP request! Code: {code}"
+        super().__init__(arg) 
 
 class UnableToClose(GatewayException):
     """`openhivenpy.exception.UnableToClose`

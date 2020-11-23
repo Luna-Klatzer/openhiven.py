@@ -333,7 +333,7 @@ class HivenClient(EventHandler, API):
         """
         return utils.get(self.users, id=id)
         
-    async def get_house(self, id: float) -> House:
+    async def get_house(self, house_id: float) -> House:
         """`openhivenpy.HivenClient.get_house()`
         
         Returns a Hiven House Object based on the passed id.
@@ -341,16 +341,20 @@ class HivenClient(EventHandler, API):
         Returns the House if it exists else returns None
         
         """
-        house = utils.get(iterable=self.houses, id=id)
-        if house != None:
+        cached_house = utils.get(self.houses, id=house_id)
+        if cached_house != None:
+            return cached_house
+        
+            # Not yet possible
+            data = await self.connection.http_client.request(endpoint=f"/houses/{id}")
+            house = House(data['d'], self.connection.http_client, self.id)
+            if cached_house:
+                self.connection._houses.remove(cached_house)
+            self.connection._houses.append(house)
             return house
-            # Not possible yet
-            # data = await self.connection.http_client.request(endpoint=f"/houses/{id}")
-            # return House(data, self.connection.http_client, self.id)
-        else:
-            return None
+        return None
             
-    async def get_user(self, id: float) -> User:
+    async def get_user(self, user_id: float) -> User:
         """`openhivenpy.HivenClient.get_user()`
         
         Returns a Hiven User Object based on the passed id.
@@ -358,15 +362,17 @@ class HivenClient(EventHandler, API):
         Returns the House if it exists else returns None
         
         """
-        user = utils.get(iterable=self.users, id=id)
-        if user != None:
-            return user    
-            # data = await self.connection.http_client.request(endpoint=f"/users/{id}")
-            # return User(data, self.connection.http_client)
-        else:
-            return None
+        cached_user = utils.get(self.users, id=user_id)
+        if cached_user != None:
+            data = await self.connection.http_client.request(endpoint=f"/users/{id}")
+            user = User(data['d'], self.connection.http_client)
+            if cached_user:
+                self.connection._houses.remove(cached_user)
+            self.connection._houses.append(user)
+            return user
+        return None
       
-    async def get_room(self, house_id: float, room_id: float) -> Room:
+    async def get_room(self, room_id: float) -> Room:
         """`openhivenpy.HivenClient.get_room()`
         
         Returns a Hiven Room Object based on the passed house id and room id.
@@ -374,11 +380,14 @@ class HivenClient(EventHandler, API):
         Returns the Room if it exists else returns None
         
         """
-        room = utils.get(self.rooms, id=house_id)
-        if room != None:
-            return room    
-            # data = await self.connection.http_client.request(endpoint=f"/houses/{house_id}/rooms/{room_id}")
-            # return Room(data, self.connection.http_client)
+        cached_room = utils.get(self.rooms, id=room_id)
+        if cached_room != None:
+            data = await self.connection.http_client.request(endpoint=f"/rooms/{room_id}")
+            room = Room(data['d'], self.connection.http_client)
+            if cached_room:
+                self.connection._houses.remove(cached_room)
+            self.connection._houses.append(room)
+            return room
         return None
             
 

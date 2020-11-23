@@ -29,11 +29,14 @@ async def on_ready(ctx):
     stuff = await client.connection.http_client.request("/users/1928928783")
     
     house = await client.get_house(175036727902074248)
+    room = await house.get_room(175036775851357578)
+    await room.edit(emoji="page_with_curl")
     print(client.startup_time)
 
 @client.event()
 async def on_message_create(message):
-    print(message.id)
+    print(message.room.id)
+    await message.room.edit(emoji="page_with_curl")
     
 
 async def run():

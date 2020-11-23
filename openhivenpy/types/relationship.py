@@ -27,7 +27,7 @@ class Relationship():
             self._user['header'] = f"https://media.hiven.io/v1/users/{self._user['id']}/headers/{self._user['header']}"
             self._user_id = data['user_id']
             
-            self.http_client = http_client
+            self._http_client = http_client
             
         except AttributeError as e: 
             logger.error(f"Unable to initialize the Relationship object! Cause of Error: {e}")

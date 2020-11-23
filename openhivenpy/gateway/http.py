@@ -4,7 +4,7 @@ import logging
 import sys
 from typing import Optional
 
-from openhivenpy.exceptions import ConnectionError
+import openhivenpy.exceptions as errs
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +97,7 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
+        http_error_code = 400
         if self.http_ready:
             try:
                 async with self.session.request(url=f"{self.request_url}{endpoint}", 
@@ -114,6 +115,7 @@ class HTTPClient():
                         error_code = "Unknown"
                         error_message = "Faulty request!"
                         
+                    http_error_code = r.status
                     if r.status == 200 or r.status == 202 or r.status == 204:
                         if error == False:
                             return r
@@ -126,16 +128,10 @@ class HTTPClient():
                         logger.debug(f"An error with code {r.status} occured while performing HTTP {method} with endpoint: {self.request_url}{endpoint}")
                         logger.debug(f"Errormessage: {error_code} - {error_message}")
                         return None
-                
-            except aiohttp.errors.HttpMethodNotAllowed as e:
-                logger.error(f"The HTTP method {method} is forbidden and was blocked! Cause of Error: {e}")
-
-            except aiohttp.errors.BadHttpMessage as e:
-                logger.error(f"Bad request with HTTP {method}! Cause of Error: {e}")
-                   
+    
             except Exception as e:
                 logger.error(f"An error occured while trying to request client data from Hiven! Cause of Error: {e}")
-                raise aiohttp.HttpProcessingError(code="Unknown", message=f"The attempt to eequest to Hiven failed! Statuscode: Unknown")
+                raise errs.HTTPError(http_error_code, f"The attempt to eequest to Hiven failed! Statuscode: Unknown")
                     
         else:
             logger.error("The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")

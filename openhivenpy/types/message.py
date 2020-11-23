@@ -176,13 +176,12 @@ class Message():
         
         """
         try:
-            response = await self.http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
             await asyncio.sleep(delay=delay)
             return True
         
         except Exception as e:
             raise sys.exc_info()[-1](e)
-
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -193,9 +192,9 @@ class Message():
         
         """
         try:
-            response = await self.http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+            response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             await asyncio.sleep(delay=delay)
-            msg = DeletedMessage(response.json(), self.http_client)
+            msg = DeletedMessage(response.json(), self._http_client)
             return msg
         
         except Exception as e:

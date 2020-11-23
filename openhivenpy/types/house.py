@@ -84,9 +84,27 @@ class House():
         return self._rooms    
 
     async def get_member(self, member_id):
+        """openhivenpy.types.House.get_member()
+
+        Returns a Hiven Member Object based on the passed id.
+
+        Returns the Member if it exists else returns None
+        """
         if get(self._members, id=member_id):
-            data = await self.connection.http_client.request(endpoint=f"/houses/{self.id}/users/{member_id}")
-            return await getType.a_Room(data, self.connection.http_client)
+            data = await self._http_client.request(f"/houses/{self.id}/users/{member_id}")
+            return await getType.a_Room(data, self._http_client)
+        return None
+
+    async def get_room(self, room_id: int):
+        """openhivenpy.types.House.get_room()
+
+        Returns a Hiven Room Object based on the passed id.
+
+        Returns the Room if it exists else returns None
+        """
+        if get(self._rooms, id=int(room_id)):
+            data = await self._http_client.request(f"/rooms/{room_id}")
+            return await getType.a_Room(data, self._http_client)
         return None
 
     async def create_room(self, name) -> getType.Room:

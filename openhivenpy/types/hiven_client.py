@@ -77,7 +77,7 @@ class HivenClient():
             await asyncio.sleep(0.5)
 
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.ClientUser.edit()`
+        """`openhivenpy.types.HivenClient.edit()`
         
         Change the signed in user's/bot's data. 
         
