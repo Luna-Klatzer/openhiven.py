@@ -31,11 +31,11 @@ class PrivateRoom():
             self.http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Error while initializing a PrivateRoom object: {e}")
+            logger.error(f"Unable to initialize the PrivateRoom object! Cause of Error: {e}")
             raise errs.FaultyInitialization("The data of the object PrivateRoom is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Error while initializing a PrivateRoom object: {e}")
+            logger.error(f"Unable to initialize the PrivateRoom object! Cause of Error: {e}")
             raise sys.exc_info()[-1](e)
         
     @property
