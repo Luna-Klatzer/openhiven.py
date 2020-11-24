@@ -22,13 +22,16 @@ class HivenException(Exception):
     """
     def __init__(self, *args):
         if args:
-            msg = "".join(arg for arg in args)
+            self.msg = "".join(arg for arg in args)
         else:
-            msg = f"{self.__name__}, Exception occured in the package openhivenpy"
+            self.msg = f"{self.__name__}, Exception occured in the package openhivenpy"
             
-        super().__init__(msg)     
+        super().__init__(self.msg)     
         
     def __str__(self):
+        return self.msg
+
+    def __call__(self):
         return self.__class__.__name__
   
 class ConnectionError(HivenException):
@@ -101,7 +104,7 @@ class GatewayException(ConnectionError):
        
     General Exception in the Websocket!
     
-    """    
+    """
     def __init__(self, *args):
         if args:
             arg = "".join(arg for arg in args)

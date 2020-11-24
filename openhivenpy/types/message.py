@@ -112,12 +112,12 @@ class Message():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def id(self):
@@ -183,8 +183,8 @@ class Message():
             return True
         
         except Exception as e:
-            logger.critical(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to mark message as read! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
+            logger.critical(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to mark message as read! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -203,6 +203,6 @@ class Message():
             return msg
         
         except Exception as e:
-            logger.critical(f"Failed to delete the message in room {self.room.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to delete message! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
+            logger.critical(f"Failed to delete the message in room {self.room.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to delete message! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
         

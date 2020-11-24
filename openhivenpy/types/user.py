@@ -46,12 +46,12 @@ class User():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the User object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize User object! Most likely faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize User object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the User object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize User object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize User object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def username(self) -> str:

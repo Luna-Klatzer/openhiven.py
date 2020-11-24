@@ -35,12 +35,12 @@ class Room():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Room object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Room object! Most likely faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Room object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Room object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Room object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Room object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def id(self):
@@ -95,8 +95,8 @@ class Room():
             return msg
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
+            logger.error(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
         
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Room.edit()`
@@ -125,6 +125,6 @@ class Room():
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to change the values {keys}! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
+            logger.critical(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to change the values {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
         

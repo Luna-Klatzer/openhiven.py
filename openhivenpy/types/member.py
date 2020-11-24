@@ -33,12 +33,12 @@ class Member(User):
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Member object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Member object! Most likely faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Member object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Member object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Member object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Member object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the Member object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Member object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self):
         return self.id()
