@@ -3,4 +3,4 @@ requests
 websockets
 Typing
 nest_asyncio
-aiohttp
+aiohttp[speedups]

@@ -3,6 +3,8 @@ import asyncio
 import os
 import logging
 
+logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
@@ -44,7 +46,7 @@ async def run():
 
     # Starts the Event loop with the specified websocket  
     # => can also be a different websocket
-    await client.connect()
+    client.run()
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()

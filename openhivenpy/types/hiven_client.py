@@ -38,13 +38,13 @@ class HivenClient():
             self._amount_houses = len(houses_ids)
                         
         except AttributeError as e: 
-            logger.error(f"Unable to perform update data of connected client! Cause of Error: {e}")
+            logger.error(f"Unable to perform update data of connected client! Cause of Error: {str(e)}")
             raise AttributeError("The data of the object User is not in correct Format")
         except KeyError as e:
             pass
         except Exception as e:
-            logger.error(f"Unable to perform update data of connected client! Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.error(f"Unable to perform update data of connected client! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)
 
     def __init__(self, *, http_client = None, **kwargs):
         self.http_client = http_client if http_client != None else self.http_client
@@ -99,8 +99,8 @@ class HivenClient():
     
         except Exception as e:
             keys = ""+(" "+key for key in kwargs.keys())
-            logger.critical(f"Unable change the values {keys} on the client Account. [CODE={execution_code}] Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)    
+            logger.critical(f"Unable change the values {keys} on the client Account. [CODE={execution_code}] Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)    
 
     @property
     def amount_houses(self) -> int:

@@ -56,14 +56,14 @@ class HTTPClient():
         try:
             self.session = aiohttp.ClientSession(loop=self.loop)
             self.http_ready = True
-            response = await self.raw_request("/users/@me", method="get")
-            return await response.json()
+            response = await self.request("/users/@me", timeout=5)
+            return response
         
         except Exception as e:
             self.http_ready = False
             await self.session.close()
-            logger.error(f"Attempt to create session failed! Cause of Error: {e}")
-            raise sys.exc_info()[-1](f"Attempt to create session failed! Cause of Error: {e}")  
+            logger.error(f"Attempt to create session failed! Cause of Error: {str(e)}")
+            raise errs.UnableToCreateSession(f"Attempt to create session failed! Cause of Error: {str(e)}")  
             
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTPClient.connect()`
@@ -75,9 +75,10 @@ class HTTPClient():
             await self.session.close()
             self.http_ready = False
         except Exception as e:
-            logger.error(f"An error occured while trying to close the HTTP Connection to Hiven: {e}")
+            logger.error(f"An error occured while trying to close the HTTP Connection to Hiven: {str(e)}")
+            raise errs.HTTPError(f"Attempt to create session failed! Cause of Error: {str(e)}")  
     
-    async def raw_request(self, endpoint: str, *, method: str = "get", json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def raw_request(self, endpoint: str, *, method: str = "GET", json_data: dict = None, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.raw_request()`
 
         Wrapped HTTP request for a specified endpoint. 
@@ -98,52 +99,67 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        http_code = 400
-        if self.http_ready:
-            try:
-                async with self.session.request(url=f"{self.request_url}{endpoint}", 
-                                                headers=self.headers, 
-                                                json=json_data, 
-                                                timeout=timeout,
-                                                method=method,
-                                                **kwargs) as r:
-                    http_code = r.status
-                    
-                    data = await r.read()
-                    if r.status == 204:
-                        error = True
-                        error_code = "Empty Response"
-                        error_message = "Got an empty response that cannot be converted to json!"
-                    else:
-                        json = json_decoder.loads(data)
+        async def _request(endpoint, method, json_data, timeout, **kwargs):
+            http_code = "Unknown Internal Error"
+            timeout = aiohttp.ClientTimeout(total=timeout)
+            if self.http_ready:
+                try:
+                    async with self.session.request(
+                                                    method=method,
+                                                    url=f"{self.request_url}{endpoint}", 
+                                                    headers=self.headers, 
+                                                    json=json_data, 
+                                                    timeout=timeout,
+                                                    **kwargs) as resp:
+                        http_code = resp.status
                         
-                        error = json.get('error', False)
-                        if error:
-                            error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown HTTP Error'
-                            error_message = json['error']['message'] if json['error'].get('message') != None else 'Possibly faulty request or response!'
+                        data = await resp.read()
+                        if resp.status == 204:
+                            error = True
+                            error_code = "Empty Response"
+                            error_message = "Got an empty response that cannot be converted to json!"
                         else:
-                            error_code = 'Unknown HTTP Error'
-                            error_message = 'Possibly faulty request or response!'
+                            json = json_decoder.loads(data)
+                            
+                            error = json.get('error', False)
+                            if error:
+                                error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown HTTP Error'
+                                error_message = json['error']['message'] if json['error'].get('message') != None else 'Possibly faulty request or response!'
+                            else:
+                                error_code = 'Unknown HTTP Error'
+                                error_message = 'Possibly faulty request or response!'
 
-                    if r.status == 200 or r.status == 202:
-                        if error == False:
-                            return r
+                        if resp.status == 200 or resp.status == 202:
+                            if error == False:
+                                return resp
+                            else:
+                                logger.debug(f"Got HTTP Error Response with code {resp.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")     
+                                return None
                         else:
-                            logger.debug(f"Got HTTP Error Response with code {r.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")     
+                            logger.debug(f"Got HTTP Error Response with code {resp.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")
                             return None
-                    else:
-                        logger.debug(f"Got HTTP Error Response with code {r.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")
-                        return None
+        
+                except asyncio.TimeoutError as e:
+                    logger.error(f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; Request to Hiven timed out!")
+                    raise errs.HTTPError(http_code, f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; Request to Hiven timed out!")
+
+                except Exception as e:
+                    logger.error(f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {str(e)}")
+                    raise errs.HTTPError(http_code, f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {str(e)}")
+                        
+            else:
+                logger.error(f"The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")
+                return None    
+        _request = self.loop.create_task(_request(endpoint, method, json_data, timeout, **kwargs))
+        try:
+            await _request
+        except asyncio.CancelledError:
+            return 
+        except Exception as e:
+            logger.error(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {str(e)}")
+            raise errs.HTTPError(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {str(e)}")
     
-            except Exception as e:
-                logger.error(f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {e}")
-                raise errs.HTTPError(http_code, f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {e}")
-                    
-        else:
-            logger.error(f"The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")
-            return None    
-    
-    async def request(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> dict:
+    async def request(self, endpoint: str, *, json_data: dict = None, timeout: int = 10, **kwargs) -> dict:
         """`openhivenpy.gateway.HTTPClient.request()`
 
         Wrapped HTTP request for a specified endpoint. 
@@ -162,13 +178,13 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        response = await self.raw_request(endpoint, method="get", timeout=timeout)
+        response = await self.raw_request(endpoint, method="GET", timeout=timeout)
         if response != None:
             return await response.json()
         else:
             return None
     
-    async def post(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def post(self, endpoint: str, *, json_data: dict = None, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.post()`
 
         Wrapped HTTP Post for a specified endpoint.
@@ -189,7 +205,7 @@ class HTTPClient():
         """
         return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="post", **kwargs)
             
-    async def delete(self, endpoint: str, *, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.delete()`
 
         Wrapped HTTP delete for a specified endpoint.
@@ -209,9 +225,9 @@ class HTTPClient():
         
         
         """
-        return await self.raw_request(endpoint, timeout=timeout, method="delete", **kwargs)
+        return await self.raw_request(endpoint, timeout=timeout, method="DELETE", **kwargs)
         
-    async def put(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def put(self, endpoint: str, *, json_data: dict = None, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.put()`
 
         Wrapped HTTP put for a specified endpoint.
@@ -233,9 +249,9 @@ class HTTPClient():
         
         
         """
-        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="put", **kwargs)
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="PUT", **kwargs)
         
-    async def patch(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def patch(self, endpoint: str, *, json_data: dict = None, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.patch()`
 
         Wrapped HTTP patch for a specified endpoint.
@@ -255,9 +271,9 @@ class HTTPClient():
         
         
         """
-        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="patch", **kwargs)
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="PATCH", **kwargs)
     
-    async def options(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> aiohttp.ClientResponse:
+    async def options(self, endpoint: str, *, json_data: dict = None, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.options()`
 
         Wrapped HTTP options for a specified endpoint.
@@ -278,5 +294,5 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="options", **kwargs)
+        return await self.raw_request(endpoint, json_data=json_data, timeout=timeout, method="OPTIONS", **kwargs)
     

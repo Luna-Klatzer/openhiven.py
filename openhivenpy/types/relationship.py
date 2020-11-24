@@ -30,12 +30,12 @@ class Relationship():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the Relationship object! Cause of Error: {e}")
+            logger.error(f"Unable to initialize the Relationship object! Cause of Error: {str(e)}")
             raise errs.FaultyInitialization("The data of the object Relationship is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the Relationship object! Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.error(f"Unable to initialize the Relationship object! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)
         
     @property
     def user(self) -> User:

@@ -112,12 +112,12 @@ class Message():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the Message object! Cause of Error: {e}")
+            logger.error(f"Unable to initialize the Message object! Cause of Error: {str(e)}")
             raise errs.FaultyInitialization("The data of the object Message is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the Message object! Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.error(f"Unable to initialize the Message object! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)
 
     @property
     def id(self):
@@ -181,7 +181,7 @@ class Message():
             return True
         
         except Exception as e:
-            raise sys.exc_info()[-1](e)
+            raise sys.exc_info()[1](e)
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -198,5 +198,5 @@ class Message():
             return msg
         
         except Exception as e:
-            raise sys.exc_info()[-1](e)
+            raise sys.exc_info()[1](e)
         

@@ -35,12 +35,12 @@ class Room():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the Room object! Cause of Error: {e}")
+            logger.error(f"Unable to initialize the Room object! Cause of Error: {str(e)}")
             raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the Room object! Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.error(f"Unable to initialize the Room object! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)
 
     @property
     def id(self):
@@ -93,7 +93,7 @@ class Room():
             return msg
         
         except Exception as e:
-            raise sys.exc_info()[-1](e)
+            raise sys.exc_info()[1](e)
         
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Room.edit()`
@@ -112,7 +112,7 @@ class Room():
                 if key in ['emoji', 'name', 'description']:
                     response = await self._http_client.patch(endpoint=f"/rooms/{self.id}", data={key: kwargs.get(key)})
                     if response == None:
-                        logger.debug(f"Unable to change the values {keys}for house {self.name} with id {self.id}!")
+                        logger.debug(f"Unable to change the values {keys}for room {self.name} with id {self.id}!")
                         return False
                     else:
                         execution_code = response.status
@@ -122,6 +122,6 @@ class Room():
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Unable to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)    
+            logger.critical(f"Unable to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)    
         

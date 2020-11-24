@@ -53,7 +53,7 @@ class API():
         return resp
 
 class Websocket(HivenClient, API):
-    """`openhivenpy.gateway`
+    """`openhivenpy.gateway.Websocket`
     
     Websocket
     ~~~~~~~~~
@@ -148,7 +148,7 @@ class Websocket(HivenClient, API):
 
     # Starts the connection over a new websocket
     async def ws_connect(self, heartbeat: int or float = None) -> None:
-        """
+        """`openhivenpy.gateway.Websocket.ws_connect()`
         
         Creates a connection to the Hiven API. 
         
@@ -197,16 +197,16 @@ class Websocket(HivenClient, API):
             await self._connection
         # Avoids that the user notices that the task was cancelled! aka. Silent Error
         except asyncio.CancelledError:
-            logger.debug("Connection was cancelled!")
+            logger.debug("Connection task was cancelled!")
             return 
         except Exception as e:
             logger.critical(e)
-            raise sys.exc_info()[-1](f"Exception in main-websocket process: {e}")
+            raise sys.exc_info()[1](f"Exception in main-websocket process! Cause of error{str(e)}")
             
 
     # Passing values to the Websocket for more information while executing
     async def ws_init(self, ws) -> websockets.client.WebSocketClientProtocol:
-        """
+        """`openhivenpy.gateway.Websocket.ws_init()`
         
         Initialization Function for the Websocket. 
         
@@ -223,7 +223,7 @@ class Websocket(HivenClient, API):
 
     # Loop for receiving messages from Hiven
     async def ws_receive_response(self, ws) -> None:
-        """
+        """`openhivenpy.gateway.Websocket.ws_receive_response()`
         
         Handler for Receiving Messages. 
         
@@ -239,7 +239,7 @@ class Websocket(HivenClient, API):
 
 
     async def ws_lifesignal(self, ws) -> None:
-        """
+        """`openhivenpy.gateway.Websocket.ws_lifesignal()`
         
         Handler for Opening the Websocket. 
         
@@ -269,11 +269,12 @@ class Websocket(HivenClient, API):
             
         except websockets.exceptions.ConnectionClosedError as e:
             if e == "code = 1006 (connection closed abnormally [internal]), no reason":
-                logger.critical(f"Connection died abnormally! Cause of Error: {e}")
-                raise errs.WSConnectionError("Connection died abnormally! Cause of Error:", e)
+                logger.critical(f"Connection died abnormally! Cause of Error: {str(e)}")
+                raise errs.WSConnectionError("Connection died abnormally! Cause of Error: {str(e)}")
 
         except Exception as e:
-            raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {e}")
+            logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {str(e)}")
+            raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {str(e)}")
         
         finally:
             return 
@@ -281,7 +282,7 @@ class Websocket(HivenClient, API):
 
     # Error Handler for exceptions while running the websocket connection
     async def ws_on_error(self, e):
-        """
+        """`openhivenpy.gateway.Websocket.ws_on_error()`
         
         Handler for Errors in the Websocket. 
         
@@ -289,15 +290,15 @@ class Websocket(HivenClient, API):
         
         """      
         if e == "code = 1006 (connection closed abnormally [internal]), no reason":
-            logger.critical(f"Connection died abnormally! Error: {e}")
-            raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven. Cause of Error: {e}")
+            logger.critical(f"Connection died abnormally! Error: {str(e)}")
+            raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven. Cause of Error: {str(e)}")
         else:
-            logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {e}")
-            raise sys.exc_info()[-1](f"The connection to Hiven failed to be kept alive or started! Cause of Error: {e}")
+            logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](f"The connection to Hiven failed to be kept alive or started! Cause of Error: {str(e)}")
 
     # Event Triggers
     async def ws_on_response(self, ctx_data):
-        """
+        """`openhivenpy.gateway.Websocket.ws_on_response()`
 
         Handler for the Websocket events and the message data. 
 
@@ -427,7 +428,7 @@ class Websocket(HivenClient, API):
                 logger.debug(f"Unknown Event {response_data['e']} without Handler")
             
         except Exception as e:
-            raise sys.exc_info()[-1](e)
+            raise sys.exc_info()[1](e)
         
         return
     

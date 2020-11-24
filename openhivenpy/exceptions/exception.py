@@ -8,6 +8,7 @@ __all__ = (
         'InvalidToken', 'UnableToClose', 'NoneClientType',
             
         'GatewayException', 'WSConnectionError', 'HTTPError',
+        'UnableToCreateSession',
         
         'CommandException')
 
@@ -27,10 +28,6 @@ class HivenException(Exception):
             
         super().__init__(msg)     
   
-    @property
-    def __name__(self):
-        return "HivenException"   
-  
 class ConnectionError(HivenException):
     """`openhivenpy.exception.ConnectionError`
     
@@ -43,10 +40,6 @@ class ConnectionError(HivenException):
         else:
             arg = "The connection to Hiven failed to be kept alive or started!"
         super().__init__(arg)
-        
-    @property
-    def __name__(self):
-        return "ConnectionError"
 
 class Forbidden(HivenException):
     """`openhivenpy.exception.Forbidden`
@@ -60,10 +53,6 @@ class Forbidden(HivenException):
         else:
             arg = "The client was forbidden to execute a certain task or function!"
         super().__init__(arg)
-        
-    @property
-    def __name__(self):
-        return "Forbidden"
     
 class FaultyInitialization(HivenException):
     """`openhivenpy.exception.FaultyInitialization`
@@ -118,16 +107,29 @@ class GatewayException(ConnectionError):
         super().__init__(arg)
 
 class HTTPError(ConnectionError):
-    """`openhivenpy.exception.GatewayException`
+    """`openhivenpy.exception.HTTPError`
        
     Base Exception for exceptions in the HTTPClient and overall requesting
     
     """    
-    def __init__(self, code, *args):
+    def __init__(self, code="Unknown", *args):
         if args:
             arg = "".join(arg for arg in args)
         else:
             arg = f"Unable to process HTTP request! Code: {code}"
+        super().__init__(arg) 
+
+class UnableToCreateSession(HTTPError):
+    """`openhivenpy.exception.UnableToCreateSession`
+       
+    Was unable to create HTTPClient session and request init client data!
+    
+    """    
+    def __init__(self, *args):
+        if args:
+            arg = "".join(arg for arg in args)
+        else:
+            arg = f"Was unable to create HTTPClient session and request init client data!"
         super().__init__(arg) 
 
 class UnableToClose(GatewayException):

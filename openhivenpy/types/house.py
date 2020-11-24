@@ -36,12 +36,12 @@ class House():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the House object! Cause of Error: {e}")
+            logger.error(f"Unable to initialize the House object! Cause of Error: {str(e)}")
             raise errs.FaultyInitialization("The data of the object House is not in correct Format")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the House object! Cause of Error: {e}")
-            raise sys.exc_info()[-1](e)
+            logger.error(f"Unable to initialize the House object! Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)
 
     @property
     def client_member(self) -> getType.Member:
@@ -131,3 +131,33 @@ class House():
         """
         res = requests.delete(f"https://api.hiven.io/v1/houses/{self._id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
         return res.status_code == 200
+
+    async def edit(self, **kwargs) -> bool:
+        """`openhivenpy.types.House.edit()`
+        
+        Change the houses data.
+        
+        Available options: name, base64 (icon)
+        
+        Returns `True` if successful
+        
+        """
+        execution_code = None
+        keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
+        try:
+            for key in kwargs.keys():
+                if key in ['name']:
+                    response = await self._http_client.patch(endpoint=f"/houses/{self.id}", data={key: kwargs.get(key)})
+                    if response == None:
+                        logger.debug(f"Unable to change the values {keys}for house {self.name} with id {self.id}!")
+                        return False
+                    else:
+                        execution_code = response.status
+                        return True
+                else:
+                    logger.error("The passed value does not exist in the user context!")
+                    raise KeyError("The passed value does not exist in the user context!")
+    
+        except Exception as e:
+            logger.critical(f"Unable to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(e)}")
+            raise sys.exc_info()[1](e)    
