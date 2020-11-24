@@ -36,12 +36,12 @@ class House():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the House object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize House object! Most likely faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize House object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the House object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize House object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize House object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def client_member(self) -> getType.Member:
@@ -159,5 +159,5 @@ class House():
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Failed to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.HTTPRequestError("Failed to edit {keys}! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")   
+            logger.critical(f"Failed to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError("Failed to edit {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")   

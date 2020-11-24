@@ -146,8 +146,8 @@ class HivenClient(EventHandler, API):
                 logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
     async def close(self) -> bool:        
         """`openhivenpy.HivenClient.close()`
@@ -165,8 +165,8 @@ class HivenClient(EventHandler, API):
                 logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
-            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
+            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def client_type(self) -> str:
