@@ -112,12 +112,12 @@ class Message():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the Message object! Cause of Error: {str(e)}")
-            raise errs.FaultyInitialization("The data of the object Message is not in correct Format")
+            logger.error(f"Failed to initialize the Message object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the Message object! Cause of Error: {str(e)}")
-            raise sys.exc_info()[1](e)
+            logger.error(f"Failed to initialize the Message object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
 
     @property
     def id(self):
@@ -175,13 +175,16 @@ class Message():
         Returns `True` if successful.
         
         """
+        execution_code = "Unknown"
         try:
             response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            execution_code = response.status
             await asyncio.sleep(delay=delay)
             return True
         
         except Exception as e:
-            raise sys.exc_info()[1](e)
+            logger.critical(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to mark message as read! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -191,12 +194,15 @@ class Message():
         Returns a DeletedMessage Object if successful
         
         """
+        execution_code = "Unknown"
         try:
             response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+            execution_code = response.status
             await asyncio.sleep(delay=delay)
             msg = DeletedMessage(response.json(), self._http_client)
             return msg
         
         except Exception as e:
-            raise sys.exc_info()[1](e)
+            logger.critical(f"Failed to delete the message in room {self.room.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {str(sys.exc_info()[1])}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to delete message! Cause of Error: {str(sys.exc_info()[1])}, {str(e)}") 
         

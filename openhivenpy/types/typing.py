@@ -29,12 +29,12 @@ class Typing():
             self._http_client = http_client
                         
         except AttributeError as e: 
-            logger.error(f"Unable to initialize the Typing object! Cause of Error: {str(e)}")
-            raise errs.FaultyInitialization("The data of the object Room is not in correct Format")
+            logger.error(f"Failed to initialize the Typing object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Typing object! Most likely faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Unable to initialize the Typing object! Cause of Error: {str(e)}")
-            raise sys.exc_info()[1](e)
+            logger.error(f"Failed to initialize the Typing object! Cause of Error: {str(sys.exc_info()[1])}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize Typing object! Possibly faulty data! Cause of error: {str(sys.exc_info()[1])}, {str(e)}")
 
     @property
     def timestamp(self) -> datetime.datetime:

@@ -27,6 +27,9 @@ class HivenException(Exception):
             msg = f"{self.__name__}, Exception occured in the package openhivenpy"
             
         super().__init__(msg)     
+        
+    def __str__(self):
+        return self.__class__.__name__
   
 class ConnectionError(HivenException):
     """`openhivenpy.exception.ConnectionError`
@@ -116,9 +119,22 @@ class HTTPError(ConnectionError):
         if args:
             arg = "".join(arg for arg in args)
         else:
-            arg = f"Unable to process HTTP request! Code: {code}"
+            arg = f"Failed to process HTTP request! Code: {code}"
         super().__init__(arg) 
 
+class HTTPRequestError(HTTPError):
+    """`openhivenpy.exception.HTTPRequestError`
+       
+    General Exception while handling requests
+    
+    """    
+    def __init__(self, *args):
+        if args:
+            arg = "".join(arg for arg in args)
+        else:
+            arg = f"Request failed due to an exceptions occuring while handling!"
+        super().__init__(arg) 
+        
 class UnableToCreateSession(HTTPError):
     """`openhivenpy.exception.UnableToCreateSession`
        

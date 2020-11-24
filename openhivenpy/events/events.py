@@ -1,4 +1,5 @@
 import logging
+import sys
 from functools import wraps
 
 from openhivenpy.utils import dispatch_func_if_exists
