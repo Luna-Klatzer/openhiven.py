@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import logging
 import sys
+import json as json_decoder
 from typing import Optional
 
 import openhivenpy.exceptions as errs
@@ -97,7 +98,7 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        http_error_code = 400
+        http_code = 400
         if self.http_ready:
             try:
                 async with self.session.request(url=f"{self.request_url}{endpoint}", 
@@ -106,35 +107,40 @@ class HTTPClient():
                                                 timeout=timeout,
                                                 method=method,
                                                 **kwargs) as r:
-                    json = await r.json()
-                    error = json.get('error', False)
-                    if error:
-                        error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown'
-                        error_message = json['error']['message'] if json['error'].get('message') != None else 'Faulty request!'
+                    http_code = r.status
+                    
+                    data = await r.read()
+                    if r.status == 204:
+                        error = True
+                        error_code = "Empty Response"
+                        error_message = "Got an empty response that cannot be converted to json!"
                     else:
-                        error_code = "Unknown"
-                        error_message = "Faulty request!"
+                        json = json_decoder.loads(data)
                         
-                    http_error_code = r.status
-                    if r.status == 200 or r.status == 202 or r.status == 204:
+                        error = json.get('error', False)
+                        if error:
+                            error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown HTTP Error'
+                            error_message = json['error']['message'] if json['error'].get('message') != None else 'Possibly faulty request or response!'
+                        else:
+                            error_code = 'Unknown HTTP Error'
+                            error_message = 'Possibly faulty request or response!'
+
+                    if r.status == 200 or r.status == 202:
                         if error == False:
                             return r
                         else:
-                            logger.debug(f"An error with code {r.status} occured while performing HTTP {method} with endpoint: {self.request_url}{endpoint}")
-                            logger.debug(f"Errormessage: {error_code} - {error_message}")
-                            
+                            logger.debug(f"Got HTTP Error Response with code {r.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")     
                             return None
                     else:
-                        logger.debug(f"An error with code {r.status} occured while performing HTTP {method} with endpoint: {self.request_url}{endpoint}")
-                        logger.debug(f"Errormessage: {error_code} - {error_message}")
+                        logger.debug(f"Got HTTP Error Response with code {r.status} while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {error_code}, {error_message}")
                         return None
     
             except Exception as e:
-                logger.error(f"An error occured while trying to request client data from Hiven! Cause of Error: {e}")
-                raise errs.HTTPError(http_error_code, f"The attempt to eequest to Hiven failed! Statuscode: Unknown")
+                logger.error(f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {e}")
+                raise errs.HTTPError(http_code, f"An error with code {http_code} occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {e}")
                     
         else:
-            logger.error("The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")
+            logger.error(f"The HTTPClient was not ready when trying to HTTP {method}! The connection is either faulty initalized or closed!")
             return None    
     
     async def request(self, endpoint: str, *, json_data: dict = None, timeout: int = 5, **kwargs) -> dict:

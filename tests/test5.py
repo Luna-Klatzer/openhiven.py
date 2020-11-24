@@ -26,8 +26,6 @@ async def on_init(time):
 async def on_ready(ctx):
     print("Ready")
     
-    stuff = await client.connection.http_client.request("/users/1928928783")
-    
     house = await client.get_house(175036727902074248)
     room = await house.get_room(175036775851357578)
     await room.edit(emoji="page_with_curl")
@@ -36,8 +34,6 @@ async def on_ready(ctx):
 @client.event()
 async def on_message_create(message):
     print(message.room.id)
-    await message.room.edit(emoji="page_with_curl")
-    
 
 async def run():
     # If response is 200 that means the program can interact with Hiven

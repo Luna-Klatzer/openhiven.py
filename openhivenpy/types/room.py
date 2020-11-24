@@ -106,18 +106,22 @@ class Room():
         
         """
         execution_code = None
+        keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
                     response = await self._http_client.patch(endpoint=f"/rooms/{self.id}", data={key: kwargs.get(key)})
-                    execution_code = response.status
-                    return True
+                    if response == None:
+                        logger.debug(f"Unable to change the values {keys}for house {self.name} with id {self.id}!")
+                        return False
+                    else:
+                        execution_code = response.status
+                        return True
                 else:
                     logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            keys = ""+(key+", " for key in kwargs.keys())
-            logger.critical(f"Unable change the values {keys} on the client Account. [CODE={execution_code}] Cause of Error: {e}")
+            logger.critical(f"Unable to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {e}")
             raise sys.exc_info()[-1](e)    
         

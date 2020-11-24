@@ -16,6 +16,13 @@ from openhivenpy.types import Room, House, User
 
 logger = logging.getLogger(__name__)
 
+def _check_dependencies() -> None:
+    pkgs = ['asyncio', 'requests', 'websockets', 'typing', 'nest_asyncio', 'aiohttp']
+    for pkg in pkgs:
+        if pkg not in sys.modules:
+            logger.critical(f"Module {pkg} not found in locally installed modules!")
+            raise ImportError(f"Module {pkg} not found in locally installed modules!", name=pkg)
+
 class HivenClient(EventHandler, API):
     """`openhivenpy.client.HivenClient` 
     
@@ -76,12 +83,14 @@ class HivenClient(EventHandler, API):
             logger.critical(f"Invalid Token was passed!")
             raise errs.InvalidToken
 
+        _check_dependencies()
+
         self._TOKEN = token
         self.loop = event_loop
         self.event_handler = EventHandler(self) if event_handler == None else event_handler
         
         # Websocket and client data are being handled over the Connection Class
-        self.connection = Connection(event_handler = self.event_handler, 
+        self.connection = Connection(event_handler=self.event_handler, 
                                      token=token, 
                                      event_loop=self.loop, 
                                      **kwargs)

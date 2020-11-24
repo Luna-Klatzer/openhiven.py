@@ -102,9 +102,12 @@ class House():
 
         Returns the Room if it exists else returns None
         """
-        if get(self._rooms, id=int(room_id)):
-            data = await self._http_client.request(f"/rooms/{room_id}")
-            return await getType.a_Room(data, self._http_client)
+        cached_room = get(self._rooms, id=int(room_id))
+        if cached_room:
+            return cached_room
+            # Not Possible yet
+            # data = await self._http_client.request(f"/rooms/{room_id}")
+            # return await getType.a_Room(data, self._http_client)
         return None
 
     async def create_room(self, name) -> getType.Room:

@@ -85,47 +85,40 @@ class ExecutionLoop():
         
         """        
         async def execute_loop(tasks) -> None:
+            # Startup Tasks
             try:
-                # Startup Tasks
-                try:
-                    if not self._startup_tasks == []:
-                        methods_to_call = []
-                        for task in self._startup_tasks:
-                            task = getattr(self._startup_methods, task)
-                            methods_to_call.append(self.event_loop.create_task(task()))
-                            
-                        await asyncio.gather(*methods_to_call, loop=self.event_loop)
-                except Exception as e:
-                    logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
-                    raise sys.exc_info()[-1](e)
-                
-                finally:
-                    self._startup_finished = True
-                
-                # Loop Tasks
-                if not tasks == []:
-                    while True:
-                        methods_to_call = []
-                        for task in tasks:
-                            methods_to_call.append(self.event_loop.create_task(getattr(self, task)()))
+                if not self._startup_tasks == []:
+                    methods_to_call = []
+                    for task in self._startup_tasks:
+                        task = getattr(self._startup_methods, task)
+                        methods_to_call.append(self.event_loop.create_task(task()))
                         
-                        await asyncio.gather(*methods_to_call, loop=self.event_loop)
-                    
+                    await asyncio.gather(*methods_to_call, loop=self.event_loop)
             except Exception as e:
-                logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
-                raise sys.exc_info()[-1](e)
+                logger.error(f"Error in startup tasks in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
+            
             finally:
-                self._active = False
-                return
+                self._startup_finished = True
+            
+            # Loop Tasks
+            if not tasks == []:
+                while True:
+                    methods_to_call = []
+                    for task in tasks:
+                        methods_to_call.append(self.event_loop.create_task(getattr(self, task)()))
+                    
+                    await asyncio.gather(*methods_to_call, loop=self.event_loop)
             
         self._exec_loop = self.event_loop.create_task(execute_loop(self._tasks))
         try:
             await self._exec_loop
         except asyncio.CancelledError:
-            logger.debug("_exec_loop was cancelled! No more tasks will be executed!")
-            return 
+            logger.debug("Execution loop was cancelled! No more tasks will be executed!")
+        except Exception as e:
+            logger.error(f"Error in the execution loop: {str(sys.exc_info()[-1])} Cause of Error: {e}")
         finally:
             self._active = False
+            return
 
     async def stop_loop(self) -> None:
         """`openhivenpy.gateway.ConnectionLoop.stop_loop` 
