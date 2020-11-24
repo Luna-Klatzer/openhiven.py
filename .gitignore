@@ -1,8 +1,4 @@
 __pycache__
 .vscode
-node_modules
 *.log
 .DS_Store
-
-data.json
-# Only exists for testing on my end
