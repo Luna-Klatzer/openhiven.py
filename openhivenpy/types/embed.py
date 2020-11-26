@@ -6,7 +6,7 @@ from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
-class Embed():
+class Embed(): #wait hiven has embeds?
     """`openhivenpy.types.Embed`
     
     Data Class for a Embed Object

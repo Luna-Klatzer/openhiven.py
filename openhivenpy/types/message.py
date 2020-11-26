@@ -177,7 +177,7 @@ class Message():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            response = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack") #Its post Kudo. Not delete. We do not delete the mark.
             execution_code = response.status
             await asyncio.sleep(delay=delay)
             return True

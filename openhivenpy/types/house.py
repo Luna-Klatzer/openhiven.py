@@ -118,7 +118,7 @@ class House():
         Returns the Room that was created if successful
         
         """
-        res = requests.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
+        res = await self._http_client.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms")
         return res #ToDo
 
     async def leave(self, house_id: int) -> bool:
@@ -129,8 +129,8 @@ class House():
         Returns `True` if successful.
         
         """
-        res = requests.delete(f"https://api.hiven.io/v1/houses/{self._id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
-        return res.status_code == 200
+        res = await self._http_client.delete(f"https://api.hiven.io/v1/houses/{self._id}")
+        return res.status_code == 204 or res.status_code == 200
 
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.House.edit()`
@@ -159,5 +159,16 @@ class House():
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Failed to change the values {keys}for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPRequestError("Failed to edit {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")   
+            logger.critical(f"Failed to change the values {keys} for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPRequestError(f"Failed to edit {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")   
+
+    async def create_invite(self) -> str:
+        """
+            `openhivenpy.types.House.create_invite()`
+
+            Creates an invite for the current house. Returns the invite if successful.
+
+        """
+        res = await self._http_client.post(endpoint=f"/houses/{self.id}/invites")
+        x = await res.json()
+        return f"https://hiven.house/{x['data']['code']}"
