@@ -75,8 +75,8 @@ class Member(User):
         """
 
         #DELETE api.hiven.io/houses/HOUSEID/members/MEMBERID
-        res = await self._http_client.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._user_id}", headers={"Content-Type": "application/json", "Authorization": self._TOKEN})
-        if not res.response_code == 204: #Why not continue using 200 instead of using 204 i have no idea.
+        res = await self._http_client.delete(f"https://api.hiven.io/v1/houses/{self._house_id}/members/{self._user_id}")
+        if not res.response_code == 204 or not res.response_code == 200: #Just in case c:
             raise errs.Forbidden()
         else:
             return True

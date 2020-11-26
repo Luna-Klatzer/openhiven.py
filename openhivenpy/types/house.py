@@ -119,7 +119,7 @@ class House():
         
         """
         res = await self._http_client.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms")
-        return res #ToDo
+        return await getType.a_Room(await res.json(), self._http_client)
 
     async def leave(self, house_id: int) -> bool:
         """openhivenpy.types.House.leave()
@@ -161,6 +161,7 @@ class House():
         except Exception as e:
             logger.critical(f"Failed to change the values {keys} for house {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPRequestError(f"Failed to edit {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")   
+
 
     async def create_invite(self) -> str:
         """
