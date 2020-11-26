@@ -145,9 +145,8 @@ class Websocket(HivenClient, API):
     def websocket(self) -> websockets.client.WebSocketClientProtocol:
         return self
 
-
     # Starts the connection over a new websocket
-    async def ws_connect(self, heartbeat: int or float = None) -> None:
+    async def ws_connect(self, heartbeat: int = None) -> None:
         """`openhivenpy.gateway.Websocket.ws_connect()`
         
         Creates a connection to the Hiven API. 
@@ -157,13 +156,15 @@ class Websocket(HivenClient, API):
         Consider using HivenClient.connect() or HivenClient.run()
         
         """        
-
         self._HEARTBEAT = heartbeat if heartbeat != None else self._HEARTBEAT
 
         async def websocket_connect() -> None:
             try:
-                async with websockets.connect(uri = self._WEBSOCKET_URL, ping_timeout = self._ping_timeout, 
-                                              close_timeout = self._close_timeout, ping_interval = self._ping_interval) as websocket:
+                async with websockets.connect(
+                                            uri = self._WEBSOCKET_URL, 
+                                            ping_timeout = self._ping_timeout, 
+                                            close_timeout = self._close_timeout,
+                                            ping_interval = self._ping_interval) as websocket:
 
                     websocket = await self.ws_init(websocket)
 
@@ -173,9 +174,11 @@ class Websocket(HivenClient, API):
 
                     # Receiving the first response from Hiven and setting the specified heartbeat
                     response = json.loads(await websocket.recv())
+                    
                     if response['op'] == 1 and self._CUSTOM_HEARBEAT == False:
                         self._HEARTBEAT = response['d']['hbt_int']
                         logger.debug(f"Heartbeat set to {response['d']['hbt_int']}")
+                        
                         websocket.heartbeat = self._HEARTBEAT
 
                     self._closed = websocket.closed
@@ -185,7 +188,16 @@ class Websocket(HivenClient, API):
                     await self._event_handler.connection_start()
                     
                     await asyncio.gather(self.ws_lifesignal(websocket), self.ws_receive_response(websocket))
-
+   
+            except websockets.exceptions.ConnectionClosedOK as e:
+                logger.critical(f"Connection was closed! Reason: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                await self.close() # Closing the running connection!
+                return
+            
+            except websockets.exceptions.ConnectionClosedError as e:
+                logger.critical(f"Connection died abnormally! Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven. Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            
             except Exception as e:
                 await self.ws_on_error(e)
 
@@ -197,11 +209,13 @@ class Websocket(HivenClient, API):
             await self._connection
         # Avoids that the user notices that the task was cancelled! aka. Silent Error
         except asyncio.CancelledError:
-            logger.debug("Connection task was cancelled!")
-            return 
+            logger.debug("The webocket Connection to Hiven unexpectedly stopped! Probably caused by an error or automatic/forced closing!") 
         except Exception as e:
             logger.critical(e)
             raise errs.GatewayException(f"Exception in main-websocket process! Cause of error{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        finally:
+            return
+            
             
     # Passing values to the Websocket for more information while executing
     async def ws_init(self, ws) -> websockets.client.WebSocketClientProtocol:
@@ -229,7 +243,7 @@ class Websocket(HivenClient, API):
         Not supposed to be called by a user!
         
         """      
-        self._connection_status = "open"
+        self._connection_status = "OPEN"
         while True:
             response = await ws.recv()
             if response != None:
@@ -256,27 +270,27 @@ class Websocket(HivenClient, API):
                     await ws.send(json.dumps({"op": 3}))
                     logger.debug("Lifesignal")
 
-                    # If the connection is closing the loop will break
-                    if self._connection_status == "closing" or self._connection_status == "closed":
+                    # If the connection is CLOSING the loop will break
+                    if self._connection_status == "CLOSING" or self._connection_status == "CLOSED":
                         logger.info(f"Connection to Remote ({self._WEBSOCKET_URL}) closed!")
                         break
 
-            self._connection_status = "open"
+            self._connection_status = "OPEN"
 
-            connection = asyncio.create_task(_lifesignal())
-            await connection
+            self._lifesignal = asyncio.create_task(_lifesignal())
+            await self._lifesignal
+            
+        except asyncio.CancelledError as e:
+            logger.debug(f"Lifesignal task stopped unexpectedly! Probably caused by an error or automatic/forced closing!") 
+            return
             
         except websockets.exceptions.ConnectionClosedError as e:
-            if e == "code = 1006 (connection closed abnormally [internal]), no reason":
-                logger.critical(f"Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-                raise errs.WSConnectionError("Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f"Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.WSConnectionError("Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
         except Exception as e:
             logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
-        finally:
-            return 
 
 
     # Error Handler for exceptions while running the websocket connection
@@ -288,12 +302,8 @@ class Websocket(HivenClient, API):
         Not supposed to be called by a user!
         
         """      
-        if e == "code = 1006 (connection closed abnormally [internal]), no reason":
-            logger.critical(f"Connection died abnormally! Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven. Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        else:
-            logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        logger.critical(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     # Event Triggers
     async def ws_on_response(self, ctx_data):

@@ -411,7 +411,7 @@ class HivenClient(EventHandler, API):
 
         Returns a string with the current connection status.
         
-        Can be either 'opening', 'open', 'closing' or 'closed'
+        Can be either 'OPENING', 'OPEN', 'CLOSING' or 'CLOSED'
 
         """
         return self.connection.connection_status

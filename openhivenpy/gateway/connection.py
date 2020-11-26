@@ -24,7 +24,7 @@ def _get_args(**kwargs):
     }
 
 class ExecutionLoop():
-    """`openhivenpy.gateway.ConnectionLoop` 
+    """`openhivenpy.gateway.ExecutionLoop` 
     
     ExecutionLoop
     ~~~~~~~~~~~~~
@@ -48,7 +48,7 @@ class ExecutionLoop():
         self._startup_methods = self.StartupTasks()
         self._active = False
         self._startup_finished = False
-        self._exec_loop = None
+        self.exec_loop = None
         
     class StartupTasks:
         pass
@@ -78,8 +78,8 @@ class ExecutionLoop():
     def startup_tasks(self):
         return self._startup_tasks
         
-    async def start_loop(self) -> None:
-        """`openhivenpy.gateway.ConnectionLoop.stop_loop` 
+    async def start(self) -> None:
+        """`openhivenpy.gateway.ExecutionLoop.start()` 
         
         Starts the current execution_loop
         
@@ -94,6 +94,8 @@ class ExecutionLoop():
                         methods_to_call.append(self.event_loop.create_task(task()))
                         
                     await asyncio.gather(*methods_to_call, loop=self.event_loop)
+            except asyncio.CancelledError as e:   
+                logger.debug(f"The startup tasks loop unexpectedly stopped while running! Probably caused by an error or automatic/forced closing!")
             except Exception as e:
                 logger.error(f"Error in startup tasks in the execution loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
@@ -109,9 +111,9 @@ class ExecutionLoop():
                     
                     await asyncio.gather(*methods_to_call, loop=self.event_loop)
             
-        self._exec_loop = self.event_loop.create_task(execute_loop(self._tasks))
+        self.exec_loop = self.event_loop.create_task(execute_loop(self._tasks))
         try:
-            await self._exec_loop
+            await self.exec_loop
         except asyncio.CancelledError:
             logger.debug("Execution loop was cancelled! No more tasks will be executed!")
         except Exception as e:
@@ -120,17 +122,17 @@ class ExecutionLoop():
             self._active = False
             return
 
-    async def stop_loop(self) -> None:
-        """`openhivenpy.gateway.ConnectionLoop.stop_loop` 
+    async def stop(self) -> None:
+        """`openhivenpy.gateway.ConnectionLoop.stop()` 
         
         Stops the current execution_loop
         
         """
         try:
-            if not self._exec_loop.cancelled():
-                self._exec_loop.cancel()
+            if not self.exec_loop.cancelled():
+                self.exec_loop.cancel()
             
-            logger.debug("The execution loop was stopped and will now return")
+            logger.debug("The execution loop was stopped and will now return!")
             
         except Exception as e:
             logger.critical(f"Failed to stop or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -239,7 +241,7 @@ class Connection(Websocket, HivenClient):
         self._initalized = False
         self._connection_start = None
         
-        self._connection_status = "closed"
+        self._connection_status = "CLOSED"
         
         args = _get_args(**kwargs)
         self._API_URL = args.get('api_url')
@@ -294,7 +296,7 @@ class Connection(Websocket, HivenClient):
         try:
             # Connection Start variable for later calculation the time how long it took to start
             self._connection_start = time.time()
-            self._connection_status = "opening"
+            self._connection_status = "OPENING"
             
             # Starting the HTTPClient Connection to Hiven
             client_data = await self.http_client.connect()
@@ -302,14 +304,14 @@ class Connection(Websocket, HivenClient):
             await super().update_client_user_data(client_data['data'])
             
             # Starting the event loop with the websocket
-            await asyncio.gather(self.ws_connect(), self._execution_loop.start_loop())
+            await asyncio.gather(self.ws_connect(), self._execution_loop.start())
             
         except Exception as e:
             logger.critical(f"Error while trying to establish the connection to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.ConnectionError(f"Error while trying to establish the connection to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
         finally:
-            self._connection_status = "closed"    
+            self._connection_status = "CLOSED"    
             return
         
         
@@ -324,8 +326,11 @@ class Connection(Websocket, HivenClient):
         """
         
         try:
-            logger.info(f"Connection to the Hiven Websocket closed!")
-            self._connection_status = "closing"
+            logger.info("Closing connection!")
+            self._connection_status = "CLOSING"
+            
+            if not self._lifesignal.cancelled():
+                self._lifesignal.cancel()
             
             if not self._connection.cancelled():
                 self._connection.cancel()
@@ -334,13 +339,16 @@ class Connection(Websocket, HivenClient):
             self._event_loop.stop()
             self._event_loop.close()
             
-            self._connection_status = "closed"
+            self._connection_status = "CLOSED"
+            self._initalized = False
 
+            logger.info("IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped to ensure the client stops as fast as possible and no more data transfer will happen!")
+
+            return
+        
         except Exception as e:
             logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
-        finally:
-            return
 
     async def close(self) -> None:
         """`openhivenpy.gateway.Connection.close()`
@@ -349,14 +357,25 @@ class Connection(Websocket, HivenClient):
         
         """
         try:
-            logger.info(f"Connection to the Hiven Websocket closed!")
-            self._connection_status = "closing"
+            logger.info("Closing connection!")
+            self._connection_status = "CLOSING"
+            
+            if not self._lifesignal.cancelled():
+                self._lifesignal.cancel()
             
             if not self._connection.cancelled():
                 self._connection.cancel()
                 
-            self._connection_status = "closed"
-            self.initalized = False
+            await self._execution_loop.stop()
+                
+            await self.http_client.close()
+                
+            self._connection_status = "CLOSED"
+            self._initalized = False
+            
+            logger.info("IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped to ensure the client stops as fast as possible and no more data transfer will happen!")
+            
+            return
             
         except Exception as e:
             logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")

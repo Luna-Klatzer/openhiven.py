@@ -69,7 +69,7 @@ class HTTPClient():
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTPClient.connect()`
 
-        Closes the connection to Hiven
+        Closes the HTTP session that is currently connected to Hiven!
         
         """
         try:
@@ -173,7 +173,8 @@ class HTTPClient():
         try:
             resp = await asyncio.gather(self._request, _task_time_out_handler)
         except asyncio.CancelledError:
-            return 
+            logger.debug(f"Request was cancelled!")
+            return
         except Exception as e:
             logger.error(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.request_url}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
