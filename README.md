@@ -17,22 +17,22 @@
   <h2 align="center"> Dependendies </h2>
 <p align="center">
    <a href="https://docs.aiohttp.org/en/stable/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/aiohttp/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/aiohttp/main' alt='aiohttp' />
     </a>
    <a href="https://docs.python.org/3/library/asyncio.html">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/asyncio/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/asyncio/main' alt='aiohttp' />
     </a>
    <a href="https://requests.readthedocs.io/en/master/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/requests/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/requests/main' alt='aiohttp' />
     </a>
    <a href="https://websockets.readthedocs.io/en/stable/intro.html">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/websockets/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/websockets/main' alt='aiohttp' />
     </a>
    <a href="https://pypi.org/project/nest-asyncio/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/nest-asyncio/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/nest-asyncio/main' alt='aiohttp' />
     </a>
    <a href="https://docs.python.org/3/library/typing.html">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/typing/async-httpclient' alt='aiohttp' />
+      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/typing/main' alt='aiohttp' />
     </a>
   <br>
 </p>
