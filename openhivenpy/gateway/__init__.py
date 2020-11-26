@@ -1,11 +1,10 @@
 """
+`openhivenpy.gateway`
 
-Openhiven.py
-~~~~~~~~~~~~
+Module gateway 
+~~~~~~~~~~~~~~
 
-The unofficial OpenSource Python API Wrapper for Hiven.
-
-Made with love and time by © FrostbyteSpace
+Module that represents the connection to Hiven over the Websocket and the HTTPClient
 
 MIT License
 ~~~~~~~~~~~
@@ -29,22 +28,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 """
 
-__title__ = "openhiven.py"
-__author__ = "Nicolas Klatzer"
-__license__ = "MIT"
-__version__ = "0.1beta"
-__copyright__ = "FrostbyteSpace"
-
-import logging
-
-from .client import *
-from . import events
-from . import gateway
-from . import utils 
-from . import types
-from . import exceptions
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+from .gateway import Websocket, API
+from .http import HTTPClient
+from .connection import Connection
