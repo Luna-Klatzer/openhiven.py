@@ -6,6 +6,7 @@
     <a href="https://python.org">
       <img alt="Python Version" src="https://img.shields.io/badge/python->=3.7-blue?logo=python" />
      </a>
+    <img alt="Lines of Code" src="https://img.shields.io/tokei/lines/github/FrostbyteSpace/openhiven.py" />
     <img alt="Build" src="https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github" />
     <img alt="Latest Commit" src="https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet" />
     <img alt="License" src="https://img.shields.io/github/license/FrostbyteSpace/openhiven.py" />
