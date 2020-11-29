@@ -44,6 +44,8 @@ def raise_value_to_type(val, data_type):
     
     val: `any` - Value that should be checked
     
+    data_type: `any` - Data Type
+    
     """
     if val == None:
         return data_type()

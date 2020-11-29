@@ -32,7 +32,7 @@ class DeletedMessage():
     def __init__(self, data: dict):
         self._message_id = int(data.get('message_id'))
         self._house_id = int(data.get('house_id'))
-        self._room_id =  int(data.get('room_id'))
+        self._room_id = int(data.get('room_id'))
 
     @property
     def message_id(self):
@@ -183,15 +183,16 @@ class Message():
             return True
         
         except Exception as e:
-            logger.critical(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to mark message as read! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
+            logger.error(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked." 
+                         "[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
 
         Deletes the message. Raises Forbidden if not allowed. 
         
-        Returns a DeletedMessage Object if successful
+        Returns a `DeletedMessage` Object if successful
         
         """
         execution_code = "Unknown"
@@ -203,6 +204,28 @@ class Message():
             return msg
         
         except Exception as e:
-            logger.critical(f"Failed to delete the message in room {self.room.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to delete message! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
+            logger.error(f"Failed to delete the message in room {self.room.name} with id {self.id}." 
+                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            
+        
+    async def edit(self, content: str) -> bool:
+        """`openhivenpy.types.House.edit()`
+
+        Edits a message on Hiven
+            
+        Returns 'True' if successful.
+
+        """
+        execution_code = "Unknown"
+        try:
+            response = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
+                                                     json= {'content': content})
+            execution_code = response.status
+            
+            return True
+    
+        except Exception as e:
+            logger.error(f"Failed to edit messsage in room {self.room.name} with id {self.id}." 
+                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            return False
         

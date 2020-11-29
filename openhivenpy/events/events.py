@@ -25,7 +25,7 @@ class EventHandler():
     def event(self, func = None):
         """`openhivenpy.events.Events.event`
         
-        Decorator used for registering HivenClient Events
+        Decorator used for registering Client Events
         
         Parameter:
         ----------
@@ -72,9 +72,9 @@ class EventHandler():
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_downage', 
                                     ctx=ctx, house=house) 
 
-    async def house_member_enter(self, ctx, member) -> None:
+    async def house_member_enter(self, member, house) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_enter',
-                                    ctx=ctx, member=member) 
+                                    member=member, house=house) 
 
     async def house_member_exit(self, ctx, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_exit',
@@ -103,3 +103,7 @@ class EventHandler():
     async def typing_end(self, user) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_end',
                                     user=user) 
+
+    async def house_member_update(self, member, house) -> None:
+        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_user_update',
+                                    member=member, house=house) 

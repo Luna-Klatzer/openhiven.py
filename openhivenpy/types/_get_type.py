@@ -30,12 +30,12 @@ class getType():
         return Member(data, http_client)    
     
     @staticmethod
-    async def a_Message(data: dict, http_client: HTTPClient):
+    async def a_Message(data: dict, http_client: HTTPClient, house, room, author):
         """
         Async Function for getting a Message Object with passed data 
         """
         from .message import Message
-        return Message(data, http_client)
+        return Message(data, http_client, house, room, author)
     
     @staticmethod
     async def a_User(data: dict, http_client: HTTPClient):
@@ -102,12 +102,12 @@ class getType():
         return Member(data, http_client, House)    
     
     @staticmethod
-    def Message(data: dict, http_client: HTTPClient, House):
+    def Message(data: dict, http_client: HTTPClient, house, room, author):
         """
         Regular Function for getting a Message Object with passed data 
         """
         from .message import Message
-        return Message(data, http_client, House)
+        return Message(data, http_client, house, room, author)
     
     @staticmethod
     def User(data: dict, http_client: HTTPClient):

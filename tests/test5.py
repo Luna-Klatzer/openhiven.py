@@ -2,6 +2,7 @@ import openhivenpy
 import asyncio
 import os
 import logging
+import requests
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -14,7 +15,7 @@ logger.addHandler(handler)
 # Simple test to get a simple response from the Hiven API
 TOKEN = os.getenv("token") or "" #Dear MS, MAKE VSC TERMINAL SUPPORT FILE ENVS!
 event_loop = asyncio.new_event_loop()
-client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop)
+client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop, restart=True)
 
 @client.event()
 async def on_connection_start():
@@ -27,10 +28,11 @@ async def on_init(time):
 @client.event() 
 async def on_ready(ctx):
     print("Ready")
-    
-    house = await client.get_house(175036727902074248)
-    room = await house.get_room(175036775851357578)
-    await room.edit(emoji="page_with_curl")
+
+    house = await client.get_house(184752554586930696)
+
+    url = await client.fetch_invite("openhivenpy")
+
     print(client.startup_time)
 
 @client.event()

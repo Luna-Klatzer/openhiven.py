@@ -3,6 +3,7 @@ import sys
 import asyncio
 
 from ._get_type import getType
+from openhivenpy.utils import get
 import openhivenpy.exceptions as errs
 from openhivenpy.gateway.http import HTTPClient
 
@@ -87,7 +88,7 @@ class Room():
         #Media: POST /rooms/roomid/media_messages)
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(endpoint="/rooms/{self.id}/messages", 
+            response = await self._http_client.post("/rooms/{self.id}/messages", 
                                                     data={"content": content})
             execution_code = response.status
             await asyncio.sleep(delay=delay)
@@ -108,12 +109,12 @@ class Room():
         Returns `True` if successful
         
         """
-        execution_code = None
+        execution_code = "Unknown"
         keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    response = await self._http_client.patch(endpoint=f"/rooms/{self.id}", data={key: kwargs.get(key)})
+                    response = await self._http_client.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
                     if response == None:
                         logger.debug(f"Failed to change the values {keys}for room {self.name} with id {self.id}!")
                         return False
@@ -125,6 +126,53 @@ class Room():
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.critical(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPRequestError(f"Failed to change the values {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
         
+    async def start_typing(self) -> bool:
+        """`openhivenpy.types.House.start_typing()`
+
+        Adds the client to the list of users typing
+            
+        Returns 'True' if successful.
+
+        """
+        execution_code = "Unknown"
+        try:
+            response = await self._http_client.post(f"/rooms/{self.id}/typing")
+            execution_code = response.status
+            
+            return True
+    
+        except Exception as e:
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            return False
+        
+    async def get_recent_messages(self) -> bool:
+        """`openhivenpy.types.House.get_recent_messages()`
+
+        Gets the recent messages from the current room
+            
+        Returns a list of all messages in form of `message` objects if successful.
+
+        """
+        try:
+            response = await self._http_client.request(f"/rooms/{self.id}/messages")
+            
+            messages = []
+            for message in response.get('data'):
+                author_data = await self._http_client.request(f"/users/{message.get('author_id')}")
+                if author_data == None:
+                    raise errs.HTTPFaultyResponse()
+                else:
+                    author = await getType.a_User(author_data.get('data'), self._http_client)
+                msg = await getType.a_Message(message, self._http_client, self.house, self, author)
+                messages.append(msg)
+            
+            return messages
+    
+        except Exception as e:
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            return None 

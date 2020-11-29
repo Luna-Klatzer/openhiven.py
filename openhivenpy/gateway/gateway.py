@@ -12,7 +12,9 @@ import openhivenpy.types as types
 import openhivenpy.exceptions as errs
 import openhivenpy.utils as utils
 from openhivenpy.events import EventHandler
-from openhivenpy.types import HivenClient
+from openhivenpy.types import Client
+
+__all__ = ('API', 'Websocket')
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ class API():
 
         return resp
 
-class Websocket(HivenClient, API):
+class Websocket(Client, API):
     """`openhivenpy.gateway.Websocket`
     
     Websocket
@@ -145,6 +147,10 @@ class Websocket(HivenClient, API):
     def websocket(self) -> websockets.client.WebSocketClientProtocol:
         return self
 
+    @property
+    def ws_connection(self) -> asyncio.Task:
+        return self._connection
+
     # Starts the connection over a new websocket
     async def ws_connect(self, heartbeat: int = None) -> None:
         """`openhivenpy.gateway.Websocket.ws_connect()`
@@ -184,6 +190,8 @@ class Websocket(HivenClient, API):
                     self._closed = websocket.closed
                     self._open = websocket.open
 
+                    self._connection_status = "OPEN"    
+
                     # Triggering the user event for the connection start
                     await self._event_handler.connection_start()
                     
@@ -191,8 +199,8 @@ class Websocket(HivenClient, API):
    
             except websockets.exceptions.ConnectionClosedOK as e:
                 logger.critical(f"Connection was closed! Reason: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-                await self.close() # Closing the running connection!
-                return
+                stop_loop = True if self._restart == False else False 
+                await self.close(exec_loop=stop_loop, restart=self._restart) # Closing and restarting the running connection!
             
             except websockets.exceptions.ConnectionClosedError as e:
                 logger.critical(f"Connection died abnormally! Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -200,6 +208,8 @@ class Websocket(HivenClient, API):
             
             except Exception as e:
                 await self.ws_on_error(e)
+            finally:
+                return
 
         # Creaing a task that wraps the courountine
         self._connection = self._event_loop.create_task(websocket_connect())
@@ -243,7 +253,6 @@ class Websocket(HivenClient, API):
         Not supposed to be called by a user!
         
         """      
-        self._connection_status = "OPEN"
         while True:
             response = await ws.recv()
             if response != None:
@@ -315,28 +324,28 @@ class Websocket(HivenClient, API):
         
         """
         try:
-            response_data = json.loads(ctx_data)
+            response = json.loads(ctx_data)
+            response_data = response.get('d', {})
             
-            logger.debug(f"Received Event {response_data['e']}")
+            logger.debug(f"Received Event {response['e']}")
 
-            if response_data['e'] == "INIT_STATE":
-                await super().update_client_user_data(response_data['d'])
+            if not hasattr(self, '_houses') and not hasattr(self, '_users'):
+                logger.error("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
+                raise errs.FaultyInitialization("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
+
+            if response['e'] == "INIT_STATE":
+                await super().update_client_user_data(response_data)
                 
                 init_time = time.time() - self._connection_start
                 await self._event_handler.init_state(time=init_time)
-                self._initalized = True
+                self._initialized = True
 
-            elif response_data['e'] == "HOUSE_JOIN":
-                
-                if not hasattr(self, '_houses') and not hasattr(self, '_users'):
-                    logger.error("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
-                    raise errs.FaultyInitialization("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
-
-                house = types.House(response_data['d'], self.http_client, super().id)
-                ctx = types.Context(response_data['d'], self.http_client)
+            elif response['e'] == "HOUSE_JOIN":
+                house = types.House(response_data, self.http_client, super().id)
+                ctx = types.Context(response_data, self.http_client)
                 await self._event_handler.house_join(ctx, house)
 
-                for usr in response_data['d']['members']:
+                for usr in response_data['members']:
                     user = utils.get(self._users, id=usr['id'] if hasattr(usr, 'id') else usr['user']['id'])
                     if user == None:
                         # Appending to the client users list
@@ -346,98 +355,158 @@ class Websocket(HivenClient, API):
                         usr = types.Member(usr, self._TOKEN, house)    
                         house._members.append(usr)
 
-                for room in response_data["d"]["rooms"]:
+                for room in response_data.get('rooms'):
                     self._rooms.append(types.Room(room, self.http_client, house))
                 
                 # Appending to the client houses list
                 self._houses.append(house)
 
-            elif response_data['e'] == "HOUSE_EXIT":
+            elif response['e'] == "HOUSE_EXIT":
                 house = None
-                ctx = types.Context(response_data['d'], self.http_client)
-                await self._event_handler.house_exit(ctx, house)
+                ctx = types.Context(response_data, self.http_client)
+                await self._event_handler.house_exit(house)
 
-            elif response_data['e'] == "HOUSE_DOWN":
-                logger.info(f"Downtime of {response_data['d']['name']} reported!")
+            elif response['e'] == "HOUSE_DOWN":
+                logger.info(f"Downtime of {response_data['name']} reported!")
                 house = None #ToDo
                 ctx = None
-                await self._event_handler.house_down(ctx, house)
+                await self._event_handler.house_down(house)
 
-            elif response_data['e'] == "HOUSE_MEMBER_ENTER":
-                ctx = types.Context(response_data['d'], self.http_client)
-                member = types.Member(response_data['d'], self.http_client, None) # In work
-                await self._event_handler.house_member_enter(ctx, member)
+            elif response['e'] == "HOUSE_MEMBER_ENTER":
+                if self._ready:
+                    ctx = types.Context(response_data, self.http_client)
+                    
+                    house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
+                    
+                    # Removing the old user and appending the new data so it's up-to-date
+                    cached_user = utils.get(self._users, id=int(response_data.get('user_id')))
+                    if response_data.get('user') != None:
+                        user = types.User(response_data['user'], self.http_client)
+                        
+                        if cached_user:
+                            self._users.remove(cached_user)
+                        self._users.append(user)
+                    else:
+                        user = cached_user
+                    
+                    # Removing the old member and appending the new data so it's up-to-date
+                    cached_member = utils.get(house._members, user_id=int(response_data.get('user_id')))
+                    if response_data.get('user') != None:
+                        member = types.Member(response_data['user'], self.http_client, house)
+                        
+                        if cached_member:
+                            house._members.remove(cached_member)
+                        house._members.append(member)
+                    else:
+                        member = cached_user        
+                    
+                    await self._event_handler.house_member_enter(member, house)
 
-            elif response_data['e'] == "HOUSE_MEMBER_EXIT":
-                ctx = types.Context(response_data['d'], self.http_client)
-                user = types.User(response_data['d'], self.http_client)
+            elif response['e'] == "HOUSE_MEMBER_UPDATE":
+                if self._ready:
+                    house = utils.get(self._houses, id=int(response_data.get('house_id')))
+                    
+                    # Removing the old user and appending the new data so it's up-to-date
+                    cached_user = utils.get(self._users, id=int(response_data.get('author_id')))
+                    if response_data.get('user') != None:
+                        user = types.User(response_data['user'], self.http_client)
+                        
+                        if cached_user:
+                            self._users.remove(cached_user)
+                        self._users.append(user)
+                    else:
+                        user = cached_user
+
+                    # Removing the old member and appending the new data so it's up-to-date
+                    cached_member = utils.get(house._members, user_id=int(response_data.get('user_id')))
+                    if response_data.get('user') != None:
+                        member = types.Member(response_data['user'], self.http_client, house)
+                        
+                        if cached_member:
+                            house._members.remove(cached_member)
+                        house._members.append(member)
+                    else:
+                        member = cached_user             
+
+                    await self._event_handler.house_member_update(member, house)
+                
+            elif response['e'] == "HOUSE_MEMBER_EXIT":
+                ctx = types.Context(response_data, self.http_client)
+                user = types.User(response_data, self.http_client)
                 
                 await self._event_handler.house_member_exit(ctx, user)
 
-            elif response_data['e'] == "PRESENCE_UPDATE":
-                precence = types.Presence(response_data['d'], self.http_client)
-                user = types.Member(response_data['d'], self.http_client, None) # In work
+            elif response['e'] == "PRESENCE_UPDATE":
+                precence = types.Presence(response_data, self.http_client)
+                user = types.Member(response_data, self.http_client, None) # In work
                 await self._event_handler.presence_update(precence, user)
 
-            elif response_data['e'] == "MESSAGE_CREATE":
-                if response_data['d'].get('house_id') != None:
-                    house = utils.get(self._houses, id=int(response_data['d'].get('house_id')))
-                else:
-                    house = None
+            elif response['e'] == "MESSAGE_CREATE":
+                if self._ready:
+                    if response_data.get('house_id') != None:
+                        house = utils.get(self._houses, id=int(response_data.get('house_id')))
+                    else:
+                        house = None
+                        
+                    room = utils.get(self._rooms, id=int(response_data['room_id']))
                     
-                room = utils.get(self._rooms, id=int(response_data['d']['room_id']))
-                
-                cached_author = utils.get(self._users, id=int(response_data['d']['author_id']))
-                if response_data['d'].get('author') != None:
-                    author = types.User(response_data['d']['author'], self.http_client)
+                    # Removing the old user and appending the new data so it's up-to-date
+                    cached_author = utils.get(self._users, id=int(response_data['author_id']))
+                    if response_data.get('author') != None:
+                        author = types.User(response_data['author'], self.http_client)
+                        
+                        if cached_author:
+                            self._users.remove(cached_author)
+                        self._users.append(author)
+                    else:
+                        author = cached_author
                     
-                    if cached_author:
-                        self._users.remove(cached_author)
-                    self._users.append(author)
-                else:
-                    author = cached_author
-                
-                message = types.Message(response_data['d'], self.http_client, house=house, room=room, author=author)
-                await self._event_handler.message_create(message)
+                    message = types.Message(response_data, self.http_client, house, room, author)
+                    await self._event_handler.message_create(message)
 
-            elif response_data['e'] == "MESSAGE_DELETE":
-                message = types.DeletedMessage(response_data['d'], self.http_client, None)
+            elif response['e'] == "MESSAGE_DELETE":
+                message = types.DeletedMessage(response_data)
                 await self._event_handler.message_delete(message)
 
-            elif response_data['e'] == "MESSAGE_UPDATE":
-                if response_data['d'].get('house_id') != None:
-                    house = utils.get(self._houses, id=int(response_data['d'].get('house_id')))
-                else:
-                    house = None
+            elif response['e'] == "MESSAGE_UPDATE":
+                if self._ready:
+                    if response_data.get('house_id') != None:
+                        house = utils.get(self._houses, id=int(response_data.get('house_id')))
+                    else:
+                        house = None
+                        
+                    room = utils.get(self._rooms, id=int(response_data['room_id']))
                     
-                room = utils.get(self._rooms, id=int(response_data['d']['room_id']))
-                
-                cached_author = utils.get(self._users, id=int(response_data['d']['author_id']))
-                if response_data['d'].get('author') != None:
-                    author = types.User(response_data['d']['author'], self.http_client)
+                    cached_author = utils.get(self._users, id=int(response_data['author_id']))
+                    if response_data.get('author') != None:
+                        author = types.User(response_data['author'], self.http_client)
+                        
+                        if cached_author:
+                            self._users.remove(cached_author)
+                        self._users.append(author)
+                    else:
+                        author = cached_author
                     
-                    if cached_author:
-                        self._users.remove(cached_author)
-                    self._users.append(author)
-                else:
-                    author = cached_author
-                
-                message = types.Message(response_data['d'], self.http_client, house=house, room=room, author=author)
-                await self._event_handler.message_update(message)
+                    message = types.Message(response_data, self.http_client, house=house, room=room, author=author)
+                    await self._event_handler.message_update(message)
 
-            elif response_data['e'] == "TYPING_START":
-                member = types.Typing(response_data['d'], self.http_client)
+            elif response['e'] == "TYPING_START":
+                member = types.Typing(response_data, self.http_client)
                 await self._event_handler.typing_start(member)
 
-            elif response_data['e'] == "TYPING_END":
-                member = types.Typing(response_data['d'], self.http_client)
+            elif response['e'] == "TYPING_END":
+                member = types.Typing(response_data, self.http_client)
                 await self._event_handler.typing_end(member)
             
+            # Unknown for now
+            elif response['e'] == "HOUSE_MEMBERS_CHUNK":
+                return
             else:
-                logger.debug(f"Unknown Event {response_data['e']} without Handler")
+                logger.debug(f">> Unknown Event {response['e']} without Handler")
             
         except Exception as e:
-            raise errs.GatewayException(f"Failed to catch and handle Event in the websocket! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.debug(f"Failed to catch and handle Event in the websocket! " 
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         return
     

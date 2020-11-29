@@ -25,17 +25,18 @@ class Embed(): #wait hiven has embeds?
     
     title: `str` - Title that displays on the embed object
     
-    image: `str` - Url for the image (Currently not in correct format)
+    image: `dict or str` - Url for the image (Currently not in correct format)
+                           or dict with data for a video file
     
     description: `str` - Description of the embed object
     
     """
     def __init__(self, data: dict):
-        self._url = int(data.get('url'))
-        self._type = int(data.get('type'))
-        self._title = int(data.get('title'))
-        self._image = int(data.get('image'))
-        self._description = int(data.get('description'))
+        self._url = data.get('url')
+        self._type = data.get('type')
+        self._title = data.get('title')
+        self._image = data.get('image')
+        self._description = data.get('description')
         
     @property
     def url(self):

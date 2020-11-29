@@ -8,7 +8,7 @@ __all__ = (
         'InvalidToken', 'UnableToClose', 'NoneClientType',
             
         'GatewayException', 'WSConnectionError', 'HTTPError',
-        'UnableToCreateSession',
+        'UnableToCreateSession', 'HTTPFaultyResponse',
         
         'CommandException')
 
@@ -136,6 +136,19 @@ class HTTPRequestError(HTTPError):
             arg = "".join(arg for arg in args)
         else:
             arg = f"Request failed due to an exceptions occuring while handling!"
+        super().__init__(arg) 
+      
+class HTTPFaultyResponse(HTTPError):
+    """`openhivenpy.exception.HTTPRequestError`
+       
+    Response was in wrong format or expected data was not received
+    
+    """    
+    def __init__(self, *args):
+        if args:
+            arg = "".join(arg for arg in args)
+        else:
+            arg = f"Response was in wrong format or expected data was not received!"
         super().__init__(arg) 
         
 class UnableToCreateSession(HTTPError):

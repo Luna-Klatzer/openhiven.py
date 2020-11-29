@@ -9,11 +9,11 @@ import openhivenpy.exceptions as errs
 
 logger = logging.getLogger(__name__)
 
-class HivenClient():
-    """`openhivenpy.types.HivenClient` 
+class Client():
+    """`openhivenpy.types.Client` 
     
-    Date Class for a HivenClient
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Date Class for a Client
+    ~~~~~~~~~~~~~~~~~~~~~~~
     
     Data Class that stores the data of the connected client
     
@@ -21,7 +21,7 @@ class HivenClient():
     async def update_client_user_data(self, data: dict = None) -> None:
         """`openhivenpy.types.client.update_client_user_data()`
          
-        Updates or creates the standard user data attributes of the HivenClient
+        Updates or creates the standard user data attributes of the Client
         
         """
         try: 
@@ -66,19 +66,21 @@ class HivenClient():
         Checks whether the meta data is complete and triggers on_ready
         """
         while True:
-            if self._amount_houses == len(self._houses) and self._initalized:
+            if self._amount_houses == len(self._houses) and self._initialized:
                 ctx = None
                 self._startup_time = time.time() - self.connection_start
+                self._ready = True
                 await self._event_handler.ready_state(ctx=ctx)
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
                 ctx = None
+                self._ready = True
                 await self._event_handler.ready_state(ctx=ctx)
                 break
             await asyncio.sleep(0.5)
 
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.types.HivenClient.edit()`
+        """`openhivenpy.types.Client.edit()`
         
         Change the signed in user's/bot's data. 
         
@@ -87,7 +89,7 @@ class HivenClient():
         Returns `True` if successful
         
         """
-        execution_code = None
+        execution_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
@@ -100,7 +102,7 @@ class HivenClient():
     
         except Exception as e:
             keys = ""+(" "+key for key in kwargs.keys())
-            logger.critical(f"Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
 
     @property
