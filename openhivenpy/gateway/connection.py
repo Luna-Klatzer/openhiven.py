@@ -15,7 +15,7 @@ __all__ = ('ExecutionLoop', 'Connection')
 
 def _get_args(**kwargs):
     return {
-        "api_url": kwargs.get('api_url', "https://api.hiven.io"),
+        "host": kwargs.get('host', "api.hiven.io"),
         "api_version": kwargs.get('api_version', "v1"),
         "heartbeat": kwargs.get('heartbeat', 30000),
         "ping_timeout": kwargs.get('ping_timeout', 100),
@@ -102,9 +102,9 @@ class ExecutionLoop():
                         await asyncio.gather(*methods_to_call, loop=self.event_loop)
                         
                 except asyncio.CancelledError as e:
-                    logger.debug(f"The startup tasks loop unexpectedly stopped while running! Probably caused by an error or automatic/forced closing!")
+                    logger.debug(f" The startup tasks loop unexpectedly stopped while running! Probably caused by an error or automatic/forced closing!")
                 except Exception as e:
-                    logger.error(f"Error in startup tasks in the execution loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f" Error in startup tasks in the execution loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
     
                 finally:
                     self._startup_finished = True
@@ -126,9 +126,9 @@ class ExecutionLoop():
         try:
             await self.exec_loop
         except asyncio.CancelledError:
-            logger.debug("Execution loop was cancelled! No more tasks will be executed!")
+            logger.debug(" Execution loop was cancelled! No more tasks will be executed!")
         except Exception as e:
-            logger.error(f"Failed to start or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f" Failed to start or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             self._active = False
             return
@@ -145,10 +145,10 @@ class ExecutionLoop():
             
             # Ensuring the tasks stops as soon as possible
             self._active = False
-            logger.debug("The execution loop was stopped and will now return!")
+            logger.debug(" The execution loop was stopped and will now return!")
             
         except Exception as e:
-            logger.critical(f"Failed to stop or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f" Failed to stop or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to stop or keep alive execution_loop! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             return 
@@ -172,7 +172,7 @@ class ExecutionLoop():
             setattr(self, func.__name__, wrapper)
             self._tasks.append(func.__name__)
             
-            logger.debug(f"Taks {func.__name__} added to loop")
+            logger.debug(f" Taks {func.__name__} added to loop")
 
             return func # returning func means func can still be used normally
 
@@ -202,7 +202,7 @@ class ExecutionLoop():
             setattr(self._startup_methods, func.__name__, wrapper)
             self._startup_tasks.append(func.__name__)
             
-            logger.debug(f"Startup Taks {func.__name__} added to loop")
+            logger.debug(f" Startup Taks {func.__name__} added to loop")
 
             return func # returning func means func can still be used normally
 
@@ -227,7 +227,7 @@ class Connection(Websocket, Client):
     
     restart: `bool` - If set to True the process will restart if Error Code 1011 or 1006 is thrown
     
-    api_url: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'https://api.hiven.io' 
+    host: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'api.hiven.io' 
     
     api_version: `str` - Version string for the API Version. Defaults to 'v1' 
     
@@ -235,7 +235,7 @@ class Connection(Websocket, Client):
     
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
     
-    ping_timeout: `int` - Seconds after the websocket will timeout after no succesful pong response. More information on the websockets documentation. Defaults to `100`
+    ping_timeout: `int` - Seconds after the websocket will timeout after no successful pong response. More information on the websockets documentation. Defaults to `100`
     
     close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake didn't complete successfully. Defaults to `20`
     
@@ -258,7 +258,7 @@ class Connection(Websocket, Client):
         self._connection_status = "CLOSED"
         
         self._init_args = _get_args(**kwargs)
-        self._API_URL = self._init_args.get('api_url')
+        self._HOST = self._init_args.get('host')
         self._API_VERSION = self._init_args.get('api_version')
 
         self._event_loop = self._init_args.get('event_loop')
@@ -271,8 +271,8 @@ class Connection(Websocket, Client):
         super().__init__(event_handler=event_handler, token=token, **self._init_args)
 
     @property
-    def api_url(self) -> str:
-        return self._API_URL
+    def host(self) -> str:
+        return self._HOST
 
     @property
     def api_version(self) -> str:
@@ -333,7 +333,7 @@ class Connection(Websocket, Client):
             await asyncio.gather(self.ws_connect(), self._execution_loop.start())
             
         except Exception as e:
-            logger.critical(f"Error while trying to establish the connection to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f" Error while trying to establish the connection to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.ConnectionError(f"Error while trying to establish the connection to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
         finally:
@@ -373,7 +373,7 @@ class Connection(Websocket, Client):
             return
         
         except Exception as e:
-            logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f" Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
 
     async def close(self, exec_loop = True, **kwargs) -> None:
@@ -413,7 +413,7 @@ class Connection(Websocket, Client):
             return
             
         except Exception as e:
-            logger.critical(f"Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f" Closing the connection to Hiven failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
         
     # Restarts the connection if it errored or crashed

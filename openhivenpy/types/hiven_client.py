@@ -39,12 +39,12 @@ class Client():
             self._amount_houses = len(houses_ids)
                         
         except AttributeError as e: 
-            logger.error(f"Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f" Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise AttributeError(f"Failed to initalize data! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         except KeyError as e:
             pass
         except Exception as e:
-            logger.error(f"Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f" Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.FaultyInitialization(f"Failed to initalize data! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __init__(self, *, http_client = None, **kwargs):
@@ -97,12 +97,12 @@ class Client():
                     execution_code = response.status
                     return True
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error(" The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
             keys = ""+(" "+key for key in kwargs.keys())
-            logger.error(f"Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f" Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
 
     @property

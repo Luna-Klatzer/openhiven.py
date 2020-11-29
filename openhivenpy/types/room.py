@@ -36,11 +36,11 @@ class Room():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f" Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Room object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f" Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Room object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -71,7 +71,7 @@ class Room():
     def description(self):
         return self._description
 
-    async def send(self, content: str, delay: float) -> getType.Message: #ToDo: Attatchments. Requires to be binary
+    async def send(self, content: str, delay: float = None) -> getType.Message: #ToDo: Attatchments. Requires to be binary
         """openhivenpy.types.Room.send(content)
 
         Sends a message in the room. Returns the message if successful.
@@ -88,16 +88,25 @@ class Room():
         #Media: POST /rooms/roomid/media_messages)
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(f"/rooms/{self.id}/messages", 
-                                                    data={"content": content})
-            execution_code = response.status
-            await asyncio.sleep(delay=delay)
-            msg = await getType.a_Message(response, self._http_client)
+            resp = await self._http_client.post(f"/rooms/{self.id}/messages", 
+                                                    json={"content": content})
+            execution_code = resp.status
+            await asyncio.sleep(delay=delay) if delay != None else None
+
+            resp = await self._http_client.request(f"/users/@me")
+            data = resp.get('data', {}) 
+            author = getType.User(data, self._http_client)
+
+            msg = await getType.a_Message(data, 
+                                          self._http_client,
+                                          house=self.house,
+                                          room=self,
+                                          author=author)
             return msg
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
+            logger.error(f" Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            return None
         
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Room.edit()`
@@ -114,20 +123,20 @@ class Room():
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    response = await self._http_client.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
-                    if response == None:
-                        logger.debug(f"Failed to change the values {keys}for room {self.name} with id {self.id}!")
+                    resp = await self._http_client.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
+                    if resp == None:
+                        logger.debug(f" Failed to change the values {keys}for room {self.name} with id {self.id}!")
                         return False
                     else:
-                        execution_code = response.status
+                        execution_code = resp.status
                         return True
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error(" The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPRequestError(f"Failed to change the values {keys}! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}") 
+            logger.error(f" Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            return False
         
     async def start_typing(self) -> bool:
         """`openhivenpy.types.House.start_typing()`
@@ -139,13 +148,13 @@ class Room():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(f"/rooms/{self.id}/typing")
-            execution_code = response.status
+            resp = await self._http_client.post(f"/rooms/{self.id}/typing")
+            execution_code = resp.status
             
             return True
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
@@ -158,10 +167,10 @@ class Room():
 
         """
         try:
-            response = await self._http_client.request(f"/rooms/{self.id}/messages")
+            resp = await self._http_client.request(f"/rooms/{self.id}/messages")
             
             messages = []
-            for message in response.get('data'):
+            for message in resp.get('data'):
                 author_data = await self._http_client.request(f"/users/{message.get('author_id')}")
                 if author_data == None:
                     raise errs.HTTPFaultyResponse()
@@ -173,6 +182,6 @@ class Room():
             return messages
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None 

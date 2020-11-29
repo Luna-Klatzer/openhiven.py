@@ -29,11 +29,20 @@ async def on_init(time):
 async def on_ready(ctx):
     print("Ready")
 
-    house = await client.get_house(184752554586930696)
+    house = await client.get_house(175036727902074248)
 
     url = await client.fetch_invite("openhivenpy")
 
     print(client.startup_time)
+    
+    room = await house.get_room(183279510056071456)
+    
+    await room.send("test")
+    
+    house = await client.create_house("test house")
+    
+    await house.delete()
+    
 
 @client.event()
 async def on_message_create(message):

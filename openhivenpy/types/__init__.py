@@ -32,6 +32,7 @@ SOFTWARE.
 
 from ._get_type import getType
 from .room import *
+from .private_room import *
 from .house import *
 from .message import *
 from .user import *
@@ -42,3 +43,4 @@ from .typing import *
 from .attatchment import *
 from .presence import *
 from .invite import *
+from .mention import * 

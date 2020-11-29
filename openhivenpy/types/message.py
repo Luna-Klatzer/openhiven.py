@@ -112,11 +112,11 @@ class Message():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
+            logger.error(f" Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f" Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -177,13 +177,13 @@ class Message():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack") #Its post Kudo. Not delete. We do not delete the mark.
-            execution_code = response.status
+            resp = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack") #Its post Kudo. Not delete. We do not delete the mark.
+            execution_code = resp.status
             await asyncio.sleep(delay=delay)
             return True
         
         except Exception as e:
-            logger.error(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked." 
+            logger.error(f" Failed to mark the message in room {self.room.name} with id {self.id} as marked." 
                          "[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
 
@@ -197,14 +197,14 @@ class Message():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
-            execution_code = response.status
+            resp = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+            execution_code = resp.status
             await asyncio.sleep(delay=delay)
-            msg = DeletedMessage(response.json(), self._http_client)
+            msg = DeletedMessage(resp.json(), self._http_client)
             return msg
         
         except Exception as e:
-            logger.error(f"Failed to delete the message in room {self.room.name} with id {self.id}." 
+            logger.error(f" Failed to delete the message in room {self.room.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
         
@@ -218,14 +218,14 @@ class Message():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
+            resp = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
                                                      json= {'content': content})
-            execution_code = response.status
+            execution_code = resp.status
             
             return True
     
         except Exception as e:
-            logger.error(f"Failed to edit messsage in room {self.room.name} with id {self.id}." 
+            logger.error(f" Failed to edit messsage in room {self.room.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         

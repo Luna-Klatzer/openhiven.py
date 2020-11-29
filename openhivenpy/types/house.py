@@ -20,7 +20,11 @@ class House():
     Returned with the getGuild() and get_guild()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, client_id: int):
+    def __init__(
+                self, 
+                data: dict,
+                http_client: HTTPClient, 
+                client_id: int):
         try:
             self._id = int(data['id']) if data.get('id') != None else None
             self._name = data.get('name')
@@ -36,11 +40,11 @@ class House():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f" Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize House object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f" Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize House object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -99,7 +103,7 @@ class House():
             
             return None
         except Exception as e:
-            logger.error(f"Failed to get the room {self.name} with id {self.id}. " 
+            logger.error(f" Failed to get the room {self.name} with id {self.id}. " 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
@@ -120,7 +124,7 @@ class House():
                 
             return None
         except Exception as e:
-            logger.error(f"Failed to get the room {self.name} with id {self.id}. " 
+            logger.error(f" Failed to get the room {self.name} with id {self.id}. " 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -134,20 +138,20 @@ class House():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms",
+            resp = await self._http_client.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms",
                                                     json={'name': name, 'parent_entity_id': parent_entity_id})
-            execution_code = response.status
+            execution_code = resp.status
             
-            data = (await response.json()).get('data')
+            data = (await resp.json()).get('data')
             if data != None:
-                room = await getType.a_Room(await response.json(), self._http_client)
+                room = await getType.a_Room(await resp.json(), self._http_client)
             else:
                 raise errs.HTTPFaultyResponse()
             
             return room
 
         except Exception as e:
-            logger.error(f"Failed to create the room {self.name} with id {self.id}." 
+            logger.error(f" Failed to create the room {self.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -156,18 +160,20 @@ class House():
 
         Leaves the house.
         
-        Returns `True` if successful.
+        Returns the house id if successful.
         
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.delete(f"https://api.hiven.io/v1/houses/{self._id}")
-            execution_code = response.status
+            resp = await self._http_client.delete(f"/users/@me/houses/{self.id}")#
             
-            return response.status_code == 204 or response.status_code == 200
-
+            if resp.status < 300:
+                return self.id
+            else:
+                return None
+        
         except Exception as e:
-            logger.error(f"Failed to leave the house {self.name} with id {self.id}." 
+            logger.error(f" Failed to leave the house {self.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -186,19 +192,19 @@ class House():
         try:
             for key in kwargs.keys():
                 if key in ['name']:
-                    response = await self._http_client.patch(endpoint=f"/houses/{self.id}", 
+                    resp = await self._http_client.patch(endpoint=f"/houses/{self.id}", 
                                                              data={key: kwargs.get(key)})
-                    execution_code = response.status
-                    if response == None:
+                    execution_code = resp.status
+                    if resp == None:
                         raise errs.HTTPFaultyResponse()
                     else:
                         return True
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error(" The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f"Failed to change the values {keys} for house {self.name} with id {self.id}." 
+            logger.error(f" Failed to change the values {keys} for house {self.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -212,10 +218,10 @@ class House():
         """
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post(endpoint=f"/houses/{self.id}/invites")
-            execution_code = response.status
+            resp = await self._http_client.post(endpoint=f"/houses/{self.id}/invites")
+            execution_code = resp.status
             
-            data = (await response.json()).get('data', {})
+            data = (await resp.json()).get('data', {})
             code = data.get('code')
             if data != None:
                 return f"https://hiven.house/{code}"
@@ -223,7 +229,7 @@ class House():
                 raise errs.HTTPFaultyResponse()
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
                          f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -232,13 +238,16 @@ class House():
         
         Deletes the house if permissions are sufficient!
         
-        Returns the id of the House if succesful
+        Returns the house id if successful
         
         """
         try:
             resp = await self._http_client.delete(f"/houses/{self.id}")
             
-            return resp.get('data', {}).get('house_id')
+            if resp.status < 300:
+                return self.id
+            else:
+                return None
          
         except Exception as e:
-            logger.error(f"Failed to delete House! Cause of error: {e}")  
+            logger.error(f" Failed to delete House! Cause of error: {e}")  

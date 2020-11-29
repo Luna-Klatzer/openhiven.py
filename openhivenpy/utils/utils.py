@@ -1,13 +1,13 @@
 import logging
-
 from operator import attrgetter
 from functools import lru_cache
+from typing import Optional, Union
 # This is a surprise tool that will help us later
 
 logger = logging.getLogger(__name__) 
 
-async def dispatch_func_if_exists(obj: object, func_name: str, *args, **kwargs):
-    """`openhivenpy.utils.dispatch_func_if_exists()`
+async def dispatch_func_if_exists(obj: object, func_name: str, args: Optional[Union[list, tuple]] = [], kwargs: Optional[dict] = {}):
+    """openhivenpy.utils.dispatch_func_if_exists()
     
     Dispatches functions if they exist in the passed object else they will be ignored
     
@@ -26,10 +26,10 @@ async def dispatch_func_if_exists(obj: object, func_name: str, *args, **kwargs):
     func = getattr(obj, func_name, None)
     if func != None:
         if callable(func):
-            logger.debug(f"Dispatching {func_name}")
+            logger.debug(f" Dispatching {func_name}")
             await func(*args, **kwargs)
     else:
-        logger.debug(f"{func_name} not found. Returning")
+        logger.debug(f" {func_name} not found. Returning")
         return
 
 def raise_value_to_type(val, data_type):

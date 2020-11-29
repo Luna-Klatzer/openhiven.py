@@ -78,6 +78,16 @@ class getType():
         return Relationship(data, http_client)
     
     @staticmethod
+    async def a_Mention(data: dict, http_client: HTTPClient):
+        """
+        Async Function for getting a Mention Object for a user with passed data 
+        """        
+        from .mention import Mention
+        return Mention(data, http_client)
+    
+    # -------------------------------------------
+    
+    @staticmethod
     async def Embed(data: dict):
         """
         Async Function for getting a Embed Object with passed data 
@@ -157,4 +167,11 @@ class getType():
         from .embed import Embed
         return Embed(data)
         
+    @staticmethod
+    def Mention(data: dict, http_client: HTTPClient):
+        """
+        Regular Function for getting a Mention Object for a user with passed data 
+        """        
+        from .mention import Mention
+        return Mention(data, http_client) 
         
