@@ -38,7 +38,7 @@
   <br>
 </p>
 <h2 align="center">Installation</h2>
-<h3 align="center">Currently still under Development for stable release v.0.1. For pre-usage of openhiven.py clone the repositoy or download over <code>pip install "repo-link</code></h3>
+<h3 align="center">Currently still under Development for stable release v.0.1. For pre-usage of openhiven.py clone the repositoy or install with the Github Build</h3>
 <h3 align="center">Install (PyPi Release)</h3>
 <h4 align="center">Currently in the process of being made! <a href="https://github.com/FrostbyteSpace/openhiven.py/milestone/1">Road to v.0.1</a></h4>
 <h3 align="center"><code>pip install openhiven.py</code></h3>
