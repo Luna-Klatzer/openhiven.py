@@ -88,7 +88,7 @@ class Room():
         #Media: POST /rooms/roomid/media_messages)
         execution_code = "Unknown"
         try:
-            response = await self._http_client.post("/rooms/{self.id}/messages", 
+            response = await self._http_client.post(f"/rooms/{self.id}/messages", 
                                                     data={"content": content})
             execution_code = response.status
             await asyncio.sleep(delay=delay)

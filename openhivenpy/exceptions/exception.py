@@ -8,7 +8,7 @@ __all__ = (
         'InvalidToken', 'UnableToClose', 'NoneClientType',
             
         'GatewayException', 'WSConnectionError', 'HTTPError',
-        'UnableToCreateSession', 'HTTPFaultyResponse',
+        'UnableToCreateSession', 'HTTPFaultyResponse', "HTTPRequestError"
         
         'CommandException')
 

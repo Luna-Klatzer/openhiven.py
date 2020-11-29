@@ -86,7 +86,7 @@ class EventHandler():
 
     async def message_create(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_create',
-                                    message=message) 
+                                    message=message)  
 
     async def message_delete(self, message) -> None:
         await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_delete',
