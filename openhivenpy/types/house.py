@@ -40,11 +40,11 @@ class House():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f" Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize House object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f" Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"Failed to initialize the House object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize House object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -103,7 +103,7 @@ class House():
             
             return None
         except Exception as e:
-            logger.error(f" Failed to get the room {self.name} with id {self.id}. " 
+            logger.error(f"Failed to get the room {self.name} with id {self.id}. " 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
@@ -124,35 +124,40 @@ class House():
                 
             return None
         except Exception as e:
-            logger.error(f" Failed to get the room {self.name} with id {self.id}. " 
+            logger.error(f"Failed to get the room {self.name} with id {self.id}. " 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
-    async def create_room(self, name: str, parent_entity_id: float) -> getType.Room:
+    async def create_room(self, name: str, parent_entity_id: Optional[Union[float, int]] = None) -> getType.Room:
         """openhivenpy.types.House.create_room(name)
 
         Creates a Room in the house with the specified name. 
         
-        Returns the Room that was created if successful
+        Returns a `Room` object of the room that was created if successful
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
-            resp = await self._http_client.post(f"https://api.hiven.io/v1/houses/{self._id}/rooms",
-                                                    json={'name': name, 'parent_entity_id': parent_entity_id})
-            execution_code = resp.status
+            json = {'name': name}
+            if parent_entity_id != None:
+                json['parent_entity_id'] = parent_entity_id
+            resp = await self._http_client.post(f"/houses/{self._id}/rooms",
+                                                json=json)
+            http_code = resp.status
             
-            data = (await resp.json()).get('data')
-            if data != None:
-                room = await getType.a_Room(await resp.json(), self._http_client)
+            if http_code < 300:
+                data = (await resp.json()).get('data')
+                if data != None:
+                    room = await getType.a_Room(await resp.json(), self._http_client)
+                    return room
+                else:
+                    raise errs.HTTPFaultyResponse()
             else:
-                raise errs.HTTPFaultyResponse()
-            
-            return room
+                return None
 
         except Exception as e:
-            logger.error(f" Failed to create the room {self.name} with id {self.id}." 
-                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to create the room {self.name} with id {self.id}." 
+                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def leave(self, house_id: int) -> bool:
@@ -163,7 +168,7 @@ class House():
         Returns the house id if successful.
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             resp = await self._http_client.delete(f"/users/@me/houses/{self.id}")#
             
@@ -173,8 +178,8 @@ class House():
                 return None
         
         except Exception as e:
-            logger.error(f" Failed to leave the house {self.name} with id {self.id}." 
-                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to leave the house {self.name} with id {self.id}." 
+                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def edit(self, **kwargs) -> bool:
@@ -187,25 +192,25 @@ class House():
         Returns `True` if successful
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
         try:
             for key in kwargs.keys():
                 if key in ['name']:
                     resp = await self._http_client.patch(endpoint=f"/houses/{self.id}", 
                                                              data={key: kwargs.get(key)})
-                    execution_code = resp.status
+                    http_code = resp.status
                     if resp == None:
                         raise errs.HTTPFaultyResponse()
                     else:
                         return True
                 else:
-                    logger.error(" The passed value does not exist in the user context!")
+                    logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f" Failed to change the values {keys} for house {self.name} with id {self.id}." 
-                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to change the values {keys} for house {self.name} with id {self.id}." 
+                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def create_invite(self, max_uses: int) -> str:
@@ -216,21 +221,24 @@ class House():
         Returns the invite url if successful.
 
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             resp = await self._http_client.post(endpoint=f"/houses/{self.id}/invites")
-            execution_code = resp.status
+            http_code = resp.status
             
-            data = (await resp.json()).get('data', {})
-            code = data.get('code')
-            if data != None:
-                return f"https://hiven.house/{code}"
+            if http_code < 300:
+                data = (await resp.json()).get('data', {})
+                code = data.get('code')
+                if data != None:
+                    return f"https://hiven.house/{code}"
+                else:
+                    raise errs.HTTPFaultyResponse()
             else:
                 raise errs.HTTPFaultyResponse()
     
         except Exception as e:
-            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
-                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def delete(self) -> int:
@@ -250,4 +258,4 @@ class House():
                 return None
          
         except Exception as e:
-            logger.error(f" Failed to delete House! Cause of error: {e}")  
+            logger.error(f"Failed to delete House! Cause of error: {e}")  

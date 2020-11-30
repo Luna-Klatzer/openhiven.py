@@ -84,6 +84,14 @@ class getType():
         """        
         from .mention import Mention
         return Mention(data, http_client)
+
+    @staticmethod
+    async def a_PrivateGroupRoom(data: dict, http_client: HTTPClient):
+        """
+        Regular Function for getting a PrivateGroupRoom Object for a group chat with passed data 
+        """        
+        from .private_room import PrivateGroupRoom
+        return PrivateGroupRoom(data, http_client) 
     
     # -------------------------------------------
     
@@ -168,10 +176,18 @@ class getType():
         return Embed(data)
         
     @staticmethod
-    def Mention(data: dict, http_client: HTTPClient):
+    def Mention(data: dict, timestamp: str, author, http_client: HTTPClient):
         """
         Regular Function for getting a Mention Object for a user with passed data 
         """        
         from .mention import Mention
-        return Mention(data, http_client) 
+        return Mention(data, timestamp, author, http_client) 
+    
+    @staticmethod
+    def PrivateGroupRoom(data: dict, http_client: HTTPClient):
+        """
+        Regular Function for getting a PrivateGroupRoom Object for a group chat with passed data 
+        """        
+        from .private_room import PrivateGroupRoom
+        return PrivateGroupRoom(data, http_client) 
         

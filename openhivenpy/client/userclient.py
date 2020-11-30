@@ -31,6 +31,8 @@ class UserClient(HivenClient):
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default!
     
+    log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
+    
     """
     def __init__(
                 self, 
@@ -74,7 +76,7 @@ class UserClient(HivenClient):
                 user_id = user.id
             
             if user_id == None:
-                logger.debug(" Invalid parameter for block_user!")
+                logger.debug("Invalid parameter for block_user!")
                 return False
             else:
                 resp = await self.http_client.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
@@ -85,7 +87,7 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f" Failed to cancel the friend request of a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to cancel the friend request of a user with id {user_id}! Cause of Error {e}")
             return None            
         
         
@@ -100,13 +102,10 @@ class UserClient(HivenClient):
         try:
             resp = await self.http_client.request(endpoint=f"/relationships/@me/friend-requests")
             
-            if resp.status < 300:
-                return resp.get('data')
-            else:
-                return None
+            return resp.get('data')
 
         except Exception as e:
-            logger.error(f" Failed to fetch the current open friend requests! Cause of Error {e}")
+            logger.error(f"Failed to fetch the current open friend requests! Cause of Error {e}")
             return None    
 
     async def block_user(self, user_id = None, **kwargs) -> bool:
@@ -132,7 +131,7 @@ class UserClient(HivenClient):
                 user_id = user.id
             
             if user_id == None:
-                logger.debug(" Invalid parameter for block_user!")
+                logger.debug("Invalid parameter for block_user!")
                 return False
             else:
                 resp = await self.http_client.put(endpoint=f"/relationships/@me/blocked/{user_id}")
@@ -143,7 +142,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(" Failed to block user with id {user_id}! Cause of error: {e}")
+            logger.error("Failed to block user with id {user_id}! Cause of error: {e}")
         
 
     async def unblock_user(self, user_id = None, **kwargs) -> bool:
@@ -169,7 +168,7 @@ class UserClient(HivenClient):
                 user_id = user.id
             
             if user_id == None:
-                logger.debug(" Invalid parameter for unblock_user!")
+                logger.debug("Invalid parameter for unblock_user!")
                 return False
             else:
                 resp = await self.http_client.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
@@ -180,7 +179,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(f" Failed to unblock a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to unblock a user with id {user_id}! Cause of Error {e}")
             return None
 
     async def send_friend_request(self, user_id = None, **kwargs) -> types.User:
@@ -206,7 +205,7 @@ class UserClient(HivenClient):
                 user_id = user.id
             
             if user_id == None:
-                logger.debug(" Invalid parameter for send_friend_request! Expected user or user_id!")
+                logger.debug("Invalid parameter for send_friend_request! Expected user or user_id!")
                 return False
             else:
                 resp = await self.http_client.post(
@@ -219,47 +218,6 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f" Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
-            return None
-    
-    @staticmethod
-    async def create_private_room(self, user_id = None, **kwargs) -> types.Room:
-        """`openhivenpy.UserClient.send_friend_request()`
- 
-        Adds a user to a private chat room where you can send messages.
-        
-        Called when trying to send a message to 
-        
-        Returns the `User` object if the user exists in the known users
- 
-        Parameter
-        ~~~~~~~~~
-        
-        Only one is required to execute the request!
-        
-        user_id: `int` - Id of the user that should be added to a private room
-        
-        user: `openhivenpy.types.User` - User object that should be added to a private room
-        
-        """          
-        try:
-            if user_id == None:
-                user = kwargs.get('user')
-                user_id = user.id
-            
-            if user_id == None:
-                logger.debug(" Invalid parameter for creating a private room! Expected user or user_id!")
-                return False
-            else:
-                resp = await self.http_client.post(endpoint=f"/users/@me/rooms",
-                                                   json={'recipient': f"{user_id}"})
-                
-                if resp.status < 300:
-                    return types.PrivateRoom(resp.get('data'), self.http_client)
-                else:
-                    return None
-
-        except Exception as e:
-            logger.error(f" Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
             return None
         

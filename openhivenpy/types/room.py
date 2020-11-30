@@ -36,11 +36,11 @@ class Room():
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f" Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Room object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f" Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"Failed to initialize the Room object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initalize Room object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -81,16 +81,16 @@ class Room():
         
         content: `str` - Content of the message
     
-        delay: `str` - Seconds to wait until sending the message
+        delay: `float` - Seconds to wait until sending the message (in seconds)
 
         """
         #POST /rooms/roomid/messages
         #Media: POST /rooms/roomid/media_messages)
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             resp = await self._http_client.post(f"/rooms/{self.id}/messages", 
                                                     json={"content": content})
-            execution_code = resp.status
+            http_code = resp.status
             await asyncio.sleep(delay=delay) if delay != None else None
 
             resp = await self._http_client.request(f"/users/@me")
@@ -105,7 +105,7 @@ class Room():
             return msg
         
         except Exception as e:
-            logger.error(f" Failed to send message to Hiven! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
         
     async def edit(self, **kwargs) -> bool:
@@ -118,24 +118,24 @@ class Room():
         Returns `True` if successful
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
                     resp = await self._http_client.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
                     if resp == None:
-                        logger.debug(f" Failed to change the values {keys}for room {self.name} with id {self.id}!")
+                        logger.debug(f"Failed to change the values {keys}for room {self.name} with id {self.id}!")
                         return False
                     else:
-                        execution_code = resp.status
+                        http_code = resp.status
                         return True
                 else:
-                    logger.error(" The passed value does not exist in the user context!")
+                    logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f" Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
     async def start_typing(self) -> bool:
@@ -146,16 +146,16 @@ class Room():
         Returns 'True' if successful.
 
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             resp = await self._http_client.post(f"/rooms/{self.id}/typing")
-            execution_code = resp.status
+            http_code = resp.status
             
             return True
     
         except Exception as e:
-            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
-                         f"[CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
+                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
     async def get_recent_messages(self) -> bool:
@@ -182,6 +182,6 @@ class Room():
             return messages
     
         except Exception as e:
-            logger.error(f" Failed to create invite for house {self.name} with id {self.id}." 
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None 

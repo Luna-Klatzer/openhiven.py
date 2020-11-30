@@ -60,23 +60,23 @@ class HTTPClient():
         """
         try:
             async def on_request_start(session, trace_config_ctx, params):
-                logger.debug(f" [HTTP] >> Request with HTTP {params.method} started at {time.time()}")
-                logger.debug(f" [HTTP] >> URL >> {params.url}")
+                logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
+                logger.debug(f"[HTTP] >> URL >> {params.url}")
          
             async def on_request_end(session, trace_config_ctx, params):
-                logger.debug(f" [HTTP] << Request with HTTP {params.method} finished!")
-                logger.debug(f" [HTTP] << Header << {params.headers}")
-                logger.debug(f" [HTTP] << URL << {params.url}")
-                logger.debug(f" [HTTP] << Response << {params.response}")
+                logger.debug(f"[HTTP] << Request with HTTP {params.method} finished!")
+                logger.debug(f"[HTTP] << Header << {params.headers}")
+                logger.debug(f"[HTTP] << URL << {params.url}")
+                logger.debug(f"[HTTP] << Response << {params.response}")
             
             async def on_request_exception(session, trace_config_ctx, params):
-                logger.debug(f" [HTTP] << An exception occured while executing the request")
+                logger.debug(f"[HTTP] << An exception occured while executing the request")
             
             async def on_request_redirect(session, trace_config_ctx, params):
-                logger.debug(f" [HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
+                logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
             
             async def on_connection_queued_start(session, trace_config_ctx, params):
-                logger.debug(f" [HTTP] >> HTTP {params.method} with {params.url} queued!")
+                logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
             
             trace_config = aiohttp.TraceConfig()
             trace_config.on_request_start.append(on_request_start)
@@ -95,7 +95,7 @@ class HTTPClient():
         except Exception as e:
             self.http_ready = False
             await self.session.close()
-            logger.error(f" FAILED to create Session! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"FAILED to create Session! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToCreateSession(f"FAILED to create Session!! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")  
             
     async def close(self) -> bool:
@@ -108,7 +108,7 @@ class HTTPClient():
             await self.session.close()
             self.http_ready = False
         except Exception as e:
-            logger.error(f" An error occured while trying to close the HTTP Connection to Hiven: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"An error occured while trying to close the HTTP Connection to Hiven: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Attempt to create session failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")  
     
     async def raw_request(
@@ -120,7 +120,7 @@ class HTTPClient():
                         **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTPClient.raw_request()`
 
-        Wrapped HTTP request for a specified endpoint. 
+        Wrapped HTTP GET request for a specified endpoint. 
         
         Returns the raw ClientResponse object
         
@@ -150,7 +150,7 @@ class HTTPClient():
                 elif time.time() > timeout_limit:
                     if not self._request.cancelled():
                         self._request.cancel()
-                    logger.debug(f" [HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
+                    logger.debug(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
                                  f"{endpoint}; Request to Hiven timed out!")
                     break
                 await asyncio.sleep(0.25)
@@ -162,6 +162,7 @@ class HTTPClient():
             timeout = aiohttp.ClientTimeout(total=None)
             if self.http_ready:
                 try:
+                    error = False
                     headers = self.headers # Just in case
                     if kwargs.get('headers') == None:
                         headers = self.headers
@@ -176,12 +177,15 @@ class HTTPClient():
                                                     **kwargs) as resp:
                         http_code = resp.status
                         
-                        if resp.status < 300:
+                        if http_code < 300:
                             data = await resp.read()
-                            if resp.status == 204:
-                                error = True
-                                error_code = "Empty Response"
-                                error_reason = "Got an empty response that cannot be converted to json!" # I dont think this should error
+                            if http_code == 204:
+                                if method == "GET":
+                                    error = True
+                                    error_code = "Empty Response"
+                                    error_reason = "Got an empty response that cannot be converted to json!" 
+                                    
+                                logger.debug("[HTTP] << Received Empty Response")
                             else:
                                 json = json_decoder.loads(data)
                                 
@@ -193,25 +197,25 @@ class HTTPClient():
                                     error_code = 'Unknown HTTP Error'
                                     error_reason = 'Possibly faulty request or response!'
 
-                            if resp.status == 200 or resp.status == 202:
+                            if http_code < 300:
                                 if error == False:
                                     return resp
                                 
-                        error_code = resp.status
+                        error_code = http_code
                         error_reason = resp.reason
 
-                        logger.debug(f" [HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
+                        logger.debug(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
                                      f"{endpoint}; {error_code}, {error_reason}")
                         return resp
         
                 except asyncio.TimeoutError as e:
-                    logger.error(f" [HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
 
                 except Exception as e:
-                    logger.error(f" [HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
                         
             else:
-                logger.error(f" [HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
+                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
                              "The connection is either faulty initalized or closed!")
                 return None    
 
@@ -221,10 +225,10 @@ class HTTPClient():
         try:
             resp = await asyncio.gather(self._request, _task_time_out_handler)
         except asyncio.CancelledError:
-            logger.debug(f" [HTTP] >> Request was cancelled!")
+            logger.debug(f"[HTTP] >> Request was cancelled!")
             return
         except Exception as e:
-            logger.error(f" [HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         return resp[0]
     
@@ -250,8 +254,11 @@ class HTTPClient():
         
         """
         resp = await self.raw_request(endpoint, method="GET", timeout=timeout, **kwargs)
-        if resp != None:
-            return await resp.json()
+        if resp != None and resp.status < 300:
+            if resp.status != 204:
+                return await resp.json()
+            else:
+                return None
         else:
             return None
     
@@ -276,12 +283,14 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
+        headers = dict(self.headers)
+        headers['Content-Type'] = 'application/json'
         return await self.raw_request(
                                     endpoint, 
                                     method="POST", 
                                     json=json, 
                                     timeout=timeout, 
-                                    headers=self.headers, # Dear kudo, please remember TO FUCKING ADD ``SELF.`` TO EVERYTHING, THIS HAS TOOKEN ME OVER A FUCKING WEEK TO FIX
+                                    headers=headers, # This is supposec to be like that!
                                     **kwargs)
             
     async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
@@ -334,6 +343,8 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
+        headers = dict(self.headers)
+        headers['Content-Type'] = 'application/json'
         return await self.raw_request(
                                     endpoint, 
                                     method="PUT", 
@@ -363,6 +374,8 @@ class HTTPClient():
         **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
+        headers = dict(self.headers)
+        headers['Content-Type'] = 'application/json'
         return await self.raw_request(
                                     endpoint, 
                                     method="PATCH", 

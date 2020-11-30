@@ -26,10 +26,10 @@ async def dispatch_func_if_exists(obj: object, func_name: str, args: Optional[Un
     func = getattr(obj, func_name, None)
     if func != None:
         if callable(func):
-            logger.debug(f" Dispatching {func_name}")
+            logger.debug(f"Dispatching {func_name}")
             await func(*args, **kwargs)
     else:
-        logger.debug(f" {func_name} not found. Returning")
+        logger.debug(f"{func_name} not found. Returning")
         return
 
 def raise_value_to_type(val, data_type):

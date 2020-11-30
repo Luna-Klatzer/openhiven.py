@@ -1,4 +1,6 @@
 import asyncio
+
+from aiohttp.http_writer import HttpVersion
 from openhivenpy.gateway.connection import ExecutionLoop
 import requests
 import sys
@@ -23,7 +25,7 @@ def _check_dependencies() -> None:
     pkgs = ['asyncio', 'requests', 'websockets', 'typing', 'nest_asyncio', 'aiohttp']
     for pkg in pkgs:
         if pkg not in sys.modules:
-            logger.critical(f" Module {pkg} not found in locally installed modules!")
+            logger.critical(f"Module {pkg} not found in locally installed modules!")
             raise ImportError(f"Module {pkg} not found in locally installed modules!", name=pkg)
 
 class HivenClient(EventHandler, API):
@@ -48,6 +50,8 @@ class HivenClient(EventHandler, API):
     event_handler: `openhivenpy.events.EventHandler` - Handler for the events. Can be modified and customized if wanted. Creates a new one on Default
     
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
+   
+    log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     ping_timeout: `int` - Seconds after the websocket will timeout after no successful pong response. More information on the websockets documentation. Defaults to `100`
     
@@ -81,15 +85,15 @@ class HivenClient(EventHandler, API):
             self._bot = True
 
         else:
-            logger.error(f" Expected 'user' or 'bot', got '{client_type}'")
+            logger.error(f"Expected 'user' or 'bot', got '{client_type}'")
             raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'")
 
         if token == None or token == "":
-            logger.critical(f" Empty Token was passed!")
+            logger.critical(f"Empty Token was passed!")
             raise errs.InvalidToken
 
         elif len(token) != 128:
-            logger.critical(f" Invalid Token was passed!")
+            logger.critical(f"Invalid Token was passed!")
             raise errs.InvalidToken
 
         _check_dependencies()
@@ -157,10 +161,10 @@ class HivenClient(EventHandler, API):
                 await self.connection.stop_event_loop()
                 return True
             else:
-                logger.error(" An attempt to close the connection to Hiven failed due to no current active Connection!")
+                logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f" Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
     async def close(self) -> bool:        
@@ -176,10 +180,10 @@ class HivenClient(EventHandler, API):
                 await self.connection.close()
                 return True
             else:
-                logger.error(" An attempt to close the connection to Hiven failed due to no current active Connection!")
+                logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f" Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -459,7 +463,7 @@ class HivenClient(EventHandler, API):
                 return house
             return None
         except Exception as e: 
-            logger.error(f" Failed to get House based with id {house_id}! Cause of error: {e}")  
+            logger.error(f"Failed to get House based with id {house_id}! Cause of error: {e}")  
             
     async def get_user(self, user_id: float) -> types.User:
         """`openhivenpy.HivenClient.get_user()`
@@ -480,7 +484,7 @@ class HivenClient(EventHandler, API):
                 return user
             return None
         except Exception as e: 
-            logger.error(f" Failed to get User based with id {user_id}! Cause of error: {e}")        
+            logger.error(f"Failed to get User based with id {user_id}! Cause of error: {e}")        
             
     async def get_room(self, room_id: float) -> types.Room:
         """`openhivenpy.HivenClient.get_room()`
@@ -501,7 +505,33 @@ class HivenClient(EventHandler, API):
                 return room
             return None
         except Exception as e:
-           logger.error(f" Failed to get Room based with id {room_id}! Cause of error: {e}")
+           logger.error(f"Failed to get Room based with id {room_id}! Cause of error: {e}")
+
+    async def get_private_room(self, room_id: float) -> types.Room:
+        """`openhivenpy.HivenClient.get_private_room()`
+        
+        Returns a Hiven `PrivateRoom` or `GroupChatRoom` Object based on the passed house id and room id.
+        
+        Returns the Room if it exists else returns None
+        
+        """
+        try:
+            cached_room = utils.get(self.private_rooms, id=room_id)
+            if cached_room != None:
+                data = await self.http_client.request(endpoint=f"/rooms/{room_id}")
+                if data != None:
+                    room = types.Room(data['d'], self.http_client)
+                    
+                    if cached_room:
+                        self.connection._houses.remove(cached_room)
+                    self.connection._houses.append(room)
+                    return room
+                else:
+                    return cached_room
+            return None
+        
+        except Exception as e:
+           logger.error(f"Failed to get Room based with id {room_id}! Cause of error: {e}")
 
     async def create_house(self, name: str) -> types.House:
         """`openhivenpy.HivenClient.create_house()`
@@ -514,7 +544,7 @@ class HivenClient(EventHandler, API):
         try:
             resp = await self.http_client.post(endpoint="/houses", 
                                                 json={'name': name})
-            if resp == None:
+            if resp == None or resp.status >= 300:
                 raise errs.HTTPRequestError("Internal request error!")    
             data = await resp.json()
             
@@ -523,7 +553,7 @@ class HivenClient(EventHandler, API):
             return house 
         
         except Exception as e:
-            logger.error(f" Failed to create House! Cause of error: {e}")        
+            logger.error(f"Failed to create House! Cause of error: {e}")        
             
     async def delete_house(self, house_id: int) -> int:
         """`openhivenpy.HivenClient.delete_house()`
@@ -548,18 +578,18 @@ class HivenClient(EventHandler, API):
                 else:
                     return None
             else:
-                logger.error(f" The house with id {house_id} does not exist in the client cache!")
+                logger.error(f"The house with id {house_id} does not exist in the client cache!")
                 return None
          
         except Exception as e:
-            logger.error(f" Failed to delete House! Cause of error: {e}")   
+            logger.error(f"Failed to delete House! Cause of error: {e}")   
 
     async def fetch_invite(self, invite_code: str) -> str:
         """`openhivenpy.HivenClient.get_invite()`
         
         Fetches an invite from Hiven
         
-        Returns an 'Invite' Object
+        Returns an `Invite` Object
         
         """
         try:
@@ -568,39 +598,59 @@ class HivenClient(EventHandler, API):
             return types.Invite(data.get('data'), self.http_client)
          
         except Exception as e:
-            logger.error(f" Failed to fetch the invite with invite_code {invite_code}! Cause of error: {e}")   
+            logger.error(f"Failed to fetch the invite with invite_code {invite_code}! Cause of error: {e}")   
 
     async def get_feed(self) -> dict:
         """`openhivenpy.HivenClient.get_feed()`
         
         Get the current users feed
         
-        Returns an 'Feed' Object
+        Returns an `Feed` Object
         
         """
         try:
             data = await self.http_client.request(endpoint=f"/streams/@me/feed")
             
-            return types.Invite(data.get('data'), self.http_client)
+            if data != None:
+                return types.Feed()
+            else:
+                return False
          
         except Exception as e:
-            logger.error(f" Failed to get the users feed! Cause of error: {e}")   
+            logger.error(f"Failed to get the users feed! Cause of error: {e}")   
         
     async def get_mentions(self) -> types.Mention:
         """`openhivenpy.HivenClient.get_mentions()`
         
         Gets all mentions of the client user
         
-        Returns an 'Mention' Object
+        Returns a list of `Mention` Objects
         
         """
         try:
-            data = await self.http_client.request(endpoint=f"/streams/@me/mentions")
+            resp = await self.http_client.request(endpoint=f"/streams/@me/mentions")
             
-            return types.Mention(data.get('data'), self.http_client)
+            data = resp.get('data')
+            
+            mention_list = []
+            for msg_data in data:
+                author = types.User(msg_data.get('author'), self.http_client)
+                
+                room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
+                
+                messsage =  types.Message(
+                                    msg_data, 
+                                    self.http_client,
+                                    room.house,
+                                    room,
+                                    author)
+                
+                mention_list.append(messsage)
+                
+            return mention_list
          
         except Exception as e:
-            logger.error(f" Failed to get the users mentions! Cause of error: {e}")   
+            logger.error(f"Failed to get the users mentions! Cause of error: {e}")   
             
     async def change_room_settings(self, room_id = None, **kwargs) -> types.Room:
         """`openhivenpy.HivenClient.change_room_settings()`
@@ -630,7 +680,7 @@ class HivenClient(EventHandler, API):
                 room_id = room.id
             
             if room_id == None:
-                logger.debug(" Invalid parameter for block_user! Expected user or user_id!")
+                logger.debug("Invalid parameter for block_user! Expected user or user_id!")
                 return False
             else:
                 json = {}
@@ -648,8 +698,48 @@ class HivenClient(EventHandler, API):
                     return None
 
         except Exception as e:
-            logger.error(f" Failed to edit the room with id {room_id}. Cause of Error {e}")
+            logger.error(f"Failed to edit the room with id {room_id}. Cause of Error {e}")
             return None      
             
-  
+    async def create_private_room(self, user_id = None, **kwargs) -> types.Room:
+        """`openhivenpy.UserClient.send_friend_request()`
+ 
+        Adds a user to a private chat room where you can send messages.
+        
+        Called when trying to send a message to 
+        
+        Returns the `User` object if the user exists in the known users
+ 
+        Parameter
+        ~~~~~~~~~
+        
+        Only one is required to execute the request!
+        
+        user_id: `int` - Id of the user that should be added to a private room
+        
+        user: `openhivenpy.types.User` - User object that should be added to a private room
+        
+        """          
+        try:
+            if user_id == None:
+                user = kwargs.get('user')
+                user_id = user.id
+            
+            if user_id == None:
+                logger.debug("Invalid parameter for creating a private room! Expected user or user_id!")
+                return False
+            else:
+                resp = await self.http_client.post(endpoint=f"/users/@me/rooms",
+                                                   json={'recipient': f"{user_id}"})
+                
+                if resp.status < 300:
+                    private_room = types.PrivateRoom(resp.get('data'), self.http_client)
+                    self.connection._private_rooms.append(private_room)
+                    return private_room
+                else:
+                    return None
+
+        except Exception as e:
+            logger.error(f"Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
+            return None
             

@@ -27,6 +27,8 @@ class BotClient(HivenClient):
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions. Creates a new one on default!
     
+    log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
+    
     """
     def __init__(
                 self, 

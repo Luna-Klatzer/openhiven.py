@@ -20,7 +20,7 @@ class EventHandler():
     def __init__(self, call_obj: object):
         self.call_obj = call_obj
         if call_obj == None: 
-            logger.debug(" Passed object where the events should be called from is None!")
+            logger.debug("Passed object where the events should be called from is None!")
 
     def event(self, func = None):
         """`openhivenpy.events.Events.event`
@@ -40,7 +40,7 @@ class EventHandler():
             
             setattr(self, func.__name__, wrapper) # Adding the function to the object
 
-            logger.debug(f" Event {func.__name__} registered")
+            logger.debug(f"Event {func.__name__} registered")
 
             return func # returning func means func can still be used normally
 
@@ -77,8 +77,8 @@ class EventHandler():
                                     func_name='on_house_remove', 
                                     args=param) 
 
-    async def house_down(self, ctx, house) -> None:
-        param = [ctx, house]
+    async def house_down(self, time, house) -> None:
+        param = [time, house]
         await dispatch_func_if_exists(obj=self.call_obj, 
                                     func_name='on_house_downage', 
                                     args=param)

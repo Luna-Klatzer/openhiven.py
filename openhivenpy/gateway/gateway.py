@@ -87,7 +87,7 @@ class Websocket(Client, API):
     
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
     
-    event_handler: 'openhivenpy.events.EventHandler`
+    event_handler: 'openhivenpy.events.EventHandler` - Handler for Websocket Events
     
     """    
     def __init__(self, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
@@ -112,6 +112,7 @@ class Websocket(Client, API):
         self._event_loop = event_loop
         
         self._restart = kwargs.get('restart', False)
+        self._log_ws_output = kwargs.get('log_ws_output', False)
         
         self._CUSTOM_HEARBEAT = False if self._HEARTBEAT == 30000 else True
 
@@ -170,41 +171,41 @@ class Websocket(Client, API):
                                             uri = self._WEBSOCKET_URL, 
                                             ping_timeout = self._ping_timeout, 
                                             close_timeout = self._close_timeout,
-                                            ping_interval = self._ping_interval) as websocket:
+                                            ping_interval = self._ping_interval) as ws:
 
-                    websocket = await self.ws_init(websocket)
+                    ws = await self.ws_init(ws)
 
                     # Authorizing with token
-                    logger.info("Logging in with token")
-                    await websocket.send(json.dumps( {"op": 2, "d": {"token": str(self._TOKEN)} } ))
+                    logger.info("[WEBSOCKET] >> Logging in with token")
+                    await ws.send(json.dumps( {"op": 2, "d": {"token": str(self._TOKEN)} } ))
 
                     # Receiving the first response from Hiven and setting the specified heartbeat
-                    resp = json.loads(await websocket.recv())
+                    resp = json.loads(await ws.recv())
                     
                     if resp['op'] == 1 and self._CUSTOM_HEARBEAT == False:
                         self._HEARTBEAT = resp['d']['hbt_int']
-                        logger.debug(f" Heartbeat set to {resp['d']['hbt_int']}")
-                        
-                        websocket.heartbeat = self._HEARTBEAT
+                        ws.heartbeat = self._HEARTBEAT
 
-                    self._closed = websocket.closed
-                    self._open = websocket.open
+                    logger.debug(f"[WEBSOCKET] >> Heartbeat set to {ws.heartbeat}")
+
+                    self._closed = ws.closed
+                    self._open = ws.open
 
                     self._connection_status = "OPEN"    
 
                     # Triggering the user event for the connection start
                     await self._event_handler.connection_start()
                     
-                    await asyncio.gather(self.ws_lifesignal(websocket), self.ws_receive_response(websocket))
+                    await asyncio.gather(self.ws_lifesignal(ws), self.ws_receive_response(ws))
    
             except websockets.exceptions.ConnectionClosedOK as e:
-                logger.critical(f" Connection was closed! Reason: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                logger.critical(f"[WEBSOCKET] << Connection was closed! Reason: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
                 stop_loop = True if self._restart == False else False 
                 await self.close(exec_loop=stop_loop, restart=self._restart) # Closing and restarting the running connection!
             
             except websockets.exceptions.ConnectionClosedError as e:
-                logger.critical(f" Connection died abnormally! Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-                raise errs.WSConnectionError(f"An error occured while trying to connect to Hiven. Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                logger.critical(f"[WEBSOCKET] << Connection died abnormally! Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                raise errs.WSConnectionError(f"[WEBSOCKET] << An error occured while trying to connect to Hiven. Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
             except Exception as e:
                 await self.ws_on_error(e)
@@ -219,10 +220,10 @@ class Websocket(Client, API):
             await self._connection
         # Avoids that the user notices that the task was cancelled! aka. Silent Error
         except asyncio.CancelledError:
-            logger.debug(" The webocket Connection to Hiven unexpectedly stopped! Probably caused by an error or automatic/forced closing!") 
+            logger.debug("[WEBSOCKET] << The webocket Connection to Hiven unexpectedly stopped! Probably caused by an error or automatic/forced closing!") 
         except Exception as e:
             logger.critical(e)
-            raise errs.GatewayException(f"Exception in main-websocket process! Cause of error{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.GatewayException(f"[WEBSOCKET] << Exception in main-websocket process! Cause of error{sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             return
             
@@ -256,9 +257,9 @@ class Websocket(Client, API):
         while True:
             resp = await ws.recv()
             if resp != None:
-                logger.debug(f" Response received: {resp}")
+                if self._log_ws_output:
+                    logger.debug(f"[WEBSOCKET] << Response received: {resp}")
                 await self.ws_on_response(resp)
-
 
     async def ws_lifesignal(self, ws) -> None:
         """`openhivenpy.gateway.Websocket.ws_lifesignal()`
@@ -270,18 +271,18 @@ class Websocket(Client, API):
         """    
         try:
             async def _lifesignal():
-                logger.info("Connection to Hiven established")
+                logger.info("[WEBSOCKET] << Connection to Hiven established")
                 while self._open:
                     # Sleeping the wanted time (Pause for the Heartbeat)
                     await asyncio.sleep(self._HEARTBEAT / 1000)
 
                     # Lifesignal
                     await ws.send(json.dumps({"op": 3}))
-                    logger.debug(" Lifesignal")
+                    logger.debug("[WEBSOCKET] >> Lifesignal")
 
                     # If the connection is CLOSING the loop will break
                     if self._connection_status == "CLOSING" or self._connection_status == "CLOSED":
-                        logger.info(f"Connection to Remote ({self._WEBSOCKET_URL}) closed!")
+                        logger.info(f"[WEBSOCKET] << Connection to Remote ({self._WEBSOCKET_URL}) closed!")
                         break
 
             self._connection_status = "OPEN"
@@ -290,15 +291,15 @@ class Websocket(Client, API):
             await self._lifesignal
             
         except asyncio.CancelledError as e:
-            logger.debug(f" Lifesignal task stopped unexpectedly! Probably caused by an error or automatic/forced closing!") 
+            logger.debug(f"[WEBSOCKET] >> Lifesignal task stopped unexpectedly! Probably caused by an error or automatic/forced closing!") 
             return
             
         except websockets.exceptions.ConnectionClosedError as e:
-            logger.critical(f" Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f"[WEBSOCKET] >> Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.WSConnectionError("Connection died abnormally! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
         except Exception as e:
-            logger.critical(f" The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
 
@@ -311,7 +312,7 @@ class Websocket(Client, API):
         Not supposed to be called by a user!
         
         """      
-        logger.critical(f" The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     # Event Triggers
@@ -327,10 +328,10 @@ class Websocket(Client, API):
             resp = json.loads(ctx_data)
             response_data = resp.get('d', {})
             
-            logger.debug(f" Received Event {resp['e']}")
+            logger.debug(f"Received Event {resp['e']}")
 
             if not hasattr(self, '_houses') and not hasattr(self, '_users'):
-                logger.error(" The client attributes _users and _houses do not exist! The class might be initialized faulty!")
+                logger.error("[WEBSOCKET] << The client attributes _users and _houses do not exist! The class might be initialized faulty!")
                 raise errs.FaultyInitialization("The client attributes _users and _houses do not exist! The class might be initialized faulty!")
 
             if resp['e'] == "INIT_STATE":
@@ -367,9 +368,10 @@ class Websocket(Client, API):
                 await self._event_handler.house_exit(house)
 
             elif resp['e'] == "HOUSE_DOWN":
-                logger.info(f"Downtime of {response_data['name']} reported!")
+                t = time.time()
                 house = utils.get(self._houses, id=int(response_data.get('house_id')))
-                await self._event_handler.house_down(house)
+                logger.info(f"[WEBSOCKET] << Downtime of '{house.name}' reported! House was either deleted or is currently unavailable!")
+                await self._event_handler.house_down(t, house)
 
             elif resp['e'] == "HOUSE_MEMBER_ENTER":
                 if self._ready:
@@ -412,7 +414,7 @@ class Websocket(Client, API):
                     house = utils.get(self._houses, id=int(response_data.get('house_id')))
                     
                     # Removing the old user and appending the new data so it's up-to-date
-                    cached_user = utils.get(self._users, id=int(response_data.get('author_id')))
+                    cached_user = utils.get(self._users, id=int(response_data.get('user_id')))
                     if response_data.get('user') != None:
                         user = types.User(response_data['user'], self.http_client)
                         
@@ -507,10 +509,10 @@ class Websocket(Client, API):
             elif resp['e'] == "HOUSE_MEMBERS_CHUNK":
                 return
             else:
-                logger.debug(f" >> Unknown Event {resp['e']} without Handler")
+                logger.debug(f"[WEBSOCKET] << Unknown Event {resp['e']} without Handler")
             
         except Exception as e:
-            logger.debug(f" Failed to catch and handle Event in the websocket! " 
+            logger.debug(f"[WEBSOCKET] << Failed to catch and handle Event in the websocket! " 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         return

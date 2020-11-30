@@ -32,17 +32,28 @@ async def on_ready(ctx):
     house = await client.get_house(175036727902074248)
 
     url = await client.fetch_invite("openhivenpy")
-
-    print(client.startup_time)
-    
-    room = await house.get_room(183279510056071456)
-    
-    await room.send("test")
     
     house = await client.create_house("test house")
     
+    await house.create_room(name="stuff")
+    
+    room = house.rooms[0]
+    
+    await room.send("test")
+    
     await house.delete()
     
+    feed = await client.get_feed()
+    
+    mentions = await client.get_mentions()
+    
+    friend_request = await client.fetch_current_friend_requests()
+    
+    private_room = await client.get_private_room(175699760957616349)
+    
+    # await client.create_private_room() # Robyn please find some random users and open private rooms with them
+    
+    print(client.startup_time)
 
 @client.event()
 async def on_message_create(message):

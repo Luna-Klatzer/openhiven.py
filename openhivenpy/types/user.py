@@ -9,49 +9,31 @@ import openhivenpy
 
 logger = logging.getLogger(__name__)
 
-class User():
-    """`openhivenpy.types.User` 
+class LazyUser():
+    """`openhivenpy.types.LazyUser` 
     
-    Data Class for a Hiven User
+    Data Class for a reduced Hiven User
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     The class inherits all the avaible data from Hiven(attr -> read-only)!
     
     Represents the standard Hiven User
     
-    Returned with events, guilds user lists, getUser() and get_user()
-    
     Attributes
     ~~~~~~~~~~
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
-        try:
-            # Messages have the user data nested
-            if data.get('user') != None:
-                data = data.get('user')
+    def __init__(self, data: dict):
+        if data.get('user') != None:
+            data = data.get('user')
 
-            self._username = data.get('username')
-            self._name = data.get('name')
-            self._id = int(data.get('id')) if data.get('id') != None else None
-            self._flags = data.get('user_flags') #ToDo: Discord.py-esque way of user flags     
-            self._icon = data.get('icon')   
-            self._header = data.get('header') 
-            self._bot = data.get('bot')
-            self._location = data.get('location', "")
-            self._website = data.get('website', "") 
-            self._presence = data.get('presence', "")#ToDo: Presence class
-            self._joined_at = data.get('joined_at', "")
-            
-            self._http_client = http_client
-            
-        except AttributeError as e: 
-            logger.error(f" Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize User object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
-        except Exception as e: 
-            logger.error(f" Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize User object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        self._username = data.get('username')
+        self._name = data.get('name')
+        self._id = int(data.get('id')) if data.get('id') != None else None
+        self._flags = data.get('user_flags') #ToDo: Discord.py-esque way of user flags     
+        self._icon = data.get('icon')   
+        self._header = data.get('header') 
+        self._bot = data.get('bot')
 
     @property
     def username(self) -> str:
@@ -76,6 +58,44 @@ class User():
     @property
     def bot(self) -> bool:
         return self._bot
+
+class User(LazyUser):
+    """`openhivenpy.types.User` 
+    
+    Data Class for a Hiven User
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    
+    Represents the extended Hiven User
+    
+    Returned with events, guilds user lists, getUser() and get_user()
+    
+    Attributes
+    ~~~~~~~~~~
+    
+    """
+    def __init__(self, data: dict, http_client: HTTPClient):
+        try:
+            # Messages have the user data nested
+            if data.get('user') != None:
+                data = data.get('user')
+
+            super().__init__(data) 
+            self._location = data.get('location', "")
+            self._website = data.get('website', "") 
+            self._presence = data.get('presence', "")#ToDo: Presence class
+            self._joined_at = data.get('joined_at', "")
+            
+            self._http_client = http_client
+            
+        except AttributeError as e: 
+            logger.error(f"Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize User object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+        
+        except Exception as e: 
+            logger.error(f"Failed to initialize the User object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initalize User object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def location(self) -> str:

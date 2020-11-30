@@ -33,19 +33,27 @@ class Client():
                 
             private_rooms = data.get('private_rooms', [])
             for private_room in private_rooms:
-                self._private_rooms.append(getType.PrivateRoom(private_room, self.http_client))
+                type = int(private_room.get('type', 0))
+                if type == 1:
+                    room = await getType.a_PrivateRoom(private_room, self.http_client)
+                elif type == 2:
+                    room = await getType.a_PrivateGroupRoom(private_room, self.http_client)
+                else:
+                    room = await getType.a_PrivateRoom(private_room, self.http_client)
+                self._private_rooms.append(room)
             
             houses_ids = data.get('house_memberships', [])
             self._amount_houses = len(houses_ids)
                         
         except AttributeError as e: 
-            logger.error(f" Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"Failed to initalize data! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"FAILED to update client data! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise AttributeError(f"FAILED to update client data! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         except KeyError as e:
-            pass
+            logger.error(f"FAILED to update client data! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise AttributeError(f"FAILED to update client data! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         except Exception as e:
-            logger.error(f" Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.FaultyInitialization(f"Failed to initalize data! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"FAILED to update client data!  Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.FaultyInitialization(f"FAILED to update client data! ossibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __init__(self, *, http_client = None, **kwargs):
         self.http_client = http_client if http_client != None else self.http_client
@@ -89,20 +97,20 @@ class Client():
         Returns `True` if successful
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
                     response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
-                    execution_code = response.status
+                    http_code = response.status
                     return True
                 else:
-                    logger.error(" The passed value does not exist in the user context!")
+                    logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
             keys = ""+(" "+key for key in kwargs.keys())
-            logger.error(f" Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
 
     @property
