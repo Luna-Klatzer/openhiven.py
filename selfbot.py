@@ -6,8 +6,6 @@ import asyncio
 import time
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
-
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
@@ -18,13 +16,13 @@ bot = openhivenpy.UserClient(token="")
 init = time.time()
 
 @bot.event
-async def on_ready():
-    print(f"Init'd in {time.time() - 1}")
+async def on_ready(time):
+    print(f"Init'd")
 
 @bot.event
 async def on_message_create(message):
-    if message.content == "ping":
-        await message.room.send(content=":table_tennis_paddle_and_ball:!",delay=0)
+    if message.content == ".ping": # Until theres a command handler, might as well go old-school discord.py
+        await message.room.send(":table_tennis_paddle_and_ball:!")
 
 async def run():
     # If response is 200 that means the program can interact with Hiven

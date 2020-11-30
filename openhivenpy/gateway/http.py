@@ -162,6 +162,7 @@ class HTTPClient():
             timeout = aiohttp.ClientTimeout(total=None)
             if self.http_ready:
                 try:
+                    headers = self.headers # Just in case
                     if kwargs.get('headers') == None:
                         headers = self.headers
                     else:
@@ -180,7 +181,7 @@ class HTTPClient():
                             if resp.status == 204:
                                 error = True
                                 error_code = "Empty Response"
-                                error_reason = "Got an empty response that cannot be converted to json!"
+                                error_reason = "Got an empty response that cannot be converted to json!" # I dont think this should error
                             else:
                                 json = json_decoder.loads(data)
                                 
@@ -280,7 +281,7 @@ class HTTPClient():
                                     method="POST", 
                                     json=json, 
                                     timeout=timeout, 
-                                    headers=headers, 
+                                    headers=self.headers, # Dear kudo, please remember TO FUCKING ADD ``SELF.`` TO EVERYTHING, THIS HAS TOOKEN ME OVER A FUCKING WEEK TO FIX
                                     **kwargs)
             
     async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
