@@ -80,20 +80,20 @@ class HivenClient(EventHandler, API):
             self._bot = True
 
         elif client_type == None:
-            logger.warning("client type is None. Defaulting to BotClient. This might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
+            logger.warning("[CLIENT] >> Client type is None. Defaulting to BotClient. This might be caused by using the HivenClient Class directly which can cause exceptions when using BotClient or UserClient Functions!")
             self._CLIENT_TYPE = "bot"
             self._bot = True
 
         else:
-            logger.error(f"Expected 'user' or 'bot', got '{client_type}'")
+            logger.error(f"[CLIENT] >> Expected 'user' or 'bot', got '{client_type}'")
             raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'")
 
         if token == None or token == "":
-            logger.critical(f"Empty Token was passed!")
+            logger.critical(f"[CLIENT] >> Empty Token was passed!")
             raise errs.InvalidToken
 
         elif len(token) != 128:
-            logger.critical(f"Invalid Token was passed!")
+            logger.critical(f"[CLIENT] >> Invalid Token was passed!")
             raise errs.InvalidToken
 
         _check_dependencies()
@@ -161,10 +161,10 @@ class HivenClient(EventHandler, API):
                 await self.connection.stop_event_loop()
                 return True
             else:
-                logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
+                logger.error("[CLIENT] << An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[CLIENT] << Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
     async def close(self) -> bool:        
@@ -180,10 +180,10 @@ class HivenClient(EventHandler, API):
                 await self.connection.close()
                 return True
             else:
-                logger.error("An attempt to close the connection to Hiven failed due to no current active Connection!")
+                logger.error("[CLIENT] << An attempt to close the connection to Hiven failed due to no current active Connection!")
                 return False
         except Exception as e:
-            logger.error(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[CLIENT] << Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -352,7 +352,7 @@ class HivenClient(EventHandler, API):
             if res.status == 200:
                 return time() - start
             else:
-                logger.warning("Trying to ping Hiven failed!")
+                logger.warning("[CLIENT] >> Trying to ping Hiven failed!")
                 return None
         else:
             return None
@@ -370,7 +370,7 @@ class HivenClient(EventHandler, API):
         if res.status_code == 200:
             return True
         else:
-            logger.warning("The attempt to ping Hiven failed!")
+            logger.warning("[CLIENT] >> The attempt to ping Hiven failed!")
             return False        
 
     async def edit(self, data: str, value: str) -> bool:
@@ -463,7 +463,7 @@ class HivenClient(EventHandler, API):
                 return house
             return None
         except Exception as e: 
-            logger.error(f"Failed to get House based with id {house_id}! Cause of error: {e}")  
+            logger.error(f"[CLIENT] >> Failed to get House based with id {house_id}! Cause of error: {e}")  
             
     async def get_user(self, user_id: float) -> types.User:
         """`openhivenpy.HivenClient.get_user()`
@@ -484,7 +484,7 @@ class HivenClient(EventHandler, API):
                 return user
             return None
         except Exception as e: 
-            logger.error(f"Failed to get User based with id {user_id}! Cause of error: {e}")        
+            logger.error(f"[CLIENT] >> Failed to get User based with id {user_id}! Cause of error: {e}")        
             
     async def get_room(self, room_id: float) -> types.Room:
         """`openhivenpy.HivenClient.get_room()`
@@ -505,7 +505,7 @@ class HivenClient(EventHandler, API):
                 return room
             return None
         except Exception as e:
-           logger.error(f"Failed to get Room based with id {room_id}! Cause of error: {e}")
+           logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! Cause of error: {e}")
 
     async def get_private_room(self, room_id: float) -> types.Room:
         """`openhivenpy.HivenClient.get_private_room()`
@@ -531,7 +531,7 @@ class HivenClient(EventHandler, API):
             return None
         
         except Exception as e:
-           logger.error(f"Failed to get Room based with id {room_id}! Cause of error: {e}")
+           logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! Cause of error: {e}")
 
     async def create_house(self, name: str) -> types.House:
         """`openhivenpy.HivenClient.create_house()`

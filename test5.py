@@ -51,7 +51,7 @@ async def on_ready(ctx):
     
     private_room = await client.get_private_room(175699760957616349)
     
-    # await client.create_private_room() # Robyn please find some random users and open private rooms with them
+    # await client.create_private_room() # Robyn please find some random users and open private rooms with them #no
     
     print(client.startup_time)
 
