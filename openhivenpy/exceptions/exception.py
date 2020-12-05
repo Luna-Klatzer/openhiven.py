@@ -1,8 +1,8 @@
-""" Openhiven.py related Exceptions """
+""" openhiven.py related Exceptions """
 
 
 __all__ = (
-        'HivenException', 'ConnectionError', 'Forbidden', 
+        'HivenException', 'HivenConnectionError', 'Forbidden',
         
         'Forbidden', 'FaultyInitialization', 'InvalidClientType',
         'InvalidToken', 'UnableToClose', 'NoneClientType',
@@ -12,9 +12,10 @@ __all__ = (
         
         'CommandException')
 
+
 class HivenException(Exception):
     """`openhivenpy.exception.HivenException`
-    
+
     Base Exception in the openhivenpy library!
     
     All other exceptions inherit from this base class
@@ -22,9 +23,9 @@ class HivenException(Exception):
     """
     def __init__(self, *args):
         if args:
-            self.msg = "".join(arg for arg in args)
+            self.msg = "".join([str(arg) for arg in args])
         else:
-            self.msg = f"{self.__name__}, Exception occured in the package openhivenpy"
+            self.msg = f"{self.__name__}, Exception occurred in the package openhivenpy"
             
         super().__init__(self.msg)     
         
@@ -33,19 +34,21 @@ class HivenException(Exception):
 
     def __call__(self):
         return self.__class__.__name__
-  
-class ConnectionError(HivenException):
-    """`openhivenpy.exception.ConnectionError`
+
+
+class HivenConnectionError(HivenException):
+    """`openhivenpy.exception.HivenConnectionError`
     
     The connection to Hiven failed to be kept alive or started!
     
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "The connection to Hiven failed to be kept alive or started!"
         super().__init__(arg)
+
 
 class Forbidden(HivenException):
     """`openhivenpy.exception.Forbidden`
@@ -55,11 +58,12 @@ class Forbidden(HivenException):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "The client was forbidden to execute a certain task or function!"
         super().__init__(arg)
-    
+
+
 class FaultyInitialization(HivenException):
     """`openhivenpy.exception.FaultyInitialization`
     
@@ -68,11 +72,12 @@ class FaultyInitialization(HivenException):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "The object was not initialized correctly and values were faulty passed or are entirely missing!"
         super().__init__(arg)
-    
+
+
 class InvalidClientType(HivenException):
     """`openhivenpy.exception.InvalidClientType`
     
@@ -81,10 +86,11 @@ class InvalidClientType(HivenException):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "Invalid client type was passed resulting in a failed initialization!"
         super().__init__(arg)
+
 
 class InvalidToken(HivenException):
     """`openhivenpy.exception.InvalidToken`
@@ -94,12 +100,13 @@ class InvalidToken(HivenException):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "Invalid Token was passed!"
         super().__init__(arg)
-        
-class GatewayException(ConnectionError):
+
+
+class GatewayException(HivenConnectionError):
     """`openhivenpy.exception.GatewayException`
        
     General Exception in the Websocket!
@@ -107,12 +114,13 @@ class GatewayException(ConnectionError):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
-            arg = "Exception occured in the running Websocket!"
+            arg = "Exception occurred in the running Websocket!"
         super().__init__(arg)
 
-class HTTPError(ConnectionError):
+
+class HTTPError(HivenConnectionError):
     """`openhivenpy.exception.HTTPError`
        
     Base Exception for exceptions in the HTTPClient and overall requesting
@@ -120,10 +128,11 @@ class HTTPError(ConnectionError):
     """    
     def __init__(self, code="Unknown", *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = f"Failed to process HTTP request! Code: {code}"
         super().__init__(arg) 
+
 
 class HTTPRequestError(HTTPError):
     """`openhivenpy.exception.HTTPRequestError`
@@ -133,11 +142,12 @@ class HTTPRequestError(HTTPError):
     """    
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Request failed due to an exceptions occuring while handling!"
+            arg = f"Request failed due to an exceptions occurring while handling!"
         super().__init__(arg) 
-      
+
+
 class HTTPFaultyResponse(HTTPError):
     """`openhivenpy.exception.HTTPRequestError`
        
@@ -146,11 +156,12 @@ class HTTPFaultyResponse(HTTPError):
     """    
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = f"Response was in wrong format or expected data was not received!"
-        super().__init__(arg) 
-        
+        super().__init__(arg)
+
+
 class UnableToCreateSession(HTTPError):
     """`openhivenpy.exception.UnableToCreateSession`
        
@@ -159,10 +170,11 @@ class UnableToCreateSession(HTTPError):
     """    
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = f"Was unable to create HTTPClient session and request init client data!"
-        super().__init__(arg) 
+        super().__init__(arg)
+
 
 class UnableToClose(GatewayException):
     """`openhivenpy.exception.UnableToClose`
@@ -172,24 +184,26 @@ class UnableToClose(GatewayException):
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "The client is unable to close the connection to Hiven!"
         super().__init__(arg)
-        
+
+
 class WSConnectionError(GatewayException):
     """`openhivenpy.exception.WSConnectionError`
     
-    An Exception occured while trying to establish/keep the connection alive to Hiven!
+    An Exception occurred while trying to establish/keep the connection alive to Hiven!
     
     """
     def __init__(self, *args):
         if args:
-            arg = "".join(arg for arg in args)
+            arg = "".join([str(arg) for arg in args])
         else:
             arg = "The Websocket was unable to establish/keep the connection alive to Hiven!"
         super().__init__(arg)
-        
+
+
 class NoneClientType(Warning):
     """`openhivenpy.exception.NoneClientType`
     
@@ -198,12 +212,13 @@ class NoneClientType(Warning):
     """    
     def __init__(self, *args):
         if args:
-            msg = "".join(arg for arg in args)
+            msg = "".join([str(arg) for arg in args])
         else:
             msg = "A None Type was passed in the Initialization!"
         super().__init__(msg)
         
 # Command Exceptions #
+
 
 class CommandException(HivenException):
     """`openhivenpy.exception.CommandException`
@@ -213,8 +228,7 @@ class CommandException(HivenException):
     """
     def __init__(self, *args):
         if args:
-            arg = args[0] + "".join(arg for arg in args)
+            arg = str(args[0]) + "".join([str(arg) for arg in args])
         else:
-            arg = "An Exception occured while executing a command function on Hiven!"
+            arg = "An Exception occurred while executing a command function on Hiven!"
         super().__init__(arg)
-        

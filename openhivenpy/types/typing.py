@@ -8,13 +8,16 @@ from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
-class Typing():
+__all__ = ['Typing']
+
+
+class Typing:
     """`openhivenpy.types.Typing`
     
     Data Class for Typing
     ~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
     
@@ -29,12 +32,16 @@ class Typing():
             self._http_client = http_client
                         
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Typing object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Typing object! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to initialize the Typing object! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Typing object! Most likely faulty data! "
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Typing object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Typing object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to initialize the Typing object! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Typing object! Possibly faulty data! "
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def timestamp(self) -> datetime.datetime:

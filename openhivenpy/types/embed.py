@@ -6,13 +6,15 @@ from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
-class Embed(): #wait hiven has embeds?
+__all__ = ['Embed']
+
+class Embed:
     """`openhivenpy.types.Embed`
     
     Data Class for a Embed Object
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with a message object if an embed object is added
     
@@ -57,6 +59,3 @@ class Embed(): #wait hiven has embeds?
     @property
     def description(self):
         return self._description        
-
-        
-        

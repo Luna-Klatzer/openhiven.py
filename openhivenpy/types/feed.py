@@ -1,10 +1,12 @@
-import asyncio
 import logging
 
 from ._get_type import getType
 from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
+
+__all__ = ['Feed']
+
 
 class Feed:
     """`openhivenpy.types.Feed`

@@ -4,18 +4,18 @@ import logging
 import sys
 import time
 import json as json_decoder
-from typing import Optional
+from typing import Optional, Union
 
 import openhivenpy.exceptions as errs
 
 __all__ = ('HTTPClient')
 
-
 logger = logging.getLogger(__name__)
 
 request_url_format = "https://{0}/{1}"
 
-class HTTPClient():
+
+class HTTPClient:
     """`openhivenpy.gateway`
     
     HTTPClient
@@ -50,7 +50,10 @@ class HTTPClient():
         self.http_ready = False
         
         self.session = None
-        self.loop = loop    
+        self.loop = loop
+
+        # Last/Currently executed request
+        self._request = None
         
     async def connect(self) -> dict:
         """`openhivenpy.gateway.HTTPClient.connect()`
@@ -70,7 +73,7 @@ class HTTPClient():
                 logger.debug(f"[HTTP] << Response << {params.response}")
             
             async def on_request_exception(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << An exception occured while executing the request")
+                logger.debug(f"[HTTP] << An exception occurred while executing the request")
             
             async def on_request_redirect(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
@@ -95,8 +98,10 @@ class HTTPClient():
         except Exception as e:
             self.http_ready = False
             await self.session.close()
-            logger.error(f"FAILED to create Session! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.UnableToCreateSession(f"FAILED to create Session!! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")  
+            logger.error(f"FAILED to create Session! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToCreateSession(f"FAILED to create Session! " 
+                                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTPClient.connect()`
@@ -107,9 +112,12 @@ class HTTPClient():
         try:
             await self.session.close()
             self.http_ready = False
+            return True
         except Exception as e:
-            logger.error(f"An error occured while trying to close the HTTP Connection to Hiven: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Attempt to create session failed! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")  
+            logger.error(f"An error occurred while trying to close the HTTP Connection to Hiven:" 
+                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPError(f"Attempt to create session failed!" 
+                                 f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
     
     async def raw_request(
                         self, 
@@ -117,7 +125,7 @@ class HTTPClient():
                         *, 
                         method: str = "GET", 
                         timeout: float = 15, 
-                        **kwargs) -> aiohttp.ClientResponse:
+                        **kwargs) -> Union[aiohttp.ClientResponse, None]:
         """`openhivenpy.gateway.HTTPClient.raw_request()`
 
         Wrapped HTTP GET request for a specified endpoint. 
@@ -127,7 +135,8 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
     
         json: `str` - JSON format data that will be appended to the request
         
@@ -135,9 +144,11 @@ class HTTPClient():
         
         method: `str` - HTTP Method that should be used to perform the request
         
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                            Use with caution!
                 
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
         # Timeout Handler that watches if the request takes too long
@@ -158,7 +169,7 @@ class HTTPClient():
 
         async def _request(endpoint, method, **kwargs):
             http_code = "Unknown Internal Error"
-            # Deactivated because of errors that occured using it!
+            # Deactivated because of errors that occurred using it!
             timeout = aiohttp.ClientTimeout(total=None)
             if self.http_ready:
                 try:
@@ -191,8 +202,8 @@ class HTTPClient():
                                 
                                 error = json.get('error', False)
                                 if error:
-                                    error_code = json['error']['code'] if json['error'].get('code') != None else 'Unknown HTTP Error'
-                                    error_reason = json['error']['message'] if json['error'].get('message') != None else 'Possibly faulty request or response!'
+                                    error_code = json['error']['code'] if json['error'].get('code') is not None else 'Unknown HTTP Error'
+                                    error_reason = json['error']['message'] if json['error'].get('message') is not None else 'Possibly faulty request or response!'
                                 else:
                                     error_code = 'Unknown HTTP Error'
                                     error_reason = 'Possibly faulty request or response!'
@@ -216,7 +227,7 @@ class HTTPClient():
                         
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
-                             "The connection is either faulty initalized or closed!")
+                             "The connection is either faulty initialized or closed!")
                 return None    
 
         self._request = self.loop.create_task(_request(endpoint, method, **kwargs))
@@ -228,11 +239,13 @@ class HTTPClient():
             logger.debug(f"[HTTP] >> Request was cancelled!")
             return
         except Exception as e:
-            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"An error occured while performing HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint};" 
+                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint:" 
+                                 f"{self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         return resp[0]
     
-    async def request(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> dict:
+    async def request(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> Union[dict, None]:
         """`openhivenpy.gateway.HTTPClient.request()`
 
         Wrapped HTTP request for a specified endpoint. 
@@ -242,19 +255,22 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
-    
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
+
         json: `str` - JSON format data that will be appended to the request
-        
+
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
         resp = await self.raw_request(endpoint, method="GET", timeout=timeout, **kwargs)
-        if resp != None and resp.status < 300:
+        if resp is not None and resp.status < 300:
             if resp.status != 204:
                 return await resp.json()
             else:
@@ -272,25 +288,25 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
-    
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
+
         json: `str` - JSON format data that will be appended to the request
-        
+
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
-        headers = dict(self.headers)
-        headers['Content-Type'] = 'application/json'
         return await self.raw_request(
                                     endpoint, 
                                     method="POST", 
                                     json=json, 
-                                    timeout=timeout, 
-                                    headers=headers, # This is supposec to be like that!
+                                    timeout=timeout,
                                     **kwargs)
             
     async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
@@ -303,15 +319,16 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
-    
-        json: `str` - JSON format data that will be appended to the request
-        
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
+
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
         return await self.raw_request(
@@ -332,15 +349,18 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
-    
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
+
         json: `str` - JSON format data that will be appended to the request
-        
+
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
         headers = dict(self.headers)
@@ -363,15 +383,18 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
-    
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
+
         json: `str` - JSON format data that will be appended to the request
-        
+
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
         headers = dict(self.headers)
@@ -396,15 +419,18 @@ class HTTPClient():
         Parameter:
         ----------
         
-        endpoint: `str` - Url place in url format '/../../..' Will be appended to the standard link: 'https://api.hiven.io/version'
+        endpoint: `str` - Url place in url format '/../../..'
+                            Will be appended to the standard link: 'https://api.hiven.io/version'
     
         json: `str` - JSON format data that will be appended to the request
         
         timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
         
-        headers: `dict` - Defaults to the normal headers. Note: Changing conent type can make the request break. Use with caution!
+        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
         
-        **kwargs: `any` - Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        **kwargs: `any` - Other parameter for requesting.
+                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
         return await self.raw_request(
