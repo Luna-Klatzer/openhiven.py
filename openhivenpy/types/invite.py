@@ -6,6 +6,9 @@ from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
+__all__ = ['Invite']
+
+
 class Invite:
     """`openhivenpy.types.Invite`
     
@@ -40,7 +43,7 @@ class Invite:
         
         house_data = data.get('house')
         data = asyncio.run(self._http_client.request(f"/users/{house_data.get('owner_id')}"))
-        owner = getType.User(data.get('data'), self._http_client)
+        owner = getType.user(data.get('data'), self._http_client)
         self._house = {
             'id': house_data.get('id'),
             'name': house_data.get('name'),
@@ -86,4 +89,3 @@ class Invite:
     @property
     def house_members(self):
         return self._house_members
-        

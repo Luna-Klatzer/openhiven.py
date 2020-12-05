@@ -42,5 +42,6 @@ from .hiven_client import *
 from .typing import *
 from .attatchment import *
 from .presence import *
+from .feed import *
 from .invite import *
-from .mention import * 
+from .mention import *

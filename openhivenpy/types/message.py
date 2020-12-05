@@ -9,13 +9,16 @@ from openhivenpy.gateway.http import HTTPClient
 
 logger = logging.getLogger(__name__)
 
-class DeletedMessage():
+__all__ = ['DeletedMessage', 'Message']
+
+
+class DeletedMessage:
     """`openhivenpy.types.DeletedMessage`
     
     Data Class for a removed Hiven message
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with on_message_delete()
     
@@ -47,13 +50,13 @@ class DeletedMessage():
         return int(self._room_id)
     
 
-class Message():
+class Message:
     """`openhivenpy.types.Message`
     
     Data Class for a standard Hiven message
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the avaible data from Hiven(attr -> read-only)!
+    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with room message list and House.get_message()
  
@@ -80,7 +83,7 @@ class Message():
     
     edited_at: `datetime.datetime` - If edited returns a string timestamp else None
     
-    attatchment: `str` - In work
+    attachment: `str` - In work
     
     mentions: `openhivenpy.types.Mention` - A list of Mention objects 
     
@@ -90,39 +93,43 @@ class Message():
     def __init__(self, data: dict, http_client: HTTPClient, house, room, author):
         try:
             id = data.get('id', 0)
-            self._id = int(id) if data.get('id') != None else None
+            self._id = int(id) if data.get('id') is not None else None
             self._author = author
-            self._attatchment = data.get('attatchment')
+            self._attachment = data.get('attachment')
             self._content = data.get('content')
             
-            # Converting to seconds because it's in miliseconds
-            if data.get('timestamp') != None:
+            # Converting to seconds because it's in milliseconds
+            if data.get('timestamp') is not None:
                 self._timestamp = datetime.fromtimestamp(int(data.get('timestamp')) / 1000) 
             else:
                 self._timestamp = None
                 
             self._edited_at = data.get('edited_at')
-            self._mentions = [getType.Mention(data, self._timestamp, self._author, http_client) for data in data.get('mentions', [])]
+            self._mentions = [getType.mention(data, self._timestamp, self._author, http_client) for data in data.get('mentions', [])]
             self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding')
             
             self._house_id = data.get('house_id')
-            self._house_id = int(data.get('house_id')) if data.get('house_id') != None else None
+            self._house_id = int(data.get('house_id')) if data.get('house_id') is not None else None
             self._house = house
-            self._room_id = int(data.get('room_id')) if data.get('room_id') != None else None
+            self._room_id = int(data.get('room_id')) if data.get('room_id') is not None else None
             self._room = room 
             
-            self._embed = getType.Embed(data.get('embed')) if data.get('embed') != None else None
-            
+            self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
+
             self._http_client = http_client
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to initialize the Message object! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Message object! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initalize Message object! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to initialize the Message object! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
     def id(self):
@@ -149,8 +156,8 @@ class Message():
         return self._house
 
     @property
-    def attatchment(self):
-        return self._attatchment
+    def attachment(self):
+        return self._attachment
 
     @property
     def content(self):
@@ -187,15 +194,17 @@ class Message():
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack") #Its post Kudo. Not delete. We do not delete the mark.
-            http_code = resp.status
+            resp = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            if resp:
+                http_code = resp.status
+            else:
+                raise errs.HTTPFaultyResponse
             await asyncio.sleep(delay=delay)
             return True
         
         except Exception as e:
             logger.error(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked." 
                          "[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -215,7 +224,10 @@ class Message():
             await asyncio.sleep(delay=delay)
             
             resp = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
-            http_code = resp.status
+            if resp:
+                http_code = resp.status
+            else:
+                raise errs.HTTPFaultyResponse
             
             if http_code < 300:
                 return True
@@ -225,8 +237,7 @@ class Message():
         except Exception as e:
             logger.error(f"Failed to delete the message in room {self.room.name} with id {self.id}." 
                          f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            
-        
+
     async def edit(self, content: str) -> bool:
         """`openhivenpy.types.House.edit()`
 
@@ -239,7 +250,10 @@ class Message():
         try:
             resp = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
                                                      json= {'content': content})
-            http_code = resp.status
+            if resp:
+                http_code = resp.status
+            else:
+                raise errs.HTTPFaultyResponse
             
             return True
     
@@ -247,4 +261,3 @@ class Message():
             logger.error(f"Failed to edit messsage in room {self.room.name} with id {self.id}." 
                          f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
-        
