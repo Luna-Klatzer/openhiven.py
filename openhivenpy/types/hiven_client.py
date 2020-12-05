@@ -3,13 +3,17 @@ import logging
 import datetime
 import asyncio
 import time
+from typing import Union
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
 
 logger = logging.getLogger(__name__)
 
-class Client():
+__all__ = ['Client']
+
+
+class Client:
     """`openhivenpy.types.Client` 
     
     Date Class for a Client
@@ -26,37 +30,60 @@ class Client():
         """
         try: 
             # Using a USER object to actually store all user data
-            self._USER = await getType.a_User(data, self.http_client)
+            self._USER = await getType.a_user(data, self.http_client)
             relationships = data.get('relationships', [])
             for key in relationships:
-                self._relationships.append(await getType.a_Relationship(relationships.get(key, {}), self.http_client))
+                self._relationships.append(await getType.a_relationship(relationships.get(key, {}), self.http_client))
                 
             private_rooms = data.get('private_rooms', [])
             for private_room in private_rooms:
-                self._private_rooms.append(getType.PrivateRoom(private_room, self.http_client))
+                type = int(private_room.get('type', 0))
+                if type == 1:
+                    room = await getType.a_private_room(private_room, self.http_client)
+                elif type == 2:
+                    room = await getType.a_private_group_room(private_room, self.http_client)
+                else:
+                    room = await getType.a_private_room(private_room, self.http_client)
+                self._private_rooms.append(room)
             
             houses_ids = data.get('house_memberships', [])
             self._amount_houses = len(houses_ids)
                         
         except AttributeError as e: 
-            logger.error(f"Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"Failed to initalize data! Most likely faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"FAILED to update client data! " 
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise AttributeError(f"FAILED to update client data! Most likely faulty data!" 
+                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         except KeyError as e:
-            pass
+            logger.error(f"FAILED to update client data! " 
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise AttributeError(f"FAILED to update client data! Most likely faulty data! " 
+                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         except Exception as e:
-            logger.error(f"Failed to perform update data of connected client! Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.FaultyInitialization(f"Failed to initalize data! Possibly faulty data! Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"FAILED to update client data! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! " 
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __init__(self, *, http_client = None, **kwargs):
-        self.http_client = http_client if http_client != None else self.http_client
-        
+        self.http_client = http_client if http_client is not None else self.http_client
+
         self._amount_houses = 0
         self._houses = []
         self._users = []
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = getType.User(data=kwargs, http_client=self.http_client)
+        self._USER = getType.user(data=kwargs, http_client=self.http_client)
+
+        # Init Data that will be overwritten by the connection and websocket
+        self._initialized = False
+        self._connection_start = None
+        self._startup_time = None
+        self._ready = False
+
+        self._event_handler = None if not hasattr(self, '_event_handler') else self._event_handler
+        self._execution_loop = None if not hasattr(self, '_execution_loop') else self._execution_loop
 
         # Appends the ready check function to the execution_loop
         self._execution_loop.create_one_time_task(self.check_meta_data)
@@ -67,15 +94,13 @@ class Client():
         """
         while True:
             if self._amount_houses == len(self._houses) and self._initialized:
-                ctx = None
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
-                await self._event_handler.ready_state(ctx=ctx)
+                await self._event_handler.ready_state()
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
-                ctx = None
                 self._ready = True
-                await self._event_handler.ready_state(ctx=ctx)
+                await self._event_handler.ready_state()
                 break
             await asyncio.sleep(0.5)
 
@@ -89,20 +114,21 @@ class Client():
         Returns `True` if successful
         
         """
-        execution_code = "Unknown"
+        http_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
                     response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
-                    execution_code = response.status
+                    http_code = response.status
                     return True
                 else:
                     logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            keys = ""+(" "+key for key in kwargs.keys())
-            logger.error(f"Failed change the values {keys} on the client Account! [CODE={execution_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            keys = "".join(str(" "+key) for key in kwargs.keys())
+            logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
 
     @property
@@ -150,10 +176,12 @@ class Client():
         return self._USER.website
 
     @property
-    def presence(self) -> getType.Presence:
+    def presence(self) -> getType.presence:
         return self._USER.presence
 
     @property
-    def joined_at(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self._joined_at[:10]) if self._USER._joined_at != None and self._USER._joined_at != "" else None
-    
+    def joined_at(self) -> Union[datetime.datetime, None]:
+        if self._USER._joined_at is not None and self._USER._joined_at != "":
+            return datetime.datetime.fromisoformat(self._USER._joined_at[:10])
+        else:
+            return None

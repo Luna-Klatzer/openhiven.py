@@ -1,6 +1,6 @@
 asyncio
 requests
 websockets
-Typing
+typing
 nest_asyncio
 aiohttp[speedups]

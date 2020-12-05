@@ -1,12 +1,12 @@
 import logging
-import sys
 from functools import wraps
 
 from openhivenpy.utils import dispatch_func_if_exists
 
 logger = logging.getLogger(__name__) 
-    
-class EventHandler():
+
+
+class EventHandler:
     """`openhivenpy.events.EventHandler` 
     
     Openhivenpy Event Handler
@@ -17,12 +17,12 @@ class EventHandler():
     decorator @HivenClient.event, it will be called and executed.
     
     """
-    def __init__(self, call_obj: object):
+    def __init__(self, call_obj: object = None):
         self.call_obj = call_obj
-        if call_obj == None: 
+        if self.call_obj is None:
             logger.debug("Passed object where the events should be called from is None!")
 
-    def event(self, func = None):
+    def event(self, func=None):
         """`openhivenpy.events.Events.event`
         
         Decorator used for registering Client Events
@@ -30,7 +30,8 @@ class EventHandler():
         Parameter:
         ----------
         
-        func: `function` - Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
+        func: `function` - Function that should be wrapped. Only usable if the wrapper is
+                            used in the function syntax: 'event(func)'!
         
         """
         def decorator(func):
@@ -38,72 +39,130 @@ class EventHandler():
             async def wrapper(*args, **kwargs): 
                 return await func(*args, **kwargs)
             
-            setattr(self, func.__name__, wrapper) # Adding the function to the object
+            setattr(self, func.__name__, wrapper)  # Adding the function to the object
 
             logger.debug(f"Event {func.__name__} registered")
 
-            return func # returning func means func can still be used normally
+            return func  # returning func means func can still be used normally
 
-        if func == None:    
+        if func is None:
             return decorator
         else:
             return decorator(func)
 
     async def connection_start(self) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_connection_start') 
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_connection_start')
 
     async def init_state(self, time) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_init', 
-                                time=time) 
+        param = [time]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_init', 
+                                    args=param) 
 
-    async def ready_state(self, ctx) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_ready', 
-                                    ctx=ctx) 
+    async def ready_state(self) -> None:
+        param = []
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_ready', 
+                                    args=param) 
 
-    async def house_join(self, ctx, house) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_add', 
-                                    ctx=ctx, house=house) 
+    async def house_join(self, house) -> None:
+        param = [house]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_add', 
+                                    args=param) 
 
-    async def house_exit(self, ctx, house) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_remove', 
-                                    ctx=ctx, house=house) 
+    async def house_exit(self, house) -> None:
+        param = [house]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_remove', 
+                                    args=param) 
 
-    async def house_down(self, ctx, house) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_downage', 
-                                    ctx=ctx, house=house) 
-
+    async def house_down(self, time, house) -> None:
+        param = [time, house]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_downage', 
+                                    args=param)
+        
     async def house_member_enter(self, member, house) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_enter',
-                                    member=member, house=house) 
+        param = [member, house]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_enter',
+                                    args=param) 
 
     async def house_member_exit(self, ctx, user) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_house_exit',
-                                    ctx=ctx, user=user) 
+        param = [ctx, user]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_exit',
+                                    args=param) 
 
-    async def presence_update(self, precence, user) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_presence_update',
-                                    precence=precence, user=user) 
+    async def presence_update(self, presence, user) -> None:
+        param = [presence, user]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_presence_update',
+                                    args=param) 
 
     async def message_create(self, message) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_create',
-                                    message=message) 
+        param = [message]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_message_create',
+                                    args=param) 
 
     async def message_delete(self, message) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_delete',
-                                    message=message) 
-
+        param = [message]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_message_delete',
+                                    args=param)
+        
     async def message_update(self, message) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_message_update',
-                                    message=message) 
+        param = [message]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_message_update',
+                                    args=param) 
 
     async def typing_start(self, user) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_start',
-                                    user=user) 
+        param = [user]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_typing_start',
+                                    args=param) 
 
     async def typing_end(self, user) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_typing_end',
-                                    user=user) 
+        param = [user]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_typing_end',
+                                    args=param) 
 
     async def house_member_update(self, member, house) -> None:
-        await dispatch_func_if_exists(obj=self.call_obj, func_name='on_user_update',
-                                    member=member, house=house) 
+        param = [member, house]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_user_update',
+                                    args=param)
+
+    async def house_member_chunk(self, data: dict) -> None:
+        param = [data]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_member_chunk',
+                                    args=param)
+
+    async def batch_house_member_update(self, data: dict) -> None:
+        param = [data]
+        await dispatch_func_if_exists(
+                                    obj=self.call_obj,
+                                    func_name='on_house_member_batch_update',
+                                    args=param)
