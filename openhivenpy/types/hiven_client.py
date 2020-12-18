@@ -1,7 +1,6 @@
 import sys
 import logging
 import datetime
-import asyncio
 import time
 from typing import Union
 
@@ -22,51 +21,8 @@ class Client:
     Data Class that stores the data of the connected client
     
     """
-    async def update_client_user_data(self, data: dict = None) -> None:
-        """`openhivenpy.types.client.update_client_user_data()`
-         
-        Updates or creates the standard user data attributes of the Client
-        
-        """
-        try: 
-            # Using a USER object to actually store all user data
-            self._USER = await getType.a_user(data, self.http_client)
-            relationships = data.get('relationships', [])
-            for key in relationships:
-                self._relationships.append(await getType.a_relationship(relationships.get(key, {}), self.http_client))
-                
-            private_rooms = data.get('private_rooms', [])
-            for private_room in private_rooms:
-                type = int(private_room.get('type', 0))
-                if type == 1:
-                    room = await getType.a_private_room(private_room, self.http_client)
-                elif type == 2:
-                    room = await getType.a_private_group_room(private_room, self.http_client)
-                else:
-                    room = await getType.a_private_room(private_room, self.http_client)
-                self._private_rooms.append(room)
-            
-            houses_ids = data.get('house_memberships', [])
-            self._amount_houses = len(houses_ids)
-                        
-        except AttributeError as e: 
-            logger.error(f"FAILED to update client data! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"FAILED to update client data! Most likely faulty data!" 
-                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        except KeyError as e:
-            logger.error(f"FAILED to update client data! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"FAILED to update client data! Most likely faulty data! " 
-                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        except Exception as e:
-            logger.error(f"FAILED to update client data! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! " 
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-
-    def __init__(self, *, http_client = None, **kwargs):
-        self.http_client = http_client if http_client is not None else self.http_client
+    def __init__(self, *, http=None, **kwargs):
+        self.http = http if http is not None else self.http
 
         self._amount_houses = 0
         self._houses = []
@@ -74,7 +30,7 @@ class Client:
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = getType.user(data=kwargs, http_client=self.http_client)
+        self._USER = getType.user(data=kwargs, http=self.http)
 
         # Init Data that will be overwritten by the connection and websocket
         self._initialized = False
@@ -86,9 +42,46 @@ class Client:
         self._execution_loop = None if not hasattr(self, '_execution_loop') else self._execution_loop
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.create_one_time_task(self.check_meta_data)
+        self._execution_loop.add_to_startup(self._check_meta_data)
 
-    async def check_meta_data(self):
+    async def init_meta_data(self, data: dict = None) -> None:
+        """`openhivenpy.types.client.update_client_user_data()`
+
+        Updates or creates the standard user data attributes of the Client
+
+        """
+        try:
+            # Using a USER object to actually store all user data
+            self._USER = await getType.a_user(data, self.http)
+            relationships = data.get('relationships', [])
+            for key in relationships:
+                self._relationships.append(await getType.a_relationship(relationships.get(key, {}), self.http))
+
+            private_rooms = data.get('private_rooms', [])
+            for private_room in private_rooms:
+                t = int(private_room.get('type', 0))
+                if t == 1:
+                    room = await getType.a_private_room(private_room, self.http)
+                elif t == 2:
+                    room = await getType.a_private_group_room(private_room, self.http)
+                else:
+                    room = await getType.a_private_room(private_room, self.http)
+                self._private_rooms.append(room)
+
+            houses_ids = data.get('house_memberships', [])
+            self._amount_houses = len(houses_ids)
+
+        except Exception as e:
+            logger.error(f"FAILED to update client data! "
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
+                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    @property
+    def connection_start(self):
+        return getattr(self, "connection_start")
+
+    async def _check_meta_data(self):
         """
         Checks whether the meta data is complete and triggers on_ready
         """
@@ -99,10 +92,10 @@ class Client:
                 await self._event_handler.ready_state()
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
+                self._startup_time = time.time() - self.connection_start
                 self._ready = True
                 await self._event_handler.ready_state()
                 break
-            await asyncio.sleep(0.5)
 
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Client.edit()`
@@ -118,7 +111,7 @@ class Client:
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                    response = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
                     http_code = response.status
                     return True
                 else:

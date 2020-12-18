@@ -6,7 +6,7 @@ from typing import Union
 from ._get_type import getType
 from openhivenpy.utils import get
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class Room:
     Returned with house room lists and House.get_room()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, house):
+    def __init__(self, data: dict, http: HTTP, house):
         # These are all the attribs rooms have for now.
         # Will add more when Phin says they've been updated. Theres no functions. Yet.
         try:
@@ -39,7 +39,7 @@ class Room:
             
             self._house = house 
             
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Room object! "
@@ -99,7 +99,7 @@ class Room:
         http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http_client.post(
+            resp = await self._http.post(
                                                 f"/rooms/{self.id}/messages",
                                                 json={"content": content})
             if resp:
@@ -108,11 +108,11 @@ class Room:
                 raise errs.HTTPFaultyResponse
             data = await resp.json()
 
-            resp = await self._http_client.request(f"/users/@me")
+            resp = await self._http.request(f"/users/@me")
             author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http_client)
+            author = getType.user(author_data, self._http)
             msg = await getType.a_message(data,
-                                          self._http_client,
+                                          self._http,
                                           house=None,
                                           room=self,
                                           author=author)
@@ -138,7 +138,7 @@ class Room:
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    resp = await self._http_client.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
+                    resp = await self._http.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
                     if resp is None:
                         logger.debug(f"Failed to change the values {keys}for room {self.name} with id {self.id}!")
                         return False
@@ -163,7 +163,7 @@ class Room:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.post(f"/rooms/{self.id}/typing")
+            resp = await self._http.post(f"/rooms/{self.id}/typing")
             http_code = resp.status
             
             return True
@@ -182,16 +182,16 @@ class Room:
 
         """
         try:
-            resp = await self._http_client.request(f"/rooms/{self.id}/messages")
+            resp = await self._http.request(f"/rooms/{self.id}/messages")
             
             messages = []
             for message in resp.get('data'):
-                author_data = await self._http_client.request(f"/users/{message.get('author_id')}")
+                author_data = await self._http.request(f"/users/{message.get('author_id')}")
                 if author_data is None:
                     raise errs.HTTPFaultyResponse()
                 else:
-                    author = await getType.a_user(author_data.get('data'), self._http_client)
-                msg = await getType.a_message(message, self._http_client, self.house, self, author)
+                    author = await getType.a_user(author_data.get('data'), self._http)
+                msg = await getType.a_message(message, self._http, self.house, self, author)
                 messages.append(msg)
             
             return messages

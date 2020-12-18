@@ -7,7 +7,7 @@ from functools import wraps
 import openhivenpy.exceptions as errs
 from openhivenpy.types import Client
 from openhivenpy.events import EventHandler
-from . import Websocket, HTTPClient
+from . import Websocket, HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ class ExecutionLoop:
         finally:
             return 
         
-    def create_task(self, func=None):
+    def add_to_loop(self, func=None):
         """`openhivenpy.gateway.ExecutionLoop.create_task`
         
         Decorator used for registering Tasks for the execution_loop
@@ -182,16 +182,16 @@ class ExecutionLoop:
             setattr(self, func.__name__, wrapper)
             self._tasks.append(func.__name__)
             
-            logger.debug(f"Task {func.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Task {func.__name__} added to loop")
 
             return func  # returning func means func can still be used normally
 
-        if func == None:    
+        if func is None:
             return decorator
         else:
             return decorator(func)
     
-    def create_one_time_task(self, func=None):
+    def add_to_startup(self, func=None):
         """`openhivenpy.gateway.ExecutionLoop.create_task`
         
         Decorator used for registering Startup Tasks for the execution_loop
@@ -213,11 +213,11 @@ class ExecutionLoop:
             setattr(self._startup_methods, func.__name__, wrapper)
             self._startup_tasks.append(func.__name__)
             
-            logger.debug(f"Startup Task {func.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Startup Task {func.__name__} added to loop")
 
             return func # returning func means func can still be used normally
 
-        if func == None:    
+        if func is None:
             return decorator
         else:
             return decorator(func)
@@ -229,7 +229,7 @@ class Connection(Websocket, Client):
     Connection
     ~~~~~~~~~~
     
-    Class that wraps the Websocket, HTTPClient and the Data in the current connection to one class.
+    Class that wraps the Websocket, HTTP and the Data in the current connection to one class.
     
     Inherits from Websocket and the type Client
     
@@ -262,9 +262,6 @@ class Connection(Websocket, Client):
     
     """
     def __init__(self, token: str, event_handler: EventHandler, **kwargs):
-        
-        self._open = False
-        self._closed = True
 
         self._connection_start = None
         self._startup_time = None
@@ -282,8 +279,8 @@ class Connection(Websocket, Client):
         self._execution_loop = ExecutionLoop(self._event_loop)
         
         self._token = token
-        self.http_client = HTTPClient(loop=self._event_loop, token=token, **self._init_args)
-        self.http_client.http_ready = False
+        self.http = HTTP(loop=self._event_loop, token=token, **self._init_args)
+        self.http._ready = False
         
         super().__init__(event_handler=event_handler, token=token, **self._init_args)
 
@@ -338,23 +335,25 @@ class Connection(Websocket, Client):
             self._connection_start = time.time()
             self._connection_status = "OPENING"
             
-            # Starting the HTTPClient Connection to Hiven
-            client_data = await self.http_client.connect()
-            
-            # Updating the client data based on the response
-            await super().update_client_user_data(client_data['data'])
+            # Starting the HTTP Connection to Hiven
+            session = await self.http.connect()
+            if session:
+                # Creating the restart task if true
+                if self._restart:
+                    self._execution_loop.add_to_startup(self._restart_websocket)
 
-            if self._restart:
-                self._execution_loop.create_task(self._restart_websocket)
-            
-            # Starting the event loop with the websocket
-            await asyncio.gather(self.ws_connect(), self._execution_loop.start())
-            
+                self._event_loop.create_task(self._execution_loop.start())
+                await self.ws_connect(session)
+            else:
+                msg = "HTTP-Client was unable to request data from Hiven!"
+                logger.critical(msg)
+                raise errs.HivenConnectionError(msg)
+
         except Exception as e:
             logger.critical(f"Error while trying to establish the connection to Hiven!" 
                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HivenConnectionError(f"Error while trying to establish the connection to Hiven!" 
-                                       f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
         finally:
             self._connection_status = "CLOSED"    
@@ -388,7 +387,7 @@ class Connection(Websocket, Client):
             self._connection_status = "CLOSED"
             self._initialized = False
 
-            logger.info("IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped" 
+            logger.info("[CONNECTION] IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped "
                         "to ensure the client stops as fast as possible and no more data transfer will happen!")
 
             return
@@ -425,12 +424,13 @@ class Connection(Websocket, Client):
             if exec_loop:                
                 await self._execution_loop.stop()
 
-            await self.http_client.close()
+            await self.http.close()
                 
             self._connection_status = "CLOSED"
             self._initialized = False
             
-            logger.info("IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped to ensure the client stops as fast as possible and no more data transfer will happen!")
+            logger.info("[CONNECTION] IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped "
+                        "to ensure the client stops as fast as possible and no more data transfer will happen!")
             
             return
             
@@ -450,27 +450,16 @@ class Connection(Websocket, Client):
         # Delaying the checks so to avoid the case that the user closes the connection 
         # and it restarts because the restart wasn't deactivated
         await asyncio.sleep(0.25)
-        # var _restart from the inherited websocket
+        # _restart from the inherited websocket
         if self._restart:
             if self.ws_connection.done():
-                logger.info("Restarting was scheduled!")
-                await asyncio.sleep(10)
-                
                 self._connection_status = "OPENING"
                 
                 await self.close(exec_loop=False)
-            
-                self.http_client = HTTPClient(loop=self._event_loop, 
-                                              token=self._token, 
-                                              **self._init_args)
-                self.http_client.http_ready = False
-                
-                client_data = await self.http_client.connect()
-                
-                # Updating the client data based on the response
-                await super().update_client_user_data(client_data['data'])
-                
-                logger.info("Restarting was scheduled!")
-                await self.ws_connect()
-        else:
-            return
+
+                self.http = HTTP(loop=self._event_loop, token=self._token, **self._init_args)
+                self.http._ready = False
+
+                logger.info(f"Restarting was scheduled at {time.time()}!")
+                await self.connect()
+        return

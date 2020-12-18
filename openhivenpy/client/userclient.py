@@ -85,7 +85,7 @@ class UserClient(HivenClient):
                     logger.debug("Invalid parameter for cancel_friend_request! Expected user or user_id!")
                     return None
             else:
-                resp = await self.http_client.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
+                resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
                 
                 if resp.status < 300:
                     return True
@@ -105,7 +105,7 @@ class UserClient(HivenClient):
         
         """        
         try:
-            resp = await self.http_client.request(endpoint=f"/relationships/@me/friend-requests")
+            resp = await self.http.request(endpoint=f"/relationships/@me/friend-requests")
             
             return resp.get('data')
 
@@ -141,7 +141,7 @@ class UserClient(HivenClient):
                     logger.debug("Invalid parameter for block_user! Expected user or user_id!")
                     return None
             else:
-                resp = await self.http_client.put(endpoint=f"/relationships/@me/blocked/{user_id}")
+                resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
                 
                 if resp.status < 300:
                     return True
@@ -179,7 +179,7 @@ class UserClient(HivenClient):
                     logger.debug("Invalid parameter for unblock_user! Expected user or user_id!")
                     return None
             else:
-                resp = await self.http_client.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
+                resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
                 
                 if resp.status < 300:
                     return True
@@ -218,7 +218,7 @@ class UserClient(HivenClient):
                     logger.debug("Invalid parameter for send_friend_request! Expected user or user_id!")
                     return None
             else:
-                resp = await self.http_client.post(
+                resp = await self.http.post(
                                                 endpoint=f"/relationships/@me/friend-requests",
                                                 json={'user_id': f'{user_id}'})
                 

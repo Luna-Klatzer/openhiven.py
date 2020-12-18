@@ -3,7 +3,7 @@ import sys
 from typing import Optional, Union
 
 from ._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 import openhivenpy.utils.utils as utils
 import openhivenpy.exceptions as errs
 
@@ -27,12 +27,12 @@ class LazyHouse:
 
     """
 
-    def __init__(self, data: dict, http_client):
+    def __init__(self, data: dict, http):
         self._id = int(data['id']) if data.get('id') is not None else None
         self._name = data.get('name')
         self._icon = data.get('icon')
         self._owner_id = data.get('owner_id')
-        self._rooms = list(getType.room(r, http_client, self) for r in data.get("rooms"))
+        self._rooms = list(getType.room(r, http, self) for r in data.get("rooms"))
 
     @property
     def id(self) -> int:
@@ -70,7 +70,7 @@ class House:
     def __init__(
                 self, 
                 data: dict,
-                http_client: HTTPClient, 
+                http: HTTP,
                 client_id: int):
         try:
             self._id = int(data['id']) if data.get('id') is not None else None
@@ -81,21 +81,21 @@ class House:
             self._roles = list(data.get('entities', []))
             self._categories = []
             for category in data.get('entities', []):
-                category = getType.category(category, http_client)
+                category = getType.category(category, http)
                 self._categories.append(category)
 
             self._default_permissions = data.get('default_permissions')
 
             members = data.get("members", [])
             if members:
-                self._members = list(getType.member(m, http_client, self) for m in members)
+                self._members = list(getType.member(m, http, self) for m in members)
             else:
                 self._members = []
 
-            self._rooms = list(getType.room(r, http_client, self) for r in data.get("rooms"))
+            self._rooms = list(getType.room(r, http, self) for r in data.get("rooms"))
             self._client_member = utils.get(self._members, user_id=client_id)
 
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the House object! "
@@ -164,8 +164,8 @@ class House:
         try:
             cached_member = utils.get(self._members, id=member_id)
             if cached_member:
-                data = await self._http_client.request(f"/houses/{self.id}/users/{member_id}")
-                return await getType.a_room(data, self._http_client, self)
+                data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
+                return await getType.a_room(data, self._http, self)
             
             return None
         except Exception as e:
@@ -185,8 +185,8 @@ class House:
             if cached_room:
                 return cached_room
                 # Not Possible yet
-                # data = await self._http_client.request(f"/rooms/{room_id}")
-                # return await getType.a_room(data, self._http_client)
+                # data = await self._http.request(f"/rooms/{room_id}")
+                # return await getType.a_room(data, self._http)
                 
             return None
         except Exception as e:
@@ -213,7 +213,7 @@ class House:
             else:
                 category = utils.get(self._categories, name="Rooms")
                 json['parent_entity_id'] = category.id
-            resp = await self._http_client.post(
+            resp = await self._http.post(
                                                 f"/houses/{self._id}/rooms",
                                                 json=json)
             http_code = resp.status
@@ -221,7 +221,7 @@ class House:
             if http_code < 300:
                 data = (await resp.json()).get('data')
                 if data is not None:
-                    room = await getType.a_room(await resp.json(), self._http_client, self)
+                    room = await getType.a_room(await resp.json(), self._http, self)
                     self._rooms.append(room)
                     return room
                 else:
@@ -245,13 +245,13 @@ class House:
         http_code = "Unknown"
         try:
             json = {'name': name, 'type': 1}
-            resp = await self._http_client.post(f"/houses/{self._id}/entities",
+            resp = await self._http.post(f"/houses/{self._id}/entities",
                                                 json=json)
             http_code = resp.status
 
             if http_code < 300:
                 data = await resp.json()
-                category = getType.category(data.get('data'), self._http_client)
+                category = getType.category(data.get('data'), self._http)
                 self._categories.append(category)
                 return category
             else:
@@ -272,7 +272,7 @@ class House:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.delete(f"/users/@me/houses/{self.id}")
+            resp = await self._http.delete(f"/users/@me/houses/{self.id}")
             http_code = resp.status
 
             if resp.status < 300:
@@ -300,7 +300,7 @@ class House:
         try:
             for key in kwargs.keys():
                 if key in ['name']:
-                    resp = await self._http_client.patch(endpoint=f"/houses/{self.id}", 
+                    resp = await self._http.patch(endpoint=f"/houses/{self.id}",
                                                              data={key: kwargs.get(key)})
                     http_code = resp.status
                     if resp is None:
@@ -326,7 +326,7 @@ class House:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.post(endpoint=f"/houses/{self.id}/invites")
+            resp = await self._http.post(endpoint=f"/houses/{self.id}/invites")
             http_code = resp.status
             
             if http_code < 300:
@@ -354,7 +354,7 @@ class House:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.delete(f"/houses/{self.id}")
+            resp = await self._http.delete(f"/houses/{self.id}")
             http_code = resp.status
 
             if resp.status < 300:

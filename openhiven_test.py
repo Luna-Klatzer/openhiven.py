@@ -3,11 +3,15 @@ import asyncio
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger('websockets')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -64,18 +68,6 @@ async def on_ready():
 async def on_message_create(message):
     print(message.room.id)
 
-
-async def run():
-    # If response is 200 that means the program can interact with Hiven
-    if client.connection_possible:
-        print("Success!")
-    else:
-        print(f"The ping failed!")
-
-    # Starts the Event loop with the specified websocket  
-    # => can also be a different websocket
-    client.run()
-
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    loop.run_until_complete(client.run())

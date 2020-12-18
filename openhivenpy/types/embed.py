@@ -2,7 +2,7 @@ import logging
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 

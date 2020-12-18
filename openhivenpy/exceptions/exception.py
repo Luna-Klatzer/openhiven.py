@@ -123,7 +123,7 @@ class GatewayException(HivenConnectionError):
 class HTTPError(HivenConnectionError):
     """`openhivenpy.exception.HTTPError`
        
-    Base Exception for exceptions in the HTTPClient and overall requesting
+    Base Exception for exceptions in the HTTP and overall requesting
     
     """    
     def __init__(self, code="Unknown", *args):
@@ -165,14 +165,14 @@ class HTTPFaultyResponse(HTTPError):
 class UnableToCreateSession(HTTPError):
     """`openhivenpy.exception.UnableToCreateSession`
        
-    Was unable to create HTTPClient session and request init client data!
+    Was unable to create HTTP session and request init client data!
     
     """    
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Was unable to create HTTPClient session and request init client data!"
+            arg = f"Was unable to create HTTP session and request init client data!"
         super().__init__(arg)
 
 

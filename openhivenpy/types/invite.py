@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from ._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ class Invite:
     created_at: `str` - String with the creation date
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
-        self._http_client = http_client
+    def __init__(self, data: dict, http: HTTP):
+        self._http = http
         
         invite = data.get('invite')
         self._code = invite.get('code')
@@ -42,8 +42,8 @@ class Invite:
         self._type = invite.get('type')
         
         house_data = data.get('house')
-        data = asyncio.run(self._http_client.request(f"/users/{house_data.get('owner_id')}"))
-        owner = getType.user(data.get('data'), self._http_client)
+        data = asyncio.run(self._http.request(f"/users/{house_data.get('owner_id')}"))
+        owner = getType.user(data.get('data'), self._http)
         self._house = {
             'id': house_data.get('id'),
             'name': house_data.get('name'),

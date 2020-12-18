@@ -4,7 +4,7 @@ import sys
 
 import openhivenpy.exceptions as errs
 from ._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +22,14 @@ class Typing:
     Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             self._member = data.get('author_id')
             self._house = data.get('house_id')
             self._room = data.get('room_id')
             self._timestamp = data.get('timestamp')
             
-            self._http_client = http_client
+            self._http = http
                         
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Typing object! "

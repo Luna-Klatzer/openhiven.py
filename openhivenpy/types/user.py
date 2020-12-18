@@ -4,7 +4,7 @@ import logging
 from typing import Union
 
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class User(LazyUser):
     ~~~~~~~~~~
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             # Messages have the user data nested
             if data.get('user') is not None:
@@ -90,7 +90,7 @@ class User(LazyUser):
             self._presence = data.get('presence', "")  # ToDo: Presence class
             self._joined_at = data.get('joined_at', "")
             
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the User object! "

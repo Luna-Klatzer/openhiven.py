@@ -1,7 +1,7 @@
 import logging
 
 from ._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -20,5 +20,5 @@ class Feed:
     ~~~~~~~~~~
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
-        self._http_client = http_client
+    def __init__(self, data: dict, http: HTTP):
+        self._http = http

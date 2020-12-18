@@ -4,7 +4,7 @@ import asyncio
 
 from ._get_type import getType
 from .user import User
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from openhivenpy.utils.utils import get
 import openhivenpy.exceptions as errs
 
@@ -39,17 +39,17 @@ class Relationship:
     5 - Blocked User
       
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             self._user_id = data['user_id']
-            resp = asyncio.run(http_client.request(f"/users/{self._user_id}"))
+            resp = asyncio.run(http.request(f"/users/{self._user_id}"))
             user_data = resp.get('data')
             if user_data is None:
                 user_data = data['user']
 
-            self._user = getType.user(user_data, http_client)
+            self._user = getType.user(user_data, http)
             self._type = data['type']
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Relationship object! "

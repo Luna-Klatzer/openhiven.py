@@ -5,7 +5,7 @@ import asyncio
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class Message:
     exploding: `None` - In work
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, house, room, author):
+    def __init__(self, data: dict, http: HTTP, house, room, author):
         try:
             id = data.get('id', 0)
             self._id = int(id) if data.get('id') is not None else None
@@ -105,7 +105,7 @@ class Message:
                 self._timestamp = None
                 
             self._edited_at = data.get('edited_at')
-            self._mentions = [getType.mention(data, self._timestamp, self._author, http_client) for data in data.get('mentions', [])]
+            self._mentions = [getType.mention(data, self._timestamp, self._author, http) for data in data.get('mentions', [])]
             self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding')
             
@@ -117,7 +117,7 @@ class Message:
             
             self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
 
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Message object! "
@@ -194,7 +194,7 @@ class Message:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            resp = await self._http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
             if resp:
                 http_code = resp.status
             else:
@@ -223,7 +223,7 @@ class Message:
         try:
             await asyncio.sleep(delay=delay)
             
-            resp = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+            resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             if resp:
                 http_code = resp.status
             else:
@@ -248,7 +248,7 @@ class Message:
         """
         http_code = "Unknown"
         try:
-            resp = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
+            resp = await self._http.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
                                                      json= {'content': content})
             if resp:
                 http_code = resp.status

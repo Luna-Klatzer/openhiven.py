@@ -6,7 +6,7 @@ from typing import Union
 from ._get_type import getType
 from .user import User
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class PrivateGroupRoom:
     Represents a private group chat room with multiple person
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             self._id = int(data['id']) if data.get('id') is not None else None
             self._last_message_id = data.get('last_message_id')
@@ -32,12 +32,12 @@ class PrivateGroupRoom:
             recipients_data = data.get("recipients")
             self._recipients = []
             for recipient in recipients_data:
-                self._recipients.append(getType.user(recipient, http_client))
+                self._recipients.append(getType.user(recipient, http))
                 
             self._name = f"Private Group chat with {(''.join(r.name+', ' for r in self._recipients))[:-2]}"   
             self._type = data.get('type')
              
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
@@ -91,18 +91,18 @@ class PrivateGroupRoom:
         http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http_client.post(
+            resp = await self._http.post(
                                                 f"/rooms/{self.id}/messages",
                                                 json={"content": content})
             http_code = resp.status
             data = await resp.json()
 
-            resp = await self._http_client.request(f"/users/@me")
+            resp = await self._http.request(f"/users/@me")
             author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http_client)
+            author = getType.user(author_data, self._http)
 
             msg = await getType.a_message(data,
-                                          self._http_client,
+                                          self._http,
                                           house=None,
                                           room=self,
                                           author=author)
@@ -129,7 +129,7 @@ class PrivateGroupRoom:
         http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay)
-            resp = await self._http_client.post(f"/rooms/{self.id}/call")
+            resp = await self._http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
             if data.get('data') is True:
@@ -154,16 +154,16 @@ class PrivateRoom:
     Represents a private chat room with a person
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             self._id = int(data['id']) if data.get('id') is not None else None
             self._last_message_id = data.get('last_message_id')
             recipients = data.get("recipients")
-            self._recipient = getType.user(recipients[0], http_client)
+            self._recipient = getType.user(recipients[0], http)
             self._name = f"Private chat with {recipients[0]['name']}"   
             self._type = data.get('type')
              
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
@@ -218,7 +218,7 @@ class PrivateRoom:
         try:
             await asyncio.sleep(delay=delay)
 
-            resp = await self._http_client.post(f"/rooms/{self.id}/call")
+            resp = await self._http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
             if data.get('data') is True:
@@ -251,18 +251,18 @@ class PrivateRoom:
         http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http_client.post(
+            resp = await self._http.post(
                                                 f"/rooms/{self.id}/messages",
                                                 json={"content": content})
             http_code = resp.status
 
             data = await resp.json()
 
-            resp = await self._http_client.request(f"/users/@me")
+            resp = await self._http.request(f"/users/@me")
             author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http_client)
+            author = getType.user(author_data, self._http)
             msg = await getType.a_message(data,
-                                          self._http_client,
+                                          self._http,
                                           house=None,
                                           room=self,
                                           author=author)

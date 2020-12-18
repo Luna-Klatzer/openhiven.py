@@ -21,6 +21,7 @@ class EventHandler:
         self.call_obj = call_obj
         if self.call_obj is None:
             logger.debug("Passed object where the events should be called from is None!")
+            self.call_obj = self
 
     def event(self, func=None):
         """`openhivenpy.events.Events.event`
@@ -41,7 +42,7 @@ class EventHandler:
             
             setattr(self, func.__name__, wrapper)  # Adding the function to the object
 
-            logger.debug(f"Event {func.__name__} registered")
+            logger.debug(f"[EVENT-HANDLER] >> Event {func.__name__} registered")
 
             return func  # returning func means func can still be used normally
 

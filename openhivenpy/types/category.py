@@ -2,7 +2,7 @@ import logging
 import sys
 
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from ._get_type import getType
 
 logger = logging.getLogger(__name__)
@@ -22,18 +22,20 @@ class Category:
 
     """
 
-    def __init__(self, data: dict, http_client: HTTPClient):
+    def __init__(self, data: dict, http: HTTP):
         try:
             self._type = data.get('type', 1)
             self._position = data.get('position')
             self._ressources = []
-            for ressource in data.get('resource_pointers', []):
-                self._ressources.append(ressource)
+
+            if data.get('resource_pointers'):
+                for r in data.get('resource_pointers', []):
+                    self._ressources.append(r)
 
             self._name = data.get('name')
             self._id = data.get('id')
             self._house_id = data.get('house_id')
-            self._http_client = http_client
+            self._http = http
 
         except AttributeError as e:
             logger.error(f"Failed to initialize the Room object! "

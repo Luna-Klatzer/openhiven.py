@@ -4,7 +4,7 @@
 Module gateway 
 ~~~~~~~~~~~~~~
 
-Module that represents the connection to Hiven over the Websocket and the HTTPClient
+Module that represents the connection to Hiven over the Websocket and the HTTP
 
 MIT License
 ~~~~~~~~~~~
@@ -30,6 +30,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .gateway import Websocket, API
-from .http import HTTPClient
+from .ws import Websocket, API
+from .http import HTTP
 from .connection import Connection

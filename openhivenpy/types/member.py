@@ -3,7 +3,7 @@ import sys
 
 from .user import User
 from openhivenpy.types._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from openhivenpy.utils import raise_value_to_type
 import openhivenpy.exceptions as errs
 
@@ -23,16 +23,16 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, house):
+    def __init__(self, data: dict, http: HTTP, house):
         try:
-            super().__init__(data, http_client)
+            super().__init__(data, http)
             self._user_id = int(data['user_id']) if data.get('user_id') is not None else None
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
             
             self._house = house
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Member object! " 
@@ -75,7 +75,7 @@ class Member(User):
         Returns `True` if successful.
         
         """
-        resp = await self._http_client.delete(f"/{self._house_id}/members/{self._user_id}")
+        resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
             raise errs.Forbidden()
         else:

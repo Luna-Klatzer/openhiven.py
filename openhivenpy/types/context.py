@@ -1,7 +1,7 @@
 import logging
 
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from ._get_type import getType
 
 logger = logging.getLogger(__name__)
@@ -20,5 +20,5 @@ class Context:
     Returned with events, commands and HivenClient.on_ready()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient):
-        self._http_client = http_client
+    def __init__(self, data: dict, http: HTTP):
+        self._http = http
