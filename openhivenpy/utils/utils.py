@@ -2,11 +2,14 @@ import logging
 from operator import attrgetter
 from functools import lru_cache
 from typing import Optional, Union
+
 # This is a surprise tool that will help us later
 
-logger = logging.getLogger(__name__) 
+logger = logging.getLogger(__name__)
 
-async def dispatch_func_if_exists(obj: object, func_name: str, args: Optional[Union[list, tuple]] = [], kwargs: Optional[dict] = {}):
+
+async def dispatch_func_if_exists(obj: object, func_name: str, args: Optional[Union[list, tuple]] = [],
+                                  kwargs: Optional[dict] = {}):
     """openhivenpy.utils.dispatch_func_if_exists()
     
     Dispatches functions if they exist in the passed object else they will be ignored
@@ -32,6 +35,7 @@ async def dispatch_func_if_exists(obj: object, func_name: str, args: Optional[Un
         logger.debug(f"{func_name} not found. Returning")
         return
 
+
 def raise_value_to_type(val, data_type):
     """`openhivenpy.utils.raise_value_to_type()`
     
@@ -51,7 +55,7 @@ def raise_value_to_type(val, data_type):
         return data_type()
     else:
         return val
-    
+
 
 def get(iterable, **attrs):
     _all = all
@@ -60,7 +64,7 @@ def get(iterable, **attrs):
     if len(attrs) == 1:
         key, val = attrs.popitem()
         pred = attrgetter(key.replace('__', '.'))
-         # Checks if the element exists with the same value
+        # Checks if the element exists with the same value
         for elem in iterable:
             if pred(elem) == val:
                 return elem

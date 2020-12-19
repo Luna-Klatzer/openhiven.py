@@ -3,7 +3,7 @@ import logging
 import sys
 import time
 from functools import wraps
-
+import os
 import openhivenpy.exceptions as errs
 from openhivenpy.types import Client
 from openhivenpy.events import EventHandler
@@ -16,11 +16,11 @@ __all__ = ('ExecutionLoop', 'Connection')
 
 def _get_args(**kwargs):
     return {
-        "host": kwargs.get('host', "api.hiven.io"),
-        "api_version": kwargs.get('api_version', "v1"),
-        "heartbeat": kwargs.get('heartbeat', 30000),
-        "ping_timeout": kwargs.get('ping_timeout', 100),
-        "close_timeout": kwargs.get('close_timeout', 20),
+        "host": kwargs.get('host', os.environ.get("HIVEN_API")),
+        "api_version": kwargs.get('api_version', os.environ.get("HIVEN_API_VERSION")),
+        "heartbeat": kwargs.get('heartbeat', os.environ.get("CONNECTION_HEARTBEAT")),
+        "ping_timeout": kwargs.get('ping_timeout', os.environ.get("PING_TIMEOUT")),
+        "close_timeout": kwargs.get('close_timeout', os.environ.get("CLOSE_TIMEOUT")),
         "ping_interval": kwargs.get('ping_interval', None),
         "event_loop": kwargs.get('event_loop'),
         "restart": kwargs.get('restart', False),

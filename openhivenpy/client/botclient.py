@@ -4,7 +4,7 @@ from typing import Optional
 
 from .hivenclient import HivenClient
 
-__all__ = ('BotClient')
+__all__ = 'BotClient'
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class BotClient(HivenClient):
         
         self._CLIENT_TYPE = "HivenClient.BotClient"
         super().__init__(token=token, 
-                         client_type=self._CLIENT_TYPE, 
+                         client_type=self._CLIENT_TYPE,
                          heartbeat=heartbeat, 
                          event_loop=event_loop, 
                          **kwargs)
