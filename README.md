@@ -23,12 +23,6 @@
    <a href="https://docs.python.org/3/library/asyncio.html">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/asyncio/main' alt='aiohttp' />
     </a>
-   <a href="https://requests.readthedocs.io/en/master/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/requests/main' alt='aiohttp' />
-    </a>
-   <a href="https://websockets.readthedocs.io/en/stable/intro.html">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/websockets/main' alt='aiohttp' />
-    </a>
    <a href="https://pypi.org/project/nest-asyncio/">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/nest-asyncio/main' alt='aiohttp' />
     </a>
