@@ -8,7 +8,7 @@ from typing import Optional, Union
 
 import openhivenpy.exceptions as errs
 
-__all__ = ('HTTPClient')
+__all__ = 'HTTPClient'
 
 logger = logging.getLogger(__name__)
 
