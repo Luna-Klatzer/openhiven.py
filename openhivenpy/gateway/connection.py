@@ -106,10 +106,10 @@ class ExecutionLoop:
                         await asyncio.gather(*methods_to_call, loop=self.event_loop)
                         
                 except asyncio.CancelledError:
-                    logger.debug(f"The startup tasks loop unexpectedly stopped while running!" 
-                                 "Probably caused by an error or automatic/forced closing!")
+                    logger.debug(f"[EXEC-LOOP] Startup tasks were cancelled and stopped unexpectedly!")
+
                 except Exception as e:
-                    logger.error(f"Error in startup tasks in the execution loop!" 
+                    logger.error(f"[EXEC-LOOP] Error in startup tasks in the execution loop!" 
                                  f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
                 finally:
@@ -125,16 +125,19 @@ class ExecutionLoop:
                             methods_to_call.append(self.event_loop.create_task(getattr(self, task)()))
                         
                         await asyncio.gather(*methods_to_call, loop=self.event_loop)
-                        
-            await asyncio.gather(startup(), loop())
-            
+            try:
+                result = await asyncio.gather(startup(), loop(), return_exceptions=True)
+            except asyncio.CancelledError as e:
+                logger.debug(f"[EXEC-LOOP] Async gather of tasks was cancelled and stopped unexpectedly!")
+
         self.exec_loop = self.event_loop.create_task(execute_loop(self._startup_tasks, self._tasks))
         try:
             await self.exec_loop
-        except asyncio.CancelledError:
-            logger.debug("Execution loop was cancelled! No more tasks will be executed!")
+        except asyncio.CancelledError as e:
+            logger.debug("[EXEC-LOOP] Async task was cancelled and stopped unexpectedly! "
+                         "No more tasks will be executed!")
         except Exception as e:
-            logger.error("Failed to start or keep alive execution_loop!" 
+            logger.error("[EXEC-LOOP] Failed to start or keep alive execution_loop!" 
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             self._active = False
@@ -152,7 +155,7 @@ class ExecutionLoop:
             
             # Ensuring the tasks stops as soon as possible
             self._active = False
-            logger.debug("The execution loop was stopped and will now return!")
+            logger.debug("[EXEC-LOOP] The execution loop was cancelled and stopped")
             
         except Exception as e:
             logger.critical(f"Failed to stop or keep alive execution_loop!" 
@@ -176,7 +179,8 @@ class ExecutionLoop:
         """
         def decorator(func):
             @wraps(func) 
-            async def wrapper(*args, **kwargs): 
+            async def wrapper(*args, **kwargs):
+                await asyncio.sleep(0.05)
                 return await func(*args, **kwargs)
             
             setattr(self, func.__name__, wrapper)
@@ -207,7 +211,8 @@ class ExecutionLoop:
         """
         def decorator(func):
             @wraps(func) 
-            async def wrapper(*args, **kwargs): 
+            async def wrapper(*args, **kwargs):
+                await asyncio.sleep(0.05)
                 return await func(*args, **kwargs)
             
             setattr(self._startup_methods, func.__name__, wrapper)
@@ -342,8 +347,7 @@ class Connection(Websocket, Client):
                 if self._restart:
                     self._execution_loop.add_to_startup(self._restart_websocket)
 
-                self._event_loop.create_task(self._execution_loop.start())
-                await self.ws_connect(session)
+                await asyncio.gather(self.ws_connect(session), self._execution_loop.start())
             else:
                 msg = "HTTP-Client was unable to request data from Hiven!"
                 logger.critical(msg)
@@ -371,7 +375,7 @@ class Connection(Websocket, Client):
         """
         
         try:
-            logger.info("Closing connection!")
+            logger.info("[CONNECTION] Destroying the current loop and process!")
             self._connection_status = "CLOSING"
             
             if not self._lifesignal.cancelled():
@@ -386,9 +390,6 @@ class Connection(Websocket, Client):
             
             self._connection_status = "CLOSED"
             self._initialized = False
-
-            logger.info("[CONNECTION] IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped "
-                        "to ensure the client stops as fast as possible and no more data transfer will happen!")
 
             return
         
@@ -409,7 +410,7 @@ class Connection(Websocket, Client):
         
         """
         try:
-            logger.info("Closing connection!")
+            logger.info("[CONNECTION] Closing the current loop and process!")
             self._connection_status = "CLOSING"
             
             if not kwargs.get('restart', False):
@@ -428,10 +429,7 @@ class Connection(Websocket, Client):
                 
             self._connection_status = "CLOSED"
             self._initialized = False
-            
-            logger.info("[CONNECTION] IMPORTANT! Connection to Hiven was closed! Tasks will also now be forced stopped "
-                        "to ensure the client stops as fast as possible and no more data transfer will happen!")
-            
+
             return
             
         except Exception as e:

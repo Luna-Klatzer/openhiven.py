@@ -1,5 +1,4 @@
 asyncio
-websockets
 typing
 nest_asyncio
 aiohttp[speedups]==3.6.3

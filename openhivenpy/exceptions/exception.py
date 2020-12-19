@@ -7,7 +7,7 @@ __all__ = (
         'Forbidden', 'FaultyInitialization', 'InvalidClientType',
         'InvalidToken', 'UnableToClose', 'NoneClientType',
             
-        'GatewayException', 'WSConnectionError', 'HTTPError',
+        'GatewayException', 'WSFailedToHandle', 'HTTPError',
         'UnableToCreateSession', 'HTTPFaultyResponse', 'HTTPRequestError',
         
         'CommandException')
@@ -109,14 +109,14 @@ class InvalidToken(HivenException):
 class GatewayException(HivenConnectionError):
     """`openhivenpy.exception.GatewayException`
        
-    General Exception in the Websocket!
+    General Exception in the Gateway and Connection to Hiven!
     
     """
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "Exception occurred in the running Websocket!"
+            arg = "Exception occurred in the Gateway!"
         super().__init__(arg)
 
 
@@ -190,8 +190,8 @@ class UnableToClose(GatewayException):
         super().__init__(arg)
 
 
-class WSConnectionError(GatewayException):
-    """`openhivenpy.exception.WSConnectionError`
+class WSFailedToHandle(GatewayException):
+    """`openhivenpy.exception.WSFailedToHandle`
     
     An Exception occurred while trying to establish/keep the connection alive to Hiven!
     
@@ -200,7 +200,7 @@ class WSConnectionError(GatewayException):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The Websocket was unable to establish/keep the connection alive to Hiven!"
+            arg = "The encountered an exception and failed to handle a WS message"
         super().__init__(arg)
 
 

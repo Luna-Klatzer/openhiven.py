@@ -1,4 +1,3 @@
-import websockets
 import asyncio
 import time
 import sys
@@ -20,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 class API:
     """`openhivenpy.gateway`
-    
+
     API
     ~~~
-    
+
     API Class for interaction with the Hiven API not depending on the HTTP
-    
+
     Will soon either be repurposed or removed!
-    
+
     """
 
     @property
@@ -37,51 +36,48 @@ class API:
 
 class Websocket(Client, API):
     """`openhivenpy.gateway.Websocket`
-    
+
     Websocket
     ~~~~~~~~~
-    
+
     Websocket Class that will listen to the Hiven Websocket and trigger user-specified events.
-    
+
     Calls `openhivenpy.EventHandler` and will execute the user code if registered
-    
+
     Is directly inherited into connection and cannot be used as a standalone class!
-    
+
+    The Websocket class handles the websocket connection to Hiven and will react to the Events frames that are received.
+    It will automatically handle handshakes as well as ping-pong interactions with the server and
+
     Parameter:
     ----------
-    
-    restart: `bool` - If set to True the process will restart if Error Code 1011 or 1006 is thrown
-    
-    host: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'api.hiven.io' 
-    
-    api_version: `str` - Version string for the API Version. Defaults to 'v1' 
-    
+
+    restart: `bool` - If set to True the process will restart if an exception occured
+
+    host: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'api.hiven.io'
+
+    api_version: `str` - Version string for the API Version. Defaults to 'v1'
+
     token: `str` - Needed for the authorization to Hiven. Will throw `HivenException.InvalidToken` if length not 128,
                     is None or is empty!
-    
+
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
-    
-    ping_timeout: `int` - Seconds after the websocket will timeout after no successful pong response. More information
-                            on the websockets documentation. Defaults to `100`
-    
+
     close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake didn't complete
                             successfully. Defaults to `20`
-    
-    ping_interval: `int` - Interval for sending pings to the server. Defaults to `None` because else the websocket would
-                            timeout because the Hiven Websocket does not give a response
-    
+
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
-    
+
     event_handler: 'openhivenpy.events.EventHandler` - Handler for Websocket Events
-    
+
     """
 
     def __init__(
-                self,
-                *,
-                event_handler: EventHandler,
-                event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
-                **kwargs):
+            self,
+            *,
+            event_handler: EventHandler,
+            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
+            **kwargs):
 
         self._HOST = kwargs.get('api_url', 'api.hiven.io')
         self._API_VERSION = kwargs.get('api_version')
@@ -111,7 +107,6 @@ class Websocket(Client, API):
 
         # Websocket and Connection Attribute
         self._open = False
-        self._closed = True
 
         self._connection_start = None
         self._startup_time = None
@@ -126,7 +121,7 @@ class Websocket(Client, API):
 
     @property
     def open(self):
-        return self._ws.open
+        return self._open
 
     @property
     def closed(self):
@@ -167,18 +162,18 @@ class Websocket(Client, API):
     # Starts the connection over a new websocket
     async def ws_connect(self, session: aiohttp.ClientSession, heartbeat: int = None) -> None:
         """`openhivenpy.gateway.Websocket.connect()`
-        
-        Creates a connection to the Hiven API. 
-        
-        Not supposed to be called by the user! 
-        
+
+        Creates a connection to the Hiven API.
+
+        Not supposed to be called by the user!
+
         Consider using HivenClient.connect() or HivenClient.run()
-        
+
         """
         self._HEARTBEAT = heartbeat if heartbeat is not None else self._HEARTBEAT
         self._ws_session = session
 
-        async def _ws_connect():
+        async def ws_connection():
             """
             Connects to Hiven using the http-session that was created prior during
             startup. The websocket will then interact with Hiven and await responses
@@ -193,30 +188,17 @@ class Websocket(Client, API):
                         autoping=True,
                         autoclose=False,
                         heartbeat=self._HEARTBEAT,
-                        max_msg_size=20) as ws:
+                        max_msg_size=0) as ws:
 
                     self._ws = ws
-
-                    # Receiving the first response from Hiven and setting the specified heartbeat
-                    resp = json.loads(await ws.receive_json())
-
-                    if resp.get('op', 0) == 1 and self._CUSTOM_HEARTBEAT is False:
-                        self._HEARTBEAT = resp['d']['hbt_int']
-                        ws.heartbeat = self._HEARTBEAT
-
-                    # Authorizing with token
-                    logger.info("[WEBSOCKET] >> Authorizing with token")
-                    await ws.send_json(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
-
-                    logger.debug(f"[WEBSOCKET] >> Heartbeat set to {ws.heartbeat}")
-
                     self._connection_status = "OPEN"
+                    self._open = True
 
-                    # Triggering the user event for the connection start
-                    await self._event_handler.connection_start()
+                    await asyncio.gather(self._event_handler.ev_connection_start(),
+                                         self.lifesignal(ws),
+                                         self.response_handler(ws=ws))
 
-                    self._event_loop.create_task(self.lifesignal(ws))
-                    await self.response_handler(ws)
+                    return
 
             except Exception as e:
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
@@ -224,16 +206,17 @@ class Websocket(Client, API):
 
                 # Closing
                 close = getattr(self, "close", None)
-                if close.callable():
+                if callable(close):
                     await close(exec_loop=not self._restart, restart=self._restart)
 
                 return
 
             finally:
+                self._open = False
                 return
 
         # Creating a task that wraps the coroutine
-        self._connection = self._event_loop.create_task(_ws_connect())
+        self._connection = self._event_loop.create_task(ws_connection())
 
         # Running the task in the background
         try:
@@ -252,11 +235,11 @@ class Websocket(Client, API):
     # Loop for receiving messages from Hiven
     async def response_handler(self, ws) -> None:
         """`openhivenpy.gateway.Websocket.ws_receive_response()`
-        
+
         Handler for Swarm responses
-        
+
         Not supposed to be called by a user!
-        
+
         """
         try:
             # Response Handler for the websocket that will on errors, responses, pings and pongs
@@ -265,30 +248,65 @@ class Websocket(Client, API):
             # close the connection. This is then only way the connection can normally close
             # except user forced close or a raised exceptions while processing.
             while self.open:
-                async for msg in ws:
-                    if msg is not None:
-                        if msg.type == aiohttp.WSMsgType.TEXT:
+                msg = await ws.receive()
+                if msg is not None:
+                    logger.debug(f"[WEBSOCKET] << Got Type {msg.type}")
+                    if msg.type == aiohttp.WSMsgType.TEXT:
+                        try:
+                            resp = msg.json()
+                        except Exception:
+                            resp = None
+
+                        if resp.get('op', 0) == 1:
+                            logger.info("[WEBSOCKET] >> Connection to Hiven Swarm established")
+                            # Authorizing with token
+                            logger.info("[WEBSOCKET] >> Authorizing with token")
+                            await ws.send_str(str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}})))
+
+                            if self._CUSTOM_HEARTBEAT is False:
+                                self._HEARTBEAT = resp['d']['hbt_int']
+                                ws.heartbeat = self._HEARTBEAT
+
+                            logger.debug(f"[WEBSOCKET] >> Heartbeat set to {ws.heartbeat}")
+                            logger.info("[WEBSOCKET] << Connection to Hiven Swarm established")
+                        else:
                             if msg.data == 'close cmd':
                                 logger.debug("[WEBSOCKET] << Received close frame!")
                                 break
 
                             if self._log_ws_output:
-                                logger.debug(f"[WEBSOCKET] << Response received: {str(msg)}")
+                                logger.debug(f"[WEBSOCKET] << Received: {str(resp)}")
 
-                            await self._event_resp_handler(msg)
+                            await self._event_resp_handler(resp)
 
-                        elif msg.type == aiohttp.WSMsgType.error:
-                            logger.critical(f"[WEBSOCKET] Failed to handle response >> {ws.exception()} >>{msg}")
+                    elif msg.type == aiohttp.WSMsgType.CLOSE:
+                        logger.debug(f"[WEBSOCKET] << Received close frame with msg='{msg.extra}'!")
+                        break
+
+                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                        logger.critical(f"[WEBSOCKET] Failed to handle response >> {ws.exception()} >>{msg}")
+                        raise errs.WSFailedToHandle(msg.data)
+                await asyncio.sleep(0.01)
         finally:
-            await ws.close()
+            if not ws.closed:
+                await ws.close()
+            logger.info(f"[WEBSOCKET] << Connection to Remote ({self._WEBSOCKET_URL}) closed!")
+            self._open = False
+
+            # Closing
+            close = getattr(self, "close", None)
+            if callable(close):
+                await close(exec_loop=True, restart=self._restart)
+
+            return
 
     async def lifesignal(self, ws) -> None:
         """`openhivenpy.gateway.Websocket.ws_lifesignal()`
-        
-        Handler for Opening the Websocket. 
-        
+
+        Handler for Opening the Websocket.
+
         Not supposed to be called by a user!
-        
+
         """
         try:
             # Life Signal that sends an op-code to Hiven to signalise the connection is still alive
@@ -296,53 +314,35 @@ class Websocket(Client, API):
             # Very unlikely to happen to due to prior force closing or self._open closing itself
             # which already stops the entire websocket task
             async def _lifesignal():
-                logger.info("[WEBSOCKET] << Connection to Hiven Swarm established")
                 while self._open:
                     await asyncio.sleep(self._HEARTBEAT / 1000)
 
-                    # Lifesignal
-                    await ws.send(json.dumps({"op": 3}))
                     logger.debug(f"[WEBSOCKET] >> Lifesignal at {time.time()}")
 
                     if self._connection_status in ["CLOSING", "CLOSED"]:
                         break
+                return
 
             self._connection_status = "OPEN"
             self._lifesignal = asyncio.create_task(_lifesignal())
             await self._lifesignal
-
-        except asyncio.CancelledError:
-            logger.debug(f"[WEBSOCKET] >> Lifesignal task stopped unexpectedly!"
-                         "Probably caused by an error or automatic/forced closing!")
             return
 
-        except websockets.exceptions.ConnectionClosedError as e:
-            logger.critical(f"[WEBSOCKET] >> Connection died abnormally!"
-                            f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.WSConnectionError("Connection died abnormally! "
-                                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-
-        except Exception as e:
-            logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
-                            f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.WSConnectionError(f"The connection to Hiven failed to be kept alive or started! "
-                                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        finally:
-            logger.info(f"[WEBSOCKET] << Connection to Remote ({self._WEBSOCKET_URL}) closed!")
+        except asyncio.CancelledError:
+            return
 
     # Event Triggers
-    async def _event_resp_handler(self, ctx_data):
+    async def _event_resp_handler(self, resp_data):
         """`openhivenpy.gateway.Websocket.ws_on_response()`
 
-        Handler for the Websocket events and the message data. 
+        Handler for the Websocket events and the message data.
 
         Not supposed to be called by a user!
-        
+
         """
         try:
-            resp = json.loads(ctx_data)
-            response_data = resp.get('d', {})
-            swarm_event = resp.get('e', {})
+            response_data = resp_data.get('d', {})
+            swarm_event = resp_data.get('e', "")
 
             logger.debug(f"Received Event {swarm_event}")
 
@@ -353,13 +353,156 @@ class Websocket(Client, API):
                                                 "The class might be initialized faulty!")
 
             if swarm_event == "INIT_STATE":
+                """ 
+                Authorization was successful and client data is received
+                
+                Json-Data:
+                op: 0
+                d: {
+                  user: {
+                    username: string,
+                    user_flags: string,
+                    name: string,
+                    id: string,
+                    icon: string,
+                    header: string,
+                    presence: string
+                  },
+                  settings: {
+                    user_id: string,
+                    theme: null,
+                    room_overrides: {
+                      id: { notification_preference: int }
+                    },
+                    onboarded: unknown,
+                    enable_desktop_notifications: unknown
+                  },
+                  relationships: {
+                    id: {
+                      user_id: string,
+                      user: {
+                        username: string,
+                        user_flags: string,
+                        name: string,
+                        id: string,
+                        icon: string,
+                        header: string,
+                        presence: string
+                      },
+                      type: int,
+                      last_updated_at: string
+                    }
+                  },
+                  read_state: {
+                    id: {
+                      message_id: string,
+                      mention_count: int
+                    },
+                  },
+                  private_rooms: room[]
+                  presences: {
+                    id: {
+                      username: string,
+                      user_flags: string,
+                      name: string,
+                      id: string,
+                      icon: string,
+                      header: string,
+                      presence: string
+                    }
+                  },
+                  house_memberships: {
+                    id: {
+                      user_id: string,
+                      user: {
+                        username: string,
+                        user_flags: string,
+                        name: string,
+                        id: string,
+                        icon: string,
+                        header: string,
+                        presence: string
+                      },
+                      roles: array,
+                      last_permission_update: string,
+                      joined_at: string,
+                      house_id: string
+                    }
+                  },
+                  house_ids: string[]
+                }
+                """
                 await super().init_meta_data(response_data)
 
                 init_time = time.time() - self._connection_start
-                await self._event_handler.init_state(time=init_time)
+                await self._event_handler.ev_init_state(time=init_time)
                 self._initialized = True
 
             elif swarm_event == "HOUSE_JOIN":
+                """
+                The Client joined a house
+                
+                Json-Data:
+                op: 0
+                d: {
+                  rooms: room[{
+                    type: int,
+                    recipients: null
+                    position: int,
+                    permission_overrides: bits,
+                    owner_id: string,
+                    name: string,
+                    last_message_id: string,
+                    id: string,
+                    house_id: string,
+                    emoji: object,
+                    description: string,
+                    default_permission_override: int
+                  }],
+                  roles: role[{
+                    position: int,
+                    name: string,
+                    level: int,
+                    id: string,
+                    deny: bits,
+                    color: string,
+                    allow: bits
+                  }],
+                  owner_id: string,
+                  name: string,
+                  members: [{
+                    user_id: string,
+                    user: {
+                      username: string,
+                      user_flags: string,
+                      name: string,
+                      id: string,
+                      icon: string,
+                      header: string,
+                      presence: string
+                    },
+                    roles: array,
+                    last_permission_update: string,
+                    joined_at: string,
+                    house_id: string
+                  }],
+                  id: string,
+                  icon: string,
+                  entities: [{
+                    type: int,
+                    resource_pointers: [{
+                      resource_type: string,
+                      resource_id: string
+                    }],
+                    position: int,
+                    name: string,
+                    id: string
+                  }],
+                  default_permissions: int,
+                  banner: string
+                }
+                """
+                # Creating a house object that will then be appended
                 house = types.House(response_data, self.http, super().id)
                 cached_house = utils.get(self._houses, id=int(response_data.get('id', 0)))
                 # Removing if a house exists with the same id to ensure the newest house is available
@@ -381,20 +524,63 @@ class Websocket(Client, API):
 
                 # Appending to the client houses list
                 self._houses.append(house)
-                await self._event_handler.house_join(house)
+                await self._event_handler.ev_house_join(house)
 
-            elif swarm_event == "HOUSE_EXIT":
-                house = None
-                await self._event_handler.house_exit(house=house)
+            elif swarm_event == "HOUSE_LEAVE":
+                """
+                The client leaves a house
+                
+                Json-Data:
+                op: 0
+                d: {
+                  id: string,
+                  house_id: string
+                }
+                """
+                house = utils.get(self._houses, id=int(response_data.get('house_id')))
+                await self._event_handler.ev_house_exit(house=house)
 
             elif swarm_event == "HOUSE_DOWN":
+                """
+                A house is unreachable
+                
+                Json-Data:
+                op: 0
+                d: {
+                  unavailable: boolean,
+                  house_id: string
+                }
+                """
                 t = time.time()
                 house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
                 logger.info(f"[WEBSOCKET] << Downtime of '{house.name}' reported! "
                             "House was either deleted or is currently unavailable!")
-                await self._event_handler.house_down(time=t, house=house)
+                await self._event_handler.ev_house_down(time=t, house=house)
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
+                """
+                A user joined a house
+                
+                Json-Data:
+                op: 0
+                d: {
+                  user_id: string,
+                  user: {
+                      username: string,
+                      user_flags: string,
+                      name: string,
+                      id: string,
+                      icon: string,
+                      bot: bool,
+                  },
+                  roles: [],
+                  presence: string,
+                  last_permission_update: null,
+                  joined_at: string,
+                  id: string,
+                  house_id: string
+                }
+                """
                 if self._ready:
                     house_id = response_data.get('house_id')
                     if house_id is None:
@@ -426,9 +612,37 @@ class Websocket(Client, API):
                     else:
                         member = cached_user
 
-                    await self._event_handler.house_member_enter(member, house)
+                    await self._event_handler.ev_house_member_enter(member, house)
 
             elif swarm_event == "HOUSE_MEMBER_UPDATE":
+                """
+                A member data was updated. (role update, permission update, nick etc.)
+                
+                Json-Data:
+                op: 0
+                d: {
+                  user_id: string,
+                  user: {
+                    website: string,
+                    username: string,
+                    user_flags: int,
+                    name: string,
+                    location: string,
+                    id: string,
+                    icon: string,
+                    header: string,
+                    email_verified: boolean,
+                    bot: boolean,
+                    bio: string
+                  },
+                  roles: object[],
+                  presence: string,
+                  last_permission_update: unknown,
+                  joined_at: string,
+                  id: string,
+                  house_id: string
+                }
+                """
                 if self._ready:
                     house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
 
@@ -452,20 +666,106 @@ class Websocket(Client, API):
                     else:
                         member = cached_user
 
-                    await self._event_handler.house_member_update(member, house)
+                    await self._event_handler.ev_house_member_update(member, house)
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
-                ctx = types.Context(response_data, self.http)
+                """
+                A member left a house
+                
+                Json-Data:
+                op: 0
+                d: {
+                    id: string,
+                    house_id: string
+                }
+                """
                 user = types.User(response_data, self.http)
 
-                await self._event_handler.house_member_exit(ctx, user)
+                await self._event_handler.ev_house_member_exit(user)
 
             elif swarm_event == "PRESENCE_UPDATE":
+                """
+                A user presence was updated
+                
+                Json-Data:
+                op: 0
+                d: {
+                  username: string,
+                  user_flags: string,
+                  name: string,
+                  id: string,
+                  icon: string,
+                  header: string,
+                  presence: string
+                }
+                """
                 presence = types.Presence(response_data, self.http)
                 user = types.Member(response_data, self.http, None)  # In work
-                await self._event_handler.presence_update(presence, user)
+                await self._event_handler.ev_presence_update(presence, user)
 
             elif swarm_event == "MESSAGE_CREATE":
+                """
+                A user created a message
+                
+                Json-Data:
+                op: 0
+                d: {
+                  timestamp: int,
+                  room_id: string,
+                  mentions: [{
+                    username: string,
+                    user_flags: string,
+                    name: string,
+                    id: string,
+                    icon: string,
+                    header: string,
+                    presence: string,
+                    bot: boolean
+                  }],
+                  member: {
+                    user_id: string,
+                    user: {
+                      username: string,
+                      user_flags: string,
+                      name: string,
+                      id: string,
+                      icon: string,
+                      header: string,
+                      presence: string
+                    },
+                    roles: array,
+                    last_permission_update: string,
+                    joined_at: string,
+                    house_id: string
+                  },
+                  id: string,
+                  house_id: string,
+                  exploding_age: int,
+                  exploding: boolean,
+                  device_id: string,
+                  content: string,
+                  bucket: int,
+                  author_id: string,
+                  author: {
+                    username: string,
+                    user_flags: string,
+                    name: string,
+                    id: string,
+                    icon: string,
+                    header: string,
+                    presence: string
+                  }
+                  attachment: {
+                    media_url: string,
+                    filename: string,
+                    dimensions: {
+                      width: int,
+                      type: string,
+                      height: int
+                    }
+                  }
+                }
+                """
                 if self._ready:
                     if response_data.get('house_id') is not None:
                         house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
@@ -490,13 +790,64 @@ class Websocket(Client, API):
                         author = cached_author
 
                     message = types.Message(response_data, self.http, house, room, author)
-                    await self._event_handler.message_create(message)
+                    await self._event_handler.ev_message_create(message)
 
             elif swarm_event == "MESSAGE_DELETE":
+                """
+                A user deleted a message
+                
+                Json-Data:
+                op: 0
+                d: {
+                  room_id: string,
+                  message_id: string,
+                  house_id: string
+                }
+                """
                 message = types.DeletedMessage(response_data)
-                await self._event_handler.message_delete(message)
+                await self._event_handler.ev_message_delete(message)
 
             elif swarm_event == "MESSAGE_UPDATE":
+                """
+                User edited message update
+                
+                Json-Data:
+                op: 0
+                d: {
+                  type: int,
+                  timestamp: string,
+                  room_id: string,
+                  metadata: unknown,
+                  mentions: [{
+                    username: string,
+                    user_flags: string,
+                    name: string,
+                    id: string,
+                    icon: string,
+                    header: string,
+                    presence: string
+                  }],
+                  id: string,
+                  house_id: string,
+                  exploding_age: int,
+                  exploding: boolean,
+                  embed: object,
+                  edited_at: string,
+                  device_id: string,
+                  content: string,
+                  bucket: int,
+                  author_id: string,
+                  attachment: {
+                    media_url: string,
+                    filename: string,
+                    dimensions: {
+                      width: int,
+                      type: string,
+                      height: int
+                    }
+                  }
+                }
+                """
                 if self._ready:
                     if response_data.get('house_id') is not None:
                         house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
@@ -516,30 +867,134 @@ class Websocket(Client, API):
                         author = cached_author
 
                     message = types.Message(response_data, self.http, house=house, room=room, author=author)
-                    await self._event_handler.message_update(message)
+                    await self._event_handler.ev_message_update(message)
 
             elif swarm_event == "TYPING_START":
+                """
+                User started typing
+                
+                Json-Data:
+                op: 0
+                d: {
+                  timestamp: int,
+                  room_id: string,
+                  house_id: string,
+                  author_id: string
+                }
+                """
                 member = types.Typing(response_data, self.http)
-                await self._event_handler.typing_start(member)
+                await self._event_handler.ev_typing_start(member)
 
             elif swarm_event == "TYPING_END":
+                """
+                Typing of a user ended
+                
+                Currently not existing!
+                
+                Json-Data:
+                """
                 member = types.Typing(response_data, self.http)
-                await self._event_handler.typing_end(member)
+                await self._event_handler.ev_typing_end(member)
 
             # In work
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
+                """
+                For requesting house member states
+                
+                Json-Data:
+                op: 0
+                d: {
+                  members: {
+                    id: {
+                      user_id: string,
+                      user: {
+                        username: string,
+                        user_flags: string,
+                        name: string,
+                        id: string,
+                        icon: string,
+                        header: string,
+                        presence: string
+                      },
+                      roles: array,
+                      last_permission_update: string,
+                      joined_at: string,
+                      house_id: string
+                    }
+                  },
+                  house_id: string
+                }
+                """
                 data = response_data
-                await self._event_handler.house_member_chunk(data=data)
+                await self._event_handler.ev_house_member_chunk(data=data)
 
             elif swarm_event == "BATCH_HOUSE_MEMBER_UPDATE":
+                """
+                Multiple updates of members that are stacked
+                
+                Json-Data:
+                {
+                  house_id: string;
+                  batch_type: list;
+                  batch_size: int;
+                  data: {
+                    [resource_id: string]: HouseMember
+                  }
+                }
+                """
                 data = response_data
-                await self._event_handler.batch_house_member_update(data=data)
+                await self._event_handler.ev_batch_house_member_update(data=data)
 
+            elif swarm_event == "HOUSE_ENTITIES_UPDATE":
+                """
+                House was updated
+                
+                Json-Data:
+                op: 0
+                d: {
+                  house_id: '182410583881021247',
+                  entities: [{
+                    type: int,
+                    resource_pointers: [{
+                      resource_type: string,
+                      resource_id: string
+                    }],
+                    position: int,
+                    name: string,
+                    id: string
+                  }]
+                }
+                """
+                pass
+
+            elif swarm_event == "RELATIONSHIP_UPDATE":
+                """
+                Relationship between two users was updated
+                
+                Json-Data:
+                op: 0
+                d: {
+                  user: {
+                    website: string,
+                    username: string,
+                    user_flags: int,
+                    name: string,
+                    location: string,
+                    id: string,
+                    icon: string,
+                    bio: string
+                  },
+                  type: int,
+                  recipient_id: string,
+                  id: string
+                }
+                """
+                pass
             else:
                 logger.debug(f"[WEBSOCKET] << Unknown Event {swarm_event} without Handler")
 
         except Exception as e:
-            logger.debug(f"[WEBSOCKET] << Failed to catch and handle Event in the websocket! "
+            logger.debug(f"[WEBSOCKET] << Failed to handle Event in the websocket! "
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             return

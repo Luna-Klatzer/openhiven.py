@@ -59,7 +59,7 @@ class HTTP:
     def ready(self):
         return self._ready
 
-    async def connect(self) -> aiohttp.ClientSession:
+    async def connect(self) -> Union[aiohttp.ClientSession, None]:
         """`openhivenpy.gateway.HTTP.connect()`
 
         Establishes for the HTTP a connection to Hiven
@@ -81,7 +81,10 @@ class HTTP:
             
             async def on_request_redirect(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
-            
+
+            async def on_response_chunk_received(session, trace_config_ctx, params):
+                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
+
             async def on_connection_queued_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
             
@@ -91,13 +94,15 @@ class HTTP:
             trace_config.on_request_exception.append(on_request_exception)
             trace_config.on_request_redirect.append(on_request_redirect)
             trace_config.on_connection_queued_start.append(on_connection_queued_start)
+            trace_config.on_response_chunk_received.append(on_response_chunk_received)
             
-            self.session = aiohttp.ClientSession(
-                                                loop=self.loop,
-                                                trace_configs=[trace_config])
+            self.session = aiohttp.ClientSession(loop=self.loop, trace_configs=[trace_config])
             self._ready = True
             resp = await self.request("/users/@me", timeout=10)
-            return self.session
+            if resp:
+                return self.session
+            else:
+                return None
         
         except Exception as e:
             self._ready = False
@@ -156,9 +161,9 @@ class HTTP:
         
         """
         # Timeout Handler that watches if the request takes too long
-        async def _time_out_handler(timeout: float) -> None:
+        async def _time_out_handler(_timeout: float) -> None:
             start_time = time.time()
-            timeout_limit = start_time + timeout
+            timeout_limit = start_time + _timeout
             while True:
                 if self._request.done():
                     break
@@ -218,18 +223,18 @@ class HTTP:
                         error_code = http_code
                         error_reason = resp.reason
 
-                        logger.debug(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
+                        logger.debug(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: " 
                                      f"{endpoint}; {error_code}, {error_reason}")
                         return resp
         
                 except asyncio.TimeoutError as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
+                    logger.error(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
 
                 except Exception as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
                         
             else:
-                logger.error(f"[HTTP] << The HTTP was not ready when trying to HTTP {method}!" 
+                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
                              "The connection is either faulty initialized or closed!")
                 return None    
 

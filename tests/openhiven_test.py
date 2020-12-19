@@ -5,13 +5,9 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-logger = logging.getLogger('websockets')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
-
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -27,11 +23,9 @@ client = openhivenpy.UserClient(
 async def on_connection_start():
     print("Connection established")
 
-
 @client.event()
 async def on_init(time):
     print(f"Init'd at {time}")
-
 
 @client.event() 
 async def on_ready():
@@ -69,5 +63,4 @@ async def on_message_create(message):
     print(message.room.id)
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(client.run())
+    client.run()

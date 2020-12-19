@@ -1,6 +1,7 @@
 import sys
 import logging
 import datetime
+import asyncio
 import time
 from typing import Union
 
@@ -13,13 +14,13 @@ __all__ = ['Client']
 
 
 class Client:
-    """`openhivenpy.types.Client` 
-    
+    """`openhivenpy.types.Client`
+
     Date Class for a Client
     ~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     Data Class that stores the data of the connected client
-    
+
     """
     def __init__(self, *, http=None, **kwargs):
         self.http = http if http is not None else self.http
@@ -42,13 +43,15 @@ class Client:
         self._execution_loop = None if not hasattr(self, '_execution_loop') else self._execution_loop
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.add_to_startup(self._check_meta_data)
+        self._execution_loop.add_to_startup(self.__check_meta_data)
+
+    @property
+    def connection_start(self):
+        return getattr(self, "connection_start")
 
     async def init_meta_data(self, data: dict = None) -> None:
         """`openhivenpy.types.client.update_client_user_data()`
-
         Updates or creates the standard user data attributes of the Client
-
         """
         try:
             # Using a USER object to actually store all user data
@@ -77,11 +80,7 @@ class Client:
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    @property
-    def connection_start(self):
-        return getattr(self, "connection_start")
-
-    async def _check_meta_data(self):
+    async def __check_meta_data(self):
         """
         Checks whether the meta data is complete and triggers on_ready
         """
@@ -89,40 +88,40 @@ class Client:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
-                await self._event_handler.ready_state()
+                await self._event_handler.ev_ready_state()
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
-                self._startup_time = time.time() - self.connection_start
                 self._ready = True
-                await self._event_handler.ready_state()
+                await self._event_handler.ev_ready_state()
                 break
+            await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Client.edit()`
-        
-        Change the signed in user's/bot's data. 
-        
+
+        Change the signed in user's/bot's data.
+
         Available options: header, icon, bio, location, website
-        
+
         Returns `True` if successful
-        
+
         """
         http_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    response = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                    response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
                     http_code = response.status
                     return True
                 else:
                     logger.error("The passed value does not exist in the user context!")
                     raise KeyError("The passed value does not exist in the user context!")
-    
+
         except Exception as e:
-            keys = "".join(str(" "+key) for key in kwargs.keys())
+            keys = "".join(str(" " + key) for key in kwargs.keys())
             logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] "
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
+            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
 
     @property
     def amount_houses(self) -> int:
@@ -135,7 +134,7 @@ class Client:
     @property
     def private_rooms(self) -> list:
         return self._private_rooms
-    
+
     @property
     def username(self) -> str:
         return self._USER.username
@@ -151,7 +150,7 @@ class Client:
     @property
     def icon(self) -> str:
         return self._USER._icon
-    
+
     @property
     def header(self) -> str:
         return self._USER._header

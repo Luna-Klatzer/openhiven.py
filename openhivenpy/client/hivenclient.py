@@ -1,10 +1,10 @@
 import asyncio
 from openhivenpy.gateway.connection import ExecutionLoop
+from openhivenpy.gateway.ws import Websocket
 import sys
-import logging
 import nest_asyncio
+import logging
 from time import time
-from websockets import WebSocketClientProtocol
 from typing import Optional, Union
 from datetime import datetime
 
@@ -19,7 +19,7 @@ __all__ = ('HivenClient')
 logger = logging.getLogger(__name__)
 
 def _check_dependencies() -> None:
-    pkgs = ['asyncio', 'websockets', 'typing', 'nest_asyncio', 'aiohttp']
+    pkgs = ['asyncio', 'typing', 'aiohttp']
     for pkg in pkgs:
         if pkg not in sys.modules:
             logger.critical(f"Module {pkg} not found in locally installed modules!")
@@ -119,10 +119,8 @@ class HivenClient(EventHandler, API):
                                      token=token, 
                                      event_loop=self.loop, 
                                      **kwargs)
-        
-        # Not sure if that's a good solution to the issue but I will do this
         nest_asyncio.apply(loop=self.loop)
- 
+
     @property
     def token(self) -> str:
         return self._TOKEN
@@ -143,7 +141,7 @@ class HivenClient(EventHandler, API):
             logger.exception(e)
             raise errs.HivenConnectionError(f"Failed to start client session and websocket! Cause of Error: {e}")
         finally:
-            return 
+            return
 
     def run(self) -> None:
         """`openhivenpy.client.HivenClient.run()`
@@ -157,9 +155,9 @@ class HivenClient(EventHandler, API):
             logger.exception(e)
             raise errs.HivenConnectionError(f"Failed to start session and establish connection to Hiven! Cause of Error: {e}")
         finally:
-            return         
+            return
 
-    async def stop(self):
+    async def destroy(self):
         """`openhivenpy.HivenClient.destroy()`
         
         Kills the event loop and the running tasks! 
@@ -323,7 +321,7 @@ class HivenClient(EventHandler, API):
         return self.connection.closed
 
     @property
-    def ws(self) -> WebSocketClientProtocol:
+    def ws(self) -> Websocket:
         """`openhivenpy.HivenClient.websocket`
         
         Returns the ReadOnly Websocket with it's configuration

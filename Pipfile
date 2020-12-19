@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 nest-asyncio = "*"
 typing = "*"
-websockets = "*"
 asyncio = "*"
 aiohttp = "*"
 brotlipy = "*"
