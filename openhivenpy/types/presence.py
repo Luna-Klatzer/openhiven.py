@@ -20,5 +20,18 @@ class Presence:
     Represents a User Presence
     
     """
-    def __init__(self, data: dict, http: HTTP):
+    def __init__(self, data: dict, user, http: HTTP):
         self._http = http
+        self._user = user
+        self._presence = data.get('presence')
+
+    def __str__(self):
+        return self._presence
+
+    @property
+    def user(self):
+        return self._user
+
+    @property
+    def presence(self):
+        return self._presence

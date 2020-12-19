@@ -53,6 +53,9 @@ class Room:
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
+    def __str__(self):
+        return self.name
+
     @property
     def id(self):
         return self._id

@@ -1,8 +1,5 @@
 import setuptools
 
-from dotenv import load_dotenv
-load_dotenv()
-
 with open("README.md", "r") as file:
     long_description = file.read()
 
@@ -11,7 +8,7 @@ with open("requirements.txt") as file:
 
 setuptools.setup(
     name="openhivenpy", 
-    version="0.1",
+    version="0.1.1",
     author="FrostbyteSpace",
     author_email="nicolas.klatzer@gmail.com",
     description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteSpace",
@@ -27,5 +24,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
-    install_requires = requirements 
+    install_requires=requirements
 )

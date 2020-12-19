@@ -47,7 +47,7 @@ class Member(User):
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self):
-        return self.id
+        return self.name
         
     @property
     def user_id(self) -> int:

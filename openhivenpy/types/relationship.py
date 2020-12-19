@@ -62,7 +62,10 @@ class Relationship:
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
+
+    def __str__(self):
+        return self.user.username
+
     @property
     def user(self) -> User:
         return self._user

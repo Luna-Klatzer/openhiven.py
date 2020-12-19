@@ -1,6 +1,7 @@
 import asyncio
 import time
 import sys
+import os
 import json
 import logging
 from typing import Optional
@@ -52,7 +53,7 @@ class Websocket(Client, API):
     Parameter:
     ----------
 
-    restart: `bool` - If set to True the process will restart if an exception occured
+    restart: `bool` - If set to True the process will restart if an exception occurred
 
     host: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'api.hiven.io'
 
@@ -79,19 +80,18 @@ class Websocket(Client, API):
             event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
             **kwargs):
 
-        self._HOST = kwargs.get('api_url', 'api.hiven.io')
-        self._API_VERSION = kwargs.get('api_version')
+        self._HOST = kwargs.get('api_url', os.getenv("HIVEN_HOST"))
+        self._API_VERSION = kwargs.get('api_version', os.getenv("HIVEN_API_VERSION"))
 
         self._WEBSOCKET_URL = "wss://swarm-dev.hiven.io/socket?encoding=json&compression=text_json"
         self._ENCODING = "json"
 
         # In milliseconds
-        self._HEARTBEAT = kwargs.get('heartbeat', 30000)
+        _env_heartbeat = int(os.getenv("CONNECTION_HEARTBEAT"))
+        self._HEARTBEAT = kwargs.get('heartbeat', _env_heartbeat)
         self._TOKEN = kwargs.get('token', None)
 
-        self._ping_timeout = kwargs.get('ping_timeout', 100)
-        self._close_timeout = kwargs.get('close_timeout', 20)
-        self._ping_interval = kwargs.get('ping_interval', None)
+        self._close_timeout = kwargs.get('close_timeout', int(os.getenv("CLOSE_TIMEOUT")))
 
         self._event_handler = event_handler
         self._event_loop = event_loop
@@ -99,7 +99,7 @@ class Websocket(Client, API):
         self._restart = kwargs.get('restart', False)
         self._log_ws_output = kwargs.get('log_ws_output', False)
 
-        self._CUSTOM_HEARTBEAT = False if self._HEARTBEAT == 30000 else True
+        self._CUSTOM_HEARTBEAT = False if self._HEARTBEAT == _env_heartbeat else True
         self._ws_session = None
         self._ws = None
         self._connection = None
@@ -126,10 +126,6 @@ class Websocket(Client, API):
     @property
     def closed(self):
         return self._ws.closed
-
-    @property
-    def ping_timeout(self) -> int:
-        return self._ping_timeout
 
     @property
     def close_timeout(self) -> int:
@@ -186,8 +182,9 @@ class Websocket(Client, API):
                         url=self._WEBSOCKET_URL,
                         timeout=self._close_timeout,
                         autoping=True,
-                        autoclose=False,
+                        autoclose=True,
                         heartbeat=self._HEARTBEAT,
+                        receive_timeout=None,
                         max_msg_size=0) as ws:
 
                     self._ws = ws
@@ -198,7 +195,8 @@ class Websocket(Client, API):
                                          self.lifesignal(ws),
                                          self.response_handler(ws=ws))
 
-                    return
+            except KeyboardInterrupt:
+                pass
 
             except Exception as e:
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
@@ -207,7 +205,7 @@ class Websocket(Client, API):
                 # Closing
                 close = getattr(self, "close", None)
                 if callable(close):
-                    await close(exec_loop=not self._restart, restart=self._restart)
+                    await close(exec_loop=not self._restart, reason="WS encountered an error!", restart=self._restart)
 
                 return
 
@@ -221,6 +219,8 @@ class Websocket(Client, API):
         # Running the task in the background
         try:
             await self._connection
+        except KeyboardInterrupt:
+            pass
         # Avoids that the user notices that the task was cancelled! aka. Silent Error
         except asyncio.CancelledError:
             logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped!"
@@ -296,7 +296,7 @@ class Websocket(Client, API):
             # Closing
             close = getattr(self, "close", None)
             if callable(close):
-                await close(exec_loop=True, restart=self._restart)
+                await close(exec_loop=True, reason="Response Handler stopped!", restart=self._restart)
 
             return
 
@@ -318,6 +318,7 @@ class Websocket(Client, API):
                     await asyncio.sleep(self._HEARTBEAT / 1000)
 
                     logger.debug(f"[WEBSOCKET] >> Lifesignal at {time.time()}")
+                    await ws.send_str(str(json.dumps({"op": 3})))
 
                     if self._connection_status in ["CLOSING", "CLOSED"]:
                         break
@@ -524,7 +525,7 @@ class Websocket(Client, API):
 
                 # Appending to the client houses list
                 self._houses.append(house)
-                await self._event_handler.ev_house_join(house)
+                asyncio.create_task(self._event_handler.ev_house_join(house))
 
             elif swarm_event == "HOUSE_LEAVE":
                 """
@@ -538,7 +539,8 @@ class Websocket(Client, API):
                 }
                 """
                 house = utils.get(self._houses, id=int(response_data.get('house_id')))
-                await self._event_handler.ev_house_exit(house=house)
+                self._houses.remove(house)
+                asyncio.create_task(self._event_handler.ev_house_exit(house=house))
 
             elif swarm_event == "HOUSE_DOWN":
                 """
@@ -553,9 +555,9 @@ class Websocket(Client, API):
                 """
                 t = time.time()
                 house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
-                logger.info(f"[WEBSOCKET] << Downtime of '{house.name}' reported! "
+                logger.debug(f"[WEBSOCKET] << Downtime of '{house.name}' reported! "
                             "House was either deleted or is currently unavailable!")
-                await self._event_handler.ev_house_down(time=t, house=house)
+                asyncio.create_task(self._event_handler.ev_house_down(time=t, house=house))
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
                 """
@@ -612,7 +614,7 @@ class Websocket(Client, API):
                     else:
                         member = cached_user
 
-                    await self._event_handler.ev_house_member_enter(member, house)
+                    asyncio.create_task(self._event_handler.ev_house_member_enter(member, house))
 
             elif swarm_event == "HOUSE_MEMBER_UPDATE":
                 """
@@ -666,7 +668,7 @@ class Websocket(Client, API):
                     else:
                         member = cached_user
 
-                    await self._event_handler.ev_house_member_update(member, house)
+                    asyncio.create_task(self._event_handler.ev_house_member_update(member, house))
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
                 """
@@ -681,7 +683,7 @@ class Websocket(Client, API):
                 """
                 user = types.User(response_data, self.http)
 
-                await self._event_handler.ev_house_member_exit(user)
+                asyncio.create_task(self._event_handler.ev_house_member_exit(user))
 
             elif swarm_event == "PRESENCE_UPDATE":
                 """
@@ -699,9 +701,9 @@ class Websocket(Client, API):
                   presence: string
                 }
                 """
-                presence = types.Presence(response_data, self.http)
-                user = types.Member(response_data, self.http, None)  # In work
-                await self._event_handler.ev_presence_update(presence, user)
+                user = types.User(response_data, self.http)
+                presence = types.Presence(response_data, user, self.http)
+                asyncio.create_task(self._event_handler.ev_presence_update(presence, user))
 
             elif swarm_event == "MESSAGE_CREATE":
                 """
@@ -790,7 +792,7 @@ class Websocket(Client, API):
                         author = cached_author
 
                     message = types.Message(response_data, self.http, house, room, author)
-                    await self._event_handler.ev_message_create(message)
+                    asyncio.create_task(self._event_handler.ev_message_create(message))
 
             elif swarm_event == "MESSAGE_DELETE":
                 """
@@ -805,7 +807,7 @@ class Websocket(Client, API):
                 }
                 """
                 message = types.DeletedMessage(response_data)
-                await self._event_handler.ev_message_delete(message)
+                asyncio.create_task(self._event_handler.ev_message_delete(message))
 
             elif swarm_event == "MESSAGE_UPDATE":
                 """
@@ -867,7 +869,7 @@ class Websocket(Client, API):
                         author = cached_author
 
                     message = types.Message(response_data, self.http, house=house, room=room, author=author)
-                    await self._event_handler.ev_message_update(message)
+                    asyncio.create_task(self._event_handler.ev_message_update(message))
 
             elif swarm_event == "TYPING_START":
                 """
@@ -882,8 +884,11 @@ class Websocket(Client, API):
                   author_id: string
                 }
                 """
-                member = types.Typing(response_data, self.http)
-                await self._event_handler.ev_typing_start(member)
+                room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
+                house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
+                member = utils.get(house.members, id=int(response_data.get('author_id', 0)))
+                typing = types.Typing(response_data, member, room, house, self.http)
+                asyncio.create_task(self._event_handler.ev_typing_start(typing))
 
             elif swarm_event == "TYPING_END":
                 """
@@ -893,8 +898,11 @@ class Websocket(Client, API):
                 
                 Json-Data:
                 """
-                member = types.Typing(response_data, self.http)
-                await self._event_handler.ev_typing_end(member)
+                room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
+                house = utils.get(self._houses, id=int(response_data.get('room_id', 0)))
+                member = utils.get(house.members, id=int(response_data.get('room_id', 0)))
+                member = types.Typing(response_data, member, room, house, self.http)
+                asyncio.create_task(self._event_handler.ev_typing_end(member))
 
             # In work
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
@@ -926,7 +934,7 @@ class Websocket(Client, API):
                 }
                 """
                 data = response_data
-                await self._event_handler.ev_house_member_chunk(data=data)
+                asyncio.create_task(self._event_handler.ev_house_member_chunk(data=data))
 
             elif swarm_event == "BATCH_HOUSE_MEMBER_UPDATE":
                 """
@@ -943,7 +951,7 @@ class Websocket(Client, API):
                 }
                 """
                 data = response_data
-                await self._event_handler.ev_batch_house_member_update(data=data)
+                asyncio.create_task(self._event_handler.ev_batch_house_member_update(data=data))
 
             elif swarm_event == "HOUSE_ENTITIES_UPDATE":
                 """
@@ -989,7 +997,9 @@ class Websocket(Client, API):
                   id: string
                 }
                 """
-                pass
+                data = response_data
+                relationship = types.Relationship(data, self.http)
+                asyncio.create_task(self._event_handler.ev_relationship_update(relationship))
             else:
                 logger.debug(f"[WEBSOCKET] << Unknown Event {swarm_event} without Handler")
 

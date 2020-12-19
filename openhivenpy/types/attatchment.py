@@ -24,6 +24,9 @@ class Attachment:
         self._raw = data
         self._http = http
 
+    def __str__(self):
+        return self.filename
+
     @property
     def filename(self):
         return self._filename

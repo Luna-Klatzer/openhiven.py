@@ -50,7 +50,10 @@ class PrivateGroupRoom:
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
+
+    def __str__(self):
+        return self.name
+
     @property
     def recipients(self) -> Union[User, list]:
         return self._recipients

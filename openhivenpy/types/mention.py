@@ -39,7 +39,10 @@ class Mention:
             
         self._author = author
         self._http = http
-        
+
+    def __str__(self):
+        return self.user.name
+
     @property
     def timestamp(self):
         return self._timestamp

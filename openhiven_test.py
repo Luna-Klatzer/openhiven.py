@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -23,9 +23,11 @@ client = openhivenpy.UserClient(
 async def on_connection_start():
     print("Connection established")
 
+
 @client.event()
 async def on_init(time):
     print(f"Init'd at {time}")
+
 
 @client.event() 
 async def on_ready():
@@ -54,13 +56,35 @@ async def on_ready():
     friend_request = await client.fetch_current_friend_requests()
     
     private_room = await client.get_private_room(175699760957616349)
-    
-    # await client.create_private_room() # Robyn please find some random users and open private rooms with them #no # sad noises
+
+    print(friend_request)
+
+    # await client.create_private_room()
 
 
 @client.event()
 async def on_message_create(message):
-    print(message.room.id)
+    print(message.content)
+
+
+@client.event()
+async def on_house_add(house):
+    print(house.name)
+
+
+@client.event()
+async def on_house_remove(house):
+    print(house.name)
+
+
+@client.event()
+async def on_house_downage(t, house):
+    print(f"{house.name} was reported to be done at {t}")
+
+
+@client.event()
+async def on_typing_start(typing):
+    print(typing)
 
 if __name__ == '__main__':
     client.run()

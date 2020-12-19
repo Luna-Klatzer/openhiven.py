@@ -22,11 +22,14 @@ class Typing:
     Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
     
     """
-    def __init__(self, data: dict, http: HTTP):
+    def __init__(self, data: dict, member, room, house, http: HTTP):
         try:
-            self._member = data.get('author_id')
-            self._house = data.get('house_id')
-            self._room = data.get('room_id')
+            self._member = member
+            self._room = room
+            self._house = house
+            self._member_id = data.get('author_id')
+            self._house_id = data.get('house_id')
+            self._room_id = data.get('room_id')
             self._timestamp = data.get('timestamp')
             
             self._http = http
@@ -43,6 +46,33 @@ class Typing:
             raise errs.FaultyInitialization(f"Failed to initialize Typing object! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
+    def __str__(self):
+        return f"Typing in room '{self.room.name}' by '{self.member.name}'"
+
     @property
     def timestamp(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(self._timestamp)
+
+    @property
+    def member(self):
+        return self._member
+
+    @property
+    def house(self):
+        return self._house
+
+    @property
+    def room(self):
+        return self._room
+
+    @property
+    def member_id(self):
+        return self._member_id
+
+    @property
+    def house_id(self):
+        return self._house_id
+
+    @property
+    def room_id(self):
+        return self._room_id

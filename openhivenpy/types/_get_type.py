@@ -66,12 +66,12 @@ class getType:
         return Room(data, http, house)
     
     @staticmethod
-    async def a_presence(data: dict, http: HTTP):
+    async def a_presence(data: dict, user, http: HTTP):
         """
         Async Function for getting a Presence Object with passed data 
         """
         from .presence import Presence
-        return Presence(data, http)
+        return Presence(data, user, http)
     
     @staticmethod
     async def a_private_room(data: dict, http: HTTP):
@@ -163,12 +163,12 @@ class getType:
         return Room(data, http, house)
 
     @staticmethod
-    def presence(data: dict, http: HTTP):
+    def presence(data: dict, user, http: HTTP):
         """
         Regular Function for getting a Presence Object with passed data
         """
         from .presence import Presence
-        return Presence(data, http)
+        return Presence(data, user, http)
 
     @staticmethod
     def private_room(data: dict, http: HTTP):

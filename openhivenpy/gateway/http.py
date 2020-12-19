@@ -204,7 +204,7 @@ class HTTP:
                                     error_code = "Empty Response"
                                     error_reason = "Got an empty response that cannot be converted to json!" 
                                     
-                                logger.debug("[HTTP] << Received Empty Response")
+                                logger.debug("[HTTP] << Received Empty HTTP Response")
                             else:
                                 json = json_decoder.loads(data)
                                 

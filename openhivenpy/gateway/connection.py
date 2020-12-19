@@ -16,12 +16,10 @@ __all__ = ('ExecutionLoop', 'Connection')
 
 def _get_args(**kwargs):
     return {
-        "host": kwargs.get('host', os.environ.get("HIVEN_API")),
+        "host": kwargs.get('host', os.environ.get("HIVEN_HOST")),
         "api_version": kwargs.get('api_version', os.environ.get("HIVEN_API_VERSION")),
-        "heartbeat": kwargs.get('heartbeat', os.environ.get("CONNECTION_HEARTBEAT")),
-        "ping_timeout": kwargs.get('ping_timeout', os.environ.get("PING_TIMEOUT")),
-        "close_timeout": kwargs.get('close_timeout', os.environ.get("CLOSE_TIMEOUT")),
-        "ping_interval": kwargs.get('ping_interval', None),
+        "heartbeat": kwargs.get('heartbeat', int(os.environ.get("CONNECTION_HEARTBEAT"))),
+        "close_timeout": kwargs.get('close_timeout', int(os.environ.get("CLOSE_TIMEOUT"))),
         "event_loop": kwargs.get('event_loop'),
         "restart": kwargs.get('restart', False),
         "log_ws_output": kwargs.get('log_ws_output', False)
@@ -254,14 +252,8 @@ class Connection(Websocket, Client):
     
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
-    ping_timeout: `int` - Seconds after the websocket will timeout after no successful pong response.
-                        More information on the websockets documentation. Defaults to `100`
-    
     close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake
                             didn't complete successfully. Defaults to `20`
-    
-    ping_interval: `int` - Interval for sending pings to the server. Defaults to `None` because else the websocket
-                        would timeout because the Hiven Websocket does not give a response
     
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
     
@@ -364,18 +356,25 @@ class Connection(Websocket, Client):
             return
 
     # Kills the connection as well as the event loop
-    async def destroy(self) -> None:
+    async def destroy(self, exec_loop=True, **kwargs) -> None:
         """`openhivenpy.gateway.Connection.destroy()`
         
         Kills the event loop and the running tasks! 
         
         Will likely throw `RuntimeError` if the Client was started in a coroutine or if future
         coroutines are going to get executed!
-        
+
+        Parameter
+        ~~~~~~~~
+
+        exec_loop: `bool` - If True closes the execution_loop with the other tasks. Defaults to True
+
+        reason: `str` - Reason that will be logged
+
         """
-        
         try:
-            logger.info("[CONNECTION] Destroying the current loop and process!")
+            logger.info(f"[CONNECTION] Close method called! Reason: {kwargs.get('reason', 'None')} >>" 
+                        " Destroying current processes and gateway connection!")
             self._connection_status = "CLOSING"
             
             if not self._lifesignal.cancelled():
@@ -383,10 +382,11 @@ class Connection(Websocket, Client):
             
             if not self._connection.cancelled():
                 self._connection.cancel()
-            
+
+            if exec_loop:
+                await self._execution_loop.stop()
+
             await self._event_loop.shutdown_asyncgens()
-            self._event_loop.stop()
-            self._event_loop.close()
             
             self._connection_status = "CLOSED"
             self._initialized = False
@@ -407,10 +407,13 @@ class Connection(Websocket, Client):
         ~~~~~~~~
         
         exec_loop: `bool` - If True closes the execution_loop with the other tasks. Defaults to True
-        
+
+        reason: `str` - Reason that will be logged
+
         """
         try:
-            logger.info("[CONNECTION] Closing the current loop and process!")
+            logger.info(f"[CONNECTION] Close method called! Reason: {kwargs.get('reason', 'None')} >>" 
+                        " Closing current processes and gateway connection!")
             self._connection_status = "CLOSING"
             
             if not kwargs.get('restart', False):

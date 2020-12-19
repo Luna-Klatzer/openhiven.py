@@ -105,65 +105,82 @@ class EventHandler:
                                     func_name='on_house_exit',
                                     args=param) 
 
+    async def ev_relationship_update(self, relationship) -> None:
+        param = [relationship]
+        await dispatch_func_if_exists(
+            obj=self.call_obj,
+            func_name='on_relationship_update',
+            args=param
+        )
+
     async def ev_presence_update(self, presence, user) -> None:
         param = [presence, user]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_presence_update',
-                                    args=param) 
+            obj=self.call_obj,
+            func_name='on_presence_update',
+            args=param
+        )
 
     async def ev_message_create(self, message) -> None:
         param = [message]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_message_create',
-                                    args=param) 
+            obj=self.call_obj,
+            func_name='on_message_create',
+            args=param
+        )
 
     async def ev_message_delete(self, message) -> None:
         param = [message]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_message_delete',
-                                    args=param)
+            obj=self.call_obj,
+            func_name='on_message_delete',
+            args=param
+        )
         
     async def ev_message_update(self, message) -> None:
         param = [message]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_message_update',
-                                    args=param) 
+            obj=self.call_obj,
+            func_name='on_message_update',
+            args=param
+        )
 
-    async def ev_typing_start(self, user) -> None:
-        param = [user]
+    async def ev_typing_start(self, typing) -> None:
+        param = [typing]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_typing_start',
-                                    args=param) 
+            obj=self.call_obj,
+            func_name='on_typing_start',
+            args=param
+        )
 
-    async def ev_typing_end(self, user) -> None:
-        param = [user]
+    async def ev_typing_end(self, typing) -> None:
+        param = [typing]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_typing_end',
-                                    args=param) 
+            obj=self.call_obj,
+            func_name='on_typing_end',
+            args=param
+        )
 
     async def ev_house_member_update(self, member, house) -> None:
         param = [member, house]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_user_update',
-                                    args=param)
+            obj=self.call_obj,
+            func_name='on_user_update',
+            args=param
+        )
 
     async def ev_house_member_chunk(self, data: dict) -> None:
         param = [data]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_house_member_chunk',
-                                    args=param)
+            obj=self.call_obj,
+            func_name='on_house_member_chunk',
+            args=param
+        )
 
     async def ev_batch_house_member_update(self, data: dict) -> None:
         param = [data]
         await dispatch_func_if_exists(
-                                    obj=self.call_obj,
-                                    func_name='on_house_member_batch_update',
-                                    args=param)
+            obj=self.call_obj,
+            func_name='on_house_member_batch_update',
+            args=param
+        )

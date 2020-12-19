@@ -45,6 +45,9 @@ class Client:
         # Appends the ready check function to the execution_loop
         self._execution_loop.add_to_startup(self.__check_meta_data)
 
+    def __str__(self):
+        return self.name
+
     @property
     def connection_start(self):
         return getattr(self, "connection_start")
@@ -88,11 +91,11 @@ class Client:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
-                await self._event_handler.ev_ready_state()
+                asyncio.create_task(self._event_handler.ev_ready_state())
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
                 self._ready = True
-                await self._event_handler.ev_ready_state()
+                asyncio.create_task(self._event_handler.ev_ready_state())
                 break
             await asyncio.sleep(0.05)
 
@@ -110,7 +113,7 @@ class Client:
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                    response = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
                     http_code = response.status
                     return True
                 else:
@@ -122,6 +125,10 @@ class Client:
             logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] "
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
+
+    @property
+    def user(self):
+        return self._USER
 
     @property
     def amount_houses(self) -> int:

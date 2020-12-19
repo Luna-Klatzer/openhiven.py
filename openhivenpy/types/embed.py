@@ -39,7 +39,10 @@ class Embed:
         self._title = data.get('title')
         self._image = data.get('image')
         self._description = data.get('description')
-        
+
+    def __str__(self):
+        return self.title
+
     @property
     def url(self):
         return self._url

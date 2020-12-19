@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import os
 from typing import Optional
 
+from openhivenpy.settings import load_env
 from .hivenclient import HivenClient
 
 __all__ = 'BotClient'
@@ -36,15 +38,13 @@ class BotClient(HivenClient):
     def __init__(
                 self, 
                 token: str, 
-                *, 
-                heartbeat: Optional[int] = 30000, 
+                *,
                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), 
                 **kwargs):
-        
-        self._CLIENT_TYPE = "HivenClient.BotClient"
+
+        self._CLIENT_TYPE = "bot"
         super().__init__(token=token, 
                          client_type=self._CLIENT_TYPE,
-                         heartbeat=heartbeat, 
                          event_loop=event_loop, 
                          **kwargs)
 

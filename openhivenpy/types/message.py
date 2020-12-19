@@ -37,6 +37,9 @@ class DeletedMessage:
         self._house_id = int(data.get('house_id'))
         self._room_id = int(data.get('room_id'))
 
+    def __str__(self):
+        return f"Deleted message in room {self.room_id}"
+
     @property
     def message_id(self):
         return int(self._message_id)

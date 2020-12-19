@@ -34,6 +34,9 @@ class LazyHouse:
         self._owner_id = data.get('owner_id')
         self._rooms = list(getType.room(r, http, self) for r in data.get("rooms"))
 
+    def __str__(self):
+        return self.name
+
     @property
     def id(self) -> int:
         return self._id

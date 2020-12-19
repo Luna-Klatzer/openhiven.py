@@ -37,6 +37,9 @@ class LazyUser:
         self._header = data.get('header') 
         self._bot = data.get('bot')
 
+    def __str__(self):
+        return self.name
+
     @property
     def username(self) -> str:
         return self._username
@@ -103,6 +106,9 @@ class User(LazyUser):
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize User object! Possibly faulty data! "
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self):
+        return self.name
 
     @property
     def location(self) -> str:

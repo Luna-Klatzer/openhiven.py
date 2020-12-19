@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import os
 from typing import Optional, Union
 
 from .hivenclient import HivenClient
+from openhivenpy.settings import load_env
 import openhivenpy.types as types
 import openhivenpy.utils as utils
 
@@ -41,15 +43,13 @@ class UserClient(HivenClient):
     def __init__(
                 self, 
                 token: str, 
-                *, 
-                heartbeat: Optional[int] = 30000, 
+                *,
                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), 
                 **kwargs):
 
-        self._CLIENT_TYPE = "HivenClient.UserClient"
+        self._CLIENT_TYPE = "user"
         super().__init__(token=token, 
-                         client_type=self._CLIENT_TYPE, 
-                         heartbeat=heartbeat, 
+                         client_type=self._CLIENT_TYPE,
                          event_loop=event_loop, 
                          **kwargs)
 
@@ -106,8 +106,14 @@ class UserClient(HivenClient):
         """        
         try:
             resp = await self.http.request(endpoint=f"/relationships/@me/friend-requests")
-            
-            return resp.get('data')
+            if resp.get('success', False):
+                data = resp.get('data')
+                return {
+                    'incoming': list(types.LazyUser(data) for data in data.get('incoming', [])),
+                    'outgoing': list(types.LazyUser(data) for data in data.get('outgoing', []))
+                }
+            else:
+                return
 
         except Exception as e:
             logger.error(f"Failed to fetch the current open friend requests! Cause of Error {e}")

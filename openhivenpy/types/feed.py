@@ -22,3 +22,4 @@ class Feed:
     """
     def __init__(self, data: dict, http: HTTP):
         self._http = http
+
