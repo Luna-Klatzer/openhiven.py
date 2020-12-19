@@ -546,8 +546,9 @@ class Websocket(Client, API):
                         # Appending to the client houses list
                         self._houses.append(house)
                         self._event_loop.create_task(self._event_handler.ev_house_join(house))
+
                     self._event_loop.create_task(house_join_handler())
-    
+
             elif swarm_event == "HOUSE_LEAVE":
                 """
                 The client leaves a house
@@ -574,6 +575,7 @@ class Websocket(Client, API):
                                          "Possibly faulty Client data!")
 
                         self._event_loop.create_task(self._event_handler.ev_house_exit(house=house))
+
                     self._event_loop.create_task(house_leave_handler())
 
             elif swarm_event == "HOUSE_DOWN":
@@ -598,11 +600,12 @@ class Websocket(Client, API):
                         house = utils.get(self._houses, id=int(data.get('house_id', 0)))
                         if data.get('unavailable'):
                             logger.debug(f"[WEBSOCKET] << Downtime of '{house.name}' reported! "
-                                        "House was either deleted or is currently unavailable!")
+                                         "House was either deleted or is currently unavailable!")
                         else:
                             pass
 
                         self._event_loop.create_task(self._event_handler.ev_house_down(time=t, house=house))
+
                     self._event_loop.create_task(house_down_handler())
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
@@ -635,73 +638,76 @@ class Websocket(Client, API):
                         Handler for a member joining a mutual house. Trigger on_house_enter
                         and returns as parameters the member obj and house obj.
                         """
-                        # Removing the old user and appending the new data so it's up-to-date
-                        user_id = response_data.get('user_id')
-                        if user_id is None:
-                            # Backup is user id data
-                            user_id = response_data.get('user', {}).get('id', 0)
+                        try:
+                            # Removing the old user and appending the new data so it's up-to-date
+                            user_id = response_data.get('user_id')
+                            if user_id is None:
+                                # Backup is user id data
+                                user_id = response_data.get('user', {}).get('id', 0)
 
-                        # Getting the cached user
-                        cached_user = utils.get(self._users, id=int(user_id))
-                        if response_data.get('user') is not None:
-                            user = types.User(response_data['user'], self.http)
-
-                            if cached_user:
-                                # Removing old data
-                                self._users.remove(cached_user)
-
-                            # Works fine
-                            self._users.append(user)
-                        else:
-                            # If no user obj was sent the cached_user will server as the user
-                            # Which can only be possible if the data is faulty and the user
-                            # exists in another server
-                            logger.warning("[WEBSOCKET] Got a faulty response with no existing user data!"
-                                           "Will fallback to default cached user!")
-                            user = cached_user
-
-                        house_id = response_data.get('house_id')
-                        if house_id is None:
-                            house_id = response_data.get('house', {}).get('id', 0)
-                        house = utils.get(self._houses, id=int(house_id))
-
-                        # Checking if the house exits
-                        if house:
-                            cached_member = utils.get(house._members, user_id=int(response_data.get('user_id', 0)))
+                            # Getting the cached user
+                            cached_user = utils.get(self._users, id=int(user_id))
                             if response_data.get('user') is not None:
-                                member = types.Member(response_data['user'], house, self.http)
+                                user = types.User(response_data['user'], self.http)
 
-                                if cached_member:
+                                if cached_user:
                                     # Removing old data
-                                    house._members.remove(cached_member)
+                                    self._users.remove(cached_user)
 
-                                # Works fine
-                                house._members.append(member)
+                                # Everything is fine
+                                self._users.append(user)
                             else:
-                                # Falling back to the cached_user!
-                                if cached_member:
-                                    member = cached_member
-                                    logger.warning("[WEBSOCKET] Got a faulty response with no existing member data!"
-                                                    "Will fallback to default cached member in the house object!")
+                                # If no user obj was sent the cached_user will server as the user
+                                # Which can only be possible if the data is faulty and the user
+                                # exists in another server
+                                logger.warning("[WEBSOCKET] Got faulty ws event data with no existing user data!")
+                                user = None
+
+                            house_id = response_data.get('house_id')
+                            if house_id is None:
+                                house_id = response_data.get('house', {}).get('id', 0)
+                            house = utils.get(self._houses, id=int(house_id))
+
+                            # Checking if the house exits
+                            if house:
+                                cached_member = utils.get(house._members, user_id=int(response_data.get('user_id', 0)))
+                                if response_data.get('user') is not None:
+                                    member = types.Member(response_data['user'], house, self.http)
+
+                                    if cached_member:
+                                        # Removing old data
+                                        house._members.remove(cached_member)
+
+                                    # Everything is fine
+                                    house._members.append(member)
                                 else:
-                                    member = cached_user
-                                    logger.warning("[WEBSOCKET] Got a faulty response with no existing member data!"
-                                                    "Will fallback to default cached user!")
+                                    # Falling back to the cached_user!
+                                    if cached_member:
+                                        member = None
+                                        logger.warning("[WEBSOCKET] Got faulty ws event data with no "
+                                                       "existing member data!")
+                                    else:
+                                        member = None
+                                        logger.warning("[WEBSOCKET] Got faulty ws event data with no "
+                                                       "existing member data!")
 
-                        else:
-                            logger.warning("[WEBSOCKET] Failed to add new member to unknown house! "
-                                           "Possibly faulty client data!")
-                            house = None
-                            # Falling back to the user to provide some data
-                            member = user
-                            logger.warning("[WEBSOCKET] Event on_house_enter will have insufficient data!"
-                                           ">> House object will default to None and member will default to cached user!")
+                            else:
+                                logger.warning("[WEBSOCKET] Failed to add new member to unknown house! "
+                                               "Possibly faulty client data!")
+                                house = None
+                                # Falling back to the user to provide some data
+                                member = user
+                                logger.warning("[WEBSOCKET] Event on_house_enter will have insufficient data!"
+                                               ">> House object will default to None and member will default to cached user!")
 
-                        self._event_loop.create_task(self._event_handler.ev_house_member_enter(
-                            member=member,
-                            house=house
-                        ))
+                            self._event_loop.create_task(self._event_handler.ev_house_member_enter(
+                                member=member,
+                                house=house
+                            ))
 
+                        except Exception as e:
+                            logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
+                                             f"'on_member_update'! Exception: {e}")
 
                     self._event_loop.create_task(house_member_enter())
 
@@ -737,46 +743,56 @@ class Websocket(Client, API):
                 if self._initialized:
                     async def house_member_update_handler():
                         """
-                        Handler for a house member update
+                        Handler for a house member update which will trigger on_member_update and return
+                        as parameter the old member obj, the new member obj and the house.
                         """
-                        house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
+                        try:
+                            data = response_data
+                            house = utils.get(self._houses, id=int(data.get('house_id', 0)))
 
-                        # Removing the old user and appending the new data so it's up-to-date
-                        cached_user = utils.get(self._users, id=int(response_data.get('user_id', 0)))
-                        if response_data.get('user') is not None:
-                            user = types.User(response_data['user'], self.http)
+                            # Removing the old user and appending the new data so it's up-to-date
+                            cached_user = utils.get(self._users, id=int(data.get('user_id', 0)))
+                            if data.get('user') is not None:
+                                user = types.User(data['user'], self.http)
 
-                            if cached_user:
-                                self._users.remove(cached_user)
-                            self._users.append(user)
-                        else:
-                            user = cached_user
-                            logger.warning("[WEBSOCKET] Got a faulty response with no existing member data!"
-                                           "Will fallback to default cached user!")
-
-                        # Getting the cached member in the house if it exists
-                        cached_member = utils.get(house._members, user_id=int(response_data.get('user_id', 0)))
-                        if response_data.get('user') is not None:
-                            member = types.Member(response_data['user'], house, self.http)
-
-                            if cached_member:
-                                # Removing the old data
-                                house._members.remove(cached_member)
-                            house._members.append(member)
-                        else:
-                            if cached_member:
-                                member = cached_member
-                                logger.warning("[WEBSOCKET] Got a faulty response with no existing member data!"
-                                               "Will fallback to default cached member in the house object!")
+                                if cached_user:
+                                    self._users.remove(cached_user)
+                                self._users.append(user)
                             else:
-                                member = cached_user
-                                logger.warning("[WEBSOCKET] Got a faulty response with no existing member data!"
-                                               "Will fallback to default cached user!")
+                                user = None
+                                logger.warning("[HOUSE_MEMBER_UPDATE] Got faulty ws event data with no "
+                                               "existing member data!")
+                                if not cached_user:
+                                    logger.warning("[HOUSE_MEMBER_UPDATE] Unable to find user in the cache! "
+                                                   f"USER_ID={data.get('user_id')}")
 
-                        self._event_loop.create_task(self._event_handler.ev_house_member_update(
-                            member=member,
-                            house=house
-                        ))
+                            # Getting the cached member in the house if it exists
+                            cached_member = utils.get(house._members, user_id=int(data.get('user_id', 0)))
+                            if data.get('user') is not None:
+                                member = types.Member(data['user'], house, self.http)
+
+                                if cached_member:
+                                    # Removing the old data
+                                    house._members.remove(cached_member)
+                                house._members.append(member)
+                            else:
+                                logger.warning("[HOUSE_MEMBER_UPDATE] Got faulty ws event data with no "
+                                               "existing member data!")
+                                member = None
+                                if not cached_member:
+                                    logger.warning("[HOUSE_MEMBER_UPDATE] Unable to find member in the cache! "
+                                                   f"USER_ID={data.get('user_id')}")
+
+                            self._event_loop.create_task(self._event_handler.ev_house_member_update(
+                                old=cached_member,
+                                new=member,
+                                house=house
+                            ))
+
+                        except Exception as e:
+                            logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
+                                             f"'on_member_update'! Exception: {e}")
+
                     self._event_loop.create_task(house_member_update_handler())
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
@@ -797,21 +813,29 @@ class Websocket(Client, API):
                         from the house members list and triggers on_house_exit and
                         returns as parameter the user obj and house obj
                         """
-                        data = response_data
-                        user = utils.get(self._users, id=int(data.get('id')))
-                        house = utils.get(self._houses, id=int(data.get('house_id')))
-                        if house:
-                            cached_mem = utils.get(house._members, user_id=int(data.get('id')))
-                            if cached_mem:
-                                house._members.remove(cached_mem)
+                        try:
+                            data = response_data
+                            user = utils.get(self._users, id=int(data.get('id')))
+                            house = utils.get(self._houses, id=int(data.get('house_id')))
+                            if house:
+                                cached_mem = utils.get(house._members, user_id=int(data.get('id')))
+                                if cached_mem:
+                                    house._members.remove(cached_mem)
+                                else:
+                                    logger.warning("[HOUSE_MEMBER_EXIT] Failed to find member in the client cache! "
+                                                   "Possibly faulty client data!")
                             else:
-                                logger.warning("[WEBSOCKET] Failed to find members in cached house list! Possibly faulty client data!")
-                        else:
-                            logger.warning("[WEBSOCKET] Failed to find House on House member exit! Possibly faulty client data")
-                        self._event_loop.create_task(self._event_handler.ev_house_member_exit(
-                            user=user,
-                            house=house
-                        ))
+                                logger.warning("[HOUSE_MEMBER_EXIT] Failed to find House in the client cache! "
+                                               "Possibly faulty client data!")
+                            self._event_loop.create_task(self._event_handler.ev_house_member_exit(
+                                user=user,
+                                house=house
+                            ))
+
+                        except Exception as e:
+                            logger.exception("[HOUSE_MEMBER_EXIT] Failed to handle event and trigger "
+                                             f"'on_house_exit'! Exception: {e}")
+
                     self._event_loop.create_task(house_member_exit_handler())
 
             elif swarm_event == "PRESENCE_UPDATE":
@@ -835,9 +859,15 @@ class Websocket(Client, API):
                         """
                         Handler for a User Presence update
                         """
-                        user = types.User(response_data, self.http)
-                        presence = types.Presence(response_data, user, self.http)
-                        self._event_loop.create_task(self._event_handler.ev_presence_update(presence, user))
+                        try:
+                            user = types.User(response_data, self.http)
+                            presence = types.Presence(response_data, user, self.http)
+                            self._event_loop.create_task(self._event_handler.ev_presence_update(presence, user))
+
+                        except Exception as e:
+                            logger.exception("[PRESENCE_UPDATE] Failed to handle event and trigger "
+                                             f"'on_presence_update'! Exception: {e}")
+
                     self._event_loop.create_task(presence_update_handler())
 
             elif swarm_event == "MESSAGE_CREATE":
@@ -910,35 +940,62 @@ class Websocket(Client, API):
                         and update cached data (room, author). Will return as parameter the created
                         msg object.
                         """
-                        if response_data.get('house_id') is not None:
-                            house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
-                        else:
-                            house = None
+                        try:
+                            data = response_data
+                            if data.get('house_id'):
+                                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
+                            else:
+                                house = None
 
-                        # Updating the last message id in the Room
-                        room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
-                        if room in self._rooms:
-                            self._rooms.remove(room)
-                            room._last_message_id = response_data.get('id')
-                            self._rooms.append(room)
-                        else:
-                            logger.warning("[WEBSOCKET] Room from incoming message data not found! "
-                                           "Possibly faulty client data!")
+                            if house:
+                                # Updating the last message id in the Room
+                                room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
+                                if room in self._rooms:
+                                    self._rooms.remove(room)
+                                    room._last_message_id = data.get('id')
+                                    self._rooms.append(room)
+                                else:
+                                    room = None
+                                    logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
+                                                   f"ROOM_ID={data.get('room_id')}")
 
-                        # Removing the old user and appending the new data so it's up-to-date
-                        cached_author = utils.get(self._users, id=int(response_data.get('author_id', 0)))
-                        if response_data.get('author') is not None:
-                            author = types.User(response_data['author'], self.http)
+                            else:
+                                # Updating the last message id in the Private-Room
+                                private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
+                                if private_room:
+                                    self._private_rooms.remove(private_room)
+                                    private_room._last_message_id = data.get('id')
+                                    self._private_rooms.append(private_room)
 
-                            if cached_author:
-                                # Removing the old data from the list
-                                self._users.remove(cached_author)
-                            self._users.append(author)
-                        else:
-                            author = cached_author
+                                    room = private_room
+                                else:
+                                    room = None
+                                    logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
+                                                   f"ROOM_ID={data.get('room_id')}")
 
-                        msg = types.Message(response_data, self.http, house, room, author)
-                        self._event_loop.create_task(self._event_handler.ev_message_create(msg))
+                            # Removing the old user and appending the new data so it's up-to-date
+                            cached_author = utils.get(self._users, id=int(data.get('author_id', 0)))
+                            if data.get('author') is not None:
+                                author = types.User(data['author'], self.http)
+
+                                if cached_author:
+                                    # Removing the old data from the list
+                                    self._users.remove(cached_author)
+                                self._users.append(author)
+                            else:
+                                logger.warning("[MESSAGE_CREATE] Author from incoming ws event data not found "
+                                               "in cache! Possibly faulty client data!")
+                                author = None
+                                if not cached_author:
+                                    logger.warning("[MESSAGE_CREATE] Unable to find author in the cache! "
+                                                   f"USER_ID={data.get('author_id')}")
+
+                            msg = types.Message(response_data, self.http, house, room, author)
+                            self._event_loop.create_task(self._event_handler.ev_message_create(msg))
+
+                        except Exception as e:
+                            logger.exception("[MESSAGE_CREATE] Failed to handle event and trigger 'on_message_create'! "
+                                             f"Exception: {e}")
 
                     self._event_loop.create_task(msg_create_handler())
 
@@ -960,8 +1017,14 @@ class Websocket(Client, API):
                         Handler for a deleted message which will trigger the on_message_delete event
                         and return as parameter a DeletedMessage object.
                         """
-                        msg = types.DeletedMessage(response_data)
-                        self._event_loop.create_task(self._event_handler.ev_message_delete(msg))
+                        try:
+                            msg = types.DeletedMessage(response_data)
+                            self._event_loop.create_task(self._event_handler.ev_message_delete(msg))
+
+                        except Exception as e:
+                            logger.exception("[MESSAGE_DELETE] Failed to handle event and trigger 'on_message_delete'! "
+                                             f"Exception: {e}")
+
                     self._event_loop.create_task(msg_delete_handler())
 
             elif swarm_event == "MESSAGE_UPDATE":
@@ -1011,26 +1074,59 @@ class Websocket(Client, API):
                         Handler for a deleted message which will create a new msg object
                         and return as parameter the object.
                         """
-                        if response_data.get('house_id') is not None:
-                            house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
-                        else:
-                            house = None
+                        try:
+                            # Removes old data in the client cache if possible and reuses older data since
+                            # no new data is getting sent with the event.
 
-                        room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
+                            data = response_data
+                            if data.get('house_id') is not None:
+                                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
+                            else:
+                                house = None
 
-                        cached_author = utils.get(self._users, id=int(response_data.get('author_id', 0)))
-                        if response_data.get('author') is not None:
-                            author = types.User(response_data['author'], self.http)
+                            if house:
+                                # Updating the last message id in the Room
+                                room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
+                                if room in self._rooms:
+                                    self._rooms.remove(room)
+                                    room._last_message_id = data.get('id')
+                                    self._rooms.append(room)
+                                else:
+                                    room = None
+                                    logger.warning("[MESSAGE_UPDATE] Unable to find private-room in the cache! "
+                                                   f"ROOM_ID={data.get('room_id')}")
 
-                            if cached_author:
-                                # Removing the old data from the list
-                                self._users.remove(cached_author)
-                            self._users.append(author)
-                        else:
-                            author = cached_author
+                            else:
+                                # Updating the last message id in the Private-Room
+                                private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
+                                if private_room:
+                                    self._private_rooms.remove(private_room)
+                                    private_room._last_message_id = data.get('id')
+                                    self._private_rooms.append(private_room)
 
-                        message = types.Message(response_data, self.http, house=house, room=room, author=author)
-                        self._event_loop.create_task(self._event_handler.ev_message_update(message))
+                                    room = private_room
+                                else:
+                                    logger.warning("[MESSAGE_UPDATE] Unable to find private-room in the cache! "
+                                                   f"ROOM_ID={data.get('room_id')}")
+                                    room = None
+
+                            # Getting the author from the cache if it exists
+                            cached_author = utils.get(self._users, id=int(data.get('author_id', 0)))
+                            if not cached_author:
+                                logger.warning("[MESSAGE_UPDATE] Author from incoming ws event data not found "
+                                               "in cache! Possibly faulty client data!")
+                                author = None
+                            else:
+                                # Using the cached author since no data is received
+                                author = cached_author
+
+                            message = types.Message(data, self.http, house=house, room=room, author=author)
+                            self._event_loop.create_task(self._event_handler.ev_message_update(message))
+
+                        except Exception as e:
+                            logger.exception("[MESSAGE_UPDATE] Failed to handle event and trigger 'on_message_update'! "
+                                             f"Exception: {e}")
+
                     self._event_loop.create_task(msg_update_handler())
 
             elif swarm_event == "TYPING_START":
@@ -1053,11 +1149,24 @@ class Websocket(Client, API):
                         on_typing_start and return as parameter the typing object with
                         the room, house and member as attributes.
                         """
-                        room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
-                        house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
-                        member = utils.get(house.members, id=int(response_data.get('author_id', 0)))
-                        typing = types.Typing(response_data, member, room, house, self.http)
-                        self._event_loop.create_task(self._event_handler.ev_typing_start(typing))
+                        try:
+                            data = response_data
+                            if data.get('recipient_ids') is None:
+                                room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
+                                house = utils.get(self._houses, id=int(response_data.get('house_id', 0)))
+                                author = utils.get(house.members, id=int(response_data.get('author_id', 0)))
+                            else:
+                                room = utils.get(self._private_rooms, id=int(response_data.get('room_id', 0)))
+                                house = None
+                                author = utils.get(self._users, id=int(response_data.get('author_id', 0)))
+
+                            typing = types.Typing(response_data, author, room, house, self.http)
+                            self._event_loop.create_task(self._event_handler.ev_typing_start(typing))
+
+                        except Exception as e:
+                            logger.exception("[TYPING_START] Failed to handle event and trigger 'on_typing_start'! "
+                                             f"Exception: {e}")
+
                     self._event_loop.create_task(typing_start_handler())
 
             elif swarm_event == "TYPING_END":
@@ -1078,11 +1187,17 @@ class Websocket(Client, API):
                         Currently non-existed and only serves as placeholder in case
                         it is added in the future
                         """
-                        room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
-                        house = utils.get(self._houses, id=int(response_data.get('room_id', 0)))
-                        member = utils.get(house.members, id=int(response_data.get('room_id', 0)))
-                        typing = types.Typing(response_data, member, room, house, self.http)
-                        self._event_loop.create_task(self._event_handler.ev_typing_end(typing))
+                        try:
+                            room = utils.get(self._rooms, id=int(response_data.get('room_id', 0)))
+                            house = utils.get(self._houses, id=int(response_data.get('room_id', 0)))
+                            member = utils.get(house.members, id=int(response_data.get('room_id', 0)))
+                            typing = types.Typing(response_data, member, room, house, self.http)
+                            self._event_loop.create_task(self._event_handler.ev_typing_end(typing))
+
+                        except Exception as e:
+                            logger.exception("[TYPING_END] Failed to handle event and trigger "
+                                             f"'on_typing_end'! Exception: {e}")
+
                     self._event_loop.create_task(typing_end_handler())
 
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
@@ -1123,23 +1238,43 @@ class Websocket(Client, API):
                         on_house_member_chunk and returns as parameter the changed
                         members, the raw data and the house object.
                         """
-                        house = utils.get(self._houses, id=int(response_data.get('house_id')))
-                        members = list([types.Member(data, house, self.http) for data in response_data.get('members')])
+                        try:
+                            data = response_data
+                            house = utils.get(self._houses, id=int(data.get('house_id')))
 
-                        for mem in members:
-                            id = getattr(mem, "id")
-                            cached_mem = utils.get(house.members, id=int(id))
-                            if cached_mem is not None:
-                                house._members.remove(cached_mem)
-                                house._members.append(mem)
-                            else:
-                                logger.warning(f"Failed to update member data of {mem.name} in house {house.name}")
+                            mem_dict = data.get('members')
+                            members = []
+                            for mem_id in mem_dict.keys():
+                                cached_mem = utils.get(house.members, id=int(mem_id))
+                                if cached_mem is not None:
+                                    house._members.remove(cached_mem)
+                                    mem = types.Member(mem_dict.get(mem_id), self.http, house)
+                                    house._members.append(mem)
+                                    members.append(mem)
+                                else:
+                                    name = mem_dict.get(mem_id).get('name')
+                                    logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update member data of "
+                                                   f"{name} in house {house.name}")
 
-                        data = response_data
-                        self._event_loop.create_task(self._event_handler.ev_house_member_chunk(
-                            members=members,
-                            data=data,
-                            house=house))
+                                cached_user = utils.get(self._users, id=int(mem_id))
+                                if cached_user is not None:
+                                    self._users.remove(cached_user)
+                                    user = types.User(mem_dict.get(mem_id), self.http)
+                                    self._users.append(user)
+                                else:
+                                    name = mem_dict.get(mem_id).get('name')
+                                    logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
+                                                   f"{name} in client cache!")
+
+                            self._event_loop.create_task(self._event_handler.ev_house_member_chunk(
+                                members=members,
+                                data=data,
+                                house=house))
+
+                        except Exception as e:
+                            logger.exception("[HOUSE_MEMBERS_CHUNK] Failed to handle event and trigger "
+                                             f"'on_house_member_chunk'! Exception: {e}")
+
                     self._event_loop.create_task(member_chunk_handler())
 
             elif swarm_event == "BATCH_HOUSE_MEMBER_UPDATE":
@@ -1166,45 +1301,56 @@ class Websocket(Client, API):
                         and returns as parameters the members list, the raw data and the house obj
 
                         """
-                        house = utils.get(self._houses, id=int(response_data.get('house_id')))
-                        members = list([types.Member(data, house, self.http) for data in response_data.get('data')])
+                        try:
+                            data = response_data
+                            house = utils.get(self._houses, id=int(data.get('house_id')))
+                            members = list([types.Member(data, house, self.http) for data in data.get('data', [])])
 
-                        for mem in members:
-                            id = getattr(mem, "id")
-                            if id:
-                                cached_mem = utils.get(house.members, id=int(id))
-                                if cached_mem is not None:
-                                    house._members.remove(cached_mem)
-                                    house._members.append(mem)
+                            for mem in members:
+                                mem_id = getattr(mem, "id")
+                                # Checking whether the id exists and the object was created correctly
+                                if mem_id:
+                                    cached_mem = utils.get(house.members, id=int(mem_id))
+                                    if cached_mem is not None:
+                                        # Replaying the members data
+                                        house._members.remove(cached_mem)
+                                        house._members.append(mem)
+                                    else:
+                                        logger.warning(f"[BATCH_HOUSE_MEMBER_UPDATE] Failed to update member data "
+                                                       f"of {mem.name} in house {house.name}")
                                 else:
-                                    logger.warning(f"[WEBSOCKET ]Failed to update member data of {mem.name} "
-                                                   f"in house {house.name}")
-                            else:
-                                logger.warning(f"[WEBSOCKET] Failed to update member data of unknown member in "
-                                               f"house {house.name} because of faulty user data! "
-                                               "Possibly faulty client data!")
-                        users = list([types.User(data, self.http) for data in response_data.get('data')])
+                                    logger.warning(f"[BATCH_HOUSE_MEMBER_UPDATE] Failed to update member data of "
+                                                   f"unknown member in house {house.name} because of faulty user data! "
+                                                   "Possibly faulty client data!")
 
-                        for user in users:
-                            id = getattr(user, "id")
-                            if id:
-                                cached_user = utils.get(self._users, id=int(id))
-                                if cached_user is not None:
-                                    self._users.remove(cached_user)
-                                    self._users.append(user)
+                            users = list([types.User(data, self.http) for data in data.get('data', [])])
+
+                            for user in users:
+                                usr_id = getattr(user, "id")
+                                # Checking whether the id exists and the object was created correctly
+                                if usr_id:
+                                    cached_user = utils.get(self._users, id=int(usr_id))
+                                    if cached_user is not None:
+                                        # Replaying the users data
+                                        self._users.remove(cached_user)
+                                        self._users.append(user)
+                                    else:
+                                        logger.warning(f"[BATCH_HOUSE_MEMBER_UPDATE] Failed to update user data "
+                                                       "of {user.name} in house {house.name}! Possibly faulty client data!")
                                 else:
-                                    logger.warning(f"[WEBSOCKET] Failed to update user data of {user.name} "
-                                                   f"in house {house.name}! Possibly faulty client data!")
-                            else:
-                                logger.warning(f"[WEBSOCKET] Failed to update user data of unknown user in "
-                                               f"house {house.name} because of faulty user data! "
-                                               "Possibly faulty client data!")
+                                    logger.warning(f"[BATCH_HOUSE_MEMBER_UPDATE] Failed to update user data "
+                                                   f"of unknown user in house {house.name} because of faulty user data!"
+                                                   " Possibly faulty client data!")
 
-                        data = response_data
-                        self._event_loop.create_task(self._event_handler.ev_batch_house_member_update(
-                            members=members,
-                            data=data,
-                            house=house))
+                            self._event_loop.create_task(self._event_handler.ev_batch_house_member_update(
+                                members=members,
+                                data=data,
+                                house=house))
+
+                        except Exception as e:
+                            logger.exception("[BATCH_HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
+                                             f"'on_batch_house_member_update'! Exception: {e}")
+
                     self._event_loop.create_task(batch_house_member_handler())
 
             elif swarm_event == "HOUSE_ENTITIES_UPDATE":
@@ -1235,15 +1381,20 @@ class Websocket(Client, API):
                         Handler for a house entity update. Triggers on_house_entity_update and
                         returns as parameter the house obj, the entity obj and the raw data
                         """
-                        data = response_data
-                        house = utils.get(self._houses, id=int(data.get('house_id')))
-                        entity = None  # In work
-                        self._event_loop.create_task(self._event_handler.ev_house_entity_update(
-                            house=house,
-                            entity=entity,
-                            data=data
-                        ))
-                    
+                        try:
+                            data = response_data
+                            house = utils.get(self._houses, id=int(data.get('house_id')))
+                            entity = None  # In work
+                            self._event_loop.create_task(self._event_handler.ev_house_entity_update(
+                                house=house,
+                                entity=entity,
+                                data=data
+                            ))
+
+                        except Exception as e:
+                            logger.exception("[HOUSE_ENTITIES_UPDATE] Failed to handle event and trigger "
+                                             f"'on_house_entity_update'! Exception: {e}")
+
                     self._event_loop.create_task(house_entity_update_handler())
 
             elif swarm_event == "RELATIONSHIP_UPDATE":
@@ -1282,6 +1433,7 @@ class Websocket(Client, API):
                             # Removing the old data
                             self._relationships.remove(cache_relationship)
 
+                        # Adding the new data
                         self._relationships.append(relationship)
                         self._event_loop.create_task(self._event_handler.ev_relationship_update(
                             relationship=relationship

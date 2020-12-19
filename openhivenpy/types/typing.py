@@ -3,7 +3,6 @@ import logging
 import sys
 
 import openhivenpy.exceptions as errs
-from ._get_type import getType
 from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ class Typing:
     """
     def __init__(self, data: dict, member, room, house, http: HTTP):
         try:
-            self._member = member
+            self._author = member
             self._room = room
             self._house = house
             self._member_id = data.get('author_id')
@@ -47,15 +46,15 @@ class Typing:
                                             f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self):
-        return f"Typing in room '{self.room.name}' by '{self.member.name}'"
+        return f"Typing in room '{self.room.name}' by '{self.author.name}'"
 
     @property
     def timestamp(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(self._timestamp)
 
     @property
-    def member(self):
-        return self._member
+    def author(self):
+        return self._author
 
     @property
     def house(self):

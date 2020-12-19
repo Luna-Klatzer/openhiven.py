@@ -86,5 +86,15 @@ async def on_house_downage(t, house):
 async def on_typing_start(typing):
     print(typing)
 
+
+@client.event()
+async def on_house_exit(user, house):
+    print(f"{user.name} left {house.name}")
+
+
+@client.event()
+async def on_house_enter(member, house):
+    print(f"{member.name} joined {house.name}")
+
 if __name__ == '__main__':
     client.run()
