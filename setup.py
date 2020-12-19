@@ -1,5 +1,8 @@
 import setuptools
 
+from dotenv import load_dotenv
+load_dotenv()
+
 with open("README.md", "r") as file:
     long_description = file.read()
 

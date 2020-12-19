@@ -150,7 +150,8 @@ class Room:
                     raise KeyError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={http_code}]"
+                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
     async def start_typing(self) -> bool:

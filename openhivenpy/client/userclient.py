@@ -6,7 +6,7 @@ from .hivenclient import HivenClient
 import openhivenpy.types as types
 import openhivenpy.utils as utils
 
-__all__ = ('UserClient')
+__all__ = 'UserClient'
 
 logger = logging.getLogger(__name__)
 
