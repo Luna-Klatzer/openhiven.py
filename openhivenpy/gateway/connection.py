@@ -341,14 +341,14 @@ class Connection(Websocket, Client):
 
                 await asyncio.gather(self.ws_connect(session), self._execution_loop.start())
             else:
-                msg = "HTTP-Client was unable to request data from Hiven!"
+                msg = "[CONNECTION] Failed to get connected Client data!"
                 logger.critical(msg)
                 raise errs.HivenConnectionError(msg)
 
         except Exception as e:
-            logger.critical(f"Error while trying to establish the connection to Hiven!" 
+            logger.critical(f"Error while trying to establish the connection to Hiven! " 
                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HivenConnectionError(f"Error while trying to establish the connection to Hiven!" 
+            raise errs.HivenConnectionError(f"Error while trying to establish the connection to Hiven! " 
                                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             
         finally:

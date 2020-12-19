@@ -91,7 +91,7 @@ class House:
 
             members = data.get("members", [])
             if members:
-                self._members = list(getType.member(m, http, self) for m in members)
+                self._members = list(getType.member(m, self, http) for m in members)
             else:
                 self._members = []
 

@@ -34,12 +34,12 @@ class getType:
         return House(data, http, client_id)
 
     @staticmethod
-    async def a_member(data: dict, http: HTTP, house):
+    async def a_member(data: dict, house, http: HTTP):
         """
         Async Function for getting a Member Object with passed data 
         """
         from .member import Member
-        return Member(data, http, house)
+        return Member(data, house, http)
     
     @staticmethod
     async def a_message(data: dict, http: HTTP, house, room, author):
@@ -131,12 +131,12 @@ class getType:
         return House(data, http, client_id)
 
     @staticmethod
-    def member(data: dict, http: HTTP, house):
+    def member(data: dict, house, http: HTTP):
         """
         Regular Function for getting a Member Object with passed data
         """
         from .member import Member
-        return Member(data, http, house)
+        return Member(data, house, http)
 
     @staticmethod
     def message(data: dict, http: HTTP, house, room, author):

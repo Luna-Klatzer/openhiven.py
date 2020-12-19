@@ -23,9 +23,9 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict, http: HTTP, house):
+    def __init__(self, data: dict, house, http: HTTP):
         try:
-            super().__init__(data, http)
+            super().__init__(data.get('user', data), http)
             self._user_id = int(data['user_id']) if data.get('user_id') is not None else None
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')

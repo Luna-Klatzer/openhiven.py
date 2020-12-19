@@ -83,10 +83,6 @@ class User(LazyUser):
     """
     def __init__(self, data: dict, http: HTTP):
         try:
-            # Messages have the user data nested
-            if data.get('user') is not None:
-                data = data.get('user')
-
             super().__init__(data) 
             self._location = data.get('location', "")
             self._website = data.get('website', "") 

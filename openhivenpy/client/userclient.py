@@ -54,10 +54,10 @@ class UserClient(HivenClient):
                          **kwargs)
 
     def __repr__(self) -> str:
-        return str(self._CLIENT_TYPE)
+        return str(getattr(self, "name", None))
 
     def __str__(self) -> str:
-        return str(self._CLIENT_TYPE)
+        return str(getattr(self, "name", None))
         
     async def cancel_friend_request(self, user_id=None, **kwargs) -> Union[bool, None]:
         """`openhivenpy.UserClient.cancel_friend_request()`

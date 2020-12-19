@@ -98,8 +98,8 @@ class EventHandler:
                                     func_name='on_house_enter',
                                     args=param) 
 
-    async def ev_house_member_exit(self, user) -> None:
-        param = [user]
+    async def ev_house_member_exit(self, user, house) -> None:
+        param = [user, house]
         await dispatch_func_if_exists(
                                     obj=self.call_obj,
                                     func_name='on_house_exit',
@@ -169,18 +169,26 @@ class EventHandler:
             args=param
         )
 
-    async def ev_house_member_chunk(self, data: dict) -> None:
-        param = [data]
+    async def ev_house_member_chunk(self, members: list, house, data: dict) -> None:
+        param = [members, house]
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_member_chunk',
             args=param
         )
 
-    async def ev_batch_house_member_update(self, data: dict) -> None:
-        param = [data]
+    async def ev_batch_house_member_update(self, house, members, data: dict) -> None:
+        param = [members, data, house]
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_member_batch_update',
+            args=param
+        )
+
+    async def ev_house_entity_update(self, house, entity, data) -> None:
+        param = [house, entity, data]
+        await dispatch_func_if_exists(
+            obj=self.call_obj,
+            func_name='on_house_entity_update',
             args=param
         )

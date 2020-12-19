@@ -83,7 +83,7 @@ class HTTP:
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
 
             async def on_response_chunk_received(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
+                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}")
 
             async def on_connection_queued_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
@@ -170,7 +170,7 @@ class HTTP:
                 elif time.time() > timeout_limit:
                     if not self._request.cancelled():
                         self._request.cancel()
-                    logger.debug(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
+                    logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
                                  f"{endpoint}; Request to Hiven timed out!")
                     break
                 await asyncio.sleep(0.25)
@@ -195,43 +195,46 @@ class HTTP:
                                                     timeout=_timeout,
                                                     **kwargs) as resp:
                         http_code = resp.status
-                        
+
+                        hiven_error_code = None
+                        hiven_error_reason = None
+
+                        # If the response code is lower than 300 the request was somewhat succesful
                         if http_code < 300:
                             data = await resp.read()
                             if http_code == 204:
                                 if method == "GET":
                                     error = True
-                                    error_code = "Empty Response"
-                                    error_reason = "Got an empty response that cannot be converted to json!" 
-                                    
-                                logger.debug("[HTTP] << Received Empty HTTP Response")
+                                logger.warning("[HTTP] << Received Empty HTTP Response")
                             else:
                                 json = json_decoder.loads(data)
                                 
                                 error = json.get('error', False)
                                 if error:
-                                    error_code = json['error']['code'] if json['error'].get('code') is not None else 'Unknown HTTP Error'
-                                    error_reason = json['error']['message'] if json['error'].get('message') is not None else 'Possibly faulty request or response!'
+                                    hiven_error_code = json['error'].get('code')
+                                    hiven_error_reason = json['error'].get('message')
                                 else:
-                                    error_code = 'Unknown HTTP Error'
-                                    error_reason = 'Possibly faulty request or response!'
+                                    hiven_error_code = 'Unknown HTTP or Request Error'
+                                    hiven_error_reason = 'Possibly faulty request or response!'
 
-                            if http_code < 300:
-                                if error is False:
-                                    return resp
+                            if error is False:
+                                return resp
                                 
                         error_code = http_code
                         error_reason = resp.reason
 
-                        logger.debug(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: " 
+                        logger.warning(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
                                      f"{endpoint}; {error_code}, {error_reason}")
+                        if hiven_error_code or hiven_error_reason:
+                            logger.warning(f"[HTTP] << Received Hiven Error: {hiven_error_code} - {hiven_error_reason}")
+
                         return resp
         
                 except asyncio.TimeoutError as e:
-                    logger.error(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
 
                 except Exception as e:
-                    logger.error(f"[HTTP] << FAILED HTTPClient '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
                         
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
@@ -244,7 +247,7 @@ class HTTP:
         try:
             resp = await asyncio.gather(self._request, _task_time_out_handler)
         except asyncio.CancelledError:
-            logger.debug(f"[HTTP] >> Request was cancelled!")
+            logger.warning(f"[HTTP] >> Request was cancelled!")
             return
         except Exception as e:
             logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint};" 
@@ -279,7 +282,7 @@ class HTTP:
         """
         resp = await self.raw_request(endpoint, method="GET", timeout=timeout, **kwargs)
         if resp is not None and resp.status < 300:
-            if resp.status != 204:
+            if resp.status < 300 and resp.status != 204:
                 return await resp.json()
             else:
                 return None

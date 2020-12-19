@@ -276,8 +276,8 @@ class HivenClient(EventHandler, API):
     # Client data
     # -----------
     @property
-    def username(self) -> str:
-        return self.connection.username
+    def name(self) -> str:
+        return self.connection.name
 
     @property
     def user(self) -> types.Client:

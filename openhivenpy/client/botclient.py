@@ -48,8 +48,8 @@ class BotClient(HivenClient):
                          event_loop=event_loop, 
                          **kwargs)
 
-    def __repr__(self):
-        return str(self._CLIENT_TYPE)
+    def __repr__(self) -> str:
+        return str(getattr(self, "name", None))
 
-    def __str__(self):
-        return str(self._CLIENT_TYPE)
+    def __str__(self) -> str:
+        return str(getattr(self, "name", None))

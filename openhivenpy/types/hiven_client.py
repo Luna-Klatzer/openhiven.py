@@ -77,6 +77,9 @@ class Client:
             houses_ids = data.get('house_memberships', [])
             self._amount_houses = len(houses_ids)
 
+            data = await self.http.request("/users/@me", timeout=10)
+            self._USER = getType.user(data=data.get('data', {}), http=self.http)
+
         except Exception as e:
             logger.error(f"FAILED to update client data! "
                          f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -131,18 +134,6 @@ class Client:
         return self._USER
 
     @property
-    def amount_houses(self) -> int:
-        return self._amount_houses
-
-    @property
-    def relationships(self) -> list:
-        return self._relationships
-
-    @property
-    def private_rooms(self) -> list:
-        return self._private_rooms
-
-    @property
     def username(self) -> str:
         return self._USER.username
 
@@ -184,3 +175,15 @@ class Client:
             return datetime.datetime.fromisoformat(self._USER._joined_at[:10])
         else:
             return None
+
+    @property
+    def amount_houses(self) -> int:
+        return self._amount_houses
+
+    @property
+    def relationships(self) -> list:
+        return self._relationships
+
+    @property
+    def private_rooms(self) -> list:
+        return self._private_rooms
