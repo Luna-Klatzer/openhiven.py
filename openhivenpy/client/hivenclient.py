@@ -94,7 +94,7 @@ class HivenClient(EventHandler, API):
             logger.critical(f"[CLIENT] >> Empty Token was passed!")
             raise errs.InvalidToken
 
-        elif len(token) != 128 and len(token) != 131: # Bot TOKEN
+        elif len(token) != 128 and len(token) != 132: # Bot TOKEN
             logger.critical(f"[CLIENT] >> Invalid Token was passed!")
             raise errs.InvalidToken
 
