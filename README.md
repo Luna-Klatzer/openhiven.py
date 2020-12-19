@@ -39,7 +39,7 @@
 </p>
 <h2 align="center">Installation</h2>
 <h3 align="center">Install (PyPi Release)</h3>
-<h3 align="center"><code>pip install openhiven.py</code></h3>
+<h3 align="center"><code>pip install openhivenpy</code></h3>
 <h3 align="center">Install (Github Build)</h3>
 <h3 align="center"><code>pip install https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip</code></h3>
 
