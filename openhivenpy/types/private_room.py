@@ -41,15 +41,15 @@ class PrivateGroupRoom:
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! " 
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self):
         return self.name
@@ -91,29 +91,34 @@ class PrivateGroupRoom:
         """
         # POST /rooms/roomid/messages
         # Media: POST /rooms/roomid/media_messages
-        http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
-                                                f"/rooms/{self.id}/messages",
-                                                json={"content": content})
-            http_code = resp.status
+                endpoint="/rooms/{self.id}/messages",
+                json={"content": content})
             data = await resp.json()
 
             resp = await self._http.request(f"/users/@me")
-            author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http)
+            if resp:
+                _author_data = resp.get('data')
+                if _author_data:
+                    author = getType.user(_author_data, self._http)
 
-            msg = await getType.a_message(data,
-                                          self._http,
-                                          house=None,
-                                          room=self,
-                                          author=author)
-            return msg
+                    msg = await getType.a_message(
+                        data=data,
+                        http=self._http,
+                        house=None,
+                        room=self,
+                        author=author)
+                    return msg
+                else:
+                    raise errs.HTTPEmptyResponseData()
+            else:
+                raise errs.HTTPEmptyResponseData()
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven!  " 
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -129,7 +134,6 @@ class PrivateGroupRoom:
         delay: `float` - Delay until calling (in seconds)
 
         """
-        http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay)
             resp = await self._http.post(f"/rooms/{self.id}/call")
@@ -141,8 +145,8 @@ class PrivateGroupRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven!  "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False         
 
 
@@ -170,15 +174,15 @@ class PrivateRoom:
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"Failed to initialize the PrivateRoom object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
     @property
     def user(self) -> User:
@@ -217,7 +221,6 @@ class PrivateRoom:
         delay: `float` - Delay until calling (in seconds)
 
         """
-        http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay)
 
@@ -230,8 +233,8 @@ class PrivateRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven!  "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False             
 
     async def send(self, content: str, delay: float = None) -> Union[getType.message, None]:
@@ -251,13 +254,11 @@ class PrivateRoom:
         """
         #POST /rooms/roomid/messages
         #Media: POST /rooms/roomid/media_messages
-        http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
-                                                f"/rooms/{self.id}/messages",
-                                                json={"content": content})
-            http_code = resp.status
+                endpoint="/rooms/{self.id}/messages",
+                json={"content": content})
 
             data = await resp.json()
 
@@ -272,6 +273,6 @@ class PrivateRoom:
             return msg
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven!  "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None

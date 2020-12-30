@@ -59,32 +59,51 @@ class Client:
         try:
             # Using a USER object to actually store all user data
             self._USER = await getType.a_user(data, self.http)
-            relationships = data.get('relationships', [])
-            for key in relationships:
-                self._relationships.append(await getType.a_relationship(relationships.get(key, {}), self.http))
 
-            private_rooms = data.get('private_rooms', [])
-            for private_room in private_rooms:
-                t = int(private_room.get('type', 0))
-                if t == 1:
-                    room = await getType.a_private_room(private_room, self.http)
-                elif t == 2:
-                    room = await getType.a_private_group_room(private_room, self.http)
-                else:
-                    room = await getType.a_private_room(private_room, self.http)
-                self._private_rooms.append(room)
+            _relationships = data.get('relationships')
+            if _relationships:
+                for key in _relationships:
+                    _rel_data = _relationships.get(key, {})
+                    _rel = await getType.a_relationship(
+                        data=_rel_data,
+                        http=self.http)
 
-            houses_ids = data.get('house_memberships', [])
-            self._amount_houses = len(houses_ids)
+                    self._relationships.append(_rel)
+            else:
+                raise errs.WSFailedToHandle("Missing 'relationships' in 'INIT_STATE' event message!")
 
-            data = await self.http.request("/users/@me", timeout=10)
-            self._USER = getType.user(data=data.get('data', {}), http=self.http)
+            _private_rooms = data.get('private_rooms')
+            if _private_rooms:
+                for private_room in _private_rooms:
+                    t = int(private_room.get('type', 0))
+                    if t == 1:
+                        room = await getType.a_private_room(private_room, self.http)
+                    elif t == 2:
+                        room = await getType.a_private_group_room(private_room, self.http)
+                    else:
+                        room = await getType.a_private_room(private_room, self.http)
+                    self._private_rooms.append(room)
+            else:
+                raise errs.WSFailedToHandle("Missing 'private_rooms' in 'INIT_STATE' event message!")
+
+            _house_ids = data.get('house_memberships')
+            if _house_ids:
+                self._amount_houses = len(_house_ids)
+            else:
+                raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
+
+            _raw_data = await self.http.request("/users/@me", timeout=10)
+            _data = _raw_data.get('data')
+            if _data:
+                self._USER = getType.user(data=data, http=self.http)
+            else:
+                raise errs.HTTPEmptyResponseData()
 
         except Exception as e:
             logger.error(f"FAILED to update client data! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def __check_meta_data(self):
         """
@@ -112,21 +131,23 @@ class Client:
         Returns `True` if successful
 
         """
-        http_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    response = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
-                    http_code = response.status
-                    return True
+                    resp = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+
+                    if resp.status < 300:
+                        return True
+                    else:
+                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
                     logger.error("The passed value does not exist in the user context!")
-                    raise KeyError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
             keys = "".join(str(" " + key) for key in kwargs.keys())
-            logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed change the values {keys} on the client Account!  "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
 
     @property
@@ -171,8 +192,8 @@ class Client:
 
     @property
     def joined_at(self) -> Union[datetime.datetime, None]:
-        if self._USER._joined_at is not None and self._USER._joined_at != "":
-            return datetime.datetime.fromisoformat(self._USER._joined_at[:10])
+        if self.user.joined_at and self.user.joined_at != "":
+            return datetime.datetime.fromisoformat(self.user.joined_at[:10])
         else:
             return None
 

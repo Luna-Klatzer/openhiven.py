@@ -24,17 +24,5 @@ async def on_message_create(message):
     if message.content == ".ping": # Until theres a command handler, might as well go old-school discord.py
         await message.room.send(":table_tennis_paddle_and_ball:!")
 
-async def run():
-    # If response is 200 that means the program can interact with Hiven
-    if bot.connection_possible:
-        print("Success!")
-    else:
-        print(f"The ping failed!")
-
-    # Starts the Event loop with the specified websocket  
-    # => can also be a different websocket
-    bot.run()
-
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    bot.run()

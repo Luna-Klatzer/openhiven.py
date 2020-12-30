@@ -93,7 +93,7 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to cancel the friend request of a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to cancel the friend request of a user with id {user_id}! > {e}")
             return None            
 
     async def fetch_current_friend_requests(self) -> Union[dict, None]:
@@ -116,7 +116,7 @@ class UserClient(HivenClient):
                 return
 
         except Exception as e:
-            logger.error(f"Failed to fetch the current open friend requests! Cause of Error {e}")
+            logger.error(f"Failed to fetch the current open friend requests! > {e}")
             return None    
 
     async def block_user(self, user_id=None, **kwargs) -> Union[bool, None]:
@@ -155,7 +155,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(f"Failed to block user with id {user_id}! Cause of error: {e}")
+            logger.error(f"Failed to block user with id {user_id}! > {e}")
 
     async def unblock_user(self, user_id=None, **kwargs) -> Union[bool, None]:
         """`openhivenpy.UserClient.unblock_user()`
@@ -193,7 +193,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(f"Failed to unblock a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to unblock a user with id {user_id}! > {e}")
             return None
 
     async def send_friend_request(self, user_id=None, **kwargs) -> Union[types.User, None]:
@@ -234,5 +234,5 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")
             return None

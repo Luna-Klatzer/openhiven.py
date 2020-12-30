@@ -4,11 +4,17 @@
 __all__ = (
         'HivenException', 'HivenConnectionError', 'Forbidden',
         
-        'Forbidden', 'FaultyInitialization', 'InvalidClientType',
+        'Forbidden', 'InvalidClientType',
         'InvalidToken', 'UnableToClose', 'NoneClientType',
-            
-        'GatewayException', 'WSFailedToHandle', 'HTTPError',
-        'UnableToCreateSession', 'HTTPFaultyResponse', 'HTTPRequestError',
+
+        'GatewayException',
+
+        'WSFailedToHandle',
+
+        'HTTPError', 'UnableToCreateSession', 'HTTPFaultyResponse',
+        'HTTPRequestError', 'HTTPEmptyResponseData',
+
+        'FaultyInitialization', 'InvalidData',
         
         'CommandException')
 
@@ -78,6 +84,24 @@ class FaultyInitialization(HivenException):
         super().__init__(arg)
 
 
+class InvalidData(FaultyInitialization):
+    """`openhivenpy.exception.FaultyInitialization`
+
+    Failed to use data likely due to Faulty/Missing/Corrupt Data!
+
+    """
+
+    def __init__(self, *args, data):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = "Failed to use data likely due to Faulty/Missing/Corrupt Data!"
+
+        if data:
+            arg += f"\n >> Data >> {data}"
+        super().__init__(arg)
+
+
 class InvalidClientType(HivenException):
     """`openhivenpy.exception.InvalidClientType`
     
@@ -126,11 +150,11 @@ class HTTPError(HivenConnectionError):
     Base Exception for exceptions in the HTTP and overall requesting
     
     """    
-    def __init__(self, code="Unknown", *args):
+    def __init__(self, *args, code="Unknown"):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Failed to process HTTP request! Code: {code}"
+            arg = f"Failed to process HTTP request! Code: {code}! See HTTP logs!"
         super().__init__(arg) 
 
 
@@ -144,7 +168,7 @@ class HTTPRequestError(HTTPError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Request failed due to an exceptions occurring while handling!"
+            arg = f"Request failed due to an exceptions occurring while handling! See HTTP logs!"
         super().__init__(arg) 
 
 
@@ -158,7 +182,22 @@ class HTTPFaultyResponse(HTTPError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Response was in wrong format or expected data was not received!"
+            arg = f"Response was in wrong format or expected data was not received! See HTTP logs!"
+        super().__init__(arg)
+
+
+class HTTPEmptyResponseData(HTTPFaultyResponse):
+    """`openhivenpy.exception.HTTPRequestError`
+
+    Received an empty response with HTTP GET!
+
+    """
+
+    def __init__(self, *args):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = f"Received an response with empty or faulty data field! See HTTP logs!"
         super().__init__(arg)
 
 
@@ -193,7 +232,7 @@ class UnableToClose(GatewayException):
 class WSFailedToHandle(GatewayException):
     """`openhivenpy.exception.WSFailedToHandle`
     
-    An Exception occurred while trying to establish/keep the connection alive to Hiven!
+    An Exception occurred while handling a message/response from Hiven
     
     """
     def __init__(self, *args):

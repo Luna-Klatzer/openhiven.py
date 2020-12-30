@@ -43,15 +43,15 @@ class Room:
             
         except AttributeError as e: 
             logger.error(f"Failed to initialize the Room object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Most likely faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"Failed to initialize the Room object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self):
         return self.name
@@ -98,32 +98,35 @@ class Room:
 
         """
         # POST /rooms/roomid/messages
-        # Media: POST /rooms/roomid/media_messages)
-        http_code = "Unknown"
+        # Media: POST /rooms/roomid/media_messages
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
-                                                f"/rooms/{self.id}/messages",
-                                                json={"content": content})
+                f"/rooms/{self.id}/messages",
+                json={"content": content})
             if resp:
-                http_code = resp.status
+                data = await resp.json()
+
+                raw_data = await self._http.request(f"/users/@me")
+                author_data = raw_data.get('data')
+                if author_data:
+                    author = getType.user(author_data, self._http)
+                    msg = await getType.a_message(
+                        data=data,
+                        http=self._http,
+                        house=None,
+                        room=self,
+                        author=author)
+                    return msg
+                else:
+                    raise errs.HTTPEmptyResponseData()
+
             else:
                 raise errs.HTTPFaultyResponse
-            data = await resp.json()
-
-            resp = await self._http.request(f"/users/@me")
-            author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http)
-            msg = await getType.a_message(data,
-                                          self._http,
-                                          house=None,
-                                          room=self,
-                                          author=author)
-            return msg
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to send message to Hiven!  "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
         
     async def edit(self, **kwargs) -> bool:
@@ -136,25 +139,23 @@ class Room:
         Returns `True` if successful
         
         """
-        http_code = "Unknown"
-        keys = "".join(key+" " for key in kwargs.keys()) if kwargs != {} else None
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
                     resp = await self._http.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
-                    if resp is None:
-                        logger.debug(f"Failed to change the values {keys}for room {self.name} with id {self.id}!")
-                        return False
-                    else:
-                        http_code = resp.status
+
+                    if resp.status < 300:
                         return True
+                    else:
+                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
                     logger.error("The passed value does not exist in the user context!")
-                    raise KeyError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            logger.error(f"Failed to change the values {keys}for room {self.name} with id {self.id}. [CODE={http_code}]"
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
+            logger.error(f"Failed to change the values {keys} for room {self.name} with id {self.id}! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
     async def start_typing(self) -> bool:
@@ -165,16 +166,17 @@ class Room:
         Returns 'True' if successful.
 
         """
-        http_code = "Unknown"
         try:
             resp = await self._http.post(f"/rooms/{self.id}/typing")
-            http_code = resp.status
-            
-            return True
+
+            if resp.status < 300:
+                return True
+            else:
+                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
-                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 
+                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
     async def get_recent_messages(self) -> Union[list, getType.a_message]:
@@ -186,21 +188,34 @@ class Room:
 
         """
         try:
-            resp = await self._http.request(f"/rooms/{self.id}/messages")
-            
-            messages = []
-            for message in resp.get('data'):
-                author_data = await self._http.request(f"/users/{message.get('author_id')}")
-                if author_data is None:
-                    raise errs.HTTPFaultyResponse()
-                else:
-                    author = await getType.a_user(author_data.get('data'), self._http)
-                msg = await getType.a_message(message, self._http, self.house, self, author)
-                messages.append(msg)
-            
-            return messages
+            raw_data = await self._http.request(f"/rooms/{self.id}/messages")
+            data = raw_data.get('data')
+
+            if data:
+                messages = []
+                for message in data:
+                    _raw_data = await self._http.request(f"/users/{message.get('author_id')}")
+                    if _raw_data:
+                        _author_data = _raw_data.get('data')
+                        if _author_data:
+                            author = await getType.a_user(_author_data, self._http)
+                            msg = await getType.a_message(
+                                data=message,
+                                http=self._http,
+                                house=self.house,
+                                room=self,
+                                author=author)
+                            messages.append(msg)
+                        else:
+                            raise errs.HTTPEmptyResponseData()
+                    else:
+                        raise errs.HTTPEmptyResponseData()
+
+                return messages
+            else:
+                raise errs.HTTPEmptyResponseData()
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}." 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None

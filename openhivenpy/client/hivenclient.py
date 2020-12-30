@@ -143,7 +143,7 @@ class HivenClient(EventHandler, API):
             self.loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
             logger.exception(e)
-            raise errs.HivenConnectionError(f"Failed to start client session and websocket! Cause of Error: {e}")
+            raise errs.HivenConnectionError(f"Failed to start client session and websocket! > {e}")
         finally:
             return
 
@@ -158,7 +158,7 @@ class HivenClient(EventHandler, API):
         except RuntimeError as e:
             logger.exception(e)
             raise errs.HivenConnectionError(
-                f"Failed to start session and establish connection to Hiven! Cause of Error: {e}")
+                f"Failed to start session and establish connection to Hiven! > {e}")
         finally:
             return
 
@@ -191,10 +191,10 @@ class HivenClient(EventHandler, API):
 
         except Exception as e:
             logger.error(
-                f"[CLIENT] << Failed to close client session and websocket to Hiven! Cause of Error: "
+                f"[CLIENT] << Failed to close client session and websocket to Hiven! > "
                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(
-                f"Failed to close client session and websocket to Hiven! Cause of Error: "
+                f"Failed to close client session and websocket to Hiven! > "
                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def close(self, reason: str = "", *, exec_loop=True) -> bool:
@@ -224,10 +224,10 @@ class HivenClient(EventHandler, API):
 
         except Exception as e:
             logger.error(
-                f"[CLIENT] << Failed to close client session and websocket to Hiven! Cause of Error: "
+                f"[CLIENT] << Failed to close client session and websocket to Hiven! > "
                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(
-                f"Failed to close client session and websocket to Hiven! Cause of Error: "
+                f"Failed to close client session and websocket to Hiven! > "
                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     @property
@@ -458,7 +458,7 @@ class HivenClient(EventHandler, API):
                 # return house
             return None
         except Exception as e:
-            logger.error(f"[CLIENT] >> Failed to get House based with id {house_id}! Cause of error: {e}")
+            logger.error(f"[CLIENT] >> Failed to get House based with id {house_id}! > {e}")
 
     async def get_user(self, user_id: int) -> Union[types.User, None]:
         """`openhivenpy.HivenClient.get_user()`
@@ -479,7 +479,7 @@ class HivenClient(EventHandler, API):
                 return user
             return None
         except Exception as e:
-            logger.error(f"[CLIENT] >> Failed to get User based with id {user_id}! Cause of error: {e}")
+            logger.error(f"[CLIENT] >> Failed to get User based with id {user_id}! > {e}")
 
     async def get_room(self, room_id: int) -> Union[types.Room, None]:
         """`openhivenpy.HivenClient.get_room()`
@@ -502,7 +502,7 @@ class HivenClient(EventHandler, API):
                 return room
             return None
         except Exception as e:
-            logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! Cause of error: {e}")
+            logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! > {e}")
 
     async def get_private_room(self, room_id: float) -> Union[types.Room, None]:
         """`openhivenpy.HivenClient.get_private_room()`
@@ -524,7 +524,7 @@ class HivenClient(EventHandler, API):
             return None
 
         except Exception as e:
-            logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! Cause of error: {e}")
+            logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! > {e}")
 
     async def create_house(self, name: str) -> types.LazyHouse:
         """`openhivenpy.HivenClient.create_house()`
@@ -551,7 +551,7 @@ class HivenClient(EventHandler, API):
             return house
 
         except Exception as e:
-            logger.error(f"Failed to create House! Cause of error: {e}")
+            logger.error(f"Failed to create House! > {e}")
 
     async def delete_house(self, house_id: int) -> Union[int, None]:
         """`openhivenpy.HivenClient.delete_house()`
@@ -580,7 +580,7 @@ class HivenClient(EventHandler, API):
                 return None
 
         except Exception as e:
-            logger.error(f"Failed to delete House! Cause of error: {e}")
+            logger.error(f"Failed to delete House! > {e}")
 
     async def fetch_invite(self, invite_code: str) -> Union[types.Invite, None]:
         """`openhivenpy.HivenClient.get_invite()`
@@ -596,7 +596,7 @@ class HivenClient(EventHandler, API):
             return types.Invite(data.get('data'), self.http)
 
         except Exception as e:
-            logger.error(f"Failed to fetch the invite with invite_code {invite_code}! Cause of error: {e}")
+            logger.error(f"Failed to fetch the invite with invite_code '{invite_code}'! > {e}")
 
     async def get_feed(self) -> Union[types.Feed, None]:
         """`openhivenpy.HivenClient.get_feed()`
@@ -614,7 +614,7 @@ class HivenClient(EventHandler, API):
                 return None
 
         except Exception as e:
-            logger.error(f"Failed to get the users feed! Cause of error: {e}")
+            logger.error(f"Failed to get the users feed! > {e}")
 
     async def get_mentions(self) -> Union[list, types.Mention]:
         """`openhivenpy.HivenClient.get_mentions()`
@@ -647,7 +647,7 @@ class HivenClient(EventHandler, API):
             return mention_list
 
         except Exception as e:
-            logger.error(f"Failed to get the users mentions! Cause of error: {e}")
+            logger.error(f"Failed to get the users mentions! > {e}")
 
     async def change_room_settings(self, room_id=None, **kwargs) -> Union[types.Room, None]:
         """`openhivenpy.HivenClient.change_room_settings()`
@@ -697,7 +697,7 @@ class HivenClient(EventHandler, API):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to edit the room with id {room_id}. Cause of Error {e}")
+            logger.error(f"Failed to edit the room with id {room_id}! > {e}")
             return None
 
     async def create_private_room(self, user_id=None, **kwargs) -> Union[types.PrivateRoom, None]:
@@ -741,5 +741,5 @@ class HivenClient(EventHandler, API):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to send a friend request a user with id {user_id}! Cause of Error {e}")
+            logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")
             return None

@@ -200,7 +200,7 @@ class Websocket(Client, API):
 
             except Exception as e:
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
-                                f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
                 # Closing
                 close = getattr(self, "close", None)
@@ -794,6 +794,47 @@ class Websocket(Client, API):
                                              f"'on_member_update'! Exception: {e}")
 
                     self._event_loop.create_task(house_member_update_handler())
+
+            elif swarm_event == "HOUSE_MEMBER_JOIN":
+                """
+                A user joined a house
+                
+                Json-Data:
+                house_id: string,
+                joined_at: timestamp,
+                roles: []
+                length: int
+                user: {
+                    id: string,
+                    name: string,
+                    user_flags: string,
+                    username: string,
+                }
+                """
+                # In work
+                if self._ready:
+                    async def house_join_handler():
+                        pass
+
+                    self._event_loop.create_task(house_join_handler())
+
+            elif swarm_event == "ROOM_CREATE":
+                """
+                A room was created in a house
+                
+                Json-Data:
+                house_id: string,
+                id: string,
+                name: string,
+                position: int,
+                type: int
+                """
+                # In work
+                if self._ready:
+                    async def room_create_handler():
+                        pass
+
+                    self._event_loop.create_task(room_create_handler())
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
                 """
@@ -1445,6 +1486,6 @@ class Websocket(Client, API):
 
         except Exception as e:
             logger.debug(f"[WEBSOCKET] << Failed to handle Event in the websocket! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
             return

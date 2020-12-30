@@ -3,6 +3,8 @@ import logging
 
 from ._get_type import getType
 from openhivenpy.gateway.http import HTTP
+import openhivenpy.types as types
+import openhivenpy.exceptions as errs
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,11 @@ class Invite:
         
         invite = data.get('invite')
         self._code = invite.get('code')
-        self._url = "hiven.house/"+invite.get('code', '')
+
+        if self._code is None:
+            logger.warning("[Invite] Got a non-type invite-code! Data is likely faulty!")
+
+        self._url = "hiven.house/"+self._code
         self._created_at = invite.get('created_at')
         self._house_id = invite.get('house_id')
         self._max_age = invite.get('max_age')
@@ -42,17 +48,18 @@ class Invite:
         self._type = invite.get('type')
         
         house_data = data.get('house')
-        data = asyncio.run(self._http.request(f"/users/{house_data.get('owner_id')}"))
-        owner = getType.user(data.get('data'), self._http)
-        self._house = {
-            'id': house_data.get('id'),
-            'name': house_data.get('name'),
-            'owner_id': house_data.get('owner_id'),
-            'owner': owner,
-            'icon': (f"https://media.hiven.io/v1/houses/"
-                    f"{house_data.get('id')}/icons/{house_data.get('icon')}"),
-        }
-        
+        _raw_data = asyncio.run(self._http.request(endpoint=f"/users/{house_data.get('owner_id')}"))
+        if _raw_data:
+            _data = _raw_data.get('data')
+            if _data:
+                self._house = types.LazyHouse(
+                    data=house_data,
+                    http=self._http)
+            else:
+                raise errs.HTTPEmptyResponseData()
+        else:
+            raise errs.HTTPEmptyResponseData()
+
         self._house_members = data.get('counts', {}).get('house_members')
 
     def __str__(self):

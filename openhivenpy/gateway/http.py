@@ -83,7 +83,7 @@ class HTTP:
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
 
             async def on_response_chunk_received(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}")
+                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
 
             async def on_connection_queued_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
@@ -108,9 +108,9 @@ class HTTP:
             self._ready = False
             await self.session.close()
             logger.error(f"FAILED to create Session! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToCreateSession(f"FAILED to create Session! " 
-                                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTP.connect()`
@@ -126,7 +126,7 @@ class HTTP:
             logger.error(f"An error occurred while trying to close the HTTP Connection to Hiven:" 
                          f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Attempt to create session failed!" 
-                                 f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                 f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
     
     async def raw_request(
                         self, 
@@ -177,7 +177,6 @@ class HTTP:
             return None
 
         async def _request(endpoint, method, **kwargs):
-            http_code = "Unknown Internal Error"
             # Deactivated because of errors that occurred using it!
             _timeout = aiohttp.ClientTimeout(total=None)
             if self._ready:
@@ -199,7 +198,7 @@ class HTTP:
                         hiven_error_code = None
                         hiven_error_reason = None
 
-                        # If the response code is lower than 300 the request was somewhat succesful
+                        # If the response code is lower than 300 the request was somewhat successful
                         if http_code < 300:
                             data = await resp.read()
                             if http_code == 204:
@@ -229,12 +228,10 @@ class HTTP:
                             logger.warning(f"[HTTP] << Received Hiven Error: {hiven_error_code} - {hiven_error_reason}")
 
                         return resp
-        
-                except asyncio.TimeoutError as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
 
                 except Exception as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; "
+                                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
                         
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
