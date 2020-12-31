@@ -97,7 +97,7 @@ class Client:
             if _data:
                 self._USER = getType.user(data=data, http=self.http)
             else:
-                raise errs.HTTPEmptyResponseData()
+                raise errs.HTTPReceivedNoData()
 
         except Exception as e:
             logger.error(f"FAILED to update client data! "

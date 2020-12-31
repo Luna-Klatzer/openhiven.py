@@ -119,7 +119,7 @@ class Room:
                         author=author)
                     return msg
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
 
             else:
                 raise errs.HTTPFaultyResponse
@@ -207,13 +207,13 @@ class Room:
                                 author=author)
                             messages.append(msg)
                         else:
-                            raise errs.HTTPEmptyResponseData()
+                            raise errs.HTTPReceivedNoData()
                     else:
-                        raise errs.HTTPEmptyResponseData()
+                        raise errs.HTTPReceivedNoData()
 
                 return messages
             else:
-                raise errs.HTTPEmptyResponseData()
+                raise errs.HTTPReceivedNoData()
     
         except Exception as e:
             logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 

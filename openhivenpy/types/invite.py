@@ -56,9 +56,9 @@ class Invite:
                     data=house_data,
                     http=self._http)
             else:
-                raise errs.HTTPEmptyResponseData()
+                raise errs.HTTPReceivedNoData()
         else:
-            raise errs.HTTPEmptyResponseData()
+            raise errs.HTTPReceivedNoData()
 
         self._house_members = data.get('counts', {}).get('house_members')
 

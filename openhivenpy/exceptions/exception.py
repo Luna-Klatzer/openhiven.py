@@ -12,7 +12,7 @@ __all__ = (
         'WSFailedToHandle',
 
         'HTTPError', 'UnableToCreateSession', 'HTTPFaultyResponse',
-        'HTTPRequestError', 'HTTPEmptyResponseData',
+        'HTTPFailedRequest', 'HTTPReceivedNoData',
 
         'FaultyInitialization', 'InvalidData',
         
@@ -140,11 +140,11 @@ class GatewayException(HivenConnectionError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "Exception occurred in the Gateway!"
+            arg = "Gateway failed to !"
         super().__init__(arg)
 
 
-class HTTPError(HivenConnectionError):
+class HTTPError(GatewayException):
     """`openhivenpy.exception.HTTPError`
        
     Base Exception for exceptions in the HTTP and overall requesting
@@ -154,26 +154,26 @@ class HTTPError(HivenConnectionError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Failed to process HTTP request! Code: {code}! See HTTP logs!"
+            arg = f"Failed to perform request! Code: {code}! See HTTP logs!"
         super().__init__(arg) 
 
 
-class HTTPRequestError(HTTPError):
-    """`openhivenpy.exception.HTTPRequestError`
+class HTTPFailedRequest(HTTPError):
+    """`openhivenpy.exception.HTTPFailedRequest`
        
-    General Exception while handling requests
+    General Exception while handling a request
     
     """    
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Request failed due to an exceptions occurring while handling! See HTTP logs!"
+            arg = f"Failed to perform request! See HTTP logs!"
         super().__init__(arg) 
 
 
 class HTTPFaultyResponse(HTTPError):
-    """`openhivenpy.exception.HTTPRequestError`
+    """`openhivenpy.exception.HTTPFaultyResponse`
        
     Response was in wrong format or expected data was not received
     
@@ -182,14 +182,15 @@ class HTTPFaultyResponse(HTTPError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Response was in wrong format or expected data was not received! See HTTP logs!"
+            arg = f"Unable to handle Response and use data! See HTTP logs!"
         super().__init__(arg)
 
 
-class HTTPEmptyResponseData(HTTPFaultyResponse):
-    """`openhivenpy.exception.HTTPRequestError`
+class HTTPReceivedNoData(HTTPFaultyResponse):
+    """`openhivenpy.exception.HTTPReceivedNoData`
 
-    Received an empty response with HTTP GET!
+    Received a response without the required data field or
+    received a 204(No Content) in a request that expected data.
 
     """
 
@@ -197,7 +198,7 @@ class HTTPEmptyResponseData(HTTPFaultyResponse):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Received an response with empty or faulty data field! See HTTP logs!"
+            arg = f"Received not the expected Data as response! See HTTP logs!"
         super().__init__(arg)
 
 
@@ -211,7 +212,7 @@ class UnableToCreateSession(HTTPError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Was unable to create HTTP session and request init client data!"
+            arg = f"Failed to establish and test HTTP Session!"
         super().__init__(arg)
 
 
@@ -225,7 +226,7 @@ class UnableToClose(GatewayException):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The client is unable to close the connection to Hiven!"
+            arg = "Failed to close Connection!"
         super().__init__(arg)
 
 
@@ -239,7 +240,7 @@ class WSFailedToHandle(GatewayException):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The encountered an exception and failed to handle a WS message"
+            arg = "Failed to handle WS Message!"
         super().__init__(arg)
 
 
@@ -253,7 +254,7 @@ class NoneClientType(Warning):
         if args:
             msg = "".join([str(arg) for arg in args])
         else:
-            msg = "A None Type was passed in the Initialization!"
+            msg = "A None ClientType was passed! This can indicate faulty usage of the Client and can cause errors!"
         super().__init__(msg)
         
 # Command Exceptions #

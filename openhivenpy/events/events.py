@@ -101,7 +101,7 @@ class EventHandler:
         param = [member, house]
         await dispatch_func_if_exists(
             obj=self.call_obj,
-            func_name='on_house_enter',
+            func_name='on_house_member_enter',
             args=param
         )
 
@@ -109,7 +109,7 @@ class EventHandler:
         param = [user, house]
         await dispatch_func_if_exists(
             obj=self.call_obj,
-            func_name='on_house_exit',
+            func_name='on_house_member_exit',
             args=param
         )
 

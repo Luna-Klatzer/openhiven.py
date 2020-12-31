@@ -251,7 +251,7 @@ class HivenClient(EventHandler, API):
     # -----------
     @property
     def amount_houses(self) -> list:
-        return  self.connection._amount_houses
+        return self.connection._amount_houses
 
     @property
     def houses(self) -> list:
@@ -330,7 +330,6 @@ class HivenClient(EventHandler, API):
         """    
         return self.connection.ws
 
-
     @property
     def execution_loop(self) -> ExecutionLoop:
         return self.connection.execution_loop
@@ -355,16 +354,14 @@ class HivenClient(EventHandler, API):
         Returns the current ping of the HTTP.
         
         """
-        if self.http._ready:
+        if self.http.ready:
             start_t = time()
-            resp = asyncio.run(self.http.raw_request("/users/@me", method="get"))
-            if not resp:
-                raise errs.HTTPFaultyResponse
-
-            if resp.status == 200:
+            raw_data = asyncio.run(self.http.request("/users/@me"))
+            data = raw_data.get('data')
+            if data:
                 return time() - start_t
             else:
-                logger.warning("[CLIENT] >> Trying to ping Hiven failed!")
+                logger.warning("[CLIENT] >> Failed to ping Hiven!")
                 return None
         else:
             return None
@@ -379,13 +376,14 @@ class HivenClient(EventHandler, API):
         Alias for HivenClient.connection.edit()
         
         """
+        # TODO! Needs proper implementation!
         if self.http.ready:
             return await self.connection.edit(data=data, value=value)
         else:
             logging.error("HTTP Request was attempted without active Connection!")
             raise errs.HivenConnectionError("HTTP Request was attempted without active Connection!")
 
-    async def getRoom(self, room_id: int) -> Union[types.Room, None]:
+    async def fetch_room(self, room_id: int) -> Union[types.Room, None]:
         """`openhivenpy.HivenClient.getRoom()`
         
         Returns a cached Hiven Room Object
@@ -402,7 +400,7 @@ class HivenClient(EventHandler, API):
         """
         return utils.get(self.rooms, id=room_id)
 
-    async def getHouse(self, house_id: int) -> Union[types.House, None]:
+    async def fetch_house(self, house_id: int) -> Union[types.House, None]:
         """`openhivenpy.HivenClient.getHouse()`
         
         Returns a cached Hiven Room Object
@@ -419,7 +417,7 @@ class HivenClient(EventHandler, API):
         """
         return utils.get(self.houses, id=house_id)
 
-    async def getUser(self, user_id: int) -> Union[types.User, None]:
+    async def fetch_user(self, user_id: int) -> Union[types.User, None]:
         """`openhivenpy.HivenClient.getUser()`
         
         Returns a cached Hiven User Object
@@ -446,17 +444,13 @@ class HivenClient(EventHandler, API):
         """
         try:
             cached_house = utils.get(self.houses, id=house_id)
-            if cached_house is not None:
+            if cached_house:
                 return cached_house
 
-                # Not yet possible
-                # data = await self.http.request(endpoint=f"/houses/{id}")
-                # house = House(data['d'], self.http, self.id)
-                # if cached_house:
-                #    self.connection._houses.remove(cached_house)
-                # self.connection._houses.append(house)
-                # return house
-            return None
+                # TODO! Needs to be done in the future!
+            else:
+                return None
+
         except Exception as e:
             logger.error(f"[CLIENT] >> Failed to get House based with id {house_id}! > {e}")
 
@@ -470,14 +464,21 @@ class HivenClient(EventHandler, API):
         """
         try:
             cached_user = utils.get(self.users, id=user_id)
-            if cached_user is not None:
-                data = await self.http.request(endpoint=f"/users/{id}")
-                user = types.User(data['d'], self.http)
-                if cached_user:
-                    self.connection._houses.remove(cached_user)
-                self.connection._houses.append(user)
-                return user
-            return None
+            if cached_user:
+                raw_data = await self.http.request(endpoint=f"/users/{id}")
+
+                data = raw_data.get('data')
+                if data:
+                    user = types.User(data, self.http)
+                    self.connection._users.remove(cached_user)
+                    self.connection._users.append(user)
+                    return user
+                else:
+                    logger.warning("Failed to request room data from the API!")
+                    return cached_user
+            else:
+                return None
+
         except Exception as e:
             logger.error(f"[CLIENT] >> Failed to get User based with id {user_id}! > {e}")
 
@@ -491,20 +492,26 @@ class HivenClient(EventHandler, API):
         """
         try:
             cached_room = utils.get(self.rooms, id=room_id)
-            if cached_room is not None:
-                data = await self.http.request(endpoint=f"/rooms/{room_id}")
+            if cached_room:
                 house = cached_room.house
-                room = types.Room(data['d'], self.http, house)
-                if cached_room:
-                    self.connection._houses.remove(cached_room)
-                self.connection._houses.append(room)
 
-                return room
-            return None
+                raw_data = await self.http.request(endpoint=f"/rooms/{room_id}")
+                data = raw_data.get('data')
+                if data:
+                    room = types.Room(data, self.http, house)
+                    self.connection._rooms.remove(cached_room)
+                    self.connection._rooms.append(room)
+                    return room
+                else:
+                    logger.warning("Failed to request room data from the API!")
+                    return cached_room
+            else:
+                return None
+
         except Exception as e:
             logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! > {e}")
 
-    async def get_private_room(self, room_id: float) -> Union[types.Room, None]:
+    async def get_private_room(self, room_id: float) -> Union[types.PrivateRoom, None]:
         """`openhivenpy.HivenClient.get_private_room()`
         
         Returns a Hiven `PrivateRoom` or `GroupChatRoom` Object based on the passed house id and room id.
@@ -514,14 +521,19 @@ class HivenClient(EventHandler, API):
         """
         try:
             cached_private_room = utils.get(self.private_rooms, id=room_id)
-            if cached_private_room is not None:
-                data = await self.http.request(endpoint=f"/rooms/{room_id}")
-                if data is not None:
-                    room = types.Room(data['d'], self.http, None)
+            if cached_private_room:
+                raw_data = await self.http.request(endpoint=f"/rooms/{room_id}")
+                data = raw_data.get('data')
+                if data:
+                    room = types.PrivateRoom(data, self.http)
+                    self.connection._private_rooms.remove(cached_private_room)
+                    self.connection._private_rooms.append(room)
                     return room
                 else:
+                    logger.warning("Failed to request private_room data from the API!")
                     return cached_private_room
-            return None
+            else:
+                return None
 
         except Exception as e:
             logger.error(f"[CLIENT] >> Failed to get Room based with id {room_id}! > {e}")
@@ -542,13 +554,16 @@ class HivenClient(EventHandler, API):
                 endpoint="/houses",
                 json={'name': name})
 
-            if resp is None or resp.status >= 300:
-                raise errs.HTTPRequestError("Internal request error!")
-
-            data = await resp.json()
-            house = types.LazyHouse(data.get('data'), self.http)
-            await asyncio.sleep(0.2)
-            return house
+            if resp.status < 300:
+                raw_data = await resp.json()
+                data = raw_data.get('data')
+                if data:
+                    house = types.LazyHouse(data, self.http)
+                    return house
+                else:
+                    raise errs.HTTPReceivedNoData()
+            else:
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"Failed to create House! > {e}")
@@ -572,9 +587,9 @@ class HivenClient(EventHandler, API):
                 resp = await self.http.delete(endpoint=f"/houses/{house_id}")
 
                 if resp.status < 300:
-                    return self.id
+                    return self.user.id
                 else:
-                    return None
+                    raise errs.HTTPFailedRequest()
             else:
                 logger.error(f"The house with id {house_id} does not exist in the client cache!")
                 return None
@@ -591,9 +606,13 @@ class HivenClient(EventHandler, API):
         
         """
         try:
-            data = await self.http.request(endpoint=f"/invites/{invite_code}")
-            
-            return types.Invite(data.get('data'), self.http)
+            raw_data = await self.http.request(endpoint=f"/invites/{invite_code}")
+
+            data = raw_data.get('data')
+            if data:
+                return types.Invite(data, self.http)
+            else:
+                raise errs.HTTPReceivedNoData()
 
         except Exception as e:
             logger.error(f"Failed to fetch the invite with invite_code '{invite_code}'! > {e}")
@@ -607,11 +626,13 @@ class HivenClient(EventHandler, API):
         
         """
         try:
-            data = await self.http.request(endpoint=f"/streams/@me/feed")
-            if data is not None:
+            raw_data = await self.http.request(endpoint=f"/streams/@me/feed")
+
+            data = raw_data.get('data')
+            if data:
                 return types.Feed(data, self.http)
             else:
-                return None
+                raise errs.HTTPReceivedNoData()
 
         except Exception as e:
             logger.error(f"Failed to get the users feed! > {e}")
@@ -625,26 +646,27 @@ class HivenClient(EventHandler, API):
         
         """
         try:
-            resp = await self.http.request(endpoint=f"/streams/@me/mentions")
+            raw_data = await self.http.request(endpoint=f"/streams/@me/mentions")
 
-            data = resp.get('data')
+            data = raw_data.get('data')
+            if data:
+                mention_list = []
+                for msg_data in data:
+                    author = types.User(msg_data.get('author'), self.http)
 
-            mention_list = []
-            for msg_data in data:
-                author = types.User(msg_data.get('author'), self.http)
+                    room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
 
-                room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
+                    message = types.Message(
+                        msg_data,
+                        self.http,
+                        room.house,
+                        room,
+                        author)
+                    mention_list.append(message)
 
-                message = types.Message(
-                    msg_data,
-                    self.http,
-                    room.house,
-                    room,
-                    author)
-
-                mention_list.append(message)
-
-            return mention_list
+                return mention_list
+            else:
+                raise errs.HTTPReceivedNoData()
 
         except Exception as e:
             logger.error(f"Failed to get the users mentions! > {e}")
@@ -677,15 +699,17 @@ class HivenClient(EventHandler, API):
                 try:
                     room_id = room.id
                 except Exception:
-                    room = None
+                    room_id = None
+
                 if room_id is None:
-                    logger.debug("Invalid parameter for block_user! Expected user or user_id!")
+                    logger.warning("Failed to perform request due to missing room_id or room!")
                     return None
             else:
                 json = {}
                 for key in kwargs:
+                    # Searching through the possible keys and adding them if they are found!
                     if key in ['notification_preference', 'name']:
-                        json['key'] = kwargs.get(key)
+                        json[key] = kwargs.get(key)
 
                 resp = await self.http.put(
                     endpoint=f"/users/@me/settings/room_overrides/{room_id}",
@@ -694,7 +718,7 @@ class HivenClient(EventHandler, API):
                 if resp.status < 300:
                     return utils.get(self.rooms, id=int(room_id))
                 else:
-                    return None
+                    raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"Failed to edit the room with id {room_id}! > {e}")
@@ -712,7 +736,7 @@ class HivenClient(EventHandler, API):
         Parameter
         ~~~~~~~~~
         
-        Only one is required to execute the request!
+        Only one is required to execute the request! Defaults to user_id if both are provided!
         
         user_id: `int` - Id of the user that should be added to a private room
         
@@ -730,15 +754,20 @@ class HivenClient(EventHandler, API):
                     logger.debug("Invalid parameter for create_private_room! Expected user or user_id!")
                     return None
             else:
-                resp = await self.http.post(endpoint=f"/users/@me/rooms",
-                                                   json={'recipient': f"{user_id}"})
+                resp = await self.http.post(
+                    endpoint=f"/users/@me/rooms",
+                    json={'recipient': f"{user_id}"})
                 if resp.status < 300:
-                    data = await resp.json()
-                    private_room = types.PrivateRoom(data.get('data'), self.http)
-                    self.connection._private_rooms.append(private_room)
-                    return private_room
+                    raw_data = await resp.json()
+                    data = raw_data.get('data')
+                    if data:
+                        private_room = types.PrivateRoom(data, self.http)
+                        self.connection._private_rooms.append(private_room)
+                        return private_room
+                    else:
+                        raise errs.HTTPReceivedNoData()
                 else:
-                    return None
+                    raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")

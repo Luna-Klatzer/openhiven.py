@@ -610,7 +610,7 @@ class Websocket(Client, API):
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
                 """
-                A user joined a house
+                A user joined a house or went online?
                 
                 Json-Data:
                 op: 0
@@ -814,7 +814,10 @@ class Websocket(Client, API):
                 # In work
                 if self._ready:
                     async def house_join_handler():
-                        pass
+                        """
+
+                        """
+                        data = response_data
 
                     self._event_loop.create_task(house_join_handler())
 

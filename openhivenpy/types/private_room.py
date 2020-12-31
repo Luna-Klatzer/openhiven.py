@@ -112,9 +112,9 @@ class PrivateGroupRoom:
                         author=author)
                     return msg
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
             else:
-                raise errs.HTTPEmptyResponseData()
+                raise errs.HTTPReceivedNoData()
         
         except Exception as e:
             logger.error(f"Failed to send message to Hiven!  " 

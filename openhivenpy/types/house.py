@@ -163,9 +163,9 @@ class House:
             #            data=_data,
             #            http=http)
             #    else:
-            #        raise errs.HTTPEmptyResponseData()
+            #        raise errs.HTTPReceivedNoData()
             # else:
-            #    raise errs.HTTPEmptyResponseData()
+            #    raise errs.HTTPReceivedNoData()
 
             self._roles = list(data.get('roles'))
 
@@ -260,9 +260,9 @@ class House:
                             http=self._http,
                             house=self)
                     else:
-                        raise errs.HTTPEmptyResponseData()
+                        raise errs.HTTPReceivedNoData()
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
             else:
                 logger.warning(f"Found no member with specified id={member_id} in the client cache!")
             
@@ -309,7 +309,7 @@ class House:
         """
         try:
             json = {'name': name}
-            if parent_entity_id is not None:
+            if parent_entity_id:
                 json['parent_entity_id'] = parent_entity_id
             else:
                 category = utils.get(self._categories, name="Rooms")
@@ -329,7 +329,7 @@ class House:
                     self._rooms.append(room)
                     return room
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
@@ -337,6 +337,8 @@ class House:
             logger.error(f"Failed to create room '{self.name}' with id '{self.id}'." 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
+
+    # TODO! Delete Room!
 
     async def create_category(self, name: str) -> bool:
         """openhivenpy.types.House.create_category()
@@ -360,7 +362,7 @@ class House:
                     self._categories.append(category)
                     return category
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
@@ -440,7 +442,7 @@ class House:
                     code = data.get('code')
                     return f"https://hiven.house/{code}"
                 else:
-                    raise errs.HTTPEmptyResponseData()
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     

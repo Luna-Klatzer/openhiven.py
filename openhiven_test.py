@@ -12,8 +12,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 TOKEN = ""
-event_loop = asyncio.new_event_loop()
-client = openhivenpy.UserClient(token=TOKEN, event_loop=event_loop)
+client = openhivenpy.UserClient(token=TOKEN)
 
 
 @client.event()
@@ -85,12 +84,12 @@ async def on_typing_start(typing):
 
 
 @client.event()
-async def on_house_exit(user, house):
+async def on_house_member_exit(user, house):
     print(f"{user.name} left {house.name}")
 
 
 @client.event()
-async def on_house_enter(member, house):
+async def on_house_member_enter(member, house):
     print(f"{member.name} joined {house.name}")
 
 if __name__ == '__main__':
