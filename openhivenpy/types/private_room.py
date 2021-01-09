@@ -26,7 +26,7 @@ class PrivateGroupRoom:
     """
     def __init__(self, data: dict, http: HTTP):
         try:
-            self._id = int(data['id']) if data.get('id') is not None else None
+            self._id = int(data.get('id'))
             self._last_message_id = data.get('last_message_id')
             
             recipients_data = data.get("recipients")
@@ -40,19 +40,28 @@ class PrivateGroupRoom:
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the PrivateRoom object! "
+            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! " 
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the PrivateRoom object! "
+            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('last_message_id', self.last_message_id),
+            ('recipients', self.recipients),
+            ('type', self.type)
+        ]
+        return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def recipients(self) -> Union[User, list]:
@@ -117,7 +126,7 @@ class PrivateGroupRoom:
                 raise errs.HTTPReceivedNoData()
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven!  " 
+            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to send message in room {repr(self)}! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
 
@@ -145,7 +154,7 @@ class PrivateGroupRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven!  "
+            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to start call in {repr(self)}! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False         
 
@@ -163,7 +172,7 @@ class PrivateRoom:
     """
     def __init__(self, data: dict, http: HTTP):
         try:
-            self._id = int(data['id']) if data.get('id') is not None else None
+            self._id = int(data.get('id'))
             self._last_message_id = data.get('last_message_id')
             recipients = data.get("recipients")
             self._recipient = getType.user(recipients[0], http)
@@ -173,17 +182,29 @@ class PrivateRoom:
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the PrivateRoom object! "
+            logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the PrivateRoom object! "
+            logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('last_message_id', self.last_message_id),
+            ('recipients', self.recipient),
+            ('type', self.type)
+        ]
+        return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def user(self) -> User:
         return self._recipient
@@ -233,7 +254,7 @@ class PrivateRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven!  "
+            logger.error(f"[PRIVATE_ROOM] Failed to start call in room {repr(self)}! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False             
 
@@ -273,6 +294,6 @@ class PrivateRoom:
             return msg
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven!  "
+            logger.error(f"[PRIVATE_ROOM] Failed to send message in room {repr(self)}! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None

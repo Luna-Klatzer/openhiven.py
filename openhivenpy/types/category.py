@@ -26,11 +26,11 @@ class Category:
         try:
             self._type = data.get('type', 1)
             self._position = data.get('position')
-            self._ressources = []
+            self._resources = []
 
             if data.get('resource_pointers'):
                 for r in data.get('resource_pointers', []):
-                    self._ressources.append(r)
+                    self._resources.append(r)
 
             self._name = data.get('name')
             self._id = data.get('id')
@@ -38,27 +38,36 @@ class Category:
             self._http = http
 
         except AttributeError as e:
-            logger.error(f"Failed to initialize the Room object! "
+            logger.error(f"[CATEGORY] Failed to initialize the Category object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Room object! Most likely faulty data! "
+            raise errs.FaultyInitialization(f"Failed to initialize the Category object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
         except Exception as e:
-            logger.error(f"Failed to initialize the Room object! "
+            logger.error(f"[CATEGORY] Failed to initialize the Category object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
+            raise errs.FaultyInitialization(f"Failed to initialize the Category object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('name', self.name),
+            ('id', self.id),
+            ('position', self.position),
+            ('type', self.type)
+        ]
+        return '<Category {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def type(self) -> int:
         return self._type
 
     @property
-    def ressources(self) -> list:
-        return self._ressources
+    def resources(self) -> list:
+        return self._resources
 
     @property
     def name(self) -> list:

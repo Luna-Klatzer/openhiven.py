@@ -26,7 +26,7 @@ class Typing:
             self._author = member
             self._room = room
             self._house = house
-            self._member_id = data.get('author_id')
+            self._author_id = data.get('author_id')
             self._house_id = data.get('house_id')
             self._room_id = data.get('room_id')
             self._timestamp = data.get('timestamp')
@@ -45,8 +45,18 @@ class Typing:
             raise errs.FaultyInitialization(f"Failed to initialize Typing object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return f"Typing in room '{self.room.name}' by '{self.author.name}'"
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('house_id', self.house_id),
+            ('author_id', self.author_id),
+            ('room_id', self.room_id),
+            ('author', repr(self.author))
+        ]
+        return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def timestamp(self) -> datetime.datetime:
@@ -65,8 +75,8 @@ class Typing:
         return self._room
 
     @property
-    def member_id(self):
-        return self._member_id
+    def author_id(self):
+        return self._author_id
 
     @property
     def house_id(self):

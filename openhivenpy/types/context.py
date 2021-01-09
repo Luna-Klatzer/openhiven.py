@@ -12,7 +12,7 @@ __all__ = ['Context']
 class Context:
     """`openhivenpy.types.Context` 
     
-    Data Class for a Command or Event Context
+    Data Class for a Command Context
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     The class inherits all the available data from Hiven(attr -> read-only)!
@@ -22,3 +22,35 @@ class Context:
     """
     def __init__(self, data: dict, http: HTTP):
         self._http = http
+        self._room = None
+        self._author = None
+        self._house = None
+        self._created_at = None
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('author', repr(self.author)),
+            ('room', self.room),
+            ('house', self.house),
+            ('created_at', self.created_at)
+        ]
+        return '<Context {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @property
+    def house(self):
+        return self._house
+
+    @property
+    def author(self):
+        return self._author
+
+    @property
+    def room(self):
+        return self._room
+
+    @property
+    def created_at(self):
+        return self._created_at

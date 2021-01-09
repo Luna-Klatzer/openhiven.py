@@ -95,8 +95,7 @@ class Message:
     """
     def __init__(self, data: dict, http: HTTP, house, room, author):
         try:
-            id = data.get('id', 0)
-            self._id = int(id) if data.get('id') is not None else None
+            self._id = int(data.get('id'))
             self._author = author
             self._attachment = data.get('attachment')
             self._content = data.get('content')
@@ -126,16 +125,31 @@ class Message:
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Message object! "
+            logger.error(f"[MEMBER] Failed to initialize the Message object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Message object! "
+            logger.error(f"[MEMBER] Failed to initialize the Message object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('content', self.content),
+            ('author', repr(self.author)),
+            ('room', repr(self.room)),
+            ('type', self.type),
+            ('exploding', self.exploding),
+            ('edited_at', self.edited_at)
+        ]
+        return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def id(self):
@@ -148,6 +162,14 @@ class Message:
     @property
     def created_at(self):
         return self._timestamp
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def exploding(self):
+        return self._exploding
 
     @property
     def edited_at(self):
@@ -208,7 +230,7 @@ class Message:
                 raise errs.HTTPFaultyResponse
         
         except Exception as e:
-            logger.error(f"Failed to mark message in room {self.room.name} with id {self.id} as read!" 
+            logger.error(f"[MESSAGE] Failed to mark message in room {self.room.name} with id {self.id} as read!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def delete(self, delay: float) -> bool:
@@ -235,7 +257,7 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
         
         except Exception as e:
-            logger.error(f"Failed to delete the message in room {self.room.name} with id {self.id}!" 
+            logger.error(f"[MESSAGE] Failed to delete the message in room {self.room.name} with id {self.id}!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def edit(self, content: str) -> bool:
@@ -257,6 +279,6 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"Failed to edit message in room {self.room.name} with id {self.id}!" 
+            logger.error(f"[MESSAGE] Failed to edit message in room {self.room.name} with id {self.id}!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False

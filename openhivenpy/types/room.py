@@ -28,33 +28,44 @@ class Room:
         # These are all the attribs rooms have for now.
         # Will add more when Phin says they've been updated. Theres no functions. Yet.
         try:
-            self._id = int(data.get('id')) if data.get('id') is not None else None
+            self._id = int(data.get('id'))
             self._name = data.get('name')
-            self._house = data.get('house_id')
+            self._house_id = data.get('house_id')
             self._position = data.get('position')
             self._type = data.get('type')  # 0 = Text, 1 = Portal
             self._emoji = data.get('emoji')
             self._description = data.get('description')
             self._last_message_id = data.get('last_message_id')
-            
             self._house = house 
             
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Room object! "
+            logger.error(f"[ROOM] Failed to initialize the Room object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Room object! "
+            logger.error(f"[ROOM] Failed to initialize the Room object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('name', repr(self.name)),
+            ('id', self.id),
+            ('house_id', self.house_id),
+            ('position', self.position),
+            ('type', self.type),
+            ('emoji', self.emoji),
+            ('description', self.description)
+        ]
+        return '<Room {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def id(self):
@@ -65,8 +76,12 @@ class Room:
         return self._name
 
     @property
+    def house_id(self):
+        return self.house_id
+
+    @property
     def house(self):
-        return self._house
+        return self.house
 
     @property
     def position(self):
@@ -125,7 +140,7 @@ class Room:
                 raise errs.HTTPFaultyResponse
         
         except Exception as e:
-            logger.error(f"Failed to send message to Hiven!  "
+            logger.error(f"[ROOM] Failed to send message in room {repr(self)}! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
         
@@ -149,12 +164,12 @@ class Room:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error("[ROOM] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
     
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"Failed to change the values {keys} for room {self.name} with id {self.id}! "
+            logger.error(f"[ROOM] Failed to change the values {keys} for room {self.name} with id {self.id}! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
@@ -175,7 +190,7 @@ class Room:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 
+            logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         
@@ -216,6 +231,6 @@ class Room:
                 raise errs.HTTPReceivedNoData()
     
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 
+            logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None

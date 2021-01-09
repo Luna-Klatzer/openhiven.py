@@ -156,7 +156,7 @@ class ExecutionLoop:
             logger.debug("[EXEC-LOOP] The execution loop was cancelled and stopped")
             
         except Exception as e:
-            logger.critical(f"Failed to stop or keep alive execution_loop!" 
+            logger.critical(f"[EXCE-LOOP] Failed to stop or keep alive execution_loop!" 
                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to stop or keep alive execution_loop!" 
                                      f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -259,7 +259,6 @@ class Connection(Websocket, Client):
     
     """
     def __init__(self, token: str, event_handler: EventHandler, **kwargs):
-
         self._connection_start = None
         self._startup_time = None
         self._initialized = False
@@ -281,6 +280,24 @@ class Connection(Websocket, Client):
         
         super().__init__(event_handler=event_handler, token=token, **self._init_args)
 
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('open', self.open),
+            ('host', self.host),
+            ('api_version', self.api_version),
+            ('http_ready', self.http.ready),
+            ('startup_time', self.startup_time),
+            ('connection_start', self.connection_start),
+            ('heartbeat', self.heartbeat),
+            ('encoding', self.encoding),
+            ('ws_url', self.websocket_url),
+            ('coro', repr(self.ws_connection))
+        ]
+        return '<Connection {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def host(self) -> str:
         return self._HOST
@@ -296,10 +313,6 @@ class Connection(Websocket, Client):
     @property
     def open(self) -> bool:
         return self._open
-
-    @property
-    def closed(self) -> bool:
-        return self._closed
 
     @property
     def initialized(self) -> bool:
@@ -346,7 +359,7 @@ class Connection(Websocket, Client):
                 raise errs.HivenConnectionError(msg)
 
         except Exception as e:
-            logger.critical(f"Error while trying to establish the connection to Hiven! " 
+            logger.critical(f"[CONNECTION] Error while trying to establish the connection to Hiven! " 
                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HivenConnectionError(f"Error while trying to establish the connection to Hiven! " 
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -394,7 +407,7 @@ class Connection(Websocket, Client):
             return
         
         except Exception as e:
-            logger.critical(f"Closing the connection to Hiven failed!" 
+            logger.critical(f"[CONNECTION] Closing the connection to Hiven failed!" 
                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
 
@@ -436,7 +449,7 @@ class Connection(Websocket, Client):
             return
             
         except Exception as e:
-            logger.critical(f"Closing the connection to Hiven failed! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f"[CONNECTION] Closing the connection to Hiven failed! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
         
     # Restarts the connection if it errored or crashed
@@ -461,6 +474,6 @@ class Connection(Websocket, Client):
                 self.http = HTTP(loop=self._event_loop, token=self._token, **self._init_args)
                 self.http._ready = False
 
-                logger.info(f"Restarting was scheduled at {time.time()}!")
+                logger.info(f"[CONNECTION] Restarting was scheduled at {time.time()}!")
                 await self.connect()
         return

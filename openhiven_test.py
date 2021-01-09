@@ -1,6 +1,5 @@
-import openhivenpy
 import asyncio
-import os
+import openhivenpy
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -11,8 +10,9 @@ handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', 
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-TOKEN = ""
-client = openhivenpy.UserClient(token=TOKEN)
+client = openhivenpy.UserClient(
+            token=""
+        )
 
 
 @client.event()
@@ -32,9 +32,10 @@ async def on_ready():
     house = await client.get_house(175036727902074248)
 
     url = await client.fetch_invite("openhivenpy")
-    
+
     house = await client.create_house("test house")
 
+    await asyncio.sleep(5)
     house = openhivenpy.utils.get(client.houses, id=house.id)
 
     await house.create_room(name="stuff")

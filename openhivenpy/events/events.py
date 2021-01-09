@@ -20,7 +20,7 @@ class EventHandler:
     def __init__(self, call_obj: object = None):
         self.call_obj = call_obj
         if self.call_obj is None:
-            logger.debug("Passed object where the events should be called from is None!")
+            logger.debug("[EVENT-HANDLER] Passed object where the events should be called from is None!")
             self.call_obj = self
 
     def event(self, func=None):

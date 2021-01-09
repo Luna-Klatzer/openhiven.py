@@ -26,19 +26,43 @@ class LazyUser:
     
     """
     def __init__(self, data: dict):
-        if data.get('user') is not None:
-            data = data.get('user')
+        try:
+            if data.get('user') is not None:
+                data = data.get('user')
 
-        self._username = data.get('username')
-        self._name = data.get('name')
-        self._id = int(data.get('id')) if data.get('id') is not None else None
-        self._flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
-        self._icon = data.get('icon')   
-        self._header = data.get('header') 
-        self._bot = data.get('bot')
+            self._username = data.get('username')
+            self._name = data.get('name')
+            self._id = int(data.get('id'))
+            self._user_flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
+            self._icon = data.get('icon')
+            self._header = data.get('header')
+            self._bot = data.get('bot')
 
-    def __str__(self):
-        return self.name
+        except AttributeError as e:
+            logger.error(f"[USER] Failed to initialize the User object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! "
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+        except Exception as e:
+            logger.error(f"[USER] Failed to initialize the User object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! "
+                                    f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('username', self.username),
+            ('name', self.name),
+            ('id', self.id),
+            ('icon', self.icon),
+            ('header', self.header),
+            ('bot', self.bot)
+        ]
+        return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def username(self) -> str:
@@ -92,19 +116,16 @@ class User(LazyUser):
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the User object! "
+            logger.error(f"[USER] Failed to initialize the User object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize User object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the User object! "
+            logger.error(f"[USER] Failed to initialize the User object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize User object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-
-    def __str__(self):
-        return self.name
 
     @property
     def location(self) -> str:

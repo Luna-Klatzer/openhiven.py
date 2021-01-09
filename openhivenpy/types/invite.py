@@ -38,7 +38,7 @@ class Invite:
         self._code = invite.get('code')
 
         if self._code is None:
-            logger.warning("[Invite] Got a non-type invite-code! Data is likely faulty!")
+            logger.warning("[INVITE] Got a non-type invite-code! Data is likely faulty!")
 
         self._url = "hiven.house/"+self._code
         self._created_at = invite.get('created_at')
@@ -62,8 +62,20 @@ class Invite:
 
         self._house_members = data.get('counts', {}).get('house_members')
 
-    def __str__(self):
-        return self._url
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('code', self.code),
+            ('url', self.url),
+            ('created_at', self.created_at),
+            ('house_id', self.house_id),
+            ('type', self.type),
+            ('max_age', self.max_age),
+            ('max_uses', self.max_uses),
+        ]
+        return '<Invite {}>'.format(' '.join('%s=%s' % t for t in info))
     
     @property
     def code(self):
@@ -96,3 +108,7 @@ class Invite:
     @property
     def house_members(self):
         return self._house_members
+
+    @property
+    def created_at(self):
+        return self._created_at

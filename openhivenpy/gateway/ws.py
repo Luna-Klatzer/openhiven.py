@@ -125,7 +125,7 @@ class Websocket(Client, API):
 
     @property
     def closed(self):
-        return self._ws.closed
+        return not self._ws.open
 
     @property
     def close_timeout(self) -> int:
@@ -214,7 +214,7 @@ class Websocket(Client, API):
                 return
 
         # Creating a task that wraps the coroutine
-        self._connection = self._event_loop.create_task(ws_connection())
+        self._connection = asyncio.create_task(ws_connection())
 
         # Running the task in the background
         try:
@@ -223,10 +223,12 @@ class Websocket(Client, API):
             pass
         # Avoids that the user notices that the task was cancelled! aka. Silent Error
         except asyncio.CancelledError:
-            logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped!"
-                         "Probably caused by an error or automatic/forced closing!")
+            logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped and was cancelled! "
+                         "Likely caused due to an error or automatic/forced closing!")
         except Exception as e:
-            logger.critical(e)
+            logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped and failed to process "
+                         f"> {e}!")
+
             raise errs.GatewayException(f"[WEBSOCKET] << Exception in main-websocket process!"
                                         f"Cause of error{sys.exc_info()[1].__class__.__name__}, {str(e)}")
         finally:
@@ -273,11 +275,98 @@ class Websocket(Client, API):
                             if msg.data == 'close cmd':
                                 logger.debug("[WEBSOCKET] << Received close frame!")
                                 break
+                            else:
+                                if self._log_ws_output:
+                                    logger.debug(f"[WEBSOCKET] << Received: {str(resp)}")
 
-                            if self._log_ws_output:
-                                logger.debug(f"[WEBSOCKET] << Received: {str(resp)}")
+                                if resp.get('e') == "INIT_STATE":
+                                    """ 
+                                    Authorization was successful and client data is received
 
-                            await self._event_resp_handler(resp)
+                                    Json-Data:
+                                    op: 0
+                                    d: {
+                                      user: {
+                                        username: string,
+                                        user_flags: string,
+                                        name: string,
+                                        id: string,
+                                        icon: string,
+                                        header: string,
+                                        presence: string
+                                      },
+                                      settings: {
+                                        user_id: string,
+                                        theme: null,
+                                        room_overrides: {
+                                          id: { notification_preference: int }
+                                        },
+                                        onboarded: unknown,
+                                        enable_desktop_notifications: unknown
+                                      },
+                                      relationships: {
+                                        id: {
+                                          user_id: string,
+                                          user: {
+                                            username: string,
+                                            user_flags: string,
+                                            name: string,
+                                            id: string,
+                                            icon: string,
+                                            header: string,
+                                            presence: string
+                                          },
+                                          type: int,
+                                          last_updated_at: string
+                                        }
+                                      },
+                                      read_state: {
+                                        id: {
+                                          message_id: string,
+                                          mention_count: int
+                                        },
+                                      },
+                                      private_rooms: room[]
+                                      presences: {
+                                        id: {
+                                          username: string,
+                                          user_flags: string,
+                                          name: string,
+                                          id: string,
+                                          icon: string,
+                                          header: string,
+                                          presence: string
+                                        }
+                                      },
+                                      house_memberships: {
+                                        id: {
+                                          user_id: string,
+                                          user: {
+                                            username: string,
+                                            user_flags: string,
+                                            name: string,
+                                            id: string,
+                                            icon: string,
+                                            header: string,
+                                            presence: string
+                                          },
+                                          roles: array,
+                                          last_permission_update: string,
+                                          joined_at: string,
+                                          house_id: string
+                                        }
+                                      },
+                                      house_ids: string[]
+                                    }
+                                    """
+                                    await super().init_meta_data(resp.get('d'))
+
+                                    init_time = time.time() - self._connection_start
+                                    self._initialized = True
+                                    await self._event_handler.ev_init_state(time=init_time)
+
+                                _thread_safe_coro = asyncio.run_coroutine_threadsafe(self._event_resp_handler(resp),
+                                                                                     self._event_loop)
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
                         logger.debug(f"[WEBSOCKET] << Received close frame with msg='{msg.extra}'!")
@@ -286,7 +375,7 @@ class Websocket(Client, API):
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         logger.critical(f"[WEBSOCKET] Failed to handle response >> {ws.exception()} >>{msg}")
                         raise errs.WSFailedToHandle(msg.data)
-                await asyncio.sleep(0.01)
+
         finally:
             if not ws.closed:
                 await ws.close()
@@ -325,7 +414,7 @@ class Websocket(Client, API):
                 return
 
             self._connection_status = "OPEN"
-            self._lifesignal = self._event_loop.create_task(_lifesignal())
+            self._lifesignal = asyncio.create_task(_lifesignal())
             await self._lifesignal
             return
 
@@ -347,97 +436,8 @@ class Websocket(Client, API):
 
             logger.debug(f"Received Event {swarm_event}")
 
-            if not hasattr(self, '_houses') and not hasattr(self, '_users'):
-                logger.error("[WEBSOCKET] << The client attributes _users and _houses do not exist!"
-                             "The class might be initialized faulty!")
-                raise errs.FaultyInitialization("The client attributes _users and _houses do not exist!"
-                                                "The class might be initialized faulty!")
-
             if swarm_event == "INIT_STATE":
-                """ 
-                Authorization was successful and client data is received
-                
-                Json-Data:
-                op: 0
-                d: {
-                  user: {
-                    username: string,
-                    user_flags: string,
-                    name: string,
-                    id: string,
-                    icon: string,
-                    header: string,
-                    presence: string
-                  },
-                  settings: {
-                    user_id: string,
-                    theme: null,
-                    room_overrides: {
-                      id: { notification_preference: int }
-                    },
-                    onboarded: unknown,
-                    enable_desktop_notifications: unknown
-                  },
-                  relationships: {
-                    id: {
-                      user_id: string,
-                      user: {
-                        username: string,
-                        user_flags: string,
-                        name: string,
-                        id: string,
-                        icon: string,
-                        header: string,
-                        presence: string
-                      },
-                      type: int,
-                      last_updated_at: string
-                    }
-                  },
-                  read_state: {
-                    id: {
-                      message_id: string,
-                      mention_count: int
-                    },
-                  },
-                  private_rooms: room[]
-                  presences: {
-                    id: {
-                      username: string,
-                      user_flags: string,
-                      name: string,
-                      id: string,
-                      icon: string,
-                      header: string,
-                      presence: string
-                    }
-                  },
-                  house_memberships: {
-                    id: {
-                      user_id: string,
-                      user: {
-                        username: string,
-                        user_flags: string,
-                        name: string,
-                        id: string,
-                        icon: string,
-                        header: string,
-                        presence: string
-                      },
-                      roles: array,
-                      last_permission_update: string,
-                      joined_at: string,
-                      house_id: string
-                    }
-                  },
-                  house_ids: string[]
-                }
-                """
-                await super().init_meta_data(response_data)
-
-                init_time = time.time() - self._connection_start
-                await self._event_handler.ev_init_state(time=init_time)
-                self._initialized = True
+                logger.info("[WEBSOCKET] >> Initialization of Client was successful!")
 
             elif swarm_event == "HOUSE_JOIN":
                 """
@@ -517,11 +517,11 @@ class Websocket(Client, API):
                         # Removing a cached house if it exists
                         if cached_house:
                             self._houses.remove(cached_house)
-                            logger.warning("[WEBSOCKET] Removed cached house with same id on_house_add. "
+                            logger.warning("[HOUSE_LEAVE] Removed cached house with same id on_house_add. "
                                            "Possibly old or faulty Client data!")
 
                         if data.get('members') is None:
-                            logger.warning("[WEBSOCKET] Got empty members list in on_house_add!")
+                            logger.warning("[HOUSE_LEAVE] Got empty members list in on_house_add!")
                         else:
                             for usr in data['members']:
                                 if hasattr(usr, 'id'):
@@ -545,9 +545,9 @@ class Websocket(Client, API):
 
                         # Appending to the client houses list
                         self._houses.append(house)
-                        self._event_loop.create_task(self._event_handler.ev_house_join(house))
+                        asyncio.create_task(self._event_handler.ev_house_join(house))
 
-                    self._event_loop.create_task(house_join_handler())
+                    asyncio.create_task(house_join_handler())
 
             elif swarm_event == "HOUSE_LEAVE":
                 """
@@ -571,12 +571,12 @@ class Websocket(Client, API):
                             # Removing the house
                             self._houses.remove(house)
                         else:
-                            logger.debug("[WEBSOCKET] Unable to locate left house in house cache! "
+                            logger.debug("[HOUSE_LEAVE] Unable to locate left house in house cache! "
                                          "Possibly faulty Client data!")
 
-                        self._event_loop.create_task(self._event_handler.ev_house_exit(house=house))
+                        asyncio.create_task(self._event_handler.ev_house_exit(house=house))
 
-                    self._event_loop.create_task(house_leave_handler())
+                    asyncio.create_task(house_leave_handler())
 
             elif swarm_event == "HOUSE_DOWN":
                 """
@@ -599,14 +599,14 @@ class Websocket(Client, API):
                         t = time.time()
                         house = utils.get(self._houses, id=int(data.get('house_id', 0)))
                         if data.get('unavailable'):
-                            logger.debug(f"[WEBSOCKET] << Downtime of '{house.name}' reported! "
+                            logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
                                          "House was either deleted or is currently unavailable!")
                         else:
                             pass
 
-                        self._event_loop.create_task(self._event_handler.ev_house_down(time=t, house=house))
+                        asyncio.create_task(self._event_handler.ev_house_down(time=t, house=house))
 
-                    self._event_loop.create_task(house_down_handler())
+                    asyncio.create_task(house_down_handler())
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
                 """
@@ -660,7 +660,8 @@ class Websocket(Client, API):
                                 # If no user obj was sent the cached_user will server as the user
                                 # Which can only be possible if the data is faulty and the user
                                 # exists in another server
-                                logger.warning("[WEBSOCKET] Got faulty ws event data with no existing user data!")
+                                logger.warning("[HOUSE_MEMBER_ENTER] Got faulty ws event data with no existing user "
+                                               "data!")
                                 user = None
 
                             house_id = response_data.get('house_id')
@@ -684,23 +685,24 @@ class Websocket(Client, API):
                                     # Falling back to the cached_user!
                                     if cached_member:
                                         member = None
-                                        logger.warning("[WEBSOCKET] Got faulty ws event data with no "
+                                        logger.warning("[HOUSE_MEMBER_ENTER] Got faulty ws event data with no "
                                                        "existing member data!")
                                     else:
                                         member = None
-                                        logger.warning("[WEBSOCKET] Got faulty ws event data with no "
+                                        logger.warning("[HOUSE_MEMBER_ENTER] Got faulty ws event data with no "
                                                        "existing member data!")
 
                             else:
-                                logger.warning("[WEBSOCKET] Failed to add new member to unknown house! "
+                                logger.warning("[HOUSE_MEMBER_ENTER] Failed to add new member to unknown house! "
                                                "Possibly faulty client data!")
                                 house = None
                                 # Falling back to the user to provide some data
                                 member = user
-                                logger.warning("[WEBSOCKET] Event on_house_enter will have insufficient data!"
-                                               ">> House object will default to None and member will default to cached user!")
+                                logger.warning("[HOUSE_MEMBER_ENTER] Event on_house_enter will have insufficient data! "
+                                               ">> House object will default to None and member will default to cached "
+                                               "user!")
 
-                            self._event_loop.create_task(self._event_handler.ev_house_member_enter(
+                            asyncio.create_task(self._event_handler.ev_house_member_enter(
                                 member=member,
                                 house=house
                             ))
@@ -709,7 +711,7 @@ class Websocket(Client, API):
                             logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_member_update'! Exception: {e}")
 
-                    self._event_loop.create_task(house_member_enter())
+                    asyncio.create_task(house_member_enter())
 
             elif swarm_event == "HOUSE_MEMBER_UPDATE":
                 """
@@ -783,7 +785,7 @@ class Websocket(Client, API):
                                     logger.warning("[HOUSE_MEMBER_UPDATE] Unable to find member in the cache! "
                                                    f"USER_ID={data.get('user_id')}")
 
-                            self._event_loop.create_task(self._event_handler.ev_house_member_update(
+                            asyncio.create_task(self._event_handler.ev_house_member_update(
                                 old=cached_member,
                                 new=member,
                                 house=house
@@ -793,7 +795,7 @@ class Websocket(Client, API):
                             logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_member_update'! Exception: {e}")
 
-                    self._event_loop.create_task(house_member_update_handler())
+                    asyncio.create_task(house_member_update_handler())
 
             elif swarm_event == "HOUSE_MEMBER_JOIN":
                 """
@@ -819,7 +821,7 @@ class Websocket(Client, API):
                         """
                         data = response_data
 
-                    self._event_loop.create_task(house_join_handler())
+                    asyncio.create_task(house_join_handler())
 
             elif swarm_event == "ROOM_CREATE":
                 """
@@ -837,7 +839,7 @@ class Websocket(Client, API):
                     async def room_create_handler():
                         pass
 
-                    self._event_loop.create_task(room_create_handler())
+                    asyncio.create_task(room_create_handler())
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
                 """
@@ -871,7 +873,7 @@ class Websocket(Client, API):
                             else:
                                 logger.warning("[HOUSE_MEMBER_EXIT] Failed to find House in the client cache! "
                                                "Possibly faulty client data!")
-                            self._event_loop.create_task(self._event_handler.ev_house_member_exit(
+                            asyncio.create_task(self._event_handler.ev_house_member_exit(
                                 user=user,
                                 house=house
                             ))
@@ -880,7 +882,7 @@ class Websocket(Client, API):
                             logger.exception("[HOUSE_MEMBER_EXIT] Failed to handle event and trigger "
                                              f"'on_house_exit'! Exception: {e}")
 
-                    self._event_loop.create_task(house_member_exit_handler())
+                    asyncio.create_task(house_member_exit_handler())
 
             elif swarm_event == "PRESENCE_UPDATE":
                 """
@@ -906,13 +908,13 @@ class Websocket(Client, API):
                         try:
                             user = types.User(response_data, self.http)
                             presence = types.Presence(response_data, user, self.http)
-                            self._event_loop.create_task(self._event_handler.ev_presence_update(presence, user))
+                            asyncio.create_task(self._event_handler.ev_presence_update(presence, user))
 
                         except Exception as e:
                             logger.exception("[PRESENCE_UPDATE] Failed to handle event and trigger "
                                              f"'on_presence_update'! Exception: {e}")
 
-                    self._event_loop.create_task(presence_update_handler())
+                    asyncio.create_task(presence_update_handler())
 
             elif swarm_event == "MESSAGE_CREATE":
                 """
@@ -1035,13 +1037,13 @@ class Websocket(Client, API):
                                                    f"USER_ID={data.get('author_id')}")
 
                             msg = types.Message(response_data, self.http, house, room, author)
-                            self._event_loop.create_task(self._event_handler.ev_message_create(msg))
+                            asyncio.create_task(self._event_handler.ev_message_create(msg))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_CREATE] Failed to handle event and trigger 'on_message_create'! "
                                              f"Exception: {e}")
 
-                    self._event_loop.create_task(msg_create_handler())
+                    asyncio.create_task(msg_create_handler())
 
             elif swarm_event == "MESSAGE_DELETE":
                 """
@@ -1063,13 +1065,13 @@ class Websocket(Client, API):
                         """
                         try:
                             msg = types.DeletedMessage(response_data)
-                            self._event_loop.create_task(self._event_handler.ev_message_delete(msg))
+                            asyncio.create_task(self._event_handler.ev_message_delete(msg))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_DELETE] Failed to handle event and trigger 'on_message_delete'! "
                                              f"Exception: {e}")
 
-                    self._event_loop.create_task(msg_delete_handler())
+                    asyncio.create_task(msg_delete_handler())
 
             elif swarm_event == "MESSAGE_UPDATE":
                 """
@@ -1165,13 +1167,13 @@ class Websocket(Client, API):
                                 author = cached_author
 
                             message = types.Message(data, self.http, house=house, room=room, author=author)
-                            self._event_loop.create_task(self._event_handler.ev_message_update(message))
+                            asyncio.create_task(self._event_handler.ev_message_update(message))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_UPDATE] Failed to handle event and trigger 'on_message_update'! "
                                              f"Exception: {e}")
 
-                    self._event_loop.create_task(msg_update_handler())
+                    asyncio.create_task(msg_update_handler())
 
             elif swarm_event == "TYPING_START":
                 """
@@ -1205,13 +1207,13 @@ class Websocket(Client, API):
                                 author = utils.get(self._users, id=int(response_data.get('author_id', 0)))
 
                             typing = types.Typing(response_data, author, room, house, self.http)
-                            self._event_loop.create_task(self._event_handler.ev_typing_start(typing))
+                            asyncio.create_task(self._event_handler.ev_typing_start(typing))
 
                         except Exception as e:
                             logger.exception("[TYPING_START] Failed to handle event and trigger 'on_typing_start'! "
                                              f"Exception: {e}")
 
-                    self._event_loop.create_task(typing_start_handler())
+                    asyncio.create_task(typing_start_handler())
 
             elif swarm_event == "TYPING_END":
                 """
@@ -1236,13 +1238,13 @@ class Websocket(Client, API):
                             house = utils.get(self._houses, id=int(response_data.get('room_id', 0)))
                             member = utils.get(house.members, id=int(response_data.get('room_id', 0)))
                             typing = types.Typing(response_data, member, room, house, self.http)
-                            self._event_loop.create_task(self._event_handler.ev_typing_end(typing))
+                            asyncio.create_task(self._event_handler.ev_typing_end(typing))
 
                         except Exception as e:
                             logger.exception("[TYPING_END] Failed to handle event and trigger "
                                              f"'on_typing_end'! Exception: {e}")
 
-                    self._event_loop.create_task(typing_end_handler())
+                    asyncio.create_task(typing_end_handler())
 
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
                 """
@@ -1310,7 +1312,7 @@ class Websocket(Client, API):
                                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
                                                    f"{name} in client cache!")
 
-                            self._event_loop.create_task(self._event_handler.ev_house_member_chunk(
+                            asyncio.create_task(self._event_handler.ev_house_member_chunk(
                                 members=members,
                                 data=data,
                                 house=house))
@@ -1319,7 +1321,7 @@ class Websocket(Client, API):
                             logger.exception("[HOUSE_MEMBERS_CHUNK] Failed to handle event and trigger "
                                              f"'on_house_member_chunk'! Exception: {e}")
 
-                    self._event_loop.create_task(member_chunk_handler())
+                    asyncio.create_task(member_chunk_handler())
 
             elif swarm_event == "BATCH_HOUSE_MEMBER_UPDATE":
                 """
@@ -1386,7 +1388,7 @@ class Websocket(Client, API):
                                                    f"of unknown user in house {house.name} because of faulty user data!"
                                                    " Possibly faulty client data!")
 
-                            self._event_loop.create_task(self._event_handler.ev_batch_house_member_update(
+                            asyncio.create_task(self._event_handler.ev_batch_house_member_update(
                                 members=members,
                                 data=data,
                                 house=house))
@@ -1395,7 +1397,7 @@ class Websocket(Client, API):
                             logger.exception("[BATCH_HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_batch_house_member_update'! Exception: {e}")
 
-                    self._event_loop.create_task(batch_house_member_handler())
+                    asyncio.create_task(batch_house_member_handler())
 
             elif swarm_event == "HOUSE_ENTITIES_UPDATE":
                 """
@@ -1429,7 +1431,7 @@ class Websocket(Client, API):
                             data = response_data
                             house = utils.get(self._houses, id=int(data.get('house_id')))
                             entity = None  # In work
-                            self._event_loop.create_task(self._event_handler.ev_house_entity_update(
+                            asyncio.create_task(self._event_handler.ev_house_entity_update(
                                 house=house,
                                 entity=entity,
                                 data=data
@@ -1439,7 +1441,7 @@ class Websocket(Client, API):
                             logger.exception("[HOUSE_ENTITIES_UPDATE] Failed to handle event and trigger "
                                              f"'on_house_entity_update'! Exception: {e}")
 
-                    self._event_loop.create_task(house_entity_update_handler())
+                    asyncio.create_task(house_entity_update_handler())
 
             elif swarm_event == "RELATIONSHIP_UPDATE":
                 """
@@ -1479,13 +1481,13 @@ class Websocket(Client, API):
 
                         # Adding the new data
                         self._relationships.append(relationship)
-                        self._event_loop.create_task(self._event_handler.ev_relationship_update(
+                        asyncio.create_task(self._event_handler.ev_relationship_update(
                             relationship=relationship
                         ))
 
-                    self._event_loop.create_task(relationship_update_handler())
+                    asyncio.create_task(relationship_update_handler())
             else:
-                logger.debug(f"[WEBSOCKET] << Unknown Event {swarm_event} without Handler!")
+                logger.error(f"[WEBSOCKET] << Unknown Event {swarm_event} without Handler!")
 
         except Exception as e:
             logger.debug(f"[WEBSOCKET] << Failed to handle Event in the websocket! "

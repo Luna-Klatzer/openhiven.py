@@ -26,7 +26,7 @@ class Member(User):
     def __init__(self, data: dict, house, http: HTTP):
         try:
             super().__init__(data.get('user', data), http)
-            self._user_id = int(data['user_id']) if data.get('user_id') is not None else None
+            self._user_id = self._id
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
@@ -35,20 +35,33 @@ class Member(User):
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Member object! " 
+            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! " 
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Member object! " 
+            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! " 
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.name
-        
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('username', self.username),
+            ('name', self.name),
+            ('id', self.id),
+            ('icon', self.icon),
+            ('header', self.header),
+            ('bot', self.bot),
+            ('house_id', self.house_id),
+            ('joined_at', self.joined_at)
+        ]
+        return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def user_id(self) -> int:
         return self._user_id

@@ -48,8 +48,14 @@ class BotClient(HivenClient):
                          event_loop=event_loop, 
                          **kwargs)
 
-    def __repr__(self) -> str:
-        return str(getattr(self, "name", None))
-
     def __str__(self) -> str:
-        return str(getattr(self, "name", None))
+        return str(getattr(self, "name"))
+
+    def __repr__(self) -> str:
+        info = [
+            ('type', self._CLIENT_TYPE),
+            ('open', self.open),
+            ('name', getattr(self.user, 'name')),
+            ('id', getattr(self.user, 'id'))
+        ]
+        return '<BotClient {}>'.format(' '.join('%s=%s' % t for t in info))

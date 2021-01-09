@@ -41,30 +41,38 @@ class Relationship:
     """
     def __init__(self, data: dict, http: HTTP):
         try:
-            self._user_id = data['user_id']
+            self._user_id = data.get('user_id')
             resp = asyncio.run(http.request(f"/users/{self._user_id}"))
             user_data = resp.get('data')
             if user_data is None:
-                user_data = data['user']
+                user_data = data.get('user')
 
             self._user = getType.user(user_data, http)
-            self._type = data['type']
+            self._type = data.get('type')
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Relationship object! "
+            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Relationship object! "
+            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.user.username
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('user_id', self.user_id),
+            ('user', repr(self.user)),
+            ('type', self.type)
+        ]
+        return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def user(self) -> User:
@@ -73,3 +81,7 @@ class Relationship:
     @property
     def user_id(self) -> int:
         return self._user_id
+
+    @property
+    def type(self):
+        return self._type

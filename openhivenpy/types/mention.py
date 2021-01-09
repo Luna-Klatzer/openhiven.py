@@ -40,8 +40,16 @@ class Mention:
         self._author = author
         self._http = http
 
-    def __str__(self):
-        return self.user.name
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('timestamp', self.timestamp),
+            ('user', repr(self.user)),
+            ('author', self.author)
+        ]
+        return '<Mention {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def timestamp(self):

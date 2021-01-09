@@ -24,8 +24,15 @@ class Attachment:
         self._raw = data
         self._http = http
 
-    def __str__(self):
-        return self.filename
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('filename', self.filename),
+            ('media_url', self.media_url)
+        ]
+        return '<Attachment {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def filename(self):

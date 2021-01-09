@@ -77,11 +77,12 @@ class House:
     Returned with the getHouse() and get_house()
     
     """
+
     def __init__(
-                self, 
-                data: dict,
-                http: HTTP,
-                client_id: int):
+            self,
+            data: dict,
+            http: HTTP,
+            client_id: int):
         """
         Expected JSON-DATA
         -------------------
@@ -149,23 +150,11 @@ class House:
                 else:
                     raise errs.InvalidData(f"Missing '{_needed_prop}' field in passed data", data=data)
 
-            self._id = int(data['id'])
+            self._id = int(data.get('id'))
             self._name = data.get('name')
             self._banner = data.get('banner')
             self._icon = data.get('icon')
             self._owner_id = data.get('owner_id')
-
-            # _raw_data = asyncio.run(http.request(endpoint=f"/users/{self._owner_id}"))
-            # if _raw_data:
-            #    _data = _raw_data.get('data')
-            #    if _data:
-            #        self._owner = getType.user(
-            #            data=_data,
-            #            http=http)
-            #    else:
-            #        raise errs.HTTPReceivedNoData()
-            # else:
-            #    raise errs.HTTPReceivedNoData()
 
             self._roles = list(data.get('roles'))
 
@@ -182,19 +171,44 @@ class House:
             self._rooms = list(getType.room(room_data, http, self) for room_data in data.get("rooms"))
             self._client_member = utils.get(self._members, user_id=client_id)
 
+            # TODO! See if possible request is reasonable
+            # _raw_data = http.loop.create_task(http.request(endpoint=f"/users/{self._owner_id}"))
+            # if _raw_data:
+            #     _data = _raw_data.get('data')
+            #     if _data:
+            #         self._owner = getType.user(
+            #             data=_data,
+            #             http=http)
+            #     else:
+            #         raise errs.HTTPReceivedNoData()
+            # else:
+            #     raise errs.HTTPReceivedNoData()
+
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"Failed to initialize the House object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+
+        except AttributeError as e:
+            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[1].__class__.__name__}, "
+                         f"{str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize House object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
-        except Exception as e: 
-            logger.error(f"Failed to initialize the House object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+
+        except Exception as e:
+            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[1].__class__.__name__}, "
+                         f"{str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize House object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('name', self.name),
+            ('banner', self.banner),
+            ('owner_id', self.owner_id)
+        ]
+        return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def client_member(self) -> getType.member:
@@ -215,14 +229,14 @@ class House:
     @property
     def icon(self) -> str:
         return f"https://media.hiven.io/v1/houses/{self.id}/icons/{self._icon}"
-    
+
     @property
     def owner_id(self) -> int:
-        return self._owner_id     
-        
+        return self._owner_id
+
     @property
     def roles(self) -> list:
-        return self._roles  
+        return self._roles
 
     @property
     def categories(self) -> list:
@@ -230,15 +244,15 @@ class House:
 
     @property
     def users(self) -> list:
-        return self._members    
-    
+        return self._members
+
     @property
     def members(self) -> list:
-        return self._members    
-    
+        return self._members
+
     @property
     def rooms(self) -> list:
-        return self._rooms    
+        return self._rooms
 
     async def get_member(self, member_id: int):
         """openhivenpy.types.House.get_member()
@@ -264,15 +278,15 @@ class House:
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
-                logger.warning(f"Found no member with specified id={member_id} in the client cache!")
-            
+                logger.warning(f"[HOUSE] Found no member with specified id={member_id} in the client cache!")
+
             return None
 
         except Exception as e:
-            logger.error(f"Failed to get the member with id {member_id}!" 
+            logger.error(f"[HOUSE] Failed to get the member with id {member_id}!"
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
-        
+
     async def get_room(self, room_id: int):
         """openhivenpy.types.House.get_room()
 
@@ -288,18 +302,18 @@ class House:
                 # data = await self._http.request(f"/rooms/{room_id}")
                 # return await getType.a_room(data, self._http)
             else:
-                logger.warning(f"Found no room with specified id={room_id} in the client cache!")
+                logger.warning(f"[HOUSE] Found no room with specified id={room_id} in the client cache!")
 
             return None
         except Exception as e:
-            logger.error(f"Failed to get the room with id {room_id}! " 
+            logger.error(f"[HOUSE] Failed to get the room with id {room_id}! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def create_room(
-                        self,
-                        name: str,
-                        parent_entity_id: Optional[Union[float, int]] = None) -> Union[getType.room, None]:
+            self,
+            name: str,
+            parent_entity_id: Optional[Union[float, int]] = None) -> Union[getType.room, None]:
         """openhivenpy.types.House.create_room()
 
         Creates a Room in the house with the specified name. 
@@ -318,7 +332,7 @@ class House:
             resp = await self._http.post(
                 f"/houses/{self._id}/rooms",
                 json=json)
-            
+
             if resp.status < 300:
                 data = (await resp.json()).get('data')
                 if data:
@@ -334,7 +348,7 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"Failed to create room '{self.name}' with id '{self.id}'." 
+            logger.error(f"[HOUSE] Failed to create room '{self.name}' with id '{self.id}'."
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
 
@@ -367,7 +381,7 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"Failed to create the room {self.name} with id {self.id}!"
+            logger.error(f"[HOUSE] Failed to create the room {self.name} with id {self.id}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -386,10 +400,10 @@ class House:
                 return True
             else:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
-        
+
         except Exception as e:
-            logger.error(f"Failed to leave the house {self.name} with id {self.id}!" 
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HOUSE] Failed to leave the house {self.name} with id {self.id}! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
     async def edit(self, **kwargs) -> bool:
@@ -414,12 +428,12 @@ class House:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error("[HOUSE] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
-    
+
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"Failed to change the values {keys} for house {self.name} with id {self.id}!" 
+            logger.error(f"[HOUSE] Failed edit request of values '{keys}' for house {self.name} with id {self.id}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -433,7 +447,7 @@ class House:
         """
         try:
             resp = await self._http.post(endpoint=f"/houses/{self.id}/invites")
-            
+
             if resp.status < 300:
                 raw_data = await resp.json()
                 data = raw_data.get('data', {})
@@ -445,9 +459,9 @@ class House:
                     raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
-    
+
         except Exception as e:
-            logger.error(f"Failed to create invite for house {self.name} with id {self.id}!" 
+            logger.error(f"[HOUSE] Failed to create invite for house {self.name} with id {self.id}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
 
@@ -466,6 +480,6 @@ class House:
                 return self.id
             else:
                 return None
-         
+
         except Exception as e:
-            logger.error(f"Failed to delete House!  > {e}")
+            logger.error(f"[HOUSE] Failed to delete House! > {e}")

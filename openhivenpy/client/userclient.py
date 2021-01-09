@@ -53,11 +53,17 @@ class UserClient(HivenClient):
                          event_loop=event_loop, 
                          **kwargs)
 
-    def __repr__(self) -> str:
-        return str(getattr(self, "name", None))
-
     def __str__(self) -> str:
-        return str(getattr(self, "name", None))
+        return str(getattr(self, 'name'))
+
+    def __repr__(self) -> str:
+        info = [
+            ('type', self._CLIENT_TYPE),
+            ('open', self.open),
+            ('name', getattr(self.user, 'name')),
+            ('id', getattr(self.user, 'id'))
+        ]
+        return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
         
     async def cancel_friend_request(self, user_id=None, **kwargs) -> Union[bool, None]:
         """`openhivenpy.UserClient.cancel_friend_request()`
@@ -77,12 +83,9 @@ class UserClient(HivenClient):
         try:
             if user_id is None:
                 user = kwargs.get('user')
-                try:
-                    user_id = user.id
-                except Exception:
-                    user_id = None
+                user_id = getattr(user, 'id')
                 if user_id is None:
-                    logger.debug("Invalid parameter for cancel_friend_request! Expected user or user_id!")
+                    logger.error("[CLIENT] Invalid parameter for cancel_friend_request! Expected user or user_id!")
                     return None
             else:
                 resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
@@ -93,7 +96,7 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to cancel the friend request of a user with id {user_id}! > {e}")
+            logger.error(f"[CLIENT] Failed to cancel the friend request of a user with id {user_id}! > {e}")
             return None            
 
     async def fetch_current_friend_requests(self) -> Union[dict, None]:
@@ -116,7 +119,7 @@ class UserClient(HivenClient):
                 return
 
         except Exception as e:
-            logger.error(f"Failed to fetch the current open friend requests! > {e}")
+            logger.error(f"[CLIENT] Failed to fetch the current open friend requests! > {e}")
             return None    
 
     async def block_user(self, user_id=None, **kwargs) -> Union[bool, None]:
@@ -139,12 +142,9 @@ class UserClient(HivenClient):
         try:
             if user_id is None:
                 user = kwargs.get('user')
-                try:
-                    user_id = user.id
-                except Exception:
-                    user_id = None
+                user_id = getattr(user, 'id')
                 if user_id is None:
-                    logger.debug("Invalid parameter for block_user! Expected user or user_id!")
+                    logger.debug("[CLIENT] Invalid parameter for block_user! Expected user or user_id!")
                     return None
             else:
                 resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
@@ -155,7 +155,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(f"Failed to block user with id {user_id}! > {e}")
+            logger.error(f"[CLIENT] Failed to block user with id {user_id}! > {e}")
 
     async def unblock_user(self, user_id=None, **kwargs) -> Union[bool, None]:
         """`openhivenpy.UserClient.unblock_user()`
@@ -177,12 +177,9 @@ class UserClient(HivenClient):
         try:
             if user_id is None:
                 user = kwargs.get('user')
-                try:
-                    user_id = user.id
-                except Exception:
-                    user_id = None
+                user_id = getattr(user, 'id')
                 if user_id is None:
-                    logger.debug("Invalid parameter for unblock_user! Expected user or user_id!")
+                    logger.debug("[CLIENT]Invalid parameter for unblock_user! Expected user or user_id!")
                     return None
             else:
                 resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
@@ -193,7 +190,7 @@ class UserClient(HivenClient):
                     return False
 
         except Exception as e:
-            logger.error(f"Failed to unblock a user with id {user_id}! > {e}")
+            logger.error(f"[CLIENT]Failed to unblock a user with id {user_id}! > {e}")
             return None
 
     async def send_friend_request(self, user_id=None, **kwargs) -> Union[types.User, None]:
@@ -216,12 +213,9 @@ class UserClient(HivenClient):
         try:
             if user_id is None:
                 user = kwargs.get('user')
-                try:
-                    user_id = user.id
-                except Exception:
-                    user_id = None
+                user_id = getattr(user, 'id')
                 if user_id is None:
-                    logger.debug("Invalid parameter for send_friend_request! Expected user or user_id!")
+                    logger.debug("[CLIENT] Invalid parameter for send_friend_request! Expected user or user_id!")
                     return None
             else:
                 resp = await self.http.post(
@@ -234,5 +228,5 @@ class UserClient(HivenClient):
                     return None
 
         except Exception as e:
-            logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")
+            logger.error(f"[CLIENT] Failed to send a friend request a user with id {user_id}! > {e}")
             return None

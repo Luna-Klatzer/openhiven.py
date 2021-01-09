@@ -40,8 +40,18 @@ class Embed:
         self._image = data.get('image')
         self._description = data.get('description')
 
-    def __str__(self):
-        return self.title
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('url', self.url),
+            ('type', self.type),
+            ('title', self.title),
+            ('image', self.image),
+            ('description', self.description)
+        ]
+        return '<Embed {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def url(self):

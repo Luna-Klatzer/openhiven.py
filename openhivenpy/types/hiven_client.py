@@ -31,7 +31,7 @@ class Client:
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = getType.user(data=kwargs, http=self.http)
+        self._USER = None
 
         # Init Data that will be overwritten by the connection and websocket
         self._initialized = False
@@ -45,11 +45,14 @@ class Client:
         # Appends the ready check function to the execution_loop
         self._execution_loop.add_to_startup(self.__check_meta_data)
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        return repr(self.user)
 
     @property
-    def connection_start(self):
+    def connection_start(self) -> float:
         return getattr(self, "connection_start")
 
     async def init_meta_data(self, data: dict = None) -> None:
@@ -100,7 +103,7 @@ class Client:
                 raise errs.HTTPReceivedNoData()
 
         except Exception as e:
-            logger.error(f"FAILED to update client data! "
+            logger.error(f"[CLIENT] FAILED to update client data! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
@@ -141,12 +144,12 @@ class Client:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("The passed value does not exist in the user context!")
+                    logger.error("[CLIENT] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
             keys = "".join(str(" " + key) for key in kwargs.keys())
-            logger.error(f"Failed change the values {keys} on the client Account!  "
+            logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
 
@@ -156,39 +159,39 @@ class Client:
 
     @property
     def username(self) -> str:
-        return self._USER.username
+        return self.user.username
 
     @property
     def name(self) -> str:
-        return self._USER.name
+        return self.user.name
 
     @property
     def id(self) -> int:
-        return int(self._USER.id)
+        return int(self.user.id)
 
     @property
     def icon(self) -> str:
-        return self._USER._icon
+        return self.user.icon
 
     @property
     def header(self) -> str:
-        return self._USER._header
+        return self.user.header
 
     @property
     def bot(self) -> bool:
-        return self._USER.bot
+        return self.user.bot
 
     @property
     def location(self) -> str:
-        return self._USER.location
+        return self.user.location
 
     @property
     def website(self) -> str:
-        return self._USER.website
+        return self.user.website
 
     @property
     def presence(self) -> getType.presence:
-        return self._USER.presence
+        return self.user.presence
 
     @property
     def joined_at(self) -> Union[datetime.datetime, None]:
@@ -198,13 +201,25 @@ class Client:
             return None
 
     @property
+    def houses(self):
+        return self._houses
+
+    @property
+    def private_rooms(self):
+        return self._private_rooms
+
+    @property
+    def users(self):
+        return self._users
+
+    @property
+    def rooms(self):
+        return self._rooms
+
+    @property
     def amount_houses(self) -> int:
         return self._amount_houses
 
     @property
     def relationships(self) -> list:
         return self._relationships
-
-    @property
-    def private_rooms(self) -> list:
-        return self._private_rooms

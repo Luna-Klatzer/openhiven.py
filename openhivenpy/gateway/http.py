@@ -55,6 +55,18 @@ class HTTP:
         # Last/Currently executed request
         self._request = None
 
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('ready', self.ready),
+            ('host', self.host),
+            ('api_version', self.api_version),
+            ('headers', self.headers)
+        ]
+        return '<HTTP {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def ready(self):
         return self._ready
@@ -107,10 +119,8 @@ class HTTP:
         except Exception as e:
             self._ready = False
             await self.session.close()
-            logger.error(f"FAILED to create Session! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.UnableToCreateSession(f"FAILED to create Session! " 
-                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToCreateSession(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTP.connect()`
@@ -123,10 +133,8 @@ class HTTP:
             self._ready = False
             return True
         except Exception as e:
-            logger.error(f"An error occurred while trying to close the HTTP Connection to Hiven:" 
-                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Attempt to create session failed!" 
-                                 f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPError(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
     
     async def raw_request(
                         self, 

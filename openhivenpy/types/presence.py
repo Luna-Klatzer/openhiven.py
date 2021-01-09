@@ -25,8 +25,15 @@ class Presence:
         self._user = user
         self._presence = data.get('presence')
 
-    def __str__(self):
-        return self._presence
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('presence', self.presence),
+            ('user', repr(self.user))
+        ]
+        return '<Presence {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def user(self):
