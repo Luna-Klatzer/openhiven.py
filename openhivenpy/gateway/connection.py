@@ -299,6 +299,11 @@ class Connection(Websocket):
         return '<Connection {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
+    def user(self):
+        # => Also referenced in hiven_client.py
+        return self._USER
+
+    @property
     def host(self) -> str:
         return self._HOST
 

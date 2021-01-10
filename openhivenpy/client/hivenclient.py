@@ -290,7 +290,7 @@ class HivenClient(EventHandler):
         return self.user.name
 
     @property
-    def user(self) -> types.Client:
+    def user(self) -> types.User:
         return self.connection.user
 
     # General Connection Properties
@@ -382,7 +382,8 @@ class HivenClient(EventHandler):
         Alias for HivenClient.connection.edit()
         
         """
-        return await self.user.edit(**kwargs)
+        # Connection Object contains inherited Client data => edit() stored there
+        return await self.connection.edit(**kwargs)
 
     async def fetch_room(self, room_id: int) -> Union[types.Room, None]:
         """`openhivenpy.HivenClient.getRoom()`
