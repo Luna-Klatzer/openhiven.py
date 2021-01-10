@@ -50,7 +50,6 @@ class Typing:
 
     def __repr__(self) -> str:
         info = [
-            ('id', self.id),
             ('house_id', self.house_id),
             ('author_id', self.author_id),
             ('room_id', self.room_id),
