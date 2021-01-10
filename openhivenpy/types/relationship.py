@@ -37,18 +37,43 @@ class Relationship:
     4 - Restricted User
     
     5 - Blocked User
-      
+
+    Expected JSON-DATA
+    -------------------
+    Already friend:
+    ---------------
+    {'user_id': string,
+    'user': {
+        'username': str,
+        'user_flags': int,
+        'name': str,
+        'id': str,
+        'icon': str,
+        'header': str,
+        'bot': bool},
+    'type': int,
+    'last_updated_at': str}
+
+    # TODO! Needs other types added here!
+
     """
     def __init__(self, data: dict, http: HTTP):
         try:
+            user_data = data.get('user')
+            # user_id does not always exist
             self._user_id = data.get('user_id')
-            resp = asyncio.run(http.request(f"/users/{self._user_id}"))
-            user_data = resp.get('data')
-            if user_data is None:
-                user_data = data.get('user')
-
+            if self._user_id:
+                self._user_id = int(self._user_id)
             self._user = getType.user(user_data, http)
             self._type = data.get('type')
+            # id does not always exist
+            self._id = data.get('id')
+            if self._id:
+                self._id = int(self._id)
+            # recipient_id does not always exist
+            self._recipient_id = data.get('recipient_id')
+            if self._recipient_id:
+                self._recipient_id = int(self.recipient_id)
             self._http = http
             
         except AttributeError as e: 
@@ -68,6 +93,8 @@ class Relationship:
 
     def __repr__(self) -> str:
         info = [
+            ('id', self.id),
+            ('recipient_id', self.recipient_id),
             ('user_id', self.user_id),
             ('user', repr(self.user)),
             ('type', self.type)
@@ -77,11 +104,19 @@ class Relationship:
     @property
     def user(self) -> User:
         return self._user
-    
+
+    @property
+    def type(self) -> int:
+        return self._type
+
     @property
     def user_id(self) -> int:
         return self._user_id
 
     @property
-    def type(self):
-        return self._type
+    def recipient_id(self) -> int:
+        return self._recipient_id
+
+    @property
+    def id(self) -> int:
+        return self._id
