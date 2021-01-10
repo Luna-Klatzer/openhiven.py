@@ -1,7 +1,8 @@
 __pycache__
-.vscode
+../.vscode
 *.log
 .DS_Store
 venv
 .dist
 /venv/
+.idea/

@@ -4,7 +4,7 @@ import asyncio
 
 from ._get_type import getType
 from .user import User
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from openhivenpy.utils.utils import get
 import openhivenpy.exceptions as errs
 
@@ -37,36 +37,86 @@ class Relationship:
     4 - Restricted User
     
     5 - Blocked User
-      
-    """
-    def __init__(self, data: dict, http_client: HTTPClient):
-        try:
-            self._user_id = data['user_id']
-            resp = asyncio.run(http_client.request(f"/users/{self._user_id}"))
-            user_data = resp.get('data')
-            if user_data is None:
-                user_data = data['user']
 
-            self._user = getType.user(user_data, http_client)
-            self._type = data['type']
-            self._http_client = http_client
+    Expected JSON-DATA
+    -------------------
+    Already friend:
+    ---------------
+    {'user_id': string,
+    'user': {
+        'username': str,
+        'user_flags': int,
+        'name': str,
+        'id': str,
+        'icon': str,
+        'header': str,
+        'bot': bool},
+    'type': int,
+    'last_updated_at': str}
+
+    # TODO! Needs other types added here!
+
+    """
+    def __init__(self, data: dict, http: HTTP):
+        try:
+            user_data = data.get('user')
+            # user_id does not always exist
+            self._user_id = data.get('user_id')
+            if self._user_id:
+                self._user_id = int(self._user_id)
+            self._user = getType.user(user_data, http)
+            self._type = data.get('type')
+            # id does not always exist
+            self._id = data.get('id')
+            if self._id:
+                self._id = int(self._id)
+            # recipient_id does not always exist
+            self._recipient_id = data.get('recipient_id')
+            if self._recipient_id:
+                self._recipient_id = int(self.recipient_id)
+            self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Relationship object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Most likely faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Relationship object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('recipient_id', self.recipient_id),
+            ('user_id', self.user_id),
+            ('user', repr(self.user)),
+            ('type', self.type)
+        ]
+        return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def user(self) -> User:
         return self._user
-    
+
+    @property
+    def type(self) -> int:
+        return self._type
+
     @property
     def user_id(self) -> int:
         return self._user_id
+
+    @property
+    def recipient_id(self) -> int:
+        return self._recipient_id
+
+    @property
+    def id(self) -> int:
+        return self._id

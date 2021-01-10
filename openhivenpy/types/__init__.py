@@ -45,3 +45,5 @@ from .presence import *
 from .feed import *
 from .invite import *
 from .mention import *
+from .typing import *
+from .relationship import *

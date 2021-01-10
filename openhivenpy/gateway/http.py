@@ -8,20 +8,20 @@ from typing import Optional, Union
 
 import openhivenpy.exceptions as errs
 
-__all__ = ('HTTPClient')
+__all__ = 'HTTP'
 
 logger = logging.getLogger(__name__)
 
 request_url_format = "https://{0}/{1}"
 
 
-class HTTPClient:
+class HTTP:
     """`openhivenpy.gateway`
     
-    HTTPClient
+    HTTP
     ~~~~~~~~~~
     
-    HTTPClient for requests and interaction with the Hiven API
+    HTTP-Client for requests and interaction with the Hiven API
     
     Parameter:
     ----------
@@ -47,18 +47,34 @@ class HTTPClient:
         self.headers = {"Authorization": self._TOKEN,
                         "Host": self.host}
         
-        self.http_ready = False
+        self._ready = False
         
         self.session = None
         self.loop = loop
 
         # Last/Currently executed request
         self._request = None
-        
-    async def connect(self) -> dict:
-        """`openhivenpy.gateway.HTTPClient.connect()`
 
-        Establishes for the HTTPClient a connection to Hiven
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('ready', self.ready),
+            ('host', self.host),
+            ('api_version', self.api_version),
+            ('headers', self.headers)
+        ]
+        return '<HTTP {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @property
+    def ready(self):
+        return self._ready
+
+    async def connect(self) -> Union[aiohttp.ClientSession, None]:
+        """`openhivenpy.gateway.HTTP.connect()`
+
+        Establishes for the HTTP a connection to Hiven
         
         """
         try:
@@ -77,7 +93,10 @@ class HTTPClient:
             
             async def on_request_redirect(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
-            
+
+            async def on_response_chunk_received(session, trace_config_ctx, params):
+                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
+
             async def on_connection_queued_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
             
@@ -87,37 +106,35 @@ class HTTPClient:
             trace_config.on_request_exception.append(on_request_exception)
             trace_config.on_request_redirect.append(on_request_redirect)
             trace_config.on_connection_queued_start.append(on_connection_queued_start)
+            trace_config.on_response_chunk_received.append(on_response_chunk_received)
             
-            self.session = aiohttp.ClientSession(
-                                                loop=self.loop,
-                                                trace_configs=[trace_config])
-            self.http_ready = True
+            self.session = aiohttp.ClientSession(loop=self.loop, trace_configs=[trace_config])
+            self._ready = True
             resp = await self.request("/users/@me", timeout=10)
-            return resp
+            if resp:
+                return self.session
+            else:
+                return None
         
         except Exception as e:
-            self.http_ready = False
+            self._ready = False
             await self.session.close()
-            logger.error(f"FAILED to create Session! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.UnableToCreateSession(f"FAILED to create Session! " 
-                                             f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            
+            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToCreateSession(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
     async def close(self) -> bool:
-        """`openhivenpy.gateway.HTTPClient.connect()`
+        """`openhivenpy.gateway.HTTP.connect()`
 
         Closes the HTTP session that is currently connected to Hiven!
         
         """
         try:
             await self.session.close()
-            self.http_ready = False
+            self._ready = False
             return True
         except Exception as e:
-            logger.error(f"An error occurred while trying to close the HTTP Connection to Hiven:" 
-                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Attempt to create session failed!" 
-                                 f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPError(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
     
     async def raw_request(
                         self, 
@@ -126,7 +143,7 @@ class HTTPClient:
                         method: str = "GET", 
                         timeout: float = 15, 
                         **kwargs) -> Union[aiohttp.ClientResponse, None]:
-        """`openhivenpy.gateway.HTTPClient.raw_request()`
+        """`openhivenpy.gateway.HTTP.raw_request()`
 
         Wrapped HTTP GET request for a specified endpoint. 
         
@@ -152,30 +169,28 @@ class HTTPClient:
         
         """
         # Timeout Handler that watches if the request takes too long
-        async def _time_out_handler(timeout: float) -> None:
+        async def _time_out_handler(_timeout: float) -> None:
             start_time = time.time()
-            timeout_limit = start_time + timeout
+            timeout_limit = start_time + _timeout
             while True:
                 if self._request.done():
                     break
                 elif time.time() > timeout_limit:
                     if not self._request.cancelled():
                         self._request.cancel()
-                    logger.debug(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
+                    logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
                                  f"{endpoint}; Request to Hiven timed out!")
                     break
                 await asyncio.sleep(0.25)
             return None
 
         async def _request(endpoint, method, **kwargs):
-            http_code = "Unknown Internal Error"
             # Deactivated because of errors that occurred using it!
-            timeout = aiohttp.ClientTimeout(total=None)
-            if self.http_ready:
+            _timeout = aiohttp.ClientTimeout(total=None)
+            if self._ready:
                 try:
                     error = False
-                    headers = self.headers # Just in case
-                    if kwargs.get('headers') == None:
+                    if kwargs.get('headers') is None:
                         headers = self.headers
                     else:
                         headers = kwargs.pop('headers')
@@ -184,46 +199,47 @@ class HTTPClient:
                                                     method=method,
                                                     url=url,
                                                     headers=headers, 
-                                                    timeout=timeout,
+                                                    timeout=_timeout,
                                                     **kwargs) as resp:
                         http_code = resp.status
-                        
+
+                        hiven_error_code = None
+                        hiven_error_reason = None
+
+                        # If the response code is lower than 300 the request was somewhat successful
                         if http_code < 300:
                             data = await resp.read()
                             if http_code == 204:
                                 if method == "GET":
                                     error = True
-                                    error_code = "Empty Response"
-                                    error_reason = "Got an empty response that cannot be converted to json!" 
-                                    
-                                logger.debug("[HTTP] << Received Empty Response")
+                                logger.warning("[HTTP] << Received Empty HTTP Response")
                             else:
                                 json = json_decoder.loads(data)
                                 
                                 error = json.get('error', False)
                                 if error:
-                                    error_code = json['error']['code'] if json['error'].get('code') is not None else 'Unknown HTTP Error'
-                                    error_reason = json['error']['message'] if json['error'].get('message') is not None else 'Possibly faulty request or response!'
+                                    hiven_error_code = json['error'].get('code')
+                                    hiven_error_reason = json['error'].get('message')
                                 else:
-                                    error_code = 'Unknown HTTP Error'
-                                    error_reason = 'Possibly faulty request or response!'
+                                    hiven_error_code = 'Unknown HTTP or Request Error'
+                                    hiven_error_reason = 'Possibly faulty request or response!'
 
-                            if http_code < 300:
-                                if error == False:
-                                    return resp
+                            if error is False:
+                                return resp
                                 
                         error_code = http_code
                         error_reason = resp.reason
 
-                        logger.debug(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
+                        logger.warning(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
                                      f"{endpoint}; {error_code}, {error_reason}")
+                        if hiven_error_code or hiven_error_reason:
+                            logger.warning(f"[HTTP] << Received Hiven Error: {hiven_error_code} - {hiven_error_reason}")
+
                         return resp
-        
-                except asyncio.TimeoutError as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; Request to Hiven timed out!")
 
                 except Exception as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; "
+                                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
                         
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
@@ -236,7 +252,7 @@ class HTTPClient:
         try:
             resp = await asyncio.gather(self._request, _task_time_out_handler)
         except asyncio.CancelledError:
-            logger.debug(f"[HTTP] >> Request was cancelled!")
+            logger.warning(f"[HTTP] >> Request was cancelled!")
             return
         except Exception as e:
             logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint};" 
@@ -246,7 +262,7 @@ class HTTPClient:
         return resp[0]
     
     async def request(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> Union[dict, None]:
-        """`openhivenpy.gateway.HTTPClient.request()`
+        """`openhivenpy.gateway.HTTP.request()`
 
         Wrapped HTTP request for a specified endpoint. 
         
@@ -271,7 +287,7 @@ class HTTPClient:
         """
         resp = await self.raw_request(endpoint, method="GET", timeout=timeout, **kwargs)
         if resp is not None and resp.status < 300:
-            if resp.status != 204:
+            if resp.status < 300 and resp.status != 204:
                 return await resp.json()
             else:
                 return None
@@ -279,7 +295,7 @@ class HTTPClient:
             return None
     
     async def post(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTPClient.post()`
+        """`openhivenpy.gateway.HTTP.post()`
 
         Wrapped HTTP Post for a specified endpoint.
         
@@ -310,7 +326,7 @@ class HTTPClient:
                                     **kwargs)
             
     async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTPClient.delete()`
+        """`openhivenpy.gateway.HTTP.delete()`
 
         Wrapped HTTP delete for a specified endpoint.
         
@@ -338,7 +354,7 @@ class HTTPClient:
                                     **kwargs)
         
     async def put(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTPClient.put()`
+        """`openhivenpy.gateway.HTTP.put()`
 
         Wrapped HTTP put for a specified endpoint.
         
@@ -374,7 +390,7 @@ class HTTPClient:
                                     **kwargs)
         
     async def patch(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTPClient.patch()`
+        """`openhivenpy.gateway.HTTP.patch()`
 
         Wrapped HTTP patch for a specified endpoint.
         
@@ -408,7 +424,7 @@ class HTTPClient:
                                     **kwargs)
     
     async def options(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTPClient.options()`
+        """`openhivenpy.gateway.HTTP.options()`
 
         Wrapped HTTP options for a specified endpoint.
         

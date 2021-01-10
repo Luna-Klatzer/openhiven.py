@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Union
 
 from ._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -28,18 +28,29 @@ class Mention:
     author: `openhivenpy.types.User` - Author that created the mention
     
     """
-    def __init__(self, data: dict, timestamp: Union[datetime, str], author, http_client: HTTPClient):
+    def __init__(self, data: dict, timestamp: Union[datetime, str], author, http: HTTP):
         # Converting to seconds because it's in milliseconds
         if data.get('timestamp') is not None:
             self._timestamp = datetime.fromtimestamp(int(timestamp) / 1000) 
         else:
             self._timestamp = None
             
-        self._user = getType.user(data, http_client)
+        self._user = getType.user(data, http)
             
         self._author = author
-        self._http_client = http_client
-        
+        self._http = http
+
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('timestamp', self.timestamp),
+            ('user', repr(self.user)),
+            ('author', self.author)
+        ]
+        return '<Mention {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def timestamp(self):
         return self._timestamp

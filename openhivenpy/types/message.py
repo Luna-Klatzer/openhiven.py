@@ -5,7 +5,7 @@ import asyncio
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,9 @@ class DeletedMessage:
         self._message_id = int(data.get('message_id'))
         self._house_id = int(data.get('house_id'))
         self._room_id = int(data.get('room_id'))
+
+    def __str__(self):
+        return f"Deleted message in room {self.room_id}"
 
     @property
     def message_id(self):
@@ -90,10 +93,9 @@ class Message:
     exploding: `None` - In work
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, house, room, author):
+    def __init__(self, data: dict, http: HTTP, house, room, author):
         try:
-            id = data.get('id', 0)
-            self._id = int(id) if data.get('id') is not None else None
+            self._id = int(data.get('id'))
             self._author = author
             self._attachment = data.get('attachment')
             self._content = data.get('content')
@@ -105,8 +107,11 @@ class Message:
                 self._timestamp = None
                 
             self._edited_at = data.get('edited_at')
-            self._mentions = [getType.mention(data, self._timestamp, self._author, http_client) for data in data.get('mentions', [])]
-            self._type = data.get('type') # I believe, 0 = normal message, 1 = system.
+            self._mentions = []
+            for _data in data.get('mentions', []):
+                self._mentions.append(getType.mention(_data, self._timestamp, self._author, http))
+
+            self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding')
             
             self._house_id = data.get('house_id')
@@ -117,19 +122,34 @@ class Message:
             
             self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
 
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Message object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data} Data: {data}")
+            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Message object! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('id', self.id),
+            ('content', self.content),
+            ('author', repr(self.author)),
+            ('room', repr(self.room)),
+            ('type', self.type),
+            ('exploding', self.exploding),
+            ('edited_at', self.edited_at)
+        ]
+        return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def id(self):
@@ -142,6 +162,14 @@ class Message:
     @property
     def created_at(self):
         return self._timestamp
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def exploding(self):
+        return self._exploding
 
     @property
     def edited_at(self):
@@ -179,7 +207,7 @@ class Message:
     def embed(self):
         return self._embed
 
-    async def mark_message_as_read(self, delay: float) -> bool:
+    async def mark_as_read(self, delay: float) -> bool:
         """`openhivenpy.types.Message.ack`
 
         Marks the message as read. This doesn't need to be done for bot clients. 
@@ -192,19 +220,18 @@ class Message:
         delay: `float` - Delay until marking the message as read (in seconds)
         
         """
-        http_code = "Unknown"
         try:
-            resp = await self._http_client.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
-            if resp:
-                http_code = resp.status
+            await asyncio.sleep(delay=delay)
+            resp = await self._http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+
+            if resp.status < 300:
+                return True
             else:
                 raise errs.HTTPFaultyResponse
-            await asyncio.sleep(delay=delay)
-            return True
         
         except Exception as e:
-            logger.error(f"Failed to mark the message in room {self.room.name} with id {self.id} as marked." 
-                         "[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[MESSAGE] Failed to mark message as read {repr(self)}" 
+                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -219,24 +246,19 @@ class Message:
         delay: `float` - Delay until deleting the message as read (in seconds)
         
         """
-        http_code = "Unknown"
         try:
             await asyncio.sleep(delay=delay)
             
-            resp = await self._http_client.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
-            if resp:
-                http_code = resp.status
-            else:
-                raise errs.HTTPFaultyResponse
+            resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             
-            if http_code < 300:
+            if resp.status < 300:
                 return True
             else:
-                return False
+                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
         
         except Exception as e:
-            logger.error(f"Failed to delete the message in room {self.room.name} with id {self.id}." 
-                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[MESSAGE] Failed to delete the message {repr(self)}!" 
+                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def edit(self, content: str) -> bool:
         """`openhivenpy.types.House.edit()`
@@ -246,18 +268,17 @@ class Message:
         Returns 'True' if successful.
 
         """
-        http_code = "Unknown"
         try:
-            resp = await self._http_client.patch(endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
-                                                     json= {'content': content})
-            if resp:
-                http_code = resp.status
+            resp = await self._http.patch(
+                endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
+                json={'content': content})
+
+            if resp.status < 300:
+                return True
             else:
-                raise errs.HTTPFaultyResponse
-            
-            return True
+                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"Failed to edit messsage in room {self.room.name} with id {self.id}." 
-                         f"[CODE={http_code}] Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[MESSAGE] Failed to edit message {repr(self)}!" 
+                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False

@@ -2,7 +2,7 @@ import logging
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,20 @@ class Embed:
         self._title = data.get('title')
         self._image = data.get('image')
         self._description = data.get('description')
-        
+
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('url', self.url),
+            ('type', self.type),
+            ('title', self.title),
+            ('image', self.image),
+            ('description', self.description)
+        ]
+        return '<Embed {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def url(self):
         return self._url

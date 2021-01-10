@@ -1,22 +1,18 @@
-import openhivenpy
 import asyncio
-import os
+import openhivenpy
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-# Simple test to get a simple response from the Hiven API
-TOKEN = os.getenv("token") or ""
-event_loop = asyncio.new_event_loop()
 client = openhivenpy.UserClient(
-                                token=TOKEN,
-                                event_loop=event_loop)
+            token=""
+        )
 
 
 @client.event()
@@ -36,9 +32,10 @@ async def on_ready():
     house = await client.get_house(175036727902074248)
 
     url = await client.fetch_invite("openhivenpy")
-    
+
     house = await client.create_house("test house")
 
+    await asyncio.sleep(1)
     house = openhivenpy.utils.get(client.houses, id=house.id)
 
     await house.create_room(name="stuff")
@@ -56,26 +53,45 @@ async def on_ready():
     friend_request = await client.fetch_current_friend_requests()
     
     private_room = await client.get_private_room(175699760957616349)
-    
-    # await client.create_private_room() # Robyn please find some random users and open private rooms with them #no # sad noises
+
+    print(friend_request)
+
+    # await client.create_private_room()
 
 
 @client.event()
 async def on_message_create(message):
-    print(message.room.id)
+    print(message.content)
 
 
-async def run():
-    # If response is 200 that means the program can interact with Hiven
-    if client.connection_possible:
-        print("Success!")
-    else:
-        print(f"The ping failed!")
+@client.event()
+async def on_house_add(house):
+    print(house.name)
 
-    # Starts the Event loop with the specified websocket  
-    # => can also be a different websocket
-    client.run()
+
+@client.event()
+async def on_house_remove(house):
+    print(house.name)
+
+
+@client.event()
+async def on_house_downage(t, house):
+    print(f"{house.name} was reported to be done at {t}")
+
+
+@client.event()
+async def on_typing_start(typing):
+    print(typing)
+
+
+@client.event()
+async def on_house_member_exit(user, house):
+    print(f"{user.name} left {house.name}")
+
+
+@client.event()
+async def on_house_member_enter(member, house):
+    print(f"{member.name} joined {house.name}")
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    client.run()

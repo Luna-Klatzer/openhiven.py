@@ -4,11 +4,17 @@
 __all__ = (
         'HivenException', 'HivenConnectionError', 'Forbidden',
         
-        'Forbidden', 'FaultyInitialization', 'InvalidClientType',
+        'Forbidden', 'InvalidClientType',
         'InvalidToken', 'UnableToClose', 'NoneClientType',
-            
-        'GatewayException', 'WSConnectionError', 'HTTPError',
-        'UnableToCreateSession', 'HTTPFaultyResponse', 'HTTPRequestError',
+
+        'GatewayException',
+
+        'WSFailedToHandle',
+
+        'HTTPError', 'UnableToCreateSession', 'HTTPFaultyResponse',
+        'HTTPFailedRequest', 'HTTPReceivedNoData',
+
+        'FaultyInitialization', 'InvalidData',
         
         'CommandException')
 
@@ -78,6 +84,24 @@ class FaultyInitialization(HivenException):
         super().__init__(arg)
 
 
+class InvalidData(FaultyInitialization):
+    """`openhivenpy.exception.FaultyInitialization`
+
+    Failed to use data likely due to Faulty/Missing/Corrupt Data!
+
+    """
+
+    def __init__(self, *args, data):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = "Failed to use data likely due to Faulty/Missing/Corrupt Data!"
+
+        if data:
+            arg += f"\n >> Data >> {data}"
+        super().__init__(arg)
+
+
 class InvalidClientType(HivenException):
     """`openhivenpy.exception.InvalidClientType`
     
@@ -109,47 +133,47 @@ class InvalidToken(HivenException):
 class GatewayException(HivenConnectionError):
     """`openhivenpy.exception.GatewayException`
        
-    General Exception in the Websocket!
+    General Exception in the Gateway and Connection to Hiven!
     
     """
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "Exception occurred in the running Websocket!"
+            arg = "Gateway failed to !"
         super().__init__(arg)
 
 
-class HTTPError(HivenConnectionError):
+class HTTPError(GatewayException):
     """`openhivenpy.exception.HTTPError`
        
-    Base Exception for exceptions in the HTTPClient and overall requesting
+    Base Exception for exceptions in the HTTP and overall requesting
     
     """    
-    def __init__(self, code="Unknown", *args):
+    def __init__(self, *args, code="Unknown"):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Failed to process HTTP request! Code: {code}"
+            arg = f"Failed to perform request! Code: {code}! See HTTP logs!"
         super().__init__(arg) 
 
 
-class HTTPRequestError(HTTPError):
-    """`openhivenpy.exception.HTTPRequestError`
+class HTTPFailedRequest(HTTPError):
+    """`openhivenpy.exception.HTTPFailedRequest`
        
-    General Exception while handling requests
+    General Exception while handling a request
     
     """    
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Request failed due to an exceptions occurring while handling!"
+            arg = f"Failed to perform request! See HTTP logs!"
         super().__init__(arg) 
 
 
 class HTTPFaultyResponse(HTTPError):
-    """`openhivenpy.exception.HTTPRequestError`
+    """`openhivenpy.exception.HTTPFaultyResponse`
        
     Response was in wrong format or expected data was not received
     
@@ -158,21 +182,37 @@ class HTTPFaultyResponse(HTTPError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Response was in wrong format or expected data was not received!"
+            arg = f"Unable to handle Response and use data! See HTTP logs!"
+        super().__init__(arg)
+
+
+class HTTPReceivedNoData(HTTPFaultyResponse):
+    """`openhivenpy.exception.HTTPReceivedNoData`
+
+    Received a response without the required data field or
+    received a 204(No Content) in a request that expected data.
+
+    """
+
+    def __init__(self, *args):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = f"Received not the expected Data as response! See HTTP logs!"
         super().__init__(arg)
 
 
 class UnableToCreateSession(HTTPError):
     """`openhivenpy.exception.UnableToCreateSession`
        
-    Was unable to create HTTPClient session and request init client data!
+    Was unable to create HTTP session and request init client data!
     
     """    
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Was unable to create HTTPClient session and request init client data!"
+            arg = f"Failed to establish and test HTTP Session!"
         super().__init__(arg)
 
 
@@ -186,21 +226,21 @@ class UnableToClose(GatewayException):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The client is unable to close the connection to Hiven!"
+            arg = "Failed to close Connection!"
         super().__init__(arg)
 
 
-class WSConnectionError(GatewayException):
-    """`openhivenpy.exception.WSConnectionError`
+class WSFailedToHandle(GatewayException):
+    """`openhivenpy.exception.WSFailedToHandle`
     
-    An Exception occurred while trying to establish/keep the connection alive to Hiven!
+    An Exception occurred while handling a message/response from Hiven
     
     """
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The Websocket was unable to establish/keep the connection alive to Hiven!"
+            arg = "Failed to handle WS Message!"
         super().__init__(arg)
 
 
@@ -214,7 +254,7 @@ class NoneClientType(Warning):
         if args:
             msg = "".join([str(arg) for arg in args])
         else:
-            msg = "A None Type was passed in the Initialization!"
+            msg = "A None ClientType was passed! This can indicate faulty usage of the Client and can cause errors!"
         super().__init__(msg)
         
 # Command Exceptions #

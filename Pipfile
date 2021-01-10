@@ -6,11 +6,10 @@ name = "pypi"
 [packages]
 nest-asyncio = "*"
 typing = "*"
-websockets = "*"
-requests = "*"
 asyncio = "*"
 aiohttp = "*"
 brotlipy = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

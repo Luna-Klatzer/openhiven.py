@@ -14,59 +14,16 @@ __all__ = ['Client']
 
 
 class Client:
-    """`openhivenpy.types.Client` 
-    
+    """`openhivenpy.types.Client`
+
     Date Class for a Client
     ~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Data Class that stores the data of the connected client
-    
-    """
-    async def update_client_user_data(self, data: dict = None) -> None:
-        """`openhivenpy.types.client.update_client_user_data()`
-         
-        Updates or creates the standard user data attributes of the Client
-        
-        """
-        try: 
-            # Using a USER object to actually store all user data
-            self._USER = await getType.a_user(data, self.http_client)
-            relationships = data.get('relationships', [])
-            for key in relationships:
-                self._relationships.append(await getType.a_relationship(relationships.get(key, {}), self.http_client))
-                
-            private_rooms = data.get('private_rooms', [])
-            for private_room in private_rooms:
-                type = int(private_room.get('type', 0))
-                if type == 1:
-                    room = await getType.a_private_room(private_room, self.http_client)
-                elif type == 2:
-                    room = await getType.a_private_group_room(private_room, self.http_client)
-                else:
-                    room = await getType.a_private_room(private_room, self.http_client)
-                self._private_rooms.append(room)
-            
-            houses_ids = data.get('house_memberships', [])
-            self._amount_houses = len(houses_ids)
-                        
-        except AttributeError as e: 
-            logger.error(f"FAILED to update client data! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"FAILED to update client data! Most likely faulty data!" 
-                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        except KeyError as e:
-            logger.error(f"FAILED to update client data! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise AttributeError(f"FAILED to update client data! Most likely faulty data! " 
-                                 f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-        except Exception as e:
-            logger.error(f"FAILED to update client data! "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! " 
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __init__(self, *, http_client = None, **kwargs):
-        self.http_client = http_client if http_client is not None else self.http_client
+    Data Class that stores the data of the connected client
+
+    """
+    def __init__(self, *, http=None, **kwargs):
+        self.http = http if http is not None else self.http
 
         self._amount_houses = 0
         self._houses = []
@@ -74,7 +31,7 @@ class Client:
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = getType.user(data=kwargs, http_client=self.http_client)
+        self._USER = None
 
         # Init Data that will be overwritten by the connection and websocket
         self._initialized = False
@@ -82,13 +39,76 @@ class Client:
         self._startup_time = None
         self._ready = False
 
-        self._event_handler = None if not hasattr(self, '_event_handler') else self._event_handler
-        self._execution_loop = None if not hasattr(self, '_execution_loop') else self._execution_loop
+        self._event_handler = getattr(self, '_event_handler')
+        self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.create_one_time_task(self.check_meta_data)
+        self._execution_loop.add_to_startup(self.__check_meta_data)
 
-    async def check_meta_data(self):
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        return repr(self.user)
+
+    @property
+    def connection_start(self) -> float:
+        return getattr(self, "connection_start")
+
+    async def init_meta_data(self, data: dict = None) -> None:
+        """`openhivenpy.types.client.update_client_user_data()`
+        Updates or creates the standard user data attributes of the Client
+        """
+        try:
+            # Using a USER object to actually store all user data
+            self._USER = await getType.a_user(data, self.http)
+
+            _relationships = data.get('relationships')
+            if _relationships:
+                for key in _relationships:
+                    _rel_data = _relationships.get(key, {})
+                    _rel = await getType.a_relationship(
+                        data=_rel_data,
+                        http=self.http)
+
+                    self._relationships.append(_rel)
+            else:
+                raise errs.WSFailedToHandle("Missing 'relationships' in 'INIT_STATE' event message!")
+
+            _private_rooms = data.get('private_rooms')
+            if _private_rooms:
+                for private_room in _private_rooms:
+                    t = int(private_room.get('type', 0))
+                    if t == 1:
+                        room = await getType.a_private_room(private_room, self.http)
+                    elif t == 2:
+                        room = await getType.a_private_group_room(private_room, self.http)
+                    else:
+                        room = await getType.a_private_room(private_room, self.http)
+                    self._private_rooms.append(room)
+            else:
+                raise errs.WSFailedToHandle("Missing 'private_rooms' in 'INIT_STATE' event message!")
+
+            _house_ids = data.get('house_memberships')
+            if _house_ids:
+                self._amount_houses = len(_house_ids)
+            else:
+                raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
+
+            _raw_data = await self.http.request("/users/@me", timeout=10)
+            _data = _raw_data.get('data')
+            if _data:
+                self._USER = getType.user(data=data, http=self.http)
+            else:
+                raise errs.HTTPReceivedNoData()
+
+        except Exception as e:
+            logger.error(f"[CLIENT] FAILED to update client data! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+    async def __check_meta_data(self):
         """
         Checks whether the meta data is complete and triggers on_ready
         """
@@ -96,40 +116,105 @@ class Client:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
-                await self._event_handler.ready_state()
+                asyncio.create_task(self._event_handler.ev_ready_state())
                 break
             elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
                 self._ready = True
-                await self._event_handler.ready_state()
+                asyncio.create_task(self._event_handler.ev_ready_state())
                 break
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.types.Client.edit()`
-        
-        Change the signed in user's/bot's data. 
-        
+
+        Change the signed in user's/bot's data.
+
         Available options: header, icon, bio, location, website
-        
+
         Returns `True` if successful
-        
+
         """
-        http_code = "Unknown"
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    response = await self.http_client.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
-                    http_code = response.status
-                    return True
+                    resp = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+
+                    if resp.status < 300:
+                        return True
+                    else:
+                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("The passed value does not exist in the user context!")
-                    raise KeyError("The passed value does not exist in the user context!")
-    
+                    logger.error("[CLIENT] The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the user context!")
+
         except Exception as e:
-            keys = "".join(str(" "+key) for key in kwargs.keys())
-            logger.error(f"Failed change the values {keys} on the client Account! [CODE={http_code}] "
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")    
+            keys = "".join(str(" " + key) for key in kwargs.keys())
+            logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
+
+    @property
+    def user(self):
+        return self._USER
+
+    @property
+    def username(self) -> str:
+        return self.user.username
+
+    @property
+    def name(self) -> str:
+        return self.user.name
+
+    @property
+    def id(self) -> int:
+        return int(self.user.id)
+
+    @property
+    def icon(self) -> str:
+        return self.user.icon
+
+    @property
+    def header(self) -> str:
+        return self.user.header
+
+    @property
+    def bot(self) -> bool:
+        return self.user.bot
+
+    @property
+    def location(self) -> str:
+        return self.user.location
+
+    @property
+    def website(self) -> str:
+        return self.user.website
+
+    @property
+    def presence(self) -> getType.presence:
+        return self.user.presence
+
+    @property
+    def joined_at(self) -> Union[datetime.datetime, None]:
+        if self.user.joined_at and self.user.joined_at != "":
+            return datetime.datetime.fromisoformat(self.user.joined_at[:10])
+        else:
+            return None
+
+    @property
+    def houses(self):
+        return self._houses
+
+    @property
+    def private_rooms(self):
+        return self._private_rooms
+
+    @property
+    def users(self):
+        return self._users
+
+    @property
+    def rooms(self):
+        return self._rooms
 
     @property
     def amount_houses(self) -> int:
@@ -138,50 +223,3 @@ class Client:
     @property
     def relationships(self) -> list:
         return self._relationships
-
-    @property
-    def private_rooms(self) -> list:
-        return self._private_rooms
-    
-    @property
-    def username(self) -> str:
-        return self._USER.username
-
-    @property
-    def name(self) -> str:
-        return self._USER.name
-
-    @property
-    def id(self) -> int:
-        return int(self._USER.id)
-
-    @property
-    def icon(self) -> str:
-        return self._USER._icon
-    
-    @property
-    def header(self) -> str:
-        return self._USER._header
-
-    @property
-    def bot(self) -> bool:
-        return self._USER.bot
-
-    @property
-    def location(self) -> str:
-        return self._USER.location
-
-    @property
-    def website(self) -> str:
-        return self._USER.website
-
-    @property
-    def presence(self) -> getType.presence:
-        return self._USER.presence
-
-    @property
-    def joined_at(self) -> Union[datetime.datetime, None]:
-        if self._USER._joined_at is not None and self._USER._joined_at != "":
-            return datetime.datetime.fromisoformat(self._USER._joined_at[:10])
-        else:
-            return None

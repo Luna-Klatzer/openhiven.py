@@ -1,6 +1,6 @@
 asyncio
-requests
-websockets
 typing
 nest_asyncio
-aiohttp[speedups]
+aiohttp[speedups]==3.6.3
+brotlipy
+python-dotenv

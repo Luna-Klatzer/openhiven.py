@@ -3,7 +3,7 @@ import sys
 
 from .user import User
 from openhivenpy.types._get_type import getType
-from openhivenpy.gateway.http import HTTPClient
+from openhivenpy.gateway.http import HTTP
 from openhivenpy.utils import raise_value_to_type
 import openhivenpy.exceptions as errs
 
@@ -23,32 +23,45 @@ class Member(User):
     Returned with house house member list and House.get_member()
     
     """
-    def __init__(self, data: dict, http_client: HTTPClient, house):
+    def __init__(self, data: dict, house, http: HTTP):
         try:
-            super().__init__(data, http_client)
-            self._user_id = int(data['user_id']) if data.get('user_id') is not None else None
+            super().__init__(data.get('user', data), http)
+            self._user_id = self._id
             self._house_id = data.get('house_id')
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
             
             self._house = house
-            self._http_client = http_client
+            self._http = http
             
         except AttributeError as e: 
-            logger.error(f"Failed to initialize the Member object! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! " 
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"Failed to initialize the Member object! " 
-                         f"Cause of Error: {sys.exc_info()[1].__class__.__name__}, {str(e)} Data: {data}")
+            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
+                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! " 
-                                            f"Cause of error: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    def __str__(self):
-        return self.id
-        
+    def __str__(self) -> str:
+        return str(repr(self))
+
+    def __repr__(self) -> str:
+        info = [
+            ('username', self.username),
+            ('name', self.name),
+            ('id', self.id),
+            ('icon', self.icon),
+            ('header', self.header),
+            ('bot', self.bot),
+            ('house_id', self.house_id),
+            ('joined_at', self.joined_at)
+        ]
+        return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def user_id(self) -> int:
         return self._user_id
@@ -75,7 +88,7 @@ class Member(User):
         Returns `True` if successful.
         
         """
-        resp = await self._http_client.delete(f"/{self._house_id}/members/{self._user_id}")
+        resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
             raise errs.Forbidden()
         else:
