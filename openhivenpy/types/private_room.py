@@ -52,7 +52,7 @@ class PrivateGroupRoom:
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [
@@ -103,27 +103,32 @@ class PrivateGroupRoom:
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
-                endpoint="/rooms/{self.id}/messages",
+                endpoint=f"/rooms/{self.id}/messages",
                 json={"content": content})
-            data = await resp.json()
 
-            resp = await self._http.request(f"/users/@me")
-            if resp:
-                _author_data = resp.get('data')
-                if _author_data:
-                    author = getType.user(_author_data, self._http)
-
-                    msg = await getType.a_message(
-                        data=data,
-                        http=self._http,
-                        house=None,
-                        room=self,
-                        author=author)
-                    return msg
+            raw_data = await resp.json()
+            if raw_data:
+                # Raw_data not in correct format => needs to access data field
+                data = raw_data.get('data')
+                if data:
+                    # Getting the author / self
+                    raw_data = await self._http.request(f"/users/@me")
+                    author_data = raw_data.get('data')
+                    if author_data:
+                        author = getType.user(author_data, self._http)
+                        msg = await getType.a_message(
+                            data=data,
+                            http=self._http,
+                            house=None,
+                            room=self,
+                            author=author)
+                        return msg
+                    else:
+                        raise errs.HTTPReceivedNoData()
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPFaultyResponse()
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPFaultyResponse()
         
         except Exception as e:
             logger.error(f"[PRIVATE_GROUP_ROOM] Failed to send message in room {repr(self)}! " 
@@ -194,7 +199,7 @@ class PrivateRoom:
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [
@@ -258,7 +263,7 @@ class PrivateRoom:
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False             
 
-    async def send(self, content: str, delay: float = None) -> Union[getType.message, None]:
+    async def send(self, content: str, delay: float = None) -> getType.message:
         """openhivenpy.types.PrivateRoom.send(content)
 
         Sends a message in the private room. 
@@ -278,20 +283,32 @@ class PrivateRoom:
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
-                endpoint="/rooms/{self.id}/messages",
+                endpoint=f"/rooms/{self.id}/messages",
                 json={"content": content})
 
-            data = await resp.json()
-
-            resp = await self._http.request(f"/users/@me")
-            author_data = resp.get('data', {})
-            author = getType.user(author_data, self._http)
-            msg = await getType.a_message(data,
-                                          self._http,
-                                          house=None,
-                                          room=self,
-                                          author=author)
-            return msg
+            raw_data = await resp.json()
+            if raw_data:
+                # Raw_data not in correct format => needs to access data field
+                data = raw_data.get('data')
+                if data:
+                    # Getting the author / self
+                    raw_data = await self._http.request(f"/users/@me")
+                    author_data = raw_data.get('data')
+                    if author_data:
+                        author = getType.user(author_data, self._http)
+                        msg = await getType.a_message(
+                            data=data,
+                            http=self._http,
+                            house=None,
+                            room=self,
+                            author=author)
+                        return msg
+                    else:
+                        raise errs.HTTPReceivedNoData()
+                else:
+                    raise errs.HTTPFaultyResponse()
+            else:
+                raise errs.HTTPFaultyResponse()
         
         except Exception as e:
             logger.error(f"[PRIVATE_ROOM] Failed to send message in room {repr(self)}! " 

@@ -56,7 +56,7 @@ class HTTP:
         self._request = None
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [

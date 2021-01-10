@@ -13,29 +13,12 @@ import openhivenpy.utils as utils
 from openhivenpy.events import EventHandler
 from openhivenpy.types import Client
 
-__all__ = ('API', 'Websocket')
+__all__ = ['Websocket']
 
 logger = logging.getLogger(__name__)
 
 
-class API:
-    """`openhivenpy.gateway`
-
-    API
-    ~~~
-
-    API Class for interaction with the Hiven API not depending on the HTTP
-
-    Will soon either be repurposed or removed!
-
-    """
-
-    @property
-    def host(self):
-        return "https://api.hiven.io/v1"
-
-
-class Websocket(Client, API):
+class Websocket(Client):
     """`openhivenpy.gateway.Websocket`
 
     Websocket
@@ -115,8 +98,6 @@ class Websocket(Client, API):
         self._connection_start = None
 
         self._connection_status = "CLOSED"
-
-        # client data is inherited here and will be then passed to the connection class
         super().__init__()
 
     @property
@@ -365,8 +346,7 @@ class Websocket(Client, API):
                                     self._initialized = True
                                     await self._event_handler.ev_init_state(time=init_time)
 
-                                _thread_safe_coro = asyncio.run_coroutine_threadsafe(self._event_resp_handler(resp),
-                                                                                     self._event_loop)
+                                await asyncio.create_task(self._event_resp_handler(resp))
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
                         logger.debug(f"[WEBSOCKET] << Received close frame with msg='{msg.extra}'!")
@@ -1471,19 +1451,23 @@ class Websocket(Client, API):
                         Handler for a relationship update. Triggers on_relationship_update
                         and returns as parameter the relationship obj.
                         """
-                        data = response_data
+                        try:
+                            data = response_data
 
-                        cache_relationship = utils.get(self._relationships, id=int(data.get('id')))
-                        relationship = types.Relationship(data, self.http)
-                        if cache_relationship:
-                            # Removing the old data
-                            self._relationships.remove(cache_relationship)
+                            cache_relationship = utils.get(self._relationships, id=int(data.get('id')))
+                            relationship = types.Relationship(data, self.http)
+                            if cache_relationship:
+                                # Removing the old data
+                                self._relationships.remove(cache_relationship)
 
-                        # Adding the new data
-                        self._relationships.append(relationship)
-                        asyncio.create_task(self._event_handler.ev_relationship_update(
-                            relationship=relationship
-                        ))
+                            # Adding the new data
+                            self._relationships.append(relationship)
+                            asyncio.create_task(self._event_handler.ev_relationship_update(
+                                relationship=relationship
+                            ))
+                        except Exception as e:
+                            logger.exception("[RELATIONSHIP_UPDATE] Failed to handle event and trigger "
+                                             f"'on_relationship_update'! Exception: {e}")
 
                     asyncio.create_task(relationship_update_handler())
             else:

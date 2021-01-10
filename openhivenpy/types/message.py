@@ -125,19 +125,19 @@ class Message:
             self._http = http
             
         except AttributeError as e: 
-            logger.error(f"[MEMBER] Failed to initialize the Message object! "
+            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
         
         except Exception as e: 
-            logger.error(f"[MEMBER] Failed to initialize the Message object! "
+            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [
@@ -230,7 +230,7 @@ class Message:
                 raise errs.HTTPFaultyResponse
         
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to mark message in room {self.room.name} with id {self.id} as read!" 
+            logger.error(f"[MESSAGE] Failed to mark message as read {repr(self)}" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def delete(self, delay: float) -> bool:
@@ -257,7 +257,7 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
         
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to delete the message in room {self.room.name} with id {self.id}!" 
+            logger.error(f"[MESSAGE] Failed to delete the message {repr(self)}!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def edit(self, content: str) -> bool:
@@ -279,6 +279,6 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to edit message in room {self.room.name} with id {self.id}!" 
+            logger.error(f"[MESSAGE] Failed to edit message {repr(self)}!" 
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False

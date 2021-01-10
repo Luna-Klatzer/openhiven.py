@@ -30,6 +30,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .ws import Websocket, API
+from .ws import Websocket
 from .http import HTTP
 from .connection import Connection

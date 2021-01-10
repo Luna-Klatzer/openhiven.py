@@ -53,7 +53,7 @@ class Room:
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [
@@ -65,7 +65,7 @@ class Room:
             ('emoji', self.emoji),
             ('description', self.description)
         ]
-        return '<Room {}>'.format(' '.join('%s=%s' % t for t in info))
+        return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
     @property
     def id(self):
@@ -77,11 +77,11 @@ class Room:
 
     @property
     def house_id(self):
-        return self.house_id
+        return self._house_id
 
     @property
     def house(self):
-        return self.house
+        return self._house
 
     @property
     def position(self):
@@ -119,25 +119,30 @@ class Room:
             resp = await self._http.post(
                 f"/rooms/{self.id}/messages",
                 json={"content": content})
-            if resp:
-                data = await resp.json()
 
-                raw_data = await self._http.request(f"/users/@me")
-                author_data = raw_data.get('data')
-                if author_data:
-                    author = getType.user(author_data, self._http)
-                    msg = await getType.a_message(
-                        data=data,
-                        http=self._http,
-                        house=None,
-                        room=self,
-                        author=author)
-                    return msg
+            raw_data = await resp.json()
+            if raw_data:
+                # Raw_data not in correct format => needs to access data field
+                data = raw_data.get('data')
+                if data:
+                    # Getting the author / self
+                    raw_data = await self._http.request(f"/users/@me")
+                    author_data = raw_data.get('data')
+                    if author_data:
+                        author = getType.user(author_data, self._http)
+                        msg = await getType.a_message(
+                            data=data,
+                            http=self._http,
+                            house=None,
+                            room=self,
+                            author=author)
+                        return msg
+                    else:
+                        raise errs.HTTPReceivedNoData()
                 else:
-                    raise errs.HTTPReceivedNoData()
-
+                    raise errs.HTTPFaultyResponse()
             else:
-                raise errs.HTTPFaultyResponse
+                raise errs.HTTPFaultyResponse()
         
         except Exception as e:
             logger.error(f"[ROOM] Failed to send message in room {repr(self)}! " 
@@ -169,7 +174,7 @@ class Room:
     
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"[ROOM] Failed to change the values {keys} for room {self.name} with id {self.id}! "
+            logger.error(f"[ROOM] Failed to change the values {keys} in room {repr(self)}!"
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
         

@@ -199,12 +199,12 @@ class House:
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [
-            ('id', self.id),
             ('name', self.name),
+            ('id', self.id),
             ('banner', self.banner),
             ('owner_id', self.owner_id)
         ]
@@ -278,7 +278,7 @@ class House:
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
-                logger.warning(f"[HOUSE] Found no member with specified id={member_id} in the client cache!")
+                logger.warning(f"[HOUSE] Found no member with specified id={member_id} in {repr(self)}!")
 
             return None
 
@@ -306,7 +306,7 @@ class House:
 
             return None
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to get the room with id {room_id}! "
+            logger.error(f"[HOUSE] Failed to get the room with id {room_id} in house {repr(self)} "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -336,10 +336,7 @@ class House:
             if resp.status < 300:
                 data = (await resp.json()).get('data')
                 if data:
-                    room = await getType.a_room(
-                        await resp.json(),
-                        self._http,
-                        self)
+                    room = await getType.a_room(data, self._http, self)
                     self._rooms.append(room)
                     return room
                 else:
@@ -348,7 +345,7 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to create room '{self.name}' with id '{self.id}'."
+            logger.error(f"[HOUSE] Failed to create room '{name}' in house {repr(self)}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return None
 
@@ -381,7 +378,7 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to create the room {self.name} with id {self.id}!"
+            logger.error(f"[HOUSE] Failed to create category '{name}' in house {repr(self)}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -402,7 +399,7 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to leave the house {self.name} with id {self.id}! "
+            logger.error(f"[HOUSE] Failed to leave {repr(self)}! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -433,7 +430,7 @@ class House:
 
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"[HOUSE] Failed edit request of values '{keys}' for house {self.name} with id {self.id}!"
+            logger.error(f"[HOUSE] Failed edit request of values '{keys}' in house {repr(self)}!"
                          f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             return False
 
@@ -482,4 +479,4 @@ class House:
                 return None
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to delete House! > {e}")
+            logger.error(f"[HOUSE] Failed to delete House {repr(self)}! > {e}")

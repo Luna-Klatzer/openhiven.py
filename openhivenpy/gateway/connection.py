@@ -226,7 +226,7 @@ class ExecutionLoop:
             return decorator(func)
 
 
-class Connection(Websocket, Client):
+class Connection(Websocket):
     """`openhivenpy.gateway.Connection` 
     
     Connection
@@ -277,11 +277,11 @@ class Connection(Websocket, Client):
         self._token = token
         self.http = HTTP(loop=self._event_loop, token=token, **self._init_args)
         self.http._ready = False
-        
+
         super().__init__(event_handler=event_handler, token=token, **self._init_args)
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [

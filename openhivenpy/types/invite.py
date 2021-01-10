@@ -63,7 +63,7 @@ class Invite:
         self._house_members = data.get('counts', {}).get('house_members')
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [

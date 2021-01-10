@@ -39,19 +39,19 @@ class LazyUser:
             self._bot = data.get('bot')
 
         except AttributeError as e:
-            logger.error(f"[USER] Failed to initialize the User object! "
+            logger.error(f"[LAZYUSER] Failed to initialize the User object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
         except Exception as e:
-            logger.error(f"[USER] Failed to initialize the User object! "
+            logger.error(f"[LAZYUSER] Failed to initialize the User object! "
                          f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! "
                                     f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [

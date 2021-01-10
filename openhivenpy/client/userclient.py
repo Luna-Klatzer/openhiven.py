@@ -85,7 +85,8 @@ class UserClient(HivenClient):
                 user = kwargs.get('user')
                 user_id = getattr(user, 'id')
                 if user_id is None:
-                    logger.error("[CLIENT] Invalid parameter for cancel_friend_request! Expected user or user_id!")
+                    logger.error("[CLIENT] Invalid parameter for cancel_friend_request! Expected user or user_id! > "
+                                 f"<user_id={user_id} kwargs={kwargs}>")
                     return None
             else:
                 resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")

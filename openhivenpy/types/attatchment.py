@@ -25,7 +25,7 @@ class Attachment:
         self._http = http
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         info = [

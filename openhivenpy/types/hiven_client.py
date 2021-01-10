@@ -39,14 +39,14 @@ class Client:
         self._startup_time = None
         self._ready = False
 
-        self._event_handler = None if not hasattr(self, '_event_handler') else self._event_handler
-        self._execution_loop = None if not hasattr(self, '_execution_loop') else self._execution_loop
+        self._event_handler = getattr(self, '_event_handler')
+        self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
         self._execution_loop.add_to_startup(self.__check_meta_data)
 
     def __str__(self) -> str:
-        return repr(self)
+        return str(repr(self))
 
     def __repr__(self) -> str:
         return repr(self.user)

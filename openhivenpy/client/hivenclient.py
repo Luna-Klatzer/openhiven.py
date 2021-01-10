@@ -10,7 +10,7 @@ from datetime import datetime
 from openhivenpy.settings import load_env
 from openhivenpy.gateway.connection import ExecutionLoop
 from openhivenpy.gateway.ws import Websocket
-from openhivenpy.gateway import Connection, API, HTTP
+from openhivenpy.gateway import Connection, HTTP
 from openhivenpy.events import EventHandler
 import openhivenpy.exceptions as errs
 import openhivenpy.utils as utils
@@ -29,7 +29,7 @@ def _check_dependencies() -> None:
             raise ImportError(f"Module {pkg} not found in locally installed modules!", name=pkg)
 
 
-class HivenClient(EventHandler, API):
+class HivenClient(EventHandler):
     """`openhivenpy.client.HivenClient` 
     
     HivenClient
@@ -118,10 +118,10 @@ class HivenClient(EventHandler, API):
             self.event_handler = event_handler
 
         # Websocket and client data are being handled over the Connection Class
-        self.connection = Connection(event_handler=self.event_handler,
-                                     token=token,
-                                     event_loop=self.loop,
-                                     **kwargs)
+        self._connection = Connection(event_handler=self.event_handler,
+                                      token=token,
+                                      event_loop=self.loop,
+                                      **kwargs)
 
         nest_asyncio.apply(loop=self.loop)
 
@@ -145,6 +145,10 @@ class HivenClient(EventHandler, API):
     def http(self) -> HTTP:
         return self.connection.http
 
+    @property
+    def connection(self) -> Connection:
+        return self._connection
+
     async def connect(self) -> None:
         """`openhivenpy.client.HivenClient.connect()`
         
@@ -154,7 +158,7 @@ class HivenClient(EventHandler, API):
         try:
             self.loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
-            logger.error(f"[CLIENT] {e}")
+            logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
             raise errs.HivenConnectionError(f"Failed to start client session and websocket! > {e}")
         finally:
             return
@@ -168,9 +172,8 @@ class HivenClient(EventHandler, API):
         try:
             self.loop.run_until_complete(self.connection.connect())
         except RuntimeError as e:
-            logger.error(f"[CLIENT] {e}")
-            raise errs.HivenConnectionError(
-                f"Failed to start session and establish connection to Hiven! > {e}")
+            logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
+            raise errs.HivenConnectionError(f"Failed to start session and establish connection to Hiven! > {e}")
         finally:
             return
 
@@ -258,33 +261,33 @@ class HivenClient(EventHandler, API):
     # -----------
     @property
     def amount_houses(self) -> int:
-        return self.user.amount_houses
+        return self.connection.amount_houses
 
     @property
     def houses(self) -> list:
-        return self.user.houses
+        return self.connection.houses
 
     @property
     def users(self) -> list:
-        return self.user.users
+        return self.connection.users
 
     @property
     def rooms(self) -> list:
-        return self.user.rooms
+        return self.connection.rooms
 
     @property
     def private_rooms(self) -> list:
-        return self.user.private_rooms
+        return self.connection.private_rooms
 
     @property
     def relationships(self) -> list:
-        return self.user.relationships
+        return self.connection.relationships
 
     # Client data
     # -----------
     @property
     def name(self) -> str:
-        return self.connection.name
+        return self.user.name
 
     @property
     def user(self) -> types.Client:
@@ -494,20 +497,23 @@ class HivenClient(EventHandler, API):
                 house = cached_room.house
 
                 raw_data = await self.http.request(endpoint=f"/rooms/{room_id}")
-                data = raw_data.get('data')
-                if data:
-                    room = types.Room(data, self.http, house)
-                    self.connection._rooms.remove(cached_room)
-                    self.connection._rooms.append(room)
-                    return room
+                if raw_data:
+                    data = raw_data.get('data')
+                    if data:
+                        room = types.Room(data, self.http, house)
+                        self.connection._rooms.remove(cached_room)
+                        self.connection._rooms.append(room)
+                        return room
+                    else:
+                        logger.warning("[CLIENT] Failed to request room data from the API!")
+                        return cached_room
                 else:
-                    logger.warning("[CLIENT] Failed to request room data from the API!")
-                    return cached_room
+                    raise
             else:
                 return None
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to get Room based with id {room_id}! > {e}")
+            logger.error(f"[CLIENT] Failed to get Room with id {room_id}! > {e}")
 
     async def get_private_room(self, room_id: float) -> Union[types.PrivateRoom, None]:
         """`openhivenpy.HivenClient.get_private_room()`
@@ -534,7 +540,7 @@ class HivenClient(EventHandler, API):
                 return None
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to get Room based with id {room_id}! > {e}")
+            logger.error(f"[CLIENT] Failed to get Private Room with id {room_id}! > {e}")
 
     async def create_house(self, name: str) -> types.LazyHouse:
         """`openhivenpy.HivenClient.create_house()`
@@ -626,9 +632,12 @@ class HivenClient(EventHandler, API):
         try:
             raw_data = await self.http.request(endpoint=f"/streams/@me/feed")
 
-            data = raw_data.get('data')
-            if data:
-                return types.Feed(data, self.http)
+            if raw_data:
+                data = raw_data.get('data')
+                if data:
+                    return types.Feed(data, self.http)
+                else:
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPReceivedNoData()
 

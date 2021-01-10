@@ -35,7 +35,7 @@ async def on_ready():
 
     house = await client.create_house("test house")
 
-    await asyncio.sleep(5)
+    await asyncio.sleep(1)
     house = openhivenpy.utils.get(client.houses, id=house.id)
 
     await house.create_room(name="stuff")
