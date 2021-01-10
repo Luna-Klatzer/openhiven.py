@@ -9,6 +9,7 @@ typing = "*"
 asyncio = "*"
 aiohttp = "*"
 brotlipy = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
