@@ -1,5 +1,6 @@
 import asyncio
 import openhivenpy
+from openhivenpy import utils
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -29,7 +30,11 @@ async def on_init(time):
 async def on_ready():
     print(f"Ready after {client.startup_time}")
 
+
     house = await client.get_house(175036727902074248)
+
+    update_room = utils.get(house.rooms, name="Announcements")
+    await update_room.edit(name="Updates")
 
     url = await client.fetch_invite("openhivenpy")
 

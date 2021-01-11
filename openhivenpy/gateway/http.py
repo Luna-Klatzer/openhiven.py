@@ -189,7 +189,6 @@ class HTTP:
             _timeout = aiohttp.ClientTimeout(total=None)
             if self._ready:
                 try:
-                    error = False
                     if kwargs.get('headers') is None:
                         headers = self.headers
                     else:
@@ -201,39 +200,30 @@ class HTTP:
                                                     headers=headers, 
                                                     timeout=_timeout,
                                                     **kwargs) as resp:
-                        http_code = resp.status
+                        http_code = resp.status  # HTTP Code Response
+                        data = await resp.read()  # Raw Text data
 
-                        hiven_error_code = None
-                        hiven_error_reason = None
+                        if data:
+                            _json_data = json_decoder.loads(data)
+                            _success = _json_data.get('success')
 
-                        # If the response code is lower than 300 the request was somewhat successful
-                        if http_code < 300:
-                            data = await resp.read()
-                            if http_code == 204:
-                                if method == "GET":
-                                    error = True
-                                logger.warning("[HTTP] << Received Empty HTTP Response")
+                            if _success:
+                                logger.debug(f"[HTTP] {http_code} - Request was successful and received expected data!")
                             else:
-                                json = json_decoder.loads(data)
-                                
-                                error = json.get('error', False)
-                                if error:
-                                    hiven_error_code = json['error'].get('code')
-                                    hiven_error_reason = json['error'].get('message')
+                                _error = _json_data.get('error')
+                                if _error:
+                                    err_code = _error.get('code')  # Error-Code
+                                    err_msg = _error.get('message')  # Error-Msg
+                                    logger.error(f"[HTTP] Failed HTTP request '{method.upper()}'! {http_code} -> "
+                                                 f"'{err_code}': '{err_msg}'")
                                 else:
-                                    hiven_error_code = 'Unknown HTTP or Request Error'
-                                    hiven_error_reason = 'Possibly faulty request or response!'
-
-                            if error is False:
-                                return resp
-                                
-                        error_code = http_code
-                        error_reason = resp.reason
-
-                        logger.warning(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: " 
-                                     f"{endpoint}; {error_code}, {error_reason}")
-                        if hiven_error_code or hiven_error_reason:
-                            logger.warning(f"[HTTP] << Received Hiven Error: {hiven_error_code} - {hiven_error_reason}")
+                                    logger.error(f"[HTTP] Failed HTTP request '{method.upper()}'! {http_code} -> "
+                                                 f"Response: None")
+                        else:
+                            if http_code == 204:
+                                logger.warning("[HTTP] Received empty response!")
+                            else:
+                                logger.error("[HTTP] Received empty response!")
 
                         return resp
 
@@ -413,14 +403,11 @@ class HTTP:
                         See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
 
         """
-        headers = dict(self.headers)
-        headers['Content-Type'] = 'application/json'
         return await self.raw_request(
                                     endpoint, 
                                     method="PATCH", 
                                     json=json, 
-                                    timeout=timeout, 
-                                    headers=headers,
+                                    timeout=timeout,
                                     **kwargs)
     
     async def options(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
@@ -455,4 +442,3 @@ class HTTP:
                                     json=json, 
                                     timeout=timeout, 
                                     **kwargs)
-    

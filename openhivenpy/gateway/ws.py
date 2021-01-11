@@ -516,10 +516,6 @@ class Websocket(Client):
                                     # Appending to the client users list
                                     self._users.append(types.User(usr, self.http))
 
-                                # Appending to the house users list
-                                usr = types.Member(usr, house, self.http)
-                                house._members.append(usr)
-
                             for room in response_data['rooms']:
                                 self._rooms.append(types.Room(room, self.http, house))
 

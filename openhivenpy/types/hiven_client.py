@@ -112,16 +112,16 @@ class Client:
         """
         Checks whether the meta data is complete and triggers on_ready
         """
+        check = True
         while True:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
                 asyncio.create_task(self._event_handler.ev_ready_state())
                 break
-            elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
-                self._ready = True
-                asyncio.create_task(self._event_handler.ev_ready_state())
-                break
+            if (time.time() - self.connection_start) > 30 and check:
+                logger.warning("[CLIENT] Initialization takes unusually long! Possible connection or data issues!")
+                check = False
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
