@@ -8,7 +8,7 @@ with open("requirements.txt") as file:
 
 setuptools.setup(
     name="openhivenpy", 
-    version="0.1.1",
+    version="0.1.1.2",
     author="FrostbyteSpace",
     author_email="nicolas.klatzer@gmail.com",
     description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteSpace",
