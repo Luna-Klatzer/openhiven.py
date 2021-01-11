@@ -525,8 +525,12 @@ class Websocket(Client):
 
                         # Appending to the client houses list
                         self._houses.append(house)
+
+                        # Creating a new task for handling the event
+                        # TODO! Needs error handling and name traceback and log!
                         asyncio.create_task(self._event_handler.ev_house_join(house))
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_join_handler())
 
             elif swarm_event == "HOUSE_LEAVE":
@@ -554,8 +558,11 @@ class Websocket(Client):
                             logger.debug("[HOUSE_LEAVE] Unable to locate left house in house cache! "
                                          "Possibly faulty Client data!")
 
+                        # Creating a new task for handling the event
+                        # TODO! Needs error handling and name traceback and log!
                         asyncio.create_task(self._event_handler.ev_house_exit(house=house))
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_leave_handler())
 
             elif swarm_event == "HOUSE_DOWN":
@@ -584,8 +591,11 @@ class Websocket(Client):
                         else:
                             pass
 
+                        # Creating a new task for handling the event
+                        # TODO! Needs error handling and name traceback and log!
                         asyncio.create_task(self._event_handler.ev_house_down(time=t, house=house))
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_down_handler())
 
             elif swarm_event == "HOUSE_MEMBER_ENTER":
@@ -682,6 +692,8 @@ class Websocket(Client):
                                                ">> House object will default to None and member will default to cached "
                                                "user!")
 
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_house_member_enter(
                                 member=member,
                                 house=house
@@ -691,6 +703,7 @@ class Websocket(Client):
                             logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_member_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_member_enter())
 
             elif swarm_event == "HOUSE_MEMBER_UPDATE":
@@ -765,6 +778,8 @@ class Websocket(Client):
                                     logger.warning("[HOUSE_MEMBER_UPDATE] Unable to find member in the cache! "
                                                    f"USER_ID={data.get('user_id')}")
 
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_house_member_update(
                                 old=cached_member,
                                 new=member,
@@ -775,6 +790,7 @@ class Websocket(Client):
                             logger.exception("[HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_member_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_member_update_handler())
 
             elif swarm_event == "HOUSE_MEMBER_JOIN":
@@ -801,6 +817,7 @@ class Websocket(Client):
                         """
                         data = response_data
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_join_handler())
 
             elif swarm_event == "ROOM_CREATE":
@@ -819,6 +836,7 @@ class Websocket(Client):
                     async def room_create_handler():
                         pass
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(room_create_handler())
 
             elif swarm_event == "HOUSE_MEMBER_EXIT":
@@ -853,6 +871,9 @@ class Websocket(Client):
                             else:
                                 logger.warning("[HOUSE_MEMBER_EXIT] Failed to find House in the client cache! "
                                                "Possibly faulty client data!")
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_house_member_exit(
                                 user=user,
                                 house=house
@@ -862,6 +883,7 @@ class Websocket(Client):
                             logger.exception("[HOUSE_MEMBER_EXIT] Failed to handle event and trigger "
                                              f"'on_house_exit'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_member_exit_handler())
 
             elif swarm_event == "PRESENCE_UPDATE":
@@ -888,12 +910,16 @@ class Websocket(Client):
                         try:
                             user = types.User(response_data, self.http)
                             presence = types.Presence(response_data, user, self.http)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_presence_update(presence, user))
 
                         except Exception as e:
                             logger.exception("[PRESENCE_UPDATE] Failed to handle event and trigger "
                                              f"'on_presence_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(presence_update_handler())
 
             elif swarm_event == "MESSAGE_CREATE":
@@ -1017,12 +1043,16 @@ class Websocket(Client):
                                                    f"USER_ID={data.get('author_id')}")
 
                             msg = types.Message(response_data, self.http, house, room, author)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_message_create(msg))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_CREATE] Failed to handle event and trigger 'on_message_create'! "
                                              f"Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(msg_create_handler())
 
             elif swarm_event == "MESSAGE_DELETE":
@@ -1045,12 +1075,16 @@ class Websocket(Client):
                         """
                         try:
                             msg = types.DeletedMessage(response_data)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_message_delete(msg))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_DELETE] Failed to handle event and trigger 'on_message_delete'! "
                                              f"Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(msg_delete_handler())
 
             elif swarm_event == "MESSAGE_UPDATE":
@@ -1147,12 +1181,16 @@ class Websocket(Client):
                                 author = cached_author
 
                             message = types.Message(data, self.http, house=house, room=room, author=author)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_message_update(message))
 
                         except Exception as e:
                             logger.exception("[MESSAGE_UPDATE] Failed to handle event and trigger 'on_message_update'! "
                                              f"Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(msg_update_handler())
 
             elif swarm_event == "TYPING_START":
@@ -1187,12 +1225,16 @@ class Websocket(Client):
                                 author = utils.get(self._users, id=int(response_data.get('author_id', 0)))
 
                             typing = types.Typing(response_data, author, room, house, self.http)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_typing_start(typing))
 
                         except Exception as e:
                             logger.exception("[TYPING_START] Failed to handle event and trigger 'on_typing_start'! "
                                              f"Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(typing_start_handler())
 
             elif swarm_event == "TYPING_END":
@@ -1218,12 +1260,16 @@ class Websocket(Client):
                             house = utils.get(self._houses, id=int(response_data.get('room_id', 0)))
                             member = utils.get(house.members, id=int(response_data.get('room_id', 0)))
                             typing = types.Typing(response_data, member, room, house, self.http)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_typing_end(typing))
 
                         except Exception as e:
                             logger.exception("[TYPING_END] Failed to handle event and trigger "
                                              f"'on_typing_end'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(typing_end_handler())
 
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
@@ -1292,6 +1338,8 @@ class Websocket(Client):
                                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
                                                    f"{name} in client cache!")
 
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_house_member_chunk(
                                 members=members,
                                 data=data,
@@ -1301,6 +1349,7 @@ class Websocket(Client):
                             logger.exception("[HOUSE_MEMBERS_CHUNK] Failed to handle event and trigger "
                                              f"'on_house_member_chunk'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(member_chunk_handler())
 
             elif swarm_event == "BATCH_HOUSE_MEMBER_UPDATE":
@@ -1368,6 +1417,8 @@ class Websocket(Client):
                                                    f"of unknown user in house {house.name} because of faulty user data!"
                                                    " Possibly faulty client data!")
 
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_batch_house_member_update(
                                 members=members,
                                 data=data,
@@ -1377,6 +1428,7 @@ class Websocket(Client):
                             logger.exception("[BATCH_HOUSE_MEMBER_UPDATE] Failed to handle event and trigger "
                                              f"'on_batch_house_member_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(batch_house_member_handler())
 
             elif swarm_event == "HOUSE_ENTITIES_UPDATE":
@@ -1410,7 +1462,10 @@ class Websocket(Client):
                         try:
                             data = response_data
                             house = utils.get(self._houses, id=int(data.get('house_id')))
-                            entity = None  # In work
+                            entity = None  # TODO! Insert entity
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_house_entity_update(
                                 house=house,
                                 entity=entity,
@@ -1421,6 +1476,7 @@ class Websocket(Client):
                             logger.exception("[HOUSE_ENTITIES_UPDATE] Failed to handle event and trigger "
                                              f"'on_house_entity_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(house_entity_update_handler())
 
             elif swarm_event == "RELATIONSHIP_UPDATE":
@@ -1462,13 +1518,18 @@ class Websocket(Client):
 
                             # Adding the new data
                             self._relationships.append(relationship)
+
+                            # Creating a new task for handling the event
+                            # TODO! Needs error handling and name traceback and log!
                             asyncio.create_task(self._event_handler.ev_relationship_update(
                                 relationship=relationship
                             ))
+
                         except Exception as e:
                             logger.exception("[RELATIONSHIP_UPDATE] Failed to handle event and trigger "
                                              f"'on_relationship_update'! Exception: {e}")
 
+                    # => Creating a parallel task to not slow down event handler
                     asyncio.create_task(relationship_update_handler())
             else:
                 logger.error(f"[WEBSOCKET] << Unknown Event {swarm_event} without Handler!")

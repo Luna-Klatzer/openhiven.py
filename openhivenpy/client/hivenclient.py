@@ -74,7 +74,7 @@ class HivenClient(EventHandler):
                 event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
                 **kwargs):
 
-        # Loading the .env variables
+        # Loading the openhivenpy.env variables
         load_env()
         # Calling super to make the client it's own event_handler
         super().__init__(self)
