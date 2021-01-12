@@ -60,7 +60,7 @@ class Websocket(Client):
             self,
             *,
             event_handler: EventHandler,
-            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
+            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
             **kwargs):
 
         self._HOST = kwargs.get('api_url', os.getenv("HIVEN_HOST"))
@@ -241,7 +241,6 @@ class Websocket(Client):
                             resp = None
 
                         if resp.get('op', 0) == 1:
-                            logger.info("[WEBSOCKET] >> Connection to Hiven Swarm established")
                             # Authorizing with token
                             logger.info("[WEBSOCKET] >> Authorizing with token")
                             await ws.send_str(str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}})))

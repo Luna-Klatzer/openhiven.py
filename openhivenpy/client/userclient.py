@@ -35,7 +35,7 @@ class UserClient(HivenClient):
                                                         Creates a new one on Default
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
-                                                        Creates a new one on default!
+                                                        Defaults to None!
     
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
@@ -44,7 +44,7 @@ class UserClient(HivenClient):
                 self, 
                 token: str, 
                 *,
-                event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), 
+                event_loop: Optional[asyncio.AbstractEventLoop] = None,
                 **kwargs):
 
         self._CLIENT_TYPE = "user"

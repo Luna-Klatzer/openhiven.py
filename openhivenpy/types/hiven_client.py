@@ -117,6 +117,7 @@ class Client:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
+                logger.info("[CLIENT] Client loaded all data and is ready for usage! ")
                 asyncio.create_task(self._event_handler.ev_ready_state())
                 break
             if (time.time() - self.connection_start) > 30 and check:

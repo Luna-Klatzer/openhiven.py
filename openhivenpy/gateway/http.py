@@ -37,20 +37,19 @@ class HTTP:
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
     
     """
-    def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(), **kwargs):
-        
+
+    def __init__(self, loop: Optional[asyncio.AbstractEventLoop], **kwargs):
+
         self._TOKEN = kwargs.get('token')
         self.host = kwargs.get('api_url', "api.hiven.io")
         self.api_version = kwargs.get('api_version', "v1")
-        self.api_url = request_url_format.format(self.host, self.api_version)        
-        
+        self.api_url = request_url_format.format(self.host, self.api_version)
         self.headers = {"Authorization": self._TOKEN,
-                        "Host": self.host}
-        
+                        "Host": self.host}  # header for auth
+
         self._ready = False
-        
-        self.session = None
-        self.loop = loop
+        self._session = None  # Will be created during start of connection
+        self._event_loop = loop
 
         # Last/Currently executed request
         self._request = None
@@ -71,6 +70,14 @@ class HTTP:
     def ready(self):
         return self._ready
 
+    @property
+    def session(self):
+        return self._session
+
+    @property
+    def event_loop(self):
+        return self._event_loop
+
     async def connect(self) -> Union[aiohttp.ClientSession, None]:
         """`openhivenpy.gateway.HTTP.connect()`
 
@@ -81,16 +88,16 @@ class HTTP:
             async def on_request_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
                 logger.debug(f"[HTTP] >> URL >> {params.url}")
-         
+
             async def on_request_end(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << Request with HTTP {params.method} finished!")
                 logger.debug(f"[HTTP] << Header << {params.headers}")
                 logger.debug(f"[HTTP] << URL << {params.url}")
                 logger.debug(f"[HTTP] << Response << {params.response}")
-            
+
             async def on_request_exception(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << An exception occurred while executing the request")
-            
+
             async def on_request_redirect(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
 
@@ -99,7 +106,7 @@ class HTTP:
 
             async def on_connection_queued_start(session, trace_config_ctx, params):
                 logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
-            
+
             trace_config = aiohttp.TraceConfig()
             trace_config.on_request_start.append(on_request_start)
             trace_config.on_request_end.append(on_request_end)
@@ -107,19 +114,21 @@ class HTTP:
             trace_config.on_request_redirect.append(on_request_redirect)
             trace_config.on_connection_queued_start.append(on_connection_queued_start)
             trace_config.on_response_chunk_received.append(on_response_chunk_received)
-            
-            self.session = aiohttp.ClientSession(loop=self.loop, trace_configs=[trace_config])
+
+            self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
+
             resp = await self.request("/users/@me", timeout=10)
             if resp:
+                logger.info("[HTTP] Session was successfully created!")
                 return self.session
             else:
                 return None
-        
+
         except Exception as e:
+            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             self._ready = False
             await self.session.close()
-            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToCreateSession(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
     async def close(self) -> bool:
@@ -135,14 +144,14 @@ class HTTP:
         except Exception as e:
             logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.HTTPError(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
-    
+
     async def raw_request(
-                        self, 
-                        endpoint: str, 
-                        *, 
-                        method: str = "GET", 
-                        timeout: float = 15, 
-                        **kwargs) -> Union[aiohttp.ClientResponse, None]:
+            self,
+            endpoint: str,
+            *,
+            method: str = "GET",
+            timeout: float = 15,
+            **kwargs) -> Union[aiohttp.ClientResponse, None]:
         """`openhivenpy.gateway.HTTP.raw_request()`
 
         Wrapped HTTP GET request for a specified endpoint. 
@@ -168,6 +177,7 @@ class HTTP:
                         See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         
         """
+
         # Timeout Handler that watches if the request takes too long
         async def _time_out_handler(_timeout: float) -> None:
             start_time = time.time()
@@ -195,11 +205,11 @@ class HTTP:
                         headers = kwargs.pop('headers')
                     url = f"{self.api_url}{endpoint}"
                     async with self.session.request(
-                                                    method=method,
-                                                    url=url,
-                                                    headers=headers, 
-                                                    timeout=_timeout,
-                                                    **kwargs) as resp:
+                            method=method,
+                            url=url,
+                            headers=headers,
+                            timeout=_timeout,
+                            **kwargs) as resp:
                         http_code = resp.status  # HTTP Code Response
                         data = await resp.read()  # Raw Text data
 
@@ -208,7 +218,7 @@ class HTTP:
                             _success = _json_data.get('success')
 
                             if _success:
-                                logger.debug(f"[HTTP] {http_code} - Request was successful and received expected data!")
+                                logger.debug(f"[HTTP] {http_code} -> Request was successful and received expected data!")
                             else:
                                 _error = _json_data.get('error')
                                 if _error:
@@ -230,27 +240,33 @@ class HTTP:
                 except Exception as e:
                     logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; "
                                  f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
-                        
-            else:
-                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to HTTP {method}!" 
-                             "The connection is either faulty initialized or closed!")
-                return None    
 
-        self._request = self.loop.create_task(_request(endpoint, method, **kwargs))
-        _task_time_out_handler = self.loop.create_task(_time_out_handler(timeout))
+            else:
+                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
+                             f"HTTP {method}! The session is either not initialized or closed!")
+                return None
+
+        # Creating two tasks for the request and the timeout handler
+        self._request = asyncio.create_task(_request(endpoint, method, **kwargs))
+        _task_time_out_handler = asyncio.create_task(_time_out_handler(timeout))
 
         try:
+            # Running the tasks parallel to ensure the timeout handler can fetch the timout correctly!
             resp = await asyncio.gather(self._request, _task_time_out_handler)
         except asyncio.CancelledError:
             logger.warning(f"[HTTP] >> Request was cancelled!")
             return
         except Exception as e:
-            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint};" 
+            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; "
                          f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint:" 
+            raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint: "
                                  f"{self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+
+        # Updating the last request object
+        self._request = resp[0]
+        # Returning the response obj on index 0
         return resp[0]
-    
+
     async def request(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> Union[dict, None]:
         """`openhivenpy.gateway.HTTP.request()`
 
@@ -283,7 +299,7 @@ class HTTP:
                 return None
         else:
             return None
-    
+
     async def post(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.post()`
 
@@ -309,12 +325,12 @@ class HTTP:
         
         """
         return await self.raw_request(
-                                    endpoint, 
-                                    method="POST", 
-                                    json=json, 
-                                    timeout=timeout,
-                                    **kwargs)
-            
+            endpoint,
+            method="POST",
+            json=json,
+            timeout=timeout,
+            **kwargs)
+
     async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.delete()`
 
@@ -338,11 +354,11 @@ class HTTP:
 
         """
         return await self.raw_request(
-                                    endpoint, 
-                                    method="DELETE", 
-                                    timeout=timeout, 
-                                    **kwargs)
-        
+            endpoint,
+            method="DELETE",
+            timeout=timeout,
+            **kwargs)
+
     async def put(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.put()`
 
@@ -372,13 +388,13 @@ class HTTP:
         headers = dict(self.headers)
         headers['Content-Type'] = 'application/json'
         return await self.raw_request(
-                                    endpoint, 
-                                    method="PUT", 
-                                    json=json, 
-                                    timeout=timeout, 
-                                    headers=headers,
-                                    **kwargs)
-        
+            endpoint,
+            method="PUT",
+            json=json,
+            timeout=timeout,
+            headers=headers,
+            **kwargs)
+
     async def patch(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.patch()`
 
@@ -404,13 +420,14 @@ class HTTP:
 
         """
         return await self.raw_request(
-                                    endpoint, 
-                                    method="PATCH", 
-                                    json=json, 
-                                    timeout=timeout,
-                                    **kwargs)
-    
-    async def options(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
+            endpoint,
+            method="PATCH",
+            json=json,
+            timeout=timeout,
+            **kwargs)
+
+    async def options(self, endpoint: str, *, json: dict = None, timeout: float = 15,
+                      **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.options()`
 
         Wrapped HTTP options for a specified endpoint.
@@ -437,8 +454,8 @@ class HTTP:
         
         """
         return await self.raw_request(
-                                    endpoint, 
-                                    method="OPTIONS", 
-                                    json=json, 
-                                    timeout=timeout, 
-                                    **kwargs)
+            endpoint,
+            method="OPTIONS",
+            json=json,
+            timeout=timeout,
+            **kwargs)

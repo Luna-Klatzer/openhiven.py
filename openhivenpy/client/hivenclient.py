@@ -1,11 +1,9 @@
 import asyncio
 import sys
 import os
-import nest_asyncio
 import logging
 from time import time
 from typing import Optional, Union
-from datetime import datetime
 
 from openhivenpy.settings import load_env
 from openhivenpy.gateway.connection import ExecutionLoop
@@ -62,16 +60,15 @@ class HivenClient(EventHandler):
                             didn't complete successfully. Defaults to `20`
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
-                                                        Creates a new one on default
+                                                        Defaults to None!
     
     """
     def __init__(
                 self,
                 token: str,
                 *,
-                event_handler: EventHandler = None,
-                client_type: str = None,
-                event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+                event_handler: Optional[EventHandler] = None,
+                client_type: Optional[str] = None,
                 **kwargs):
 
         # Loading the openhivenpy.env variables
@@ -109,21 +106,22 @@ class HivenClient(EventHandler):
 
         _check_dependencies()
 
-        self._TOKEN = token
-        self.loop = event_loop
+        self._TOKEN = token  # Token is const!
+        self._event_loop = kwargs.get('event_loop')  # Loop defaults to None!
 
-        if not event_handler:
-            self.event_handler = self
-        else:
+        if event_handler:
             self.event_handler = event_handler
+        else:
+            # Using the Client as Event Handler => Using inherited functions!
+            self.event_handler = self
 
         # Websocket and client data are being handled over the Connection Class
         self._connection = Connection(event_handler=self.event_handler,
                                       token=token,
-                                      event_loop=self.loop,
                                       **kwargs)
 
-        nest_asyncio.apply(loop=self.loop)
+        # Removed nest_async for now!
+        # nest_asyncio.apply(loop=self.loop)
 
     def __str__(self) -> str:
         return str(getattr(self, "name"))
@@ -149,28 +147,50 @@ class HivenClient(EventHandler):
     def connection(self) -> Connection:
         return self._connection
 
-    async def connect(self) -> None:
+    @property
+    def event_loop(self) -> asyncio.AbstractEventLoop:
+        return self._event_loop
+
+    async def connect(self, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()) -> None:
         """`openhivenpy.client.HivenClient.connect()`
         
-        Async function for establishing a connection to Hiven
-        
+        Async function for establishing a connection to Hiven.
+
+        Will run in the current running event_loop!
+
+        Parameter:
+        ----------
+
+        event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
+                                                            Defaults to running loop!
+
         """
         try:
-            self.loop.run_until_complete(self.connection.connect())
+            self._event_loop = event_loop
+            self._connection._event_loop = self._event_loop
+            await self.connection.connect(event_loop)
         except RuntimeError as e:
             logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
             raise errs.HivenConnectionError(f"Failed to start client session and websocket! > {e}")
         finally:
             return
 
-    def run(self) -> None:
+    def run(self, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()) -> None:
         """`openhivenpy.client.HivenClient.run()`
         
         Standard function for establishing a connection to Hiven
-        
+
+        Parameter:
+        ----------
+
+        event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
+                                                            Defaults to creating a new loop!
+
         """
         try:
-            self.loop.run_until_complete(self.connection.connect())
+            self._event_loop = event_loop
+            self._connection._event_loop = self._event_loop
+            self.event_loop.run_until_complete(self.connection.connect(event_loop))
         except RuntimeError as e:
             logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
             raise errs.HivenConnectionError(f"Failed to start session and establish connection to Hiven! > {e}")

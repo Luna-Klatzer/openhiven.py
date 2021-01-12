@@ -30,7 +30,7 @@ class BotClient(HivenClient):
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
-                                                        Creates a new one on default!
+                                                        Defaults to None!
     
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
@@ -39,7 +39,7 @@ class BotClient(HivenClient):
                 self, 
                 token: str, 
                 *,
-                event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(), 
+                event_loop: Optional[asyncio.AbstractEventLoop] = None,
                 **kwargs):
 
         self._CLIENT_TYPE = "bot"
