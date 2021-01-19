@@ -1,3 +1,7 @@
+"""
+Test-file for testing purposes and development!
+"""
+
 import asyncio
 import openhivenpy
 from openhivenpy import utils
@@ -5,15 +9,13 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-# logger = logging.getLogger("openhivenpy")
-# logger.setLevel(logging.INFO)
-# handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
-# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-# logger.addHandler(handler)
+logger = logging.getLogger("openhivenpy")
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
-client = openhivenpy.UserClient(
-            token=""
-        )
+client = openhivenpy.UserClient(token="")
 
 
 @client.event()
