@@ -28,10 +28,16 @@ class BotClient(HivenClient):
                     Will throw `HivenException.InvalidToken` if length not 128, is None or is empty
     
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
-    
+
+    event_handler: `openhivenpy.events.EventHandler` - Handler for the events. Can be modified and customized if wanted.
+                                                        Creates a new one on Default
+
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
                                                         Defaults to None!
-    
+
+    close_timeout: `int` -  Seconds after the websocket will timeout after the handshake
+                            didn't complete successfully. Defaults to `40`
+
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     """

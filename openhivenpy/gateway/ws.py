@@ -48,7 +48,7 @@ class Websocket(Client):
     heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
 
     close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake didn't complete
-                            successfully. Defaults to `20`
+                            successfully. Defaults to `40`
 
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
 

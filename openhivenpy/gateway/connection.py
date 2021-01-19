@@ -257,7 +257,7 @@ class Connection(Websocket):
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake
-                            didn't complete successfully. Defaults to `20`
+                            didn't complete successfully. Defaults to `40`
     
     event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
     
@@ -280,7 +280,7 @@ class Connection(Websocket):
         self._execution_loop = ExecutionLoop(self._event_loop)
 
         self._token = token
-        self.http = None  # Will be created later!
+        self._http = None  # Will be created later!
 
         super().__init__(event_handler=event_handler, token=token, **self._init_args)
 
@@ -305,43 +305,47 @@ class Connection(Websocket):
     @property
     def user(self):
         # => Also referenced in hiven_client.py
-        return self._USER
+        return getattr(self, '_USER', None)
 
     @property
     def host(self) -> str:
-        return self._HOST
+        return getattr(self, '_HOST', os.getenv("HIVEN_HOST"))
+
+    @property
+    def http(self) -> HTTP:
+        return getattr(self, '_http', None)
 
     @property
     def api_version(self) -> str:
-        return self._API_VERSION
+        return getattr(self, '_API_VERSION', os.getenv("HIVEN_API_VERSION"))
 
     @property
     def connection_status(self) -> str:
-        return self._connection_status
+        return getattr(self, '_connection_status', "CLOSED")
 
     @property
     def open(self) -> bool:
-        return self._open
+        return getattr(self, '_open', False)
 
     @property
     def initialized(self) -> bool:
-        return self._initialized
+        return getattr(self, '_initialized', False)
 
     @property
     def connection_start(self) -> float:
-        return self._connection_start
+        return getattr(self, '_connection_start', None)
 
     @property
     def startup_time(self) -> float:
-        return self._startup_time
+        return getattr(self, '_startup_time', None)
 
     @property
     def execution_loop(self) -> ExecutionLoop:
-        return self._execution_loop
+        return getattr(self, '_execution_loop', None)
 
     @property
     def ready(self) -> bool:
-        return self._ready
+        return getattr(self, '_ready', False)
 
     async def connect(self, event_loop: asyncio.AbstractEventLoop) -> None:
         """`openhivenpy.gateway.Connection.connect()`
@@ -363,10 +367,10 @@ class Connection(Websocket):
 
             self._event_loop = event_loop
             # Creating a new HTTP session!
-            self.http = HTTP(loop=event_loop, token=self._token, **self._init_args)
+            self._http = HTTP(loop=event_loop, token=self._token, **self._init_args)
 
             # Starting the HTTP Connection to Hiven
-            session = await self.http.connect()
+            session = await self._http.connect()
             if session:
                 # Creating the restart task if true
                 if self._restart:

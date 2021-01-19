@@ -57,7 +57,7 @@ class HivenClient(EventHandler):
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     close_timeout: `int` -  Seconds after the websocket will timeout after the handshake
-                            didn't complete successfully. Defaults to `20`
+                            didn't complete successfully. Defaults to `40`
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
                                                         Defaults to None!
@@ -137,7 +137,7 @@ class HivenClient(EventHandler):
 
     @property
     def token(self) -> str:
-        return self._TOKEN
+        return getattr(self, '_TOKEN', None)
 
     @property
     def http(self) -> HTTP:
@@ -145,11 +145,11 @@ class HivenClient(EventHandler):
 
     @property
     def connection(self) -> Connection:
-        return self._connection
+        return getattr(self, '_connection', None)
 
     @property
     def event_loop(self) -> asyncio.AbstractEventLoop:
-        return self._event_loop
+        return getattr(self, '_event_loop', None)
 
     async def connect(self, event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()) -> None:
         """`openhivenpy.client.HivenClient.connect()`
@@ -262,7 +262,7 @@ class HivenClient(EventHandler):
 
     @property
     def client_type(self) -> str:
-        return self._CLIENT_TYPE
+        return getattr(self, '_CLIENT_TYPE', None)
 
     @property
     def ready(self) -> bool:

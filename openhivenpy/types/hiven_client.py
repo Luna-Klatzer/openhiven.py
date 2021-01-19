@@ -156,43 +156,43 @@ class Client:
 
     @property
     def user(self):
-        return self._USER
+        return getattr(self, '_USER', object)
 
     @property
     def username(self) -> str:
-        return self.user.username
+        return getattr(self.user, 'username', None)
 
     @property
     def name(self) -> str:
-        return self.user.name
+        return getattr(self.user, 'name', None)
 
     @property
     def id(self) -> int:
-        return int(self.user.id)
+        return getattr(self.user, 'id', None)
 
     @property
     def icon(self) -> str:
-        return self.user.icon
+        return getattr(self.user, 'icon', None)
 
     @property
     def header(self) -> str:
-        return self.user.header
+        return getattr(self.user, 'header', None)
 
     @property
     def bot(self) -> bool:
-        return self.user.bot
+        return getattr(self.user, 'bot', None)
 
     @property
     def location(self) -> str:
-        return self.user.location
+        return getattr(self.user, 'location', None)
 
     @property
     def website(self) -> str:
-        return self.user.website
+        return getattr(self.user, 'website', None)
 
     @property
     def presence(self) -> getType.presence:
-        return self.user.presence
+        return getattr(self.user, 'presence', None)
 
     @property
     def joined_at(self) -> Union[datetime.datetime, None]:
@@ -203,24 +203,24 @@ class Client:
 
     @property
     def houses(self):
-        return self._houses
+        return getattr(self.user, '_houses', [])
 
     @property
     def private_rooms(self):
-        return self._private_rooms
+        return getattr(self.user, '_private_rooms', [])
 
     @property
     def users(self):
-        return self._users
+        return getattr(self.user, '_users', [])
 
     @property
     def rooms(self):
-        return self._rooms
+        return getattr(self.user, '_rooms', [])
 
     @property
     def amount_houses(self) -> int:
-        return self._amount_houses
+        return getattr(self.user, '_amount_houses', [])
 
     @property
     def relationships(self) -> list:
-        return self._relationships
+        return getattr(self.user, '_relationships', [])

@@ -36,7 +36,11 @@ class UserClient(HivenClient):
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
                                                         Defaults to None!
-    
+
+    close_timeout: `int` -  Seconds after the websocket will timeout after the handshake
+                            didn't complete successfully. Defaults to `40`
+
+
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     """
@@ -117,7 +121,7 @@ class UserClient(HivenClient):
                     'outgoing': list(types.LazyUser(data) for data in data.get('outgoing', []))
                 }
             else:
-                return
+                return None
 
         except Exception as e:
             logger.error(f"[CLIENT] Failed to fetch the current open friend requests! > {e}")
