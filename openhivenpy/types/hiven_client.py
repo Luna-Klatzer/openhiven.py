@@ -23,7 +23,7 @@ class Client:
 
     """
     def __init__(self, *, http=None, **kwargs):
-        self.http = http if http is not None else self.http
+        self._http = http if http is not None else self._http
 
         self._amount_houses = 0
         self._houses = []
