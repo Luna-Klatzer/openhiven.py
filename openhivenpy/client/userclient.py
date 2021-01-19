@@ -1,10 +1,9 @@
 import asyncio
 import logging
-import os
 from typing import Optional, Union
 
 from .hivenclient import HivenClient
-from openhivenpy.settings import load_env
+import openhivenpy.exceptions as errs
 import openhivenpy.types as types
 import openhivenpy.utils as utils
 
@@ -44,17 +43,18 @@ class UserClient(HivenClient):
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     """
+
     def __init__(
-                self, 
-                token: str, 
-                *,
-                event_loop: Optional[asyncio.AbstractEventLoop] = None,
-                **kwargs):
+            self,
+            token: str,
+            *,
+            event_loop: Optional[asyncio.AbstractEventLoop] = None,
+            **kwargs):
 
         self._CLIENT_TYPE = "user"
-        super().__init__(token=token, 
+        super().__init__(token=token,
                          client_type=self._CLIENT_TYPE,
-                         event_loop=event_loop, 
+                         event_loop=event_loop,
                          **kwargs)
 
     def __str__(self) -> str:
@@ -68,8 +68,8 @@ class UserClient(HivenClient):
             ('id', getattr(self.user, 'id'))
         ]
         return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
-        
-    async def cancel_friend_request(self, user_id=None, **kwargs) -> Union[bool, None]:
+
+    async def cancel_friend_request(self, user_id: int or float = None, user: types.User = None) -> bool:
         """`openhivenpy.UserClient.cancel_friend_request()`
  
         Cancels an open friend request if it exists
@@ -81,28 +81,32 @@ class UserClient(HivenClient):
         
         user_id: `int` - Id of the user that sent the friend request
         
-        user:
+        user: `openhivenpy.types.User` - User Object
         
-        """        
+        """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.error("[CLIENT] Invalid parameter for cancel_friend_request! Expected user or user_id! > "
-                                 f"<user_id={user_id} kwargs={kwargs}>")
-                    return None
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for 'cancel_friend_request'! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
+
+            if resp.status < 300:
+                return True
             else:
-                resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
-                
-                if resp.status < 300:
-                    return True
-                else:
-                    return None
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"[CLIENT] Failed to cancel the friend request of a user with id {user_id}! > {e}")
-            return None            
+            return False
 
     async def fetch_current_friend_requests(self) -> Union[dict, None]:
         """`openhivenpy.UserClient.fetch_current_friend_requests()`
@@ -111,7 +115,7 @@ class UserClient(HivenClient):
         
         Returns a dict with all friend requests
         
-        """        
+        """
         try:
             resp = await self.http.request(endpoint=f"/relationships/@me/friend-requests")
             if resp.get('success', False):
@@ -125,9 +129,9 @@ class UserClient(HivenClient):
 
         except Exception as e:
             logger.error(f"[CLIENT] Failed to fetch the current open friend requests! > {e}")
-            return None    
+            return None
 
-    async def block_user(self, user_id=None, **kwargs) -> Union[bool, None]:
+    async def block_user(self, user_id: int or float = None, user: types.User = None) -> bool:
         """`openhivenpy.UserClient.block_user()`
         
         Blocks a user
@@ -145,24 +149,31 @@ class UserClient(HivenClient):
 
         """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.debug("[CLIENT] Invalid parameter for block_user! Expected user or user_id!")
-                    return None
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                # TODO! Needs proper check!
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for 'block_user'! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
+
+            if resp.status < 300:
+                return True
             else:
-                resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
-                
-                if resp.status < 300:
-                    return True
-                else:
-                    return False
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"[CLIENT] Failed to block user with id {user_id}! > {e}")
+            return False
 
-    async def unblock_user(self, user_id=None, **kwargs) -> Union[bool, None]:
+    async def unblock_user(self, user_id: int or float = None, user: types.User = None) -> bool:
         """`openhivenpy.UserClient.unblock_user()`
         
         Unblocks a user if the user is blocked
@@ -180,25 +191,30 @@ class UserClient(HivenClient):
         
         """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.debug("[CLIENT]Invalid parameter for unblock_user! Expected user or user_id!")
-                    return None
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for 'unblock_user'! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
+
+            if resp.status < 300:
+                return True
             else:
-                resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
-                
-                if resp.status < 300:
-                    return True
-                else:
-                    return False
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"[CLIENT]Failed to unblock a user with id {user_id}! > {e}")
-            return None
+            return False
 
-    async def send_friend_request(self, user_id=None, **kwargs) -> Union[types.User, None]:
+    async def send_friend_request(self, user_id: int or float = None, user: types.User = None) -> bool:
         """`openhivenpy.UserClient.send_friend_request()`
  
         Sends a friend request to a user
@@ -214,24 +230,28 @@ class UserClient(HivenClient):
         
         user: `openhivenpy.types.User` - User object that should be sent a friend request
         
-        """        
+        """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.debug("[CLIENT] Invalid parameter for send_friend_request! Expected user or user_id!")
-                    return None
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for `send_friend_request`! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.http.post(endpoint=f"/relationships/@me/friend-requests",
+                                        json={'user_id': f'{user_id}'})
+
+            if resp.status < 300:
+                return utils.get(self.users, id=int(user_id))
             else:
-                resp = await self.http.post(
-                                                endpoint=f"/relationships/@me/friend-requests",
-                                                json={'user_id': f'{user_id}'})
-                
-                if resp.status < 300:
-                    return utils.get(self.users, id=int(user_id))
-                else:
-                    return None
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"[CLIENT] Failed to send a friend request a user with id {user_id}! > {e}")
-            return None
+            return False

@@ -769,7 +769,7 @@ class HivenClient(EventHandler):
             logger.error(f"Failed to edit the room with id {room_id}! > {e}")
             return None
 
-    async def create_private_room(self, user_id=None, **kwargs) -> Union[types.PrivateRoom, None]:
+    async def create_private_room(self, user_id: int or float = None, user: types.User = None) -> Union[types.PrivateRoom, None]:
         """`openhivenpy.UserClient.create_private_room()`
  
         Adds a user to a private chat room where you can send messages.
@@ -789,27 +789,31 @@ class HivenClient(EventHandler):
         
         """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.debug("Invalid parameter for create_private_room! Expected user or user_id!")
-                    return None
-            else:
-                resp = await self.http.post(
-                    endpoint=f"/users/@me/rooms",
-                    json={'recipient': f"{user_id}"})
-                if resp.status < 300:
-                    raw_data = await resp.json()
-                    data = raw_data.get('data')
-                    if data:
-                        private_room = types.PrivateRoom(data, self.http)
-                        self.connection._private_rooms.append(private_room)
-                        return private_room
-                    else:
-                        raise errs.HTTPReceivedNoData()
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for `create_private_room`! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.http.post(endpoint=f"/users/@me/rooms",
+                                        json={'recipient': f"{user_id}"})
+            if resp.status < 300:
+                raw_data = await resp.json()
+                data = raw_data.get('data')
+                if data:
+                    private_room = types.PrivateRoom(data, self.http)
+                    self.connection._private_rooms.append(private_room)
+                    return private_room
                 else:
-                    raise errs.HTTPFailedRequest()
+                    raise errs.HTTPReceivedNoData()
+            else:
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")
