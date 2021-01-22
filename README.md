@@ -23,14 +23,8 @@
    <a href="https://docs.python.org/3/library/asyncio.html">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/asyncio/main' alt='asyncio' />
     </a>
-   <a href="https://pypi.org/project/nest-asyncio/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/nest-asyncio/main' alt='nest-asyncio' />
-    </a>
    <a href="https://docs.python.org/3/library/typing.html">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/typing/main' alt='typing' />
-    </a>
-   <a href="https://pypi.org/project/brotlipy/">
-      <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/brotlipy/main' alt='brotlipy' />
     </a>
   <br>
 </p>
