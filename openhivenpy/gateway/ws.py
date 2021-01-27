@@ -119,7 +119,7 @@ class Websocket(Client):
 
     @property
     def closed(self):
-        return not getattr(self.ws, 'open', False)
+        return not getattr(self, 'open', False)
 
     @property
     def close_timeout(self) -> int:
@@ -256,7 +256,8 @@ class Websocket(Client):
                         if resp.get('op', 0) == 1:
                             # Authorizing with token
                             logger.info("[WEBSOCKET] >> Authorizing with token")
-                            await ws.send_str(str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}})))
+                            json_auth = str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
+                            await ws.send_str(json_auth)
 
                             if self._CUSTOM_HEARTBEAT is False:
                                 self._HEARTBEAT = resp['d']['hbt_int']
@@ -361,6 +362,11 @@ class Websocket(Client):
                                 await asyncio.create_task(self._event_resp_handler(resp))
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
+                        # Close Frame can be received because of these issues:
+                        # - Faulty token
+                        # - Error occurred while handling a ws message => aiohttp automatically stops
+                        # - Server unreachable
+                        # - Hiven send one back because faulty authorisation!
                         logger.debug(f"[WEBSOCKET] << Received close frame with msg='{msg.extra}'!")
                         break
 

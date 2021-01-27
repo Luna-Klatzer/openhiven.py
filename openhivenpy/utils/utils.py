@@ -11,19 +11,19 @@ logger = logging.getLogger(__name__)
 
 async def dispatch_func_if_exists(obj: object,
                                   func_name: str,
-                                  *args: Optional[Union[list, tuple]],
-                                  **kwargs: Optional[dict]) -> Any:
+                                  func_args: Optional[Union[list, tuple]] = (),
+                                  func_kwargs: Optional[dict] = {}) -> Any:
     r"""`openhivenpy.utils.dispatch_func_if_exists()`
     
     Dispatches functions if they exist in the passed object!
     
+    :type func_kwargs: object
     :param obj: Object where to search for the function
-    
     :param func_name: Name of the function
     
-    :param args: *args of the function
+    :param func_args: *args of the function
 
-    :param kwargs: **kwargs of the function
+    :param func_kwargs: **kwargs of the function
 
     :return: Returns the data of the function if it returns data and is callable else None
     
@@ -36,11 +36,11 @@ async def dispatch_func_if_exists(obj: object,
 
             # If the function is a coroutine it will be called as an async function
             if inspect.iscoroutinefunction(func):
-                return await func(*args, **kwargs)
+                return await func(*func_args, **func_kwargs)
 
             # If it's a regular function it will be called normally
             else:
-                return func(*args, **kwargs)
+                return func(*func_args, **func_kwargs)
         else:
             raise TypeError(f"{obj.__class__.__name__} is not callable!")
     else:
