@@ -1,2 +1,3 @@
-include requirements.txt
-include openhivenpy/openhivenpy.env
+global-include requirements.txt
+include openhivenpy/*.env
+graft openhivenpy
