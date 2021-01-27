@@ -18,8 +18,6 @@ class DeletedMessage:
     Data Class for a removed Hiven message
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Returned with on_message_delete()
     
     Attributes
@@ -58,8 +56,7 @@ class Message:
     
     Data Class for a standard Hiven message
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
+
     
     Returned with room message list and House.get_message()
  

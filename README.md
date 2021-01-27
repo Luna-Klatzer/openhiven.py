@@ -1,5 +1,5 @@
 <h1 align="center"><img src="https://images.nxybi.me/da4e88d64f12.png"><br>OpenHiven.py</h1>
-<h2 align="center">The unofficial OpenSource Python API Wrapper for Hiven.</h2> <!-- Always close your tags, kids. -->
+<h2 align="center">The OpenSource Python API Wrapper for Hiven!</h2> <!-- Always close your tags, kids. -->
 <p align="center">
   <a href="https://github.com/FrostbyteSpace/openhiven.py">
     <img alt="Package Version" src="https://img.shields.io/badge/package%20version-v0.1.2-purple?logo=python" />
@@ -15,7 +15,7 @@
       </a>
   </a>
 </p>
-  <h2 align="center"> Dependendies </h2>
+  <h2 align="center"> Dependencies </h2>
 <p align="center">
    <a href="https://docs.aiohttp.org/en/stable/">
       <img align="center" src='https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/aiohttp/main' alt='aiohttp' />
@@ -39,4 +39,4 @@
 <h3 align="center"><code>pip install openhivenpy</code></h3>
 <h3 align="center">Install (Github Build)</h3>
 <h3 align="center"><code>pip install https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip</code></h3>
-
+<h2 align="center">For docs visit the documentation our readthedocs-page <a href="https://openhivenpy.readthedocs.io/en/latest/">here</a> or go to the github pages build <a href="https://frostbytespace.github.io/docs_openhiven.py/build/">here<a/></h2>

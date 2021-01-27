@@ -1,18 +1,21 @@
+"""
+Test-file for testing purposes and development!
+"""
+
 import asyncio
 import openhivenpy
+from openhivenpy import utils
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-client = openhivenpy.UserClient(
-            token=""
-        )
+client = openhivenpy.UserClient(token="")
 
 
 @client.event()
@@ -30,6 +33,9 @@ async def on_ready():
     print(f"Ready after {client.startup_time}")
 
     house = await client.get_house(175036727902074248)
+
+    update_room = utils.get(house.rooms, name="Announcements")
+    await update_room.edit(name="Updates")
 
     url = await client.fetch_invite("openhivenpy")
 
@@ -94,4 +100,9 @@ async def on_house_member_enter(member, house):
     print(f"{member.name} joined {house.name}")
 
 if __name__ == '__main__':
+    # Async Startup
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(client.connect())
+
+    # Regular Startup
     client.run()

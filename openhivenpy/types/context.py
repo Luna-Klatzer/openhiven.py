@@ -14,11 +14,9 @@ class Context:
     
     Data Class for a Command Context
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
-    Returned with events, commands and HivenClient.on_ready()
-    
+
+    Represents a Command Context for a triggered command in the CommandListener
+
     """
     def __init__(self, data: dict, http: HTTP):
         self._http = http

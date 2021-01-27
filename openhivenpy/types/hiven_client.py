@@ -23,7 +23,7 @@ class Client:
 
     """
     def __init__(self, *, http=None, **kwargs):
-        self.http = http if http is not None else self.http
+        self._http = http if http is not None else self._http
 
         self._amount_houses = 0
         self._houses = []
@@ -95,10 +95,14 @@ class Client:
             else:
                 raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
 
-            _raw_data = await self.http.request("/users/@me", timeout=10)
-            _data = _raw_data.get('data')
-            if _data:
-                self._USER = getType.user(data=data, http=self.http)
+            # Requesting user data of the client itself
+            _raw_data = await self.http.request("/users/@me", timeout=15)
+            if _raw_data:
+                _data = _raw_data.get('data')
+                if _data:
+                    self._USER = getType.user(data=data, http=self.http)
+                else:
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPReceivedNoData()
 
@@ -112,16 +116,17 @@ class Client:
         """
         Checks whether the meta data is complete and triggers on_ready
         """
+        check = True
         while True:
             if self._amount_houses == len(self._houses) and self._initialized:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
+                logger.info("[CLIENT] Client loaded all data and is ready for usage! ")
                 asyncio.create_task(self._event_handler.ev_ready_state())
                 break
-            elif (time.time() - self.connection_start) > 20 and len(self._houses) >= 1:
-                self._ready = True
-                asyncio.create_task(self._event_handler.ev_ready_state())
-                break
+            if (time.time() - self.connection_start) > 30 and check:
+                logger.warning("[CLIENT] Initialization takes unusually long! Possible connection or data issues!")
+                check = False
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
@@ -155,43 +160,43 @@ class Client:
 
     @property
     def user(self):
-        return self._USER
+        return getattr(self, '_USER', object)
 
     @property
     def username(self) -> str:
-        return self.user.username
+        return getattr(self.user, 'username', None)
 
     @property
     def name(self) -> str:
-        return self.user.name
+        return getattr(self.user, 'name', None)
 
     @property
     def id(self) -> int:
-        return int(self.user.id)
+        return getattr(self.user, 'id', None)
 
     @property
     def icon(self) -> str:
-        return self.user.icon
+        return getattr(self.user, 'icon', None)
 
     @property
     def header(self) -> str:
-        return self.user.header
+        return getattr(self.user, 'header', None)
 
     @property
     def bot(self) -> bool:
-        return self.user.bot
+        return getattr(self.user, 'bot', None)
 
     @property
     def location(self) -> str:
-        return self.user.location
+        return getattr(self.user, 'location', None)
 
     @property
     def website(self) -> str:
-        return self.user.website
+        return getattr(self.user, 'website', None)
 
     @property
     def presence(self) -> getType.presence:
-        return self.user.presence
+        return getattr(self.user, 'presence', None)
 
     @property
     def joined_at(self) -> Union[datetime.datetime, None]:
@@ -202,24 +207,28 @@ class Client:
 
     @property
     def houses(self):
-        return self._houses
+        return getattr(self.user, '_houses', [])
 
     @property
     def private_rooms(self):
-        return self._private_rooms
+        return getattr(self.user, '_private_rooms', [])
 
     @property
     def users(self):
-        return self._users
+        return getattr(self.user, '_users', [])
 
     @property
     def rooms(self):
-        return self._rooms
+        return getattr(self.user, '_rooms', [])
 
     @property
     def amount_houses(self) -> int:
-        return self._amount_houses
+        return getattr(self.user, '_amount_houses', [])
 
     @property
     def relationships(self) -> list:
-        return self._relationships
+        return getattr(self.user, '_relationships', [])
+
+    @property
+    def http(self):
+        return getattr(self, 'http', None)

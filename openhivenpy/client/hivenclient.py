@@ -1,11 +1,9 @@
 import asyncio
 import sys
 import os
-import nest_asyncio
 import logging
 from time import time
 from typing import Optional, Union
-from datetime import datetime
 
 from openhivenpy.settings import load_env
 from openhivenpy.gateway.connection import ExecutionLoop
@@ -59,19 +57,18 @@ class HivenClient(EventHandler):
     log_ws_output: `bool` - Will additionally to normal debug information also log the ws responses
     
     close_timeout: `int` -  Seconds after the websocket will timeout after the handshake
-                            didn't complete successfully. Defaults to `20`
+                            didn't complete successfully. Defaults to `40`
     
     event_loop: Optional[`asyncio.AbstractEventLoop`] - Event loop that will be used to execute all async functions.
-                                                        Creates a new one on default
+                                                        Defaults to None!
     
     """
     def __init__(
                 self,
                 token: str,
                 *,
-                event_handler: EventHandler = None,
-                client_type: str = None,
-                event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+                event_handler: Optional[EventHandler] = None,
+                client_type: Optional[str] = None,
                 **kwargs):
 
         # Loading the openhivenpy.env variables
@@ -109,21 +106,22 @@ class HivenClient(EventHandler):
 
         _check_dependencies()
 
-        self._TOKEN = token
-        self.loop = event_loop
+        self._TOKEN = token  # Token is const!
+        self._event_loop = kwargs.get('event_loop')  # Loop defaults to None!
 
-        if not event_handler:
-            self.event_handler = self
-        else:
+        if event_handler:
             self.event_handler = event_handler
+        else:
+            # Using the Client as Event Handler => Using inherited functions!
+            self.event_handler = self
 
         # Websocket and client data are being handled over the Connection Class
         self._connection = Connection(event_handler=self.event_handler,
                                       token=token,
-                                      event_loop=self.loop,
                                       **kwargs)
 
-        nest_asyncio.apply(loop=self.loop)
+        # Removed nest_async for now!
+        # nest_asyncio.apply(loop=self.loop)
 
     def __str__(self) -> str:
         return str(getattr(self, "name"))
@@ -139,43 +137,72 @@ class HivenClient(EventHandler):
 
     @property
     def token(self) -> str:
-        return self._TOKEN
-
-    @property
-    def http(self) -> HTTP:
-        return self.connection.http
+        return getattr(self, '_TOKEN', None)
 
     @property
     def connection(self) -> Connection:
-        return self._connection
+        return getattr(self, '_connection', None)
 
-    async def connect(self) -> None:
+    @property
+    def event_loop(self) -> asyncio.AbstractEventLoop:
+        return getattr(self, '_event_loop', None)
+
+    async def connect(self,
+                      *,
+                      event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+                      restart: bool = False) -> None:
         """`openhivenpy.client.HivenClient.connect()`
         
-        Async function for establishing a connection to Hiven
-        
-        """
-        try:
-            self.loop.run_until_complete(self.connection.connect())
-        except RuntimeError as e:
-            logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
-            raise errs.HivenConnectionError(f"Failed to start client session and websocket! > {e}")
-        finally:
-            return
+        Async function for establishing a connection to Hiven.
 
-    def run(self) -> None:
+        Will run in the current running event_loop!
+
+        :param event_loop: Event loop that will be used to execute all async functions.
+                           Defaults to fetching the current loop using asyncio.get_event_loop()!
+        :param restart: If set to True the bot will restart if an error is encountered!
+        """
+        # Overwriting the event_loop to have the current running event_loop
+        self._event_loop = event_loop
+        self._connection._event_loop = self._event_loop
+
+        # If the client should restart a task for restart handling will be created
+        if restart:
+            # Adding the restart handler to the background loop to run infinitely
+            # and restart when needed!
+
+            # Note! Restart only works after startup! If the startup fails no restart will be attempted!
+            self.connection.execution_loop.add_to_loop(self.connection.handler_restart_websocket)
+            self.connection._restart = True
+
+        await self.connection.connect(event_loop)
+
+    def run(self,
+            *,
+            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+            restart: bool = False) -> None:
         """`openhivenpy.client.HivenClient.run()`
         
         Standard function for establishing a connection to Hiven
-        
+
+        :param event_loop: Event loop that will be used to execute all async functions.
+                           Defaults to fetching the current loop using asyncio.get_event_loop()!
+        :param restart: If set to True the bot will restart if an error is encountered!
+
         """
-        try:
-            self.loop.run_until_complete(self.connection.connect())
-        except RuntimeError as e:
-            logger.error(f"[CLIENT] Failed to establish connect and session > {e}")
-            raise errs.HivenConnectionError(f"Failed to start session and establish connection to Hiven! > {e}")
-        finally:
-            return
+        # Overwriting the event_loop to have the current running event_loop
+        self._event_loop = event_loop
+        self.connection._event_loop = self._event_loop
+
+        # If the client should restart a task for restart handling will be created
+        if restart:
+            # Adding the restart handler to the background loop to run infinitely
+            # and restart when needed!
+
+            # Note! Restart only works after startup! If the startup fails no restart will be attempted!
+            self.connection.execution_loop.add_to_loop(self.connection.handler_restart_websocket)
+            self.connection._restart = True
+
+        self.event_loop.run_until_complete(self.connection.connect(event_loop))
 
     async def destroy(self, reason: str = "", *, exec_loop=True) -> bool:
         """`openhivenpy.HivenClient.destroy()`
@@ -242,11 +269,11 @@ class HivenClient(EventHandler):
 
     @property
     def client_type(self) -> str:
-        return self._CLIENT_TYPE
+        return getattr(self, '_CLIENT_TYPE', None)
 
     @property
     def ready(self) -> bool:
-        return self.connection.ready
+        return getattr(self.connection, 'ready', None)
 
     @property
     def initialized(self) -> bool:
@@ -255,7 +282,7 @@ class HivenClient(EventHandler):
         True if Websocket and HTTP are connected and running
 
         """
-        return self.connection.initialized
+        return getattr(self.connection, 'initialized', None)
 
     # Meta data
     # -----------
@@ -287,11 +314,11 @@ class HivenClient(EventHandler):
     # -----------
     @property
     def name(self) -> str:
-        return self.user.name
+        return getattr(self.user, 'name', None)
 
     @property
-    def user(self) -> types.User:
-        return self.connection.user
+    def user(self) -> Union[types.User, object]:
+        return getattr(self.connection, 'user', object)
 
     # General Connection Properties
     @property
@@ -303,7 +330,7 @@ class HivenClient(EventHandler):
         Can be either 'OPENING', 'OPEN', 'CLOSING' or 'CLOSED'
 
         """
-        return self.connection.connection_status
+        return getattr(self.connection, 'connection_status', None)
 
     @property
     def open(self) -> bool:
@@ -314,7 +341,7 @@ class HivenClient(EventHandler):
         Opposite property to closed
         
         """
-        return self.connection.open
+        return getattr(self.connection, 'open', None)
 
     @property
     def closed(self) -> bool:
@@ -325,33 +352,24 @@ class HivenClient(EventHandler):
         Opposite property to open
         
         """
-        return self.connection.closed
-
-    @property
-    def ws(self) -> Websocket:
-        """`openhivenpy.HivenClient.websocket`
-        
-        Returns the ReadOnly Websocket with it's configuration
-
-        """    
-        return self.connection.ws
+        return getattr(self.connection, 'closed', None)
 
     @property
     def execution_loop(self) -> ExecutionLoop:
-        return self.connection.execution_loop
+        return getattr(self.connection, 'execution_loop', None)
 
     @property
     def connection_start(self) -> float:
         """`openhivenpy.HivenClient.connection_start`
 
         Point of connection start in unix dateformat
-        
+
         """
-        return self.connection.connection_start
+        return getattr(self.connection, 'connection_start', None)
 
     @property
     def startup_time(self) -> float:
-        return self.connection.startup_time
+        return getattr(self.connection, 'startup_time', None)
 
     @property
     def ping(self) -> Union[float, None]:
@@ -360,9 +378,9 @@ class HivenClient(EventHandler):
         Returns the current ping of the HTTP.
         
         """
-        if self.http.ready:
+        if getattr(self.connection.http, 'ready', False):
             start_t = time()
-            raw_data = asyncio.run(self.http.request("/users/@me"))
+            raw_data = asyncio.run(self.connection.http.request("/users/@me"))
             data = raw_data.get('data')
             if data:
                 return time() - start_t
@@ -467,11 +485,11 @@ class HivenClient(EventHandler):
         try:
             cached_user = utils.get(self.users, id=user_id)
             if cached_user:
-                raw_data = await self.http.request(endpoint=f"/users/{id}")
+                raw_data = await self.connection.http.request(endpoint=f"/users/{id}")
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        user = types.User(data, self.http)
+                        user = types.User(data, self.connection.http)
                         self.connection._users.remove(cached_user)
                         self.connection._users.append(user)
                         return user
@@ -500,13 +518,13 @@ class HivenClient(EventHandler):
             if cached_room:
                 house = cached_room.house
 
-                raw_data = await self.http.request(endpoint=f"/rooms/{room_id}")
+                raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
                 # Currently not possible to request room data from Hiven!
                 # Therefore only cached rooms can be accessed at the moment!
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        room = types.Room(data, self.http, house)
+                        room = types.Room(data, self.connection.http, house)
                         # Appending the data to the client cache
                         self.connection._rooms.remove(cached_room)
                         self.connection._rooms.append(room)
@@ -534,13 +552,13 @@ class HivenClient(EventHandler):
         try:
             cached_private_room = utils.get(self.private_rooms, id=room_id)
             if cached_private_room:
-                raw_data = await self.http.request(endpoint=f"/rooms/{room_id}")
+                raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
                 # Currently not possible to request room data from Hiven!
                 # Therefore only cached rooms can be accessed at the moment!
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        room = types.PrivateRoom(data, self.http)
+                        room = types.PrivateRoom(data, self.connection.http)
                         # Appending the data to the client cache
                         self.connection._private_rooms.remove(cached_private_room)
                         self.connection._private_rooms.append(room)
@@ -569,7 +587,7 @@ class HivenClient(EventHandler):
         
         """
         try:
-            resp = await self.http.post(
+            resp = await self.connection.http.post(
                 endpoint="/houses",
                 json={'name': name})
 
@@ -578,7 +596,7 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        house = types.LazyHouse(data, self.http)
+                        house = types.LazyHouse(data, self.connection.http)
                         return house
                     else:
                         raise errs.HTTPReceivedNoData()
@@ -606,7 +624,7 @@ class HivenClient(EventHandler):
         try:
             cached_house = utils.get(self.houses, id=int(house_id))
             if cached_house:
-                resp = await self.http.delete(endpoint=f"/houses/{house_id}")
+                resp = await self.connection.http.delete(endpoint=f"/houses/{house_id}")
 
                 if resp.status < 300:
                     return self.user.id
@@ -628,11 +646,11 @@ class HivenClient(EventHandler):
         
         """
         try:
-            raw_data = await self.http.request(endpoint=f"/invites/{invite_code}")
+            raw_data = await self.connection.http.request(endpoint=f"/invites/{invite_code}")
 
             data = raw_data.get('data')
             if data:
-                return types.Invite(data, self.http)
+                return types.Invite(data, self.connection.http)
             else:
                 raise errs.HTTPReceivedNoData()
 
@@ -648,12 +666,12 @@ class HivenClient(EventHandler):
         
         """
         try:
-            raw_data = await self.http.request(endpoint=f"/streams/@me/feed")
+            raw_data = await self.connection.http.request(endpoint=f"/streams/@me/feed")
 
             if raw_data:
                 data = raw_data.get('data')
                 if data:
-                    return types.Feed(data, self.http)
+                    return types.Feed(data, self.connection.http)
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -671,19 +689,19 @@ class HivenClient(EventHandler):
         
         """
         try:
-            raw_data = await self.http.request(endpoint=f"/streams/@me/mentions")
+            raw_data = await self.connection.http.request(endpoint=f"/streams/@me/mentions")
 
             data = raw_data.get('data')
             if data:
                 mention_list = []
                 for msg_data in data:
-                    author = types.User(msg_data.get('author'), self.http)
+                    author = types.User(msg_data.get('author'), self.connection.http)
 
                     room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
 
                     message = types.Message(
                         msg_data,
-                        self.http,
+                        self.connection.http,
                         room.house,
                         room,
                         author)
@@ -736,7 +754,7 @@ class HivenClient(EventHandler):
                     if key in ['notification_preference', 'name']:
                         json[key] = kwargs.get(key)
 
-                resp = await self.http.put(
+                resp = await self.connection.http.put(
                     endpoint=f"/users/@me/settings/room_overrides/{room_id}",
                     json=json)
 
@@ -749,7 +767,7 @@ class HivenClient(EventHandler):
             logger.error(f"Failed to edit the room with id {room_id}! > {e}")
             return None
 
-    async def create_private_room(self, user_id=None, **kwargs) -> Union[types.PrivateRoom, None]:
+    async def create_private_room(self, user_id: int or float = None, user: types.User = None) -> Union[types.PrivateRoom, None]:
         """`openhivenpy.UserClient.create_private_room()`
  
         Adds a user to a private chat room where you can send messages.
@@ -769,27 +787,31 @@ class HivenClient(EventHandler):
         
         """
         try:
-            if user_id is None:
-                user = kwargs.get('user')
-                user_id = getattr(user, 'id')
-                if user_id is None:
-                    logger.debug("Invalid parameter for create_private_room! Expected user or user_id!")
-                    return None
-            else:
-                resp = await self.http.post(
-                    endpoint=f"/users/@me/rooms",
-                    json={'recipient': f"{user_id}"})
-                if resp.status < 300:
-                    raw_data = await resp.json()
-                    data = raw_data.get('data')
-                    if data:
-                        private_room = types.PrivateRoom(data, self.http)
-                        self.connection._private_rooms.append(private_room)
-                        return private_room
-                    else:
-                        raise errs.HTTPReceivedNoData()
+            # Checking if the user was passed and the id can be found
+            if user_id is None and user:
+                user_id = getattr(user, 'id', None)
+                if user_id is None or not isinstance(user, types.User):
+                    logger.error("[CLIENT] Invalid parameter for `create_private_room`! Expected user or user_id! > "
+                                 f"<user_id={user_id} user={user}>")
+                    raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
+
+            # If both are none it will raise an error
+            elif user_id is None and user is None:
+                raise ValueError("Expected user or user_id that is not None!")
+
+            resp = await self.connection.http.post(endpoint=f"/users/@me/rooms",
+                                        json={'recipient': f"{user_id}"})
+            if resp.status < 300:
+                raw_data = await resp.json()
+                data = raw_data.get('data')
+                if data:
+                    private_room = types.PrivateRoom(data, self.connection.http)
+                    self.connection._private_rooms.append(private_room)
+                    return private_room
                 else:
-                    raise errs.HTTPFailedRequest()
+                    raise errs.HTTPReceivedNoData()
+            else:
+                raise errs.HTTPFailedRequest()
 
         except Exception as e:
             logger.error(f"Failed to send a friend request a user with id {user_id}! > {e}")

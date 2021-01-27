@@ -15,8 +15,6 @@ class Presence:
     Data Class for a User Presence
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Represents a User Presence
     
     """

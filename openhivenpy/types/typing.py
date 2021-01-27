@@ -16,8 +16,6 @@ class Typing:
     Data Class for Typing
     ~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
     
     """

@@ -16,8 +16,6 @@ class Category:
     Data Class for a Category/Entity
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    The class inherits all the available data from Hiven(attr -> read-only)!
-
     Represents a Hiven Entity
 
     """

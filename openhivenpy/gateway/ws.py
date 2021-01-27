@@ -12,77 +12,88 @@ import openhivenpy.exceptions as errs
 import openhivenpy.utils as utils
 from openhivenpy.events import EventHandler
 from openhivenpy.types import Client
+from openhivenpy.settings import load_env
 
 __all__ = ['Websocket']
 
 logger = logging.getLogger(__name__)
 
+# Loading the environment variables
+load_env()
+# Setting the default values to the currently set defaults in the openhivenpy.env file
+_default_host = os.getenv("HIVEN_HOST")
+_default_api_version = os.getenv("HIVEN_API_VERSION")
+_default_connection_heartbeat = int(os.getenv("CONNECTION_HEARTBEAT"))
+_default_close_timeout = int(os.getenv("CLOSE_TIMEOUT"))
+
 
 class Websocket(Client):
-    """`openhivenpy.gateway.Websocket`
+    r"""
 
-    Websocket
-    ~~~~~~~~~
+    Websocket Class that will listen to the Hiven Swarm and handle server-sent message and trigger events if received!
+    Uses an instance of `openhivenpy.EventHandler` for EventHandling and will execute registered functions.
 
-    Websocket Class that will listen to the Hiven Websocket and trigger user-specified events.
-
-    Calls `openhivenpy.EventHandler` and will execute the user code if registered
-
-    Is directly inherited into connection and cannot be used as a standalone class!
-
-    The Websocket class handles the websocket connection to Hiven and will react to the Events frames that are received.
-    It will automatically handle handshakes as well as ping-pong interactions with the server and
-
-    Parameter:
-    ----------
-
-    restart: `bool` - If set to True the process will restart if an exception occurred
-
-    host: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'api.hiven.io'
-
-    api_version: `str` - Version string for the API Version. Defaults to 'v1'
-
-    token: `str` - Needed for the authorization to Hiven. Will throw `HivenException.InvalidToken` if length not 128,
-                    is None or is empty!
-
-    heartbeat: `int` - Intervals in which the bot will send life signals to the Websocket. Defaults to `30000`
-
-    close_timeout: `int` -  Seconds after the websocket will timeout after the end handshake didn't complete
-                            successfully. Defaults to `20`
-
-    event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
-
-    event_handler: 'openhivenpy.events.EventHandler` - Handler for Websocket Events
+    Is directly inherited into connection and cannot be used as a standalone class due to missing data!
 
     """
 
     def __init__(
             self,
+            token: str,
             *,
+            restart: bool = False,
+            log_ws_output: bool = False,
+            host: str = _default_host,
+            api_version: str = _default_api_version,
+            heartbeat: int = _default_connection_heartbeat,
+            close_timeout: int = _default_close_timeout,
             event_handler: EventHandler,
-            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.new_event_loop(),
+            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
             **kwargs):
+        r"""`openhivenpy.gateway.Websocket.__init__()`
 
-        self._HOST = kwargs.get('api_url', os.getenv("HIVEN_HOST"))
-        self._API_VERSION = kwargs.get('api_version', os.getenv("HIVEN_API_VERSION"))
+        Object Instance Construction
+
+        :param token: Authorisation Token for Hiven
+
+        :param restart: If set to True the process will restart if an exception occurred
+
+        :param host: Url for the API which will be used to interact with Hiven.
+                     Defaults to the pre-set environment host (api.hiven.io
+
+        :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
+
+        :param heartbeat: Intervals in which the bot will send life signals to the Websocket.
+                          Defaults to the pre-set environment heartbeat (30000)
+
+        :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
+                              successfully. Defaults to the pre-set environment close_timeout (40)
+
+        :param event_loop: Event loop that will be used to execute all async functions. Fetching current event_loop
+
+        :param event_handler: Handler for Websocket Events
+
+        """
+
+        self._HOST = host
+        self._API_VERSION = api_version
 
         self._WEBSOCKET_URL = "wss://swarm-dev.hiven.io/socket?encoding=json&compression=text_json"
         self._ENCODING = "json"
 
         # In milliseconds
-        _env_heartbeat = int(os.getenv("CONNECTION_HEARTBEAT"))
-        self._HEARTBEAT = kwargs.get('heartbeat', _env_heartbeat)
-        self._TOKEN = kwargs.get('token', None)
+        self._HEARTBEAT = heartbeat
+        self._TOKEN = token
 
-        self._close_timeout = kwargs.get('close_timeout', int(os.getenv("CLOSE_TIMEOUT")))
+        self._close_timeout = close_timeout
 
         self._event_handler = event_handler
         self._event_loop = event_loop
 
-        self._restart = kwargs.get('restart', False)
-        self._log_ws_output = kwargs.get('log_ws_output', False)
+        self._restart = restart
+        self._log_ws_output = log_ws_output
 
-        self._CUSTOM_HEARTBEAT = False if self._HEARTBEAT == _env_heartbeat else True
+        self._CUSTOM_HEARTBEAT = False if self._HEARTBEAT == int(os.getenv("CONNECTION_HEARTBEAT")) else True
         self._ws_session = None
         self._ws = None
         self._connection = None
@@ -98,43 +109,45 @@ class Websocket(Client):
         self._connection_start = None
 
         self._connection_status = "CLOSED"
+
+        # Initialising the parent class Client which handles the data
         super().__init__()
 
     @property
     def open(self):
-        return self._open
+        return getattr(self, '_open', False)
 
     @property
     def closed(self):
-        return not self._ws.open
+        return not getattr(self, 'open', False)
 
     @property
     def close_timeout(self) -> int:
-        return self._close_timeout
+        return getattr(self, '_close_timeout', None)
 
     @property
     def websocket_url(self) -> str:
-        return self._WEBSOCKET_URL
+        return getattr(self, '_WEBSOCKET_URL', None)
 
     @property
     def encoding(self) -> str:
-        return self._ENCODING
+        return getattr(self, '_ENCODING', None)
 
     @property
     def heartbeat(self) -> int:
-        return self._HEARTBEAT
+        return getattr(self, '_HEARTBEAT', None)
 
     @property
     def ws_session(self) -> aiohttp.ClientSession:
-        return self._ws_session
+        return getattr(self, '_ws_session', None)
 
     @property
-    def ws(self):
-        return self
+    def ws(self) -> aiohttp.ClientWebSocketResponse:
+        return getattr(self, '_ws', None)
 
     @property
     def ws_connection(self) -> asyncio.Task:
-        return self._connection
+        return getattr(self, '_connection', None)
 
     # Starts the connection over a new websocket
     async def ws_connect(self, session: aiohttp.ClientSession, heartbeat: int = None) -> None:
@@ -179,9 +192,9 @@ class Websocket(Client):
             except KeyboardInterrupt:
                 pass
 
-            except Exception as e:
+            except Exception as ws_e:
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
-                                f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                f"> {sys.exc_info()[1].__class__.__name__}, {str(ws_e)}")
 
                 # Closing
                 close = getattr(self, "close", None)
@@ -241,10 +254,10 @@ class Websocket(Client):
                             resp = None
 
                         if resp.get('op', 0) == 1:
-                            logger.info("[WEBSOCKET] >> Connection to Hiven Swarm established")
                             # Authorizing with token
                             logger.info("[WEBSOCKET] >> Authorizing with token")
-                            await ws.send_str(str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}})))
+                            json_auth = str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
+                            await ws.send_str(json_auth)
 
                             if self._CUSTOM_HEARTBEAT is False:
                                 self._HEARTBEAT = resp['d']['hbt_int']
@@ -349,6 +362,11 @@ class Websocket(Client):
                                 await asyncio.create_task(self._event_resp_handler(resp))
 
                     elif msg.type == aiohttp.WSMsgType.CLOSE:
+                        # Close Frame can be received because of these issues:
+                        # - Faulty token
+                        # - Error occurred while handling a ws message => aiohttp automatically stops
+                        # - Server unreachable
+                        # - Hiven send one back because faulty authorisation!
                         logger.debug(f"[WEBSOCKET] << Received close frame with msg='{msg.extra}'!")
                         break
 
@@ -359,6 +377,7 @@ class Websocket(Client):
         finally:
             if not ws.closed:
                 await ws.close()
+
             logger.info(f"[WEBSOCKET] << Connection to Remote ({self._WEBSOCKET_URL}) closed!")
             self._open = False
 
@@ -515,10 +534,6 @@ class Websocket(Client):
                                 if user is None:
                                     # Appending to the client users list
                                     self._users.append(types.User(usr, self.http))
-
-                                # Appending to the house users list
-                                usr = types.Member(usr, house, self.http)
-                                house._members.append(usr)
 
                             for room in response_data['rooms']:
                                 self._rooms.append(types.Room(room, self.http, house))

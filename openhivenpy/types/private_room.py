@@ -19,8 +19,6 @@ class PrivateGroupRoom:
     Data Class for a Private Group Chat Room
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Represents a private group chat room with multiple person
     
     """
@@ -169,8 +167,6 @@ class PrivateRoom:
     
     Data Class for a Private Chat Room
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Represents a private chat room with a person
     

@@ -13,8 +13,6 @@ class Attachment:
     Data Class for a Attachment
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Represents a Hiven Attachment
     
     """

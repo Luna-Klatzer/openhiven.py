@@ -8,13 +8,12 @@ logger = logging.getLogger(__name__)
 
 __all__ = ['Embed']
 
+
 class Embed:
     """`openhivenpy.types.Embed`
     
     Data Class for a Embed Object
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with a message object if an embed object is added
     
