@@ -35,12 +35,17 @@ __license__ = "MIT"
 __version__ = "0.1"
 __copyright__ = "FrostbyteSpace"
 
+# Loading the environment
+from openhivenpy.settings import load_env
+
+load_env()
+
 import logging
 
 from .client import *
 from . import events
 from . import gateway
-from . import utils 
+from . import utils
 from . import types
 from . import exceptions
 
