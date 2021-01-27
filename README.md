@@ -2,7 +2,7 @@
 <h2 align="center">The OpenSource Python API Wrapper for Hiven!</h2> <!-- Always close your tags, kids. -->
 <p align="center">
   <a href="https://github.com/FrostbyteSpace/openhiven.py">
-    <img alt="Package Version" src="https://img.shields.io/badge/package%20version-v0.1.2-purple?logo=python" />
+    <img alt="Package Version" src="https://img.shields.io/badge/package%20version-v0.1.1.3-purple?logo=python" />
     <a href="https://python.org">
       <img alt="Python Version" src="https://img.shields.io/badge/python->=3.7-blue?logo=python" />
      </a>
