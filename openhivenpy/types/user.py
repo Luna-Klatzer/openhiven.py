@@ -14,15 +14,10 @@ __all__ = ['LazyUser', 'User']
 class LazyUser:
     """`openhivenpy.types.LazyUser` 
     
-    Data Class for a reduced Hiven User
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
+    Data Class for a light-weight Hiven User
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     Represents the standard Hiven User
-    
-    Attributes
-    ~~~~~~~~~~
     
     """
     def __init__(self, data: dict):
@@ -94,8 +89,6 @@ class User(LazyUser):
     
     Data Class for a Hiven User
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Represents the extended Hiven User
     

@@ -19,8 +19,6 @@ class LazyHouse:
     Low-Level Data Class for a Hiven House
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    The class inherits all the available data from Hiven(attr -> read-only)!
-
     Returned with create_house
 
     Note! This class is a lazy class and does not have every available data!
@@ -71,8 +69,6 @@ class House:
     
     Data Class for a Hiven House
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
     
     Returned with the getHouse() and get_house()
     

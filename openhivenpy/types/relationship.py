@@ -19,8 +19,6 @@ class Relationship:
     Data Class for a Hiven Relationship
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    The class inherits all the available data from Hiven(attr -> read-only)!
-    
     Represents a relationship with a person 
     
     Possible Types

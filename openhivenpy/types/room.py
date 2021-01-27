@@ -18,8 +18,7 @@ class Room:
     
     Data Class for a Hiven Room
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only)!
+
     
     Returned with house room lists and House.get_room()
     

@@ -62,7 +62,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_init',
-            args=param
+            *param
         )
 
     async def ev_ready_state(self) -> None:
@@ -70,7 +70,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_ready',
-            args=param
+            *param
         )
 
     async def ev_house_join(self, house) -> None:
@@ -78,7 +78,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_add',
-            args=param
+            *param
         )
 
     async def ev_house_exit(self, house) -> None:
@@ -86,7 +86,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_remove',
-            args=param
+            *param
         )
 
     async def ev_house_down(self, time, house) -> None:
@@ -94,7 +94,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_downage',
-            args=param
+            *param
         )
         
     async def ev_house_member_enter(self, member, house) -> None:
@@ -102,7 +102,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_member_enter',
-            args=param
+            *param
         )
 
     async def ev_house_member_exit(self, user, house) -> None:
@@ -110,7 +110,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_member_exit',
-            args=param
+            *param
         )
 
     async def ev_relationship_update(self, relationship) -> None:
@@ -118,7 +118,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_relationship_update',
-            args=param
+            *param
         )
 
     async def ev_presence_update(self, presence, user) -> None:
@@ -126,7 +126,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_presence_update',
-            args=param
+            *param
         )
 
     async def ev_message_create(self, message) -> None:
@@ -134,7 +134,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_message_create',
-            args=param
+            *param
         )
 
     async def ev_message_delete(self, message) -> None:
@@ -142,7 +142,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_message_delete',
-            args=param
+            *param
         )
         
     async def ev_message_update(self, message) -> None:
@@ -150,7 +150,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_message_update',
-            args=param
+            *param
         )
 
     async def ev_typing_start(self, typing) -> None:
@@ -158,7 +158,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_typing_start',
-            args=param
+            *param
         )
 
     async def ev_typing_end(self, typing) -> None:
@@ -166,7 +166,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_typing_end',
-            args=param
+            *param
         )
 
     async def ev_house_member_update(self, old, new, house) -> None:
@@ -174,7 +174,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_member_update',
-            args=param
+            *param
         )
 
     async def ev_house_member_chunk(self, members: list, house, data: dict) -> None:
@@ -182,7 +182,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_member_chunk',
-            args=param
+            *param
         )
 
     async def ev_batch_house_member_update(self, house, members, data: dict) -> None:
@@ -190,7 +190,7 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_batch_house_member_update',
-            args=param
+            *param
         )
 
     async def ev_house_entity_update(self, house, entity, data) -> None:
@@ -198,5 +198,5 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self.call_obj,
             func_name='on_house_entity_update',
-            args=param
+            *param
         )
