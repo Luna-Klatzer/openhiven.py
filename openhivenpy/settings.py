@@ -1,5 +1,5 @@
 def load_env():
     from dotenv import load_dotenv, find_dotenv
 
-    # Loading the openhivenpy.env data
-    load_dotenv(find_dotenv("openhivenpy.env"))
+    # Fetching the paths origin and finding the openhivenpy.env file
+    load_dotenv(f"{__file__}\\..\\openhivenpy.env")

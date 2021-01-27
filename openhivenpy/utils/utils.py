@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 async def dispatch_func_if_exists(obj: object,
                                   func_name: str,
                                   *args: Optional[Union[list, tuple]],
-                                  **kwargs: Optional[dict]):
+                                  **kwargs: Optional[dict]) -> Any:
     r"""`openhivenpy.utils.dispatch_func_if_exists()`
     
     Dispatches functions if they exist in the passed object!

@@ -95,10 +95,14 @@ class Client:
             else:
                 raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
 
-            _raw_data = await self.http.request("/users/@me", timeout=10)
-            _data = _raw_data.get('data')
-            if _data:
-                self._USER = getType.user(data=data, http=self.http)
+            # Requesting user data of the client itself
+            _raw_data = await self.http.request("/users/@me", timeout=15)
+            if _raw_data:
+                _data = _raw_data.get('data')
+                if _data:
+                    self._USER = getType.user(data=data, http=self.http)
+                else:
+                    raise errs.HTTPReceivedNoData()
             else:
                 raise errs.HTTPReceivedNoData()
 
@@ -224,3 +228,7 @@ class Client:
     @property
     def relationships(self) -> list:
         return getattr(self.user, '_relationships', [])
+
+    @property
+    def http(self):
+        return getattr(self, 'http', None)
