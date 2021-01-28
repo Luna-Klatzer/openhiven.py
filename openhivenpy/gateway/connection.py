@@ -295,7 +295,7 @@ class Connection(Websocket):
     def __init__(self, token: str, event_handler: EventHandler, **kwargs):
         self._connection_start = None
         self._startup_time = None
-        self._initialized = False
+        self._initialised = False
         self._ready = False
         self._connection_start = None
 
@@ -357,8 +357,8 @@ class Connection(Websocket):
         return getattr(self, '_open', False)
 
     @property
-    def initialized(self) -> bool:
-        return getattr(self, '_initialized', False)
+    def initialised(self) -> bool:
+        return getattr(self, '_initialised', False)
 
     @property
     def connection_start(self) -> float:
@@ -447,8 +447,8 @@ class Connection(Websocket):
             if not self._lifesignal.cancelled():
                 self._lifesignal.cancel()
 
-            if not self._connection.cancelled():
-                self._connection.cancel()
+            if not self._connection_task.cancelled():
+                self._connection_task.cancel()
 
             if exec_loop:
                 await self._execution_loop.stop()
@@ -456,7 +456,7 @@ class Connection(Websocket):
             await self._event_loop.shutdown_asyncgens()
 
             self._connection_status = "CLOSED"
-            self._initialized = False
+            self._initialised = False
 
             return
 
@@ -490,8 +490,8 @@ class Connection(Websocket):
             if not self._lifesignal.cancelled():
                 self._lifesignal.cancel()
 
-            if not self._connection.cancelled():
-                self._connection.cancel()
+            if not self._connection_task.cancelled():
+                self._connection_task.cancel()
 
             if exec_loop:
                 await self._execution_loop.stop()
@@ -499,13 +499,13 @@ class Connection(Websocket):
             await self.http.close()
 
             self._connection_status = "CLOSED"
-            self._initialized = False
+            self._initialised = False
 
             return
 
         except Exception as e:
-            logger.critical(
-                f"[CONNECTION] Closing the connection to Hiven failed! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical(f"[CONNECTION] Closing the connection to Hiven failed! > "
+                            f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
             raise errs.UnableToClose(e)
 
     # Restarts the connection if it errored or crashed

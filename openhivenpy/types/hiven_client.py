@@ -14,12 +14,9 @@ __all__ = ['Client']
 
 
 class Client:
-    """`openhivenpy.types.Client`
+    r"""`openhivenpy.types.Client`
 
-    Date Class for a Client
-    ~~~~~~~~~~~~~~~~~~~~~~~
-
-    Data Class that stores the data of the connected client
+    Data Class that stores the data of the connected Client
 
     """
     def __init__(self, *, http=None, **kwargs):
@@ -31,10 +28,10 @@ class Client:
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = None
+        self._client_user = None
 
         # Init Data that will be overwritten by the connection and websocket
-        self._initialized = False
+        self._initialised = False
         self._connection_start = None
         self._startup_time = None
         self._ready = False
@@ -43,7 +40,7 @@ class Client:
         self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.add_to_startup(self.__check_meta_data)
+        self._execution_loop.add_to_startup(self.__check_if_data_is_complete)
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -55,52 +52,48 @@ class Client:
     def connection_start(self) -> float:
         return getattr(self, "connection_start")
 
-    async def init_meta_data(self, data: dict = None) -> None:
-        """`openhivenpy.types.client.update_client_user_data()`
+    async def initialise_hiven_client_data(self, data: dict = None) -> None:
+        r"""`openhivenpy.types.client.update_client_user_data()`
+
         Updates or creates the standard user data attributes of the Client
+
         """
         try:
-            # Using a USER object to actually store all user data
-            self._USER = await getType.a_user(data, self.http)
+            # Initialising the Client-User object for storing the user data
+            self._client_user = await getType.a_user(data, self.http)
 
+            # Initialising
             _relationships = data.get('relationships')
-            if _relationships:
-                for key in _relationships:
-                    _rel_data = _relationships.get(key, {})
-                    _rel = await getType.a_relationship(
-                        data=_rel_data,
-                        http=self.http)
+            for key in _relationships:
+                _rel_data = _relationships.get(key, {})
+                _rel = await getType.a_relationship(
+                    data=_rel_data,
+                    http=self.http)
 
-                    self._relationships.append(_rel)
-            else:
-                raise errs.WSFailedToHandle("Missing 'relationships' in 'INIT_STATE' event message!")
+                self._relationships.append(_rel)
 
+            # Initialising private_rooms
             _private_rooms = data.get('private_rooms')
-            if _private_rooms:
-                for private_room in _private_rooms:
-                    t = int(private_room.get('type', 0))
-                    if t == 1:
-                        room = await getType.a_private_room(private_room, self.http)
-                    elif t == 2:
-                        room = await getType.a_private_group_room(private_room, self.http)
-                    else:
-                        room = await getType.a_private_room(private_room, self.http)
-                    self._private_rooms.append(room)
-            else:
-                raise errs.WSFailedToHandle("Missing 'private_rooms' in 'INIT_STATE' event message!")
+            for private_room in _private_rooms:
+                t = int(private_room.get('type', 0))
+                if t == 1:
+                    room = await getType.a_private_room(private_room, self.http)
+                elif t == 2:
+                    room = await getType.a_private_group_room(private_room, self.http)
+                else:
+                    room = await getType.a_private_room(private_room, self.http)
+                self._private_rooms.append(room)
 
+            # Initialising amount_houses
             _house_ids = data.get('house_memberships')
-            if _house_ids:
-                self._amount_houses = len(_house_ids)
-            else:
-                raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
+            self._amount_houses = len(_house_ids)
 
             # Requesting user data of the client itself
             _raw_data = await self.http.request("/users/@me", timeout=15)
             if _raw_data:
                 _data = _raw_data.get('data')
                 if _data:
-                    self._USER = getType.user(data=data, http=self.http)
+                    self._client_user = getType.user(data=data, http=self.http)
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -112,21 +105,26 @@ class Client:
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
                                             f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
 
-    async def __check_meta_data(self):
+    async def __check_if_data_is_complete(self):
         """
         Checks whether the meta data is complete and triggers on_ready
         """
-        check = True
+        # boolean that will trigger the warning that the process is taking too long
+        is_taking_long = False
         while True:
-            if self._amount_houses == len(self._houses) and self._initialized:
+            if self._amount_houses == len(self._houses) and self._initialised:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
                 logger.info("[CLIENT] Client loaded all data and is ready for usage! ")
-                asyncio.create_task(self._event_handler.ev_ready_state())
+                asyncio.create_task(self._event_handler.dispatch_on_ready())
                 break
-            if (time.time() - self.connection_start) > 30 and check:
+
+            # Triggering a warning if the Initialisation takes too long!
+            if (time.time() - self.connection_start) > 30 and is_taking_long is not True:
                 logger.warning("[CLIENT] Initialization takes unusually long! Possible connection or data issues!")
-                check = False
+                is_taking_long = True
+
+            # Checking after a small bit again => don't remove!
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:

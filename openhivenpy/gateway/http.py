@@ -218,7 +218,7 @@ class HTTP:
                             _success = _json_data.get('success')
 
                             if _success:
-                                logger.debug(f"[HTTP] {http_code} -> Request was successful and received expected data!")
+                                logger.debug(f"[HTTP] {http_code} - Request was successful and received expected data!")
                             else:
                                 _error = _json_data.get('error')
                                 if _error:
@@ -243,7 +243,7 @@ class HTTP:
 
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
-                             f"HTTP {method}! The session is either not initialized or closed!")
+                             f"HTTP {method}! The session is either not initialised or closed!")
                 return None
 
         # Creating two tasks for the request and the timeout handler

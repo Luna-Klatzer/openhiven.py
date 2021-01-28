@@ -71,7 +71,7 @@ async def on_message_create(message):
 
 
 @client.event()
-async def on_house_add(house):
+async def on_house_join(house):
     print(house.name)
 
 

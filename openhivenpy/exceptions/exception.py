@@ -73,14 +73,14 @@ class Forbidden(HivenException):
 class FaultyInitialization(HivenException):
     """`openhivenpy.exception.FaultyInitialization`
     
-    The object was not initialized correctly and values were faulty passed or are entirely missing!
+    The object was not initialised correctly and values were faulty passed or are entirely missing!
     
     """
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The object was not initialized correctly and values were faulty passed or are entirely missing!"
+            arg = "The object was not initialised correctly and values were faulty passed or are entirely missing!"
         super().__init__(arg)
 
 
