@@ -4,14 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-nest-asyncio = "*"
-typing = "*"
 asyncio = "*"
-aiohttp = "*"
-brotlipy = "*"
-python-dotenv = "*"
+typing = ">=3.7.4"
+aiohttp = {extras = ["speedups"], version = ">=3.7"}
+python-dotenv = ">=0.15.0"
 
 [dev-packages]
 
 [requires]
-python_version = "3.8"
+python_version = "3.7"

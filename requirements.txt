@@ -1,4 +1,4 @@
 asyncio
-typing
-aiohttp[speedups]
-python-dotenv
+typing>=3.7.4
+aiohttp[speedups]>=3.7
+python-dotenv>=0.15.0
