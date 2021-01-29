@@ -168,7 +168,7 @@ class Websocket(Client):
 
     # Starts the connection over a new websocket
     async def ws_connect(self, session: aiohttp.ClientSession, heartbeat: int = None) -> None:
-        """`openhivenpy.gateway.Websocket.connect()`
+        """`openhivenpy.gateway.Websocket.ws_connect()`
 
         Creates a connection to the Hiven API.
 
@@ -462,7 +462,8 @@ class Websocket(Client):
                          f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_down_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_down_handler()`
+
         Handler for downtime of a house! Triggers on_house_down and
         returns as parameter the time of downtime and the house
 
@@ -490,7 +491,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def member_chunk_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.member_chunk_handler()`
+
         In Work!
 
         Handler for a house member chunk update which updates for every
@@ -556,7 +558,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_enter(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_member_enter()`
+
         Handler for a member going online in a mutual house. Trigger on_house_enter
         and returns as parameters the member obj and house obj.
 
@@ -586,7 +589,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_update_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_member_update_handler()`
+
         Handler for a house member update which will trigger on_member_update and return
         as parameter the old member obj, the new member obj and the house.
 
@@ -628,7 +632,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_join_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_member_join_handler()`
+
         Handler for a House Join Event where a user joined a house. Triggers on_member_join and passes the house and
         the member as arguments.
 
@@ -683,7 +688,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def room_create_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.room_create_handler()`
+
         Handler for Room creation in a house. Triggers on_room_create() and passes the room as argument
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
@@ -701,7 +707,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_exit_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_member_exit_handler()`
+
         Handler for a house member exit event. Removes the member
         from the house members list and triggers on_house_exit and
         returns as parameter the user obj and house obj.
@@ -737,7 +744,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def presence_update_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.presence_update_handler()`
+
         Handler for a User Presence update
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
@@ -761,7 +769,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def message_create_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.message_create_handler()`
+
         Handler for a user-created messages which will trigger the 'on_message_create' event.
         Will return as parameter the created msg object.
 
@@ -816,7 +825,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def message_delete_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.message_delete_handler()`
+
         Handler for a deleted message which will trigger the on_message_delete event
         and return as parameter a DeletedMessage object.
 
@@ -840,7 +850,8 @@ class Websocket(Client):
             return
 
     async def message_update_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.message_update_handler()`
+
         Handler for a deleted message which will create a new msg object
         and return as parameter the object.
 
@@ -907,7 +918,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def relationship_update_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.relationship_update_handler()`
+
         Handler for a relationship update. Triggers on_relationship_update
         and returns as parameter the relationship obj.
 
@@ -938,7 +950,8 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_join_handler(self, ws_msg_data: dict):
-        r"""
+        r"""`openhivenpy.gateway.Websocket.house_join_handler()`
+
         Handler for the dispatch_on_house_add event of the connected client which will trigger
         the on_house_join event and return as parameter the house.
 
@@ -983,8 +996,11 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
-        """
+        r"""`openhivenpy.gateway.Websocket.house_leave_handler()`
+
         Handler for the event on_house_remove, which will return as parameter the removed house.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self._initialised:
@@ -1008,13 +1024,15 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_entity_update_handler(self, ws_msg_data: dict):
-        """
+        r"""`openhivenpy.gateway.Websocket.house_entity_update_handler()`
+
         In Work!
 
         Handler for a house entity update. Triggers on_house_entity_update and
         returns as parameter the house obj, the entity obj and the raw data
-        """
 
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
+        """
         try:
             if self.ready:
                 data = ws_msg_data
@@ -1033,13 +1051,15 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def batch_house_member_handler(self, ws_msg_data: dict):
-        """
+        r"""`openhivenpy.gateway.Websocket.batch_house_member_handler()`
+
         In Work!
 
         Handler for a batch house member update that includes a list of
         members that were updated. Triggers on_batch_house_member_update
         and returns as parameters the members list, the raw data and the house obj
 
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         if self.ready:
             try:
@@ -1097,10 +1117,13 @@ class Websocket(Client):
                                 f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def typing_start_handler(self, ws_msg_data: dict):
-        """
+        r"""`openhivenpy.gateway.Websocket.typing_start_handler()`
+
         Handler for the typing_start event that will trigger the event
         on_typing_start and return as parameter the typing object with
         the room, house and member as attributes.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
