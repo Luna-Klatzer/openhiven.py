@@ -101,9 +101,9 @@ class Client:
 
         except Exception as e:
             logger.error(f"[CLIENT] FAILED to update client data! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def __check_if_data_is_complete(self):
         """
@@ -153,7 +153,7 @@ class Client:
         except Exception as e:
             keys = "".join(str(" " + key) for key in kwargs.keys())
             logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
 
     @property

@@ -126,10 +126,10 @@ class HTTP:
                 return None
 
         except Exception as e:
-            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[0].__name__}, {str(e)}")
             self._ready = False
             await self.session.close()
-            raise errs.UnableToCreateSession(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            raise errs.UnableToCreateSession(f"{sys.exc_info()[0].__name__}, {str(e)}")
 
     async def close(self) -> bool:
         """`openhivenpy.gateway.HTTP.connect()`
@@ -142,8 +142,8 @@ class HTTP:
             self._ready = False
             return True
         except Exception as e:
-            logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}, {str(e)}")
+            raise errs.HTTPError(f"{sys.exc_info()[0].__name__}, {str(e)}")
 
     async def raw_request(
             self,
@@ -239,7 +239,7 @@ class HTTP:
 
                 except Exception as e:
                     logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; "
-                                 f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                 f"{sys.exc_info()[0].__name__}, {str(e)}")
 
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
@@ -258,9 +258,9 @@ class HTTP:
             return
         except Exception as e:
             logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; "
-                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"{sys.exc_info()[0].__name__}, {str(e)}")
             raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint: "
-                                 f"{self.host}{endpoint}; {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                 f"{self.host}{endpoint}; {sys.exc_info()[0].__name__}, {str(e)}")
 
         # Updating the last request object
         self._request = resp[0]

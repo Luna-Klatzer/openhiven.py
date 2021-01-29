@@ -206,7 +206,7 @@ class Websocket(Client):
                     await self.event_handler.dispatch_on_connection_start()
 
                     # Running the lifesignal and response handling parallel
-                    await asyncio.gather(self.lifesignal(ws), self.response_handler(ws=ws))
+                    await asyncio.gather(self.lifesignal(ws), self.message_handler(ws=ws))
 
             except KeyboardInterrupt:
                 pass
@@ -215,7 +215,7 @@ class Websocket(Client):
                 logger.critical("[WEBSOCKET] Traceback:")
                 traceback.print_tb(sys.exc_info()[2])
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
-                                f"> {sys.exc_info()[1].__class__.__name__}, {str(ws_e)}")
+                                f"> {sys.exc_info()[0].__name__}, {str(ws_e)}")
 
                 # Closing
                 close = getattr(self, "close", None)
@@ -244,18 +244,24 @@ class Websocket(Client):
 
         except Exception as e:
             logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped and failed to process! "
-                         f"> {sys.exc_info()[1].__class__.__name__}: {str(e)}!")
+                         f"> {sys.exc_info()[0].__name__}: {str(e)}!")
 
             raise errs.GatewayException(f"[WEBSOCKET] << Exception in main-websocket process!"
-                                        f"> {sys.exc_info()[1].__class__.__name__}: {str(e)}!")
+                                        f"> {sys.exc_info()[0].__name__}: {str(e)}!")
 
     # Loop for receiving messages from Hiven
-    async def response_handler(self, ws) -> None:
-        r"""`openhivenpy.gateway.Websocket.ws_receive_response()`
+    async def message_handler(self, ws) -> None:
+        r"""`openhivenpy.gateway.Websocket.message_handler()`
 
-        Response Handler for the websocket that will handle messages received over the websocket connection
-        and if needed trigger an event.
+        Message Handler for the websocket that will handle messages received over the websocket connection
+        and if needed trigger an event using the function text_based_message_handler(), which triggers events
+        if needed. The incoming messages in this case are handled when they arrive meaning that a loop will
+        await a new message and if one is received handle the message and pass it as a dict to the
+        text_based_message_handler() if the type is correct json. If it's not it will log a warning containing
+        that message!
 
+        :param ws: The aiohttp websocket instance needed for interaction with Hiven
+        :return: None - Only returns if the process failed or the websocket was forced to close!
         """
         # This process will break if a close frame was received, which automatically
         # closes the connection. This is then only way the connection should normally close
@@ -276,38 +282,42 @@ class Websocket(Client):
                     else:
                         json_data = None
 
-                    # If the op-code is 1 the server expects the client to authorise
-                    if json_data.get('op') == 1:
-                        # Authorizing with token
-                        logger.info("[WEBSOCKET] >> Authorizing with token")
-                        json_auth = str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
-                        await ws.send_str(json_auth)
+                    # If the data is in json format it can be handled as event
+                    if json_data is not None:
+                        # If the op-code is 1 the server expects the client to authorise
+                        if json_data.get('op') == 1:
+                            # Authorizing with token
+                            logger.info("[WEBSOCKET] >> Authorizing with token")
+                            json_auth = str(json.dumps({"op": 2, "d": {"token": str(self._TOKEN)}}))
+                            await ws.send_str(json_auth)
 
-                        if self._CUSTOM_HEARTBEAT is False:
-                            self._HEARTBEAT = json_data['d']['hbt_int']
-                            ws.heartbeat = self._HEARTBEAT
+                            if self._CUSTOM_HEARTBEAT is False:
+                                self._HEARTBEAT = json_data['d']['hbt_int']
+                                ws.heartbeat = self._HEARTBEAT
 
-                        logger.debug(f"[WEBSOCKET] >> Heartbeat set to {ws.heartbeat}")
-                        logger.info("[WEBSOCKET] << Connection to Hiven Swarm established")
-
-                    else:
-                        if self._log_ws_output:
-                            logger.debug(f"[WEBSOCKET] << Received: {str(json_data)}")
-
-                        if json_data.get('e') == "INIT_STATE":
-                            # Initialising the data of the Client
-                            await super().initialise_hiven_client_data(json_data.get('d'))
-
-                            # init_time = Time it took to initialise
-                            init_time = time.time() - self._connection_start
-                            self._initialised = True
-
-                            # Calling the event 'on_init()'
-                            await self.event_handler.dispatch_on_init(time=init_time)
+                            logger.debug(f"[WEBSOCKET] >> Heartbeat set to {ws.heartbeat}")
+                            logger.info("[WEBSOCKET] << Connection to Hiven Swarm established")
 
                         else:
-                            # Creating a task for the websocket message handling
-                            await self._event_resp_handler(json_data)
+                            if self._log_ws_output:
+                                logger.debug(f"[WEBSOCKET] << Received: {str(json_data)}")
+
+                            if json_data.get('e') == "INIT_STATE":
+                                # Initialising the data of the Client
+                                await super().initialise_hiven_client_data(json_data.get('d'))
+
+                                # init_time = Time it took to initialise
+                                init_time = time.time() - self._connection_start
+                                self._initialised = True
+
+                                # Calling the event 'on_init()'
+                                await self.event_handler.dispatch_on_init(time=init_time)
+
+                            else:
+                                # Calling the websocket message handler for handling the incoming ws message
+                                await self.text_based_message_handler(json_data)
+                    else:
+                        logger.warning(f"[WEBSOCKET] Received unexpected non-json text type: '{ws_msg.data}'")
 
                 elif ws_msg.type == aiohttp.WSMsgType.CLOSE:
                     # Close Frame can be received because of these issues:
@@ -322,13 +332,14 @@ class Websocket(Client):
                     logger.critical(f"[WEBSOCKET] Failed to handle response >> {ws.exception()} >>{ws_msg}")
                     raise errs.WSFailedToHandle(ws_msg.data)
 
+        # Closing the websocket instance if it wasn't closed
         if not ws.closed:
             await ws.close()
 
         logger.info(f"[WEBSOCKET] << Connection to Remote ({self._WEBSOCKET_URL}) closed!")
         self._open = False
 
-        # Closing
+        # Trying to fetch the close method of the Connection class which stops the currently running processes
         close = getattr(self, "close", None)
         if callable(close):
             await close(exec_loop=True, reason="Response Handler stopped!", restart=self._restart)
@@ -336,40 +347,46 @@ class Websocket(Client):
         return
 
     async def lifesignal(self, ws) -> None:
-        """`openhivenpy.gateway.Websocket.ws_lifesignal()`
+        """`openhivenpy.gateway.Websocket.lifesignal()`
 
         Lifesignal Task sending lifesignal messages to the Hiven Swarm
 
         Not supposed to be called by a user!
 
+        :param ws: The aiohttp websocket instance needed for interaction with Hiven
+        :return: None - Only returns if the process failed or the websocket was forced to close!
         """
         try:
-            # Life Signal that sends an op-code to Hiven to signalise the connection is still alive!
+            # Life Signal that sends an op-code to Hiven to signalise the client instance is still alive!
             # Will automatically break if the connection status is CLOSING or CLOSED
-            # Very unlikely to happen to due to prior force closing or self._open closing itself
-            # which already stops the entire websocket task
             async def _lifesignal():
-                while self._open:
-                    await asyncio.sleep(self._HEARTBEAT / 1000)
+                while self._open and self.connection_status not in ["CLOSING", "CLOSED"]:
+                    await asyncio.sleep(self._HEARTBEAT / 1000)  # Converting the Heartbeat to seconds from ms
 
                     logger.debug(f"[WEBSOCKET] >> Lifesignal at {time.time()}")
                     await ws.send_str(str(json.dumps({"op": 3})))
-
-                    if self.connection_status in ["CLOSING", "CLOSED"]:
-                        break
                 return
 
             self._connection_status = "OPEN"
+
+            # Wrapping the lifesignal into a task so it can be easily stopped if needed
             self._lifesignal = asyncio.create_task(_lifesignal())
             await self._lifesignal
             return
 
+        # If the task is cancelled it will return without logging
         except asyncio.CancelledError:
             return
 
+        except Exception as e:
+            logger.critical("[WEBSOCKET] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.debug(f"[WEBSOCKET] << Failed to keep lifesignal alive! "
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+
     # Event Triggers
-    async def _event_resp_handler(self, resp_data):
-        """`openhivenpy.gateway.Websocket.ws_on_response()`
+    async def text_based_message_handler(self, resp_data: dict):
+        """`openhivenpy.gateway.Websocket.text_based_message_handler()`
 
         Handler for the Websocket events and the message data.
 
@@ -401,7 +418,7 @@ class Websocket(Client):
                 event_handler = self.house_member_update_handler(ws_msg_data)
 
             elif swarm_event == "HOUSE_MEMBER_JOIN":
-                event_handler = self.house_join_handler(ws_msg_data)
+                event_handler = self.house_member_join_handler(ws_msg_data)
 
             elif swarm_event == "ROOM_CREATE":
                 event_handler = self.room_create_handler(ws_msg_data)
@@ -439,36 +456,49 @@ class Websocket(Client):
             asyncio.create_task(event_handler)
 
         except Exception as e:
-            logger.debug(f"[WEBSOCKET] << Failed to handle Event in the websocket! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            logger.critical("[WEBSOCKET] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.debug(f"[WEBSOCKET] << Failed to handle incoming json-type text message in the websocket! "
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_down_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for downtime of a house! Triggers on_house_down and
         returns as parameter the time of downtime and the house
-        """
-        if self.initialised:
-            data = ws_msg_data
-            t = time.time()
-            house = utils.get(self._houses, id=int(data.get('house_id', 0)))
-            if data.get('unavailable'):
-                logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
-                             "House was either deleted or is currently unavailable!")
-            else:
-                pass
 
-            await self.event_handler.dispatch_on_house_down_time(time=t, house=house)
-        else:
-            return
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
+        """
+        try:
+            if self.initialised:
+                data = ws_msg_data
+                t = time.time()
+                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
+                if data.get('unavailable'):
+                    logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
+                                 "House was either deleted or is currently unavailable!")
+                else:
+                    pass
+
+                await self.event_handler.dispatch_on_house_down_time(time=t, house=house)
+            else:
+                return
+
+        except Exception as e:
+            logger.critical("[HOUSE_DOWN] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.critical(f"[HOUSE_DOWN] >> Failed to handle the event due to an exception occurring! "
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def member_chunk_handler(self, ws_msg_data: dict):
-        """
+        r"""
         In Work!
 
         Handler for a house member chunk update which updates for every
         sent member object the object in the house list. Triggers
         on_house_member_chunk and returns as parameter the changed
         members, the raw data and the house object.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -523,12 +553,14 @@ class Websocket(Client):
             logger.critical("[HOUSE_MEMBERS_CHUNK] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_MEMBERS_CHUNK] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_enter(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a member going online in a mutual house. Trigger on_house_enter
         and returns as parameters the member obj and house obj.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self._initialised:
@@ -551,12 +583,14 @@ class Websocket(Client):
             logger.critical("[HOUSE_MEMBER_ENTER] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_MEMBER_ENTER] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_update_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a house member update which will trigger on_member_update and return
         as parameter the old member obj, the new member obj and the house.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.initialised:
@@ -591,12 +625,14 @@ class Websocket(Client):
             logger.critical("[HOUSE_MEMBER_UPDATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
-    async def house_join_handler(self, ws_msg_data: dict):
-        """
+    async def house_member_join_handler(self, ws_msg_data: dict):
+        r"""
         Handler for a House Join Event where a user joined a house. Triggers on_member_join and passes the house and
         the member as arguments.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -644,11 +680,13 @@ class Websocket(Client):
             logger.critical("[HOUSE_MEMBER_JOIN] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_MEMBER_JOIN] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def room_create_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for Room creation in a house. Triggers on_room_create() and passes the room as argument
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -660,13 +698,15 @@ class Websocket(Client):
             logger.critical("[ROOM_CREATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[ROOM_CREATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_member_exit_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a house member exit event. Removes the member
         from the house members list and triggers on_house_exit and
-        returns as parameter the user obj and house obj
+        returns as parameter the user obj and house obj.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -694,11 +734,13 @@ class Websocket(Client):
             logger.critical("[HOUSE_MEMBER_EXIT] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_MEMBER_EXIT] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def presence_update_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a User Presence update
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -716,12 +758,14 @@ class Websocket(Client):
             logger.critical("[PRESENCE_UPDATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[PRESENCE_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def message_create_handler(self, ws_msg_data: dict):
-        """
-        Handler for created messages which will trigger the 'on_message_create' event.
+        r"""
+        Handler for a user-created messages which will trigger the 'on_message_create' event.
         Will return as parameter the created msg object.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -769,12 +813,14 @@ class Websocket(Client):
             logger.critical("[MESSAGE_CREATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[MESSAGE_CREATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def message_delete_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a deleted message which will trigger the on_message_delete event
         and return as parameter a DeletedMessage object.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         if self.ready:
             try:
@@ -788,15 +834,17 @@ class Websocket(Client):
                 logger.critical("[MESSAGE_DELETE] Traceback:")
                 traceback.print_tb(sys.exc_info()[2])
                 logger.critical(f"[MESSAGE_DELETE] >> Failed to handle the event due to an exception occurring! "
-                                f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
         else:
             return
 
     async def message_update_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a deleted message which will create a new msg object
         and return as parameter the object.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -856,12 +904,14 @@ class Websocket(Client):
             logger.critical("[MESSAGE_UPDATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[MESSAGE_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def relationship_update_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for a relationship update. Triggers on_relationship_update
         and returns as parameter the relationship obj.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.ready:
@@ -885,12 +935,14 @@ class Websocket(Client):
             logger.critical("[RELATIONSHIP_UPDATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[RELATIONSHIP_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_join_handler(self, ws_msg_data: dict):
-        """
+        r"""
         Handler for the dispatch_on_house_add event of the connected client which will trigger
         the on_house_join event and return as parameter the house.
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self._initialised:
@@ -928,7 +980,7 @@ class Websocket(Client):
             logger.critical("[HOUSE_JOIN] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_JOIN] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
         """
@@ -953,7 +1005,7 @@ class Websocket(Client):
             logger.critical("[HOUSE_LEAVE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_LEAVE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_entity_update_handler(self, ws_msg_data: dict):
         """
@@ -978,7 +1030,7 @@ class Websocket(Client):
             logger.critical("[HOUSE_ENTITIES_UPDATE] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[HOUSE_ENTITIES_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def batch_house_member_handler(self, ws_msg_data: dict):
         """
@@ -1042,7 +1094,7 @@ class Websocket(Client):
                 logger.critical("[BATCH_HOUSE_MEMBER_UPDATE] Traceback:")
                 traceback.print_tb(sys.exc_info()[2])
                 logger.critical(f"[BATCH_HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception "
-                                f"occurring! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def typing_start_handler(self, ws_msg_data: dict):
         """
@@ -1074,5 +1126,5 @@ class Websocket(Client):
             logger.critical("[TYPING_START] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical(f"[TYPING_START] >> Failed to handle the event due to an exception "
-                            f"occurring! > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                            f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
 

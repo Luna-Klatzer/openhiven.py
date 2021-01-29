@@ -183,16 +183,16 @@ class House:
             self._http = http
 
         except AttributeError as e:
-            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[1].__class__.__name__}, "
+            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[0].__name__}, "
                          f"{str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize House object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[1].__class__.__name__}, "
+            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[0].__name__}, "
                          f"{str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize House object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -280,7 +280,7 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to get the member with id {member_id}!"
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False
 
     async def get_room(self, room_id: int):
@@ -303,7 +303,7 @@ class House:
             return None
         except Exception as e:
             logger.error(f"[HOUSE] Failed to get the room with id {room_id} in house {repr(self)} "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False
 
     async def create_room(
@@ -342,7 +342,7 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to create room '{name}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return None
 
     # TODO! Delete Room!
@@ -375,7 +375,7 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to create category '{name}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return False
 
     async def leave(self) -> bool:
@@ -396,7 +396,7 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to leave {repr(self)}! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False
 
     async def edit(self, **kwargs) -> bool:
@@ -427,7 +427,7 @@ class House:
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
             logger.error(f"[HOUSE] Failed edit request of values '{keys}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return False
 
     async def create_invite(self, max_uses: int) -> Union[str, None]:
@@ -455,7 +455,7 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to create invite for house {self.name} with id {self.id}!"
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return None
 
     async def delete(self) -> Union[int, None]:

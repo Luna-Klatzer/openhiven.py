@@ -41,15 +41,15 @@ class Room:
             
         except AttributeError as e: 
             logger.error(f"[ROOM] Failed to initialize the Room object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"[ROOM] Failed to initialize the Room object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -145,7 +145,7 @@ class Room:
         
         except Exception as e:
             logger.error(f"[ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return None
         
     async def edit(self, **kwargs) -> bool:
@@ -174,7 +174,7 @@ class Room:
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
             logger.error(f"[ROOM] Failed to change the values {keys} in room {repr(self)}!"
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False
         
     async def start_typing(self) -> bool:
@@ -195,7 +195,7 @@ class Room:
     
         except Exception as e:
             logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return False
         
     async def get_recent_messages(self) -> Union[list, getType.a_message]:
@@ -236,5 +236,5 @@ class Room:
     
         except Exception as e:
             logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return None

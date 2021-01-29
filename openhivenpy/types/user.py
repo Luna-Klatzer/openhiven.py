@@ -35,15 +35,15 @@ class LazyUser:
 
         except AttributeError as e:
             logger.error(f"[LAZYUSER] Failed to initialize the User object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
         except Exception as e:
             logger.error(f"[LAZYUSER] Failed to initialize the User object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! "
-                                    f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                    f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -110,15 +110,15 @@ class User(LazyUser):
             
         except AttributeError as e: 
             logger.error(f"[USER] Failed to initialize the User object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize User object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"[USER] Failed to initialize the User object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize User object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     @property
     def location(self) -> str:

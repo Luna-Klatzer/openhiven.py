@@ -182,7 +182,7 @@ class HivenClient(EventHandler):
             logger.critical("[HIVENCLIENT] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical("[HIVENCLIENT] Failed to establish or keep the connection alive! > "
-                            f"> {sys.exc_info()[1].__class__.__name__}: {str(e)}!")
+                            f"> {sys.exc_info()[0].__name__}: {str(e)}!")
 
     def run(self,
             *,
@@ -216,7 +216,7 @@ class HivenClient(EventHandler):
             logger.critical("[HIVENCLIENT] Traceback:")
             traceback.print_tb(sys.exc_info()[2])
             logger.critical("[HIVENCLIENT] Failed to establish or keep the connection alive! > "
-                            f"> {sys.exc_info()[1].__class__.__name__}: {str(e)}!")
+                            f"> {sys.exc_info()[0].__name__}: {str(e)}!")
 
     async def destroy(self, reason: str = "", *, exec_loop=True) -> bool:
         """`openhivenpy.HivenClient.destroy()`
@@ -246,9 +246,9 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             logger.error(f"[HIVENCLIENT] << Failed to close client session and websocket to Hiven! > "
-                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"{sys.exc_info()[0].__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
-                                     f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                     f"{sys.exc_info()[0].__name__}, {str(e)}")
 
     async def close(self, reason: str = "", *, exec_loop=True) -> bool:
         """`openhivenpy.HivenClient.close()`
@@ -277,9 +277,9 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             logger.error(f"[HIVENCLIENT] << Failed to close client session and websocket to Hiven! > "
-                         f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"{sys.exc_info()[0].__name__}, {str(e)}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
-                                     f"{sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                     f"{sys.exc_info()[0].__name__}, {str(e)}")
 
     @property
     def client_type(self) -> str:

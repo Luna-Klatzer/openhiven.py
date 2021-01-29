@@ -39,15 +39,15 @@ class PrivateGroupRoom:
             
         except AttributeError as e: 
             logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! " 
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -130,7 +130,7 @@ class PrivateGroupRoom:
         
         except Exception as e:
             logger.error(f"[PRIVATE_GROUP_ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -158,7 +158,7 @@ class PrivateGroupRoom:
             
         except Exception as e:
             logger.error(f"[PRIVATE_GROUP_ROOM] Failed to start call in {repr(self)}! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False         
 
 
@@ -184,15 +184,15 @@ class PrivateRoom:
             
         except AttributeError as e: 
             logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -256,7 +256,7 @@ class PrivateRoom:
             
         except Exception as e:
             logger.error(f"[PRIVATE_ROOM] Failed to start call in room {repr(self)}! " 
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return False             
 
     async def send(self, content: str, delay: float = None) -> getType.message:
@@ -308,5 +308,5 @@ class PrivateRoom:
         
         except Exception as e:
             logger.error(f"[PRIVATE_ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
             return None

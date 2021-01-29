@@ -123,15 +123,15 @@ class Message:
             
         except AttributeError as e: 
             logger.error(f"[MESSAGE] Failed to initialize the Message object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
         except Exception as e: 
             logger.error(f"[MESSAGE] Failed to initialize the Message object! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)} >> Data: {data}")
+                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -228,7 +228,7 @@ class Message:
         
         except Exception as e:
             logger.error(f"[MESSAGE] Failed to mark message as read {repr(self)}" 
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -255,7 +255,7 @@ class Message:
         
         except Exception as e:
             logger.error(f"[MESSAGE] Failed to delete the message {repr(self)}!" 
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def edit(self, content: str) -> bool:
         """`openhivenpy.types.House.edit()`
@@ -277,5 +277,5 @@ class Message:
     
         except Exception as e:
             logger.error(f"[MESSAGE] Failed to edit message {repr(self)}!" 
-                         f" > {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
             return False
