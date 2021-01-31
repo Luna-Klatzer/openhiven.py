@@ -8,14 +8,19 @@ with open("requirements.txt") as file:
 
 setuptools.setup(
     name="openhivenpy",
-    version="0.1.1.4",
+    version="0.1.2.0b1",
     author="FrostbyteSpace",
     author_email="nicolas.klatzer@gmail.com",
-    description="An unofficial Opensource API wrapper for Hiven\n © FrostbyteSpace",
+    description="The OpenSource Python API Wrapper for Hiven!",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/FrostbyteSpace/openhiven.py",
     license="MIT",
+    project_urls={
+        "homepage": "https://github.com/FrostbyteSpace/openhiven.py",
+        "documentation(old)": "https://openhivenpy.readthedocs.io/",
+        "docs-rewrite": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/"
+    },
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
