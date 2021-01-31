@@ -161,7 +161,7 @@ class Room:
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    resp = await self._http.patch(f"/rooms/{self.id}", data={key: kwargs.get(key)})
+                    resp = await self._http.patch(f"/rooms/{self.id}", json={key: kwargs.get(key)})
 
                     if resp.status < 300:
                         return True

@@ -414,7 +414,7 @@ class House:
                 if key in ['name']:
                     resp = await self._http.patch(
                         endpoint=f"/houses/{self.id}",
-                        data={key: kwargs.get(key)})
+                        json={key: kwargs.get(key)})
 
                     if resp.status < 300:
                         return True

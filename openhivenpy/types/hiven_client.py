@@ -140,7 +140,7 @@ class Client:
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    resp = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                    resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
                     if resp.status < 300:
                         return True
@@ -151,10 +151,10 @@ class Client:
                     raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
-            keys = "".join(str(" " + key) for key in kwargs.keys())
+            keys = "".join(str(key + " ") for key in kwargs.keys())
             logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
                          f"> {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
+            raise errs.HTTPError(f"Failed to edit following data of the Client: {keys}")
 
     @property
     def user(self):

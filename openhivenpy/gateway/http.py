@@ -1,3 +1,4 @@
+import os
 import aiohttp
 import asyncio
 import logging
@@ -10,17 +11,23 @@ import openhivenpy.exceptions as errs
 
 __all__ = 'HTTP'
 
+from openhivenpy import load_env
+
 logger = logging.getLogger(__name__)
 
 request_url_format = "https://{0}/{1}"
 
+# Loading the environment variables
+load_env()
+# Setting the default values to the currently set defaults in the openhivenpy.env file
+_default_host = os.getenv("HIVEN_HOST")
+_default_api_version = os.getenv("HIVEN_API_VERSION")
+
 
 class HTTP:
-    """`openhivenpy.gateway`
+    """`openhivenpy.gateway.HTTP`
     
-    HTTP
-    ~~~~~~~~~~
-    
+
     HTTP-Client for requests and interaction with the Hiven API
     
     Parameter:
@@ -41,11 +48,11 @@ class HTTP:
     def __init__(self, loop: Optional[asyncio.AbstractEventLoop], **kwargs):
 
         self._TOKEN = kwargs.get('token')
-        self.host = kwargs.get('api_url', "api.hiven.io")
-        self.api_version = kwargs.get('api_version', "v1")
+        self.host = kwargs.get('api_url', _default_host)
+        self.api_version = kwargs.get('api_version', _default_api_version)
         self.api_url = request_url_format.format(self.host, self.api_version)
         self.headers = {"Authorization": self._TOKEN,
-                        "Host": self.host}  # header for auth
+                        "Host": self.host}  # Default header used for a request
 
         self._ready = False
         self._session = None  # Will be created during start of connection
@@ -79,10 +86,11 @@ class HTTP:
         return self._event_loop
 
     async def connect(self) -> Union[aiohttp.ClientSession, None]:
-        """`openhivenpy.gateway.HTTP.connect()`
+        r"""`openhivenpy.gateway.HTTP.connect()`
 
         Establishes for the HTTP a connection to Hiven
-        
+
+        :return: The created aiohttp.ClientSession
         """
         try:
             async def on_request_start(session, trace_config_ctx, params):
@@ -118,11 +126,13 @@ class HTTP:
             self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
 
-            resp = await self.request("/users/@me", timeout=10)
+            resp = await self.request("/users/@me", timeout=30)
             if resp:
                 logger.info("[HTTP] Session was successfully created!")
                 return self.session
             else:
+                # If the request failed it will return None and log a warning
+                logger.warning("[HTTP] Test Request for HTTP Initialisation failed! ")
                 return None
 
         except Exception as e:
@@ -132,129 +142,164 @@ class HTTP:
             raise errs.UnableToCreateSession(f"{sys.exc_info()[0].__name__}, {str(e)}")
 
     async def close(self) -> bool:
-        """`openhivenpy.gateway.HTTP.connect()`
+        r"""`openhivenpy.gateway.HTTP.connect()`
 
         Closes the HTTP session that is currently connected to Hiven!
-        
+
+        :return: True if it was successful else False
         """
         try:
             await self.session.close()
             self._ready = False
             return True
+
         except Exception as e:
-            logger.error(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.HTTPError(f"{sys.exc_info()[0].__name__}, {str(e)}")
+            logger.critical(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}, {str(e)}")
+            return False
 
     async def raw_request(
             self,
             endpoint: str,
             *,
             method: str = "GET",
+            json: dict = None,
             timeout: float = 15,
+            headers: dict = None,  # Defaults to an empty header
             **kwargs) -> Union[aiohttp.ClientResponse, None]:
-        """`openhivenpy.gateway.HTTP.raw_request()`
+        r"""`openhivenpy.gateway.HTTP.raw_request()`
 
-        Wrapped HTTP GET request for a specified endpoint. 
+        Wrapped HTTP request for a specified endpoint.
         
-        Returns the raw ClientResponse object
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-    
-        json: `str` - JSON format data that will be appended to the request
-        
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        method: `str` - HTTP Method that should be used to perform the request
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
-                            Use with caution!
-                
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param method: HTTP Method that should be used to perform the request
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the aiohttp.ClientResponse object
         """
 
         # Timeout Handler that watches if the request takes too long
-        async def _time_out_handler(_timeout: float) -> None:
-            start_time = time.time()
+        async def time_out_handler(_timeout: float) -> bool:
+            """
+            Timeout Handler for a standard HTTP Request to Hiven!
+            :param _timeout: Max. Time the request should take to finish!
+            :return: Bool whether the request was successful or needed to be cancelled
+            """
+            start_time = time.time()  # Time in float seconds
             timeout_limit = start_time + _timeout
             while True:
+                # The request is done and therefore the timeout is not needed anymore
                 if self._request.done():
-                    break
+                    return True
+
+                # If the timeout_limit was reached it will stop the request
                 elif time.time() > timeout_limit:
+                    # Cancelling the request!
                     if not self._request.cancelled():
                         self._request.cancel()
+
                     logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: "
                                  f"{endpoint}; Request to Hiven timed out!")
-                    break
-                await asyncio.sleep(0.25)
-            return None
 
-        async def _request(endpoint, method, **kwargs):
-            # Deactivated because of errors that occurred using it!
-            _timeout = aiohttp.ClientTimeout(total=None)
+                    return False
+
+                # Stopping the loop from checking too often!
+                await asyncio.sleep(0.05)
+
+        async def http_request(_endpoint: str,
+                               _method: str,
+                               _json: dict,
+                               _headers: dict,
+                               **_kwargs) -> Union[aiohttp.ClientResponse, None]:
+            """
+            HTTP_Request Function that stores the request and the handling of exceptions! Will be used as
+            a variable so the status of the request can be seen by the asyncio.Task status!
+            :param _endpoint: Endpoint of the request
+            :param _method: HTTP method of the request
+            :param _json: Additional JSON Data if it exists
+            :param _headers: Headers that will be sent! Defaults to the ones that were created during initialisation
+            :param _kwargs: Additional Parameter for the aiohttp HTTP Request
+            :return: Returns the aiohttp.ClientResponse object
+            """
             if self._ready:
                 try:
-                    if kwargs.get('headers') is None:
-                        headers = self.headers
-                    else:
-                        headers = kwargs.pop('headers')
-                    url = f"{self.api_url}{endpoint}"
+                    # Creating a new ClientTimeout Instance which will default to having no timeout since
+                    # errors occurred using it! Timeout is therefore handled independently over the _time_out_handler()
+                    _timeout = aiohttp.ClientTimeout(total=None)
+
+                    # If no default headers were passed
+                    if _headers is None:
+                        _headers = self.headers
+
+                    url = f"{self.api_url}{_endpoint}"
                     async with self.session.request(
-                            method=method,
-                            url=url,
-                            headers=headers,
-                            timeout=_timeout,
-                            **kwargs) as resp:
-                        http_code = resp.status  # HTTP Code Response
-                        data = await resp.read()  # Raw Text data
+                            method=_method,  # HTTP Method
+                            url=url,  # Endpoint url
+                            headers=_headers,  # Passing the headers directly without using the kwargs
+                            timeout=_timeout,  # Timout Object => defaults to None since it caused issues in the past!
+                            json=_json,
+                            **_kwargs) as _resp:
+
+                        http_resp_code = _resp.status  # HTTP Code Response
+                        data = await _resp.read()  # Raw Text data
 
                         if data:
-                            _json_data = json_decoder.loads(data)
-                            _success = _json_data.get('success')
+                            _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
+                            _success = _json_data.get('success')  # Fetching the success item <== bool
 
                             if _success:
-                                logger.debug(f"[HTTP] {http_code} - Request was successful and received expected data!")
+                                logger.debug(
+                                    f"[HTTP] {http_resp_code} - Request was successful and received expected data!")
                             else:
+                                # If an error occurred the response body will contain an error field
                                 _error = _json_data.get('error')
                                 if _error:
                                     err_code = _error.get('code')  # Error-Code
                                     err_msg = _error.get('message')  # Error-Msg
-                                    logger.error(f"[HTTP] Failed HTTP request '{method.upper()}'! {http_code} -> "
+                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
                                                  f"'{err_code}': '{err_msg}'")
                                 else:
-                                    logger.error(f"[HTTP] Failed HTTP request '{method.upper()}'! {http_code} -> "
+                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
                                                  f"Response: None")
                         else:
-                            if http_code == 204:
+                            # Empty Responses are generally unexpected for an Hiven API Response and therefore are
+                            # counted as possible issues if the code is 204. If not it's an exception since data was
+                            # expected but not received!
+                            if http_resp_code == 204:
                                 logger.warning("[HTTP] Received empty response!")
                             else:
                                 logger.error("[HTTP] Received empty response!")
 
-                        return resp
+                        return _resp
 
-                except Exception as e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{method.upper()}' with endpoint: {endpoint}; "
-                                 f"{sys.exc_info()[0].__name__}, {str(e)}")
+                except Exception as _e:
+                    logger.error(f"[HTTP] << FAILED HTTP '{_method.upper()}' with endpoint: {_endpoint}; "
+                                 f"{sys.exc_info()[0].__name__}, {str(_e)}")
 
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
-                             f"HTTP {method}! The session is either not initialised or closed!")
+                             f"HTTP {_method}! The session is either not initialised or closed!")
                 return None
 
-        # Creating two tasks for the request and the timeout handler
-        self._request = asyncio.create_task(_request(endpoint, method, **kwargs))
-        _task_time_out_handler = asyncio.create_task(_time_out_handler(timeout))
+        # Updating the most recent request variable, but since the request is not finished it will be
+        # shown as asyncio task since no results are given yet!
+        self._request = asyncio.create_task(http_request(endpoint, method, json, headers, **kwargs))
+        _task_time_out_handler = asyncio.create_task(time_out_handler(timeout))
 
         try:
             # Running the tasks parallel to ensure the timeout handler can fetch the timout correctly!
-            resp = await asyncio.gather(self._request, _task_time_out_handler)
+            # Returns a list of two items:
+            # - First: the request object
+            # - Second: Success of the request (only referring to the timeout! Will also return True
+            # when the request encountered an exception!)
+            request_result = await asyncio.gather(self._request, _task_time_out_handler)
+
         except asyncio.CancelledError:
-            logger.warning(f"[HTTP] >> Request was cancelled!")
+            logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint}' was cancelled!")
             return
         except Exception as e:
             logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; "
@@ -262,200 +307,244 @@ class HTTP:
             raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint: "
                                  f"{self.host}{endpoint}; {sys.exc_info()[0].__name__}, {str(e)}")
 
-        # Updating the last request object
-        self._request = resp[0]
-        # Returning the response obj on index 0
-        return resp[0]
+        # Updating the last request object with the response object and data to signalise no request is currently
+        # running!
+        self._request = request_result[0]
+        # Returning the response obj on index 0 => aiohttp.ClientResponse
+        return request_result[0]
 
-    async def request(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> Union[dict, None]:
+    async def request(self,
+                      endpoint: str,
+                      *,
+                      json: dict = None,
+                      timeout: float = 15,
+                      headers: dict = None,
+                      **kwargs) -> Union[dict, None]:
         """`openhivenpy.gateway.HTTP.request()`
 
-        Wrapped HTTP request for a specified endpoint. 
+        Wrapped HTTP 'GET' request for a specified endpoint, which returns only the response data!
         
-        Returns a python dictionary containing the response data if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-
-        json: `str` - JSON format data that will be appended to the request
-
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
                         Use with caution!
-
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: A python dictionary containing the response data if successful and else returns `None`
         """
-        resp = await self.raw_request(endpoint, method="GET", timeout=timeout, **kwargs)
+        resp = await self.raw_request(endpoint, method="GET", timeout=timeout, json=json, headers=headers, **kwargs)
         if resp is not None and resp.status < 300:
             if resp.status < 300 and resp.status != 204:
+                # Returning the data in json format (dict)
                 return await resp.json()
             else:
                 return None
         else:
             return None
 
-    async def post(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.post()`
+    async def get(self,
+                  endpoint: str,
+                  *,
+                  json: dict = None,
+                  timeout: float = 15,
+                  headers: dict = None,
+                  **kwargs) -> aiohttp.ClientResponse:
+        r"""`openhivenpy.gateway.HTTP.post()`
 
-        Wrapped HTTP Post for a specified endpoint.
-        
-        Returns the ClientResponse object if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
+        Wrapped HTTP 'GET' request for a specified endpoint
 
-        json: `str` - JSON format data that will be appended to the request
-
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
                         Use with caution!
-
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
         """
         return await self.raw_request(
             endpoint,
             method="POST",
             json=json,
+            headers=headers,
             timeout=timeout,
             **kwargs)
 
-    async def delete(self, endpoint: str, *, timeout: int = 10, **kwargs) -> aiohttp.ClientResponse:
+    async def post(self,
+                   endpoint: str,
+                   *,
+                   json: dict = None,
+                   timeout: float = 15,
+                   headers: dict = None,
+                   **kwargs) -> aiohttp.ClientResponse:
+        """`openhivenpy.gateway.HTTP.post()`
+
+        Wrapped HTTP 'POST' for a specified endpoint.
+        
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
+        """
+        # If no custom headers were passed a new one will be created and used
+        if headers is None:
+            # Creating a duplicate header of the default one
+            headers = dict(self.headers)
+
+            # Requires the Content-Type to be specified since else it cannot
+            # recognise the json-data in the body!
+            headers['Content-Type'] = 'application/json'
+
+        return await self.raw_request(
+            endpoint,
+            method="POST",
+            json=json,
+            headers=headers,
+            timeout=timeout,
+            **kwargs)
+
+    async def delete(self,
+                     endpoint: str,
+                     *,
+                     json: dict = None,
+                     timeout: float = 15,
+                     headers: dict = None,
+                     **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.delete()`
 
-        Wrapped HTTP delete for a specified endpoint.
+        Wrapped HTTP 'DELETE' for a specified endpoint.
         
-        Returns the ClientResponse object if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
                         Use with caution!
-
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
         """
         return await self.raw_request(
             endpoint,
             method="DELETE",
-            timeout=timeout,
-            **kwargs)
-
-    async def put(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.put()`
-
-        Wrapped HTTP put for a specified endpoint.
-        
-        Similar to post, but multiple requests do not affect performance
-        
-        Returns the ClientResponse object if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-
-        json: `str` - JSON format data that will be appended to the request
-
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-
-        """
-        headers = dict(self.headers)
-        headers['Content-Type'] = 'application/json'
-        return await self.raw_request(
-            endpoint,
-            method="PUT",
             json=json,
             timeout=timeout,
             headers=headers,
             **kwargs)
 
-    async def patch(self, endpoint: str, *, json: dict = None, timeout: float = 15, **kwargs) -> aiohttp.ClientResponse:
+    async def put(self,
+                  endpoint: str,
+                  *,
+                  json: dict = None,
+                  timeout: float = 15,
+                  headers: dict = None,
+                  **kwargs) -> aiohttp.ClientResponse:
+        """`openhivenpy.gateway.HTTP.put()`
+
+        Wrapped HTTP 'PUT' for a specified endpoint.
+        
+        Similar to post, but multiple requests do not affect performance
+
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
+                        Use with caution!
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
+        """
+        # If no custom headers were passed a new one will be created and used
+        if headers is None:
+            # Creating a duplicate header of the default one
+            headers = dict(self.headers)
+
+            # Requires the Content-Type to be specified since else it cannot
+            # recognise the json-data in the body!
+            headers['Content-Type'] = 'application/json'
+
+        return await self.raw_request(
+            endpoint,
+            method="PUT",
+            json=json,
+            timeout=timeout,
+            headers=headers,  # Passing the new header for the request
+            **kwargs)
+
+    async def patch(self,
+                    endpoint: str,
+                    *,
+                    json: dict = None,
+                    timeout: float = 15,
+                    headers: dict = None,
+                    **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.patch()`
 
-        Wrapped HTTP patch for a specified endpoint.
+        Wrapped HTTP 'PATCH' for a specified endpoint.
         
-        Returns the ClientResponse object if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-
-        json: `str` - JSON format data that will be appended to the request
-
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
                         Use with caution!
-
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
         """
+        # If no custom headers were passed a new one will be created and used
+        if headers is None:
+            # Creating a duplicate header of the default one
+            headers = dict(self.headers)
+
+            # Requires the Content-Type to be specified since else it cannot
+            # recognise the json-data in the body!
+            headers['Content-Type'] = 'application/json'
+
         return await self.raw_request(
             endpoint,
             method="PATCH",
             json=json,
+            headers=headers,
             timeout=timeout,
             **kwargs)
 
-    async def options(self, endpoint: str, *, json: dict = None, timeout: float = 15,
+    async def options(self,
+                      endpoint: str,
+                      *,
+                      json: dict = None,
+                      timeout: float = 15,
+                      headers: dict = None,
                       **kwargs) -> aiohttp.ClientResponse:
         """`openhivenpy.gateway.HTTP.options()`
 
-        Wrapped HTTP options for a specified endpoint.
+        Wrapped HTTP 'OPTIONS' for a specified endpoint.
         
         Requests permission for performing communication with a URL or server
         
-        Returns the ClientResponse object if successful and else returns `None`
-        
-        Parameter:
-        ----------
-        
-        endpoint: `str` - Url place in url format '/../../..'
-                            Will be appended to the standard link: 'https://api.hiven.io/version'
-    
-        json: `str` - JSON format data that will be appended to the request
-        
-        timeout: `int` - Time the server has time to respond before the connection timeouts. Defaults to 15
-        
-        headers: `dict` - Defaults to the normal headers. Note: Changing content type can make the request break.
+        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
+                        'https://api.hiven.io/{version}'
+        :param json: JSON format data that will be appended to the request
+        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
                         Use with caution!
-        
-        **kwargs: `any` - Other parameter for requesting.
-                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        
+        :param kwargs: Other parameter for requesting.
+                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :return: Returns the ClientResponse object if successful and else returns `None`
         """
         return await self.raw_request(
             endpoint,
             method="OPTIONS",
             json=json,
+            headers=headers,
             timeout=timeout,
             **kwargs)
