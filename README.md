@@ -39,7 +39,7 @@ pip install https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
 
 ## Documentation
 For full documentation visit the documentation our readthedocs-page
-[here](href="https://openhivenpy.readthedocs.io/en/latest/) or go to the github pages build 
+[here](https://openhivenpy.readthedocs.io/en/latest/) or go to the github pages build 
 [here](https://frostbytespace.github.io/docs_openhiven.py/build/)
 
 
