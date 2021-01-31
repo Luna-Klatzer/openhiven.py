@@ -3,6 +3,10 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-if __name__ == '__main__':
-    client = hiven.UserClient(token="Insert token here")
-    client.run()
+client = hiven.UserClient("Insert token")
+
+@client.event()
+async def on_ready():
+    print("Bot is ready")
+
+client.run()
