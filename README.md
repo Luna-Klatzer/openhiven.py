@@ -60,3 +60,21 @@ async def on_ready():
 client.run()
 
 ```
+
+### Usage Example
+
+A simple UserClient Bot for quick usage
+
+```python
+
+import openhivenpy as hiven
+
+client = hiven.UserClient("Insert token")
+
+@client.event()
+async def on_ready():
+    print("Bot is ready")
+
+client.run()
+
+```
