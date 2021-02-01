@@ -22,12 +22,13 @@ class Client:
     def __init__(self, *, http=None, **kwargs):
         self._http = http if http is not None else self._http
 
-        self._amount_houses = 0
+        # Base data lists for all Objects in the scope of the HivenClient
         self._houses = []
         self._users = []
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
+        self._house_memberships = []
         self._client_user = None
 
         # Init Data that will be overwritten by the connection and websocket
@@ -60,9 +61,9 @@ class Client:
         """
         try:
             # Initialising the Client-User object for storing the user data
-            self._client_user = await getType.a_user(data, self.http)
+            self._client_user = await getType.a_user(data.get('user'), self.http)
 
-            # Initialising
+            # Initialising the client relationships
             _relationships = data.get('relationships')
             for key in _relationships:
                 _rel_data = _relationships.get(key, {})
@@ -72,7 +73,7 @@ class Client:
 
                 self._relationships.append(_rel)
 
-            # Initialising private_rooms
+            # Initialising the private rooms
             _private_rooms = data.get('private_rooms')
             for private_room in _private_rooms:
                 t = int(private_room.get('type', 0))
@@ -84,20 +85,9 @@ class Client:
                     room = await getType.a_private_room(private_room, self.http)
                 self._private_rooms.append(room)
 
-            # Initialising amount_houses
-            _house_ids = data.get('house_memberships')
-            self._amount_houses = len(_house_ids)
-
-            # Requesting user data of the client itself
-            _raw_data = await self.http.request("/users/@me", timeout=15)
-            if _raw_data:
-                _data = _raw_data.get('data')
-                if _data:
-                    self._client_user = getType.user(data=data, http=self.http)
-                else:
-                    raise errs.HTTPReceivedNoData()
-            else:
-                raise errs.HTTPReceivedNoData()
+            # Passing the amount of houses as variable
+            _house_memberships = data.get('house_memberships')
+            self._house_memberships = _house_memberships
 
         except Exception as e:
             logger.error(f"[CLIENT] FAILED to update client data! "
@@ -106,13 +96,15 @@ class Client:
                                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def __check_if_data_is_complete(self):
-        """
+        r"""
         Checks whether the meta data is complete and triggers on_ready
         """
         # boolean that will trigger the warning that the process is taking too long
         is_taking_long = False
         while True:
-            if self._amount_houses == len(self._houses) and self._initialised:
+            # If all expected houses were received and the client was initialised it will trigger
+            # on_ready()
+            if self.amount_houses == len(self._houses) and self._initialised:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
                 logger.info("[CLIENT] Client loaded all data and is ready for usage! ")
@@ -139,6 +131,7 @@ class Client:
         """
         try:
             for key in kwargs.keys():
+                # Available keys
                 if key in ['header', 'icon', 'bio', 'location', 'website']:
                     resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
@@ -158,7 +151,7 @@ class Client:
 
     @property
     def user(self):
-        return getattr(self, '_USER', object)
+        return getattr(self, '_client_user', None)
 
     @property
     def username(self) -> str:
@@ -204,29 +197,33 @@ class Client:
             return None
 
     @property
-    def houses(self):
-        return getattr(self.user, '_houses', [])
+    def houses(self) -> int:
+        return getattr(self, '_houses', [])
 
     @property
-    def private_rooms(self):
-        return getattr(self.user, '_private_rooms', [])
+    def private_rooms(self) -> int:
+        return getattr(self, '_private_rooms', [])
 
     @property
-    def users(self):
-        return getattr(self.user, '_users', [])
+    def users(self) -> int:
+        return getattr(self, '_users', [])
 
     @property
-    def rooms(self):
-        return getattr(self.user, '_rooms', [])
+    def rooms(self) -> int:
+        return getattr(self, '_rooms', [])
 
     @property
     def amount_houses(self) -> int:
-        return getattr(self.user, '_amount_houses', [])
+        return len(getattr(self, '_house_memberships', []))
+
+    @property
+    def house_memberships(self) -> dict:
+        return getattr(self, '_house_memberships', [])
 
     @property
     def relationships(self) -> list:
-        return getattr(self.user, '_relationships', [])
+        return getattr(self, '_relationships', [])
 
     @property
     def http(self):
-        return getattr(self, 'http', None)
+        return getattr(self, '_http', None)

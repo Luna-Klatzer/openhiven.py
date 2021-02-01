@@ -335,7 +335,7 @@ class Connection(Websocket):
     @property
     def user(self):
         # => Also referenced in hiven_client.py
-        return getattr(self, '_USER', None)
+        return getattr(self, '_client_user', None)
 
     @property
     def host(self) -> str:

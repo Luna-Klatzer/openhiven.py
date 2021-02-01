@@ -302,27 +302,31 @@ class HivenClient(EventHandler):
     # -----------
     @property
     def amount_houses(self) -> int:
-        return self.connection.amount_houses
+        return getattr(self.connection, 'amount_houses', None)
 
     @property
     def houses(self) -> list:
-        return self.connection.houses
+        return getattr(self.connection, 'houses', None)
 
     @property
     def users(self) -> list:
-        return self.connection.users
+        return getattr(self.connection, 'users', None)
 
     @property
     def rooms(self) -> list:
-        return self.connection.rooms
+        return getattr(self.connection, 'rooms', None)
 
     @property
     def private_rooms(self) -> list:
-        return self.connection.private_rooms
+        return getattr(self.connection, 'private_rooms', None)
 
     @property
     def relationships(self) -> list:
-        return self.connection.relationships
+        return getattr(self.connection, 'relationships', None)
+
+    @property
+    def house_memberships(self) -> list:
+        return getattr(self.connection, 'house_memberships', None)
 
     # Client data
     # -----------
@@ -331,8 +335,8 @@ class HivenClient(EventHandler):
         return getattr(self.user, 'name', None)
 
     @property
-    def user(self) -> Union[types.User, object]:
-        return getattr(self.connection, 'user', object)
+    def user(self) -> Union[types.User, None]:
+        return getattr(self.connection, '_client_user', None)
 
     # General Connection Properties
     @property
@@ -384,25 +388,6 @@ class HivenClient(EventHandler):
     @property
     def startup_time(self) -> float:
         return getattr(self.connection, 'startup_time', None)
-
-    @property
-    def ping(self) -> Union[float, None]:
-        """`openhivenpy.client.HivenClient.ping`
-        
-        Returns the current ping of the HTTP.
-        
-        """
-        if getattr(self.connection.http, 'ready', False):
-            start_t = time()
-            raw_data = asyncio.run(self.connection.http.request("/users/@me"))
-            data = raw_data.get('data')
-            if data:
-                return time() - start_t
-            else:
-                logger.warning("[HIVENCLIENT] Failed to ping Hiven!")
-                return None
-        else:
-            return None
 
     async def edit(self, **kwargs) -> bool:
         """`openhivenpy.HivenClient.edit()`
@@ -814,7 +799,7 @@ class HivenClient(EventHandler):
                 raise ValueError("Expected user or user_id that is not None!")
 
             resp = await self.connection.http.post(endpoint=f"/users/@me/rooms",
-                                        json={'recipient': f"{user_id}"})
+                                                   json={'recipient': f"{user_id}"})
             if resp.status < 300:
                 raw_data = await resp.json()
                 data = raw_data.get('data')

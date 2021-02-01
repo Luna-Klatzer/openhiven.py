@@ -104,7 +104,6 @@ class User(LazyUser):
             self._location = data.get('location', "")
             self._website = data.get('website', "") 
             self._presence = data.get('presence', "")  # ToDo: Presence class
-            self._joined_at = data.get('joined_at', "")
             
             self._http = http
             
@@ -132,10 +131,3 @@ class User(LazyUser):
     @property
     def presence(self):
         return self._presence
-
-    @property
-    def joined_at(self) -> Union[datetime.datetime, None]:
-        if self._joined_at is not None and self._joined_at != "":
-            return datetime.datetime.fromisoformat(self._joined_at[:10])
-        else:
-            return None

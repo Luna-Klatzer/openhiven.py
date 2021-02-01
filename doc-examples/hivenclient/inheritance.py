@@ -1,6 +1,8 @@
 import openhivenpy as hiven
 import logging
 
+from openhivenpy.utils import utils
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
