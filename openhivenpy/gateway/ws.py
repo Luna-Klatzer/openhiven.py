@@ -996,7 +996,7 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_leave_handler()`
+        r"""`openhivenpy.gateway.Websocket.house_leave_handler()``
 
         Handler for the event on_house_remove, which will return as parameter the removed house.
 

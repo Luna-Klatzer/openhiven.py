@@ -132,7 +132,7 @@ class Client:
         try:
             for key in kwargs.keys():
                 # Available keys
-                if key in ['header', 'icon', 'bio', 'location', 'website']:
+                if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
                     resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
                     if resp.status < 300:

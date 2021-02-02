@@ -1,3 +1,4 @@
 global-include requirements.txt
 include openhivenpy/*.env
+exclude doc-examples
 graft openhivenpy
