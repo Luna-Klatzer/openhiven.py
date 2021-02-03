@@ -89,8 +89,16 @@ class EventHandler:
             func_args=param
         )
 
-    async def dispatch_on_house_down_time(self, time, house) -> None:
-        param = [time, house]
+    async def dispatch_on_house_delete(self, house_id) -> None:
+        param = [house_id]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_house_delete',
+            func_args=param
+        )
+
+    async def dispatch_on_house_down_time(self, house_id) -> None:
+        param = [house_id]
         await dispatch_func_if_exists(
             obj=self._call_obj,
             func_name='on_house_downtime',
@@ -109,15 +117,23 @@ class EventHandler:
         param = [member, house]
         await dispatch_func_if_exists(
             obj=self._call_obj,
-            func_name='on_house_member_enter',
+            func_name='on_house_member_online',
             func_args=param
         )
 
-    async def dispatch_on_house_member_exit(self, user, house) -> None:
-        param = [user, house]
+    async def dispatch_on_house_member_leave(self, member, house) -> None:
+        param = [member, house]
         await dispatch_func_if_exists(
             obj=self._call_obj,
-            func_name='on_house_member_exit',
+            func_name='on_house_member_leave',
+            func_args=param
+        )
+
+    async def dispatch_on_house_member_exit(self, member, house) -> None:
+        param = [member, house]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_house_member_offline',
             func_args=param
         )
 

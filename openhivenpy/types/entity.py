@@ -7,10 +7,10 @@ from ._get_type import getType
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Category']
+__all__ = ['Entity']
 
 
-class Category:
+class Entity:
     """`openhivenpy.types.Category`
 
     Data Class for a Category/Entity

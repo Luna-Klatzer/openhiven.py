@@ -424,6 +424,7 @@ class Connection(Websocket):
 
         finally:
             self._connection_status = "CLOSED"
+            logger.info("[CONNECTION] The Client-Session has been closed! Use connect() or run() to reconnect if wanted!")
             return
 
     # Kills the connection as well as the event loop

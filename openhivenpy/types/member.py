@@ -1,8 +1,9 @@
+import datetime
 import logging
 import sys
+import typing
 
 from .user import User
-from openhivenpy.types._get_type import getType
 from openhivenpy.gateway.http import HTTP
 from openhivenpy.utils import raise_value_to_type
 import openhivenpy.exceptions as errs
@@ -28,6 +29,8 @@ class Member(User):
             super().__init__(data.get('user', data), http)
             self._user_id = self._id
             self._house_id = data.get('house_id')
+            if self._house_id is None:
+                self._house_id = house.id
             self._joined_at = data.get('joined_at')
             self._roles = raise_value_to_type(data.get('roles', []), list)
             
@@ -58,25 +61,29 @@ class Member(User):
             ('header', self.header),
             ('bot', self.bot),
             ('house_id', self.house_id),
-            ('joined_at', self.joined_at)
+            ('joined_house_at', self.joined_house_at)
         ]
         return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def user_id(self) -> int:
-        return self._user_id
+        return getattr(self, '_user_id', None)
 
     @property
     def joined_house_at(self) -> str:
-        return self._joined_at
+        return getattr(self, '_joined_at', None)
 
     @property
     def house_id(self) -> int:
-        return self._house_id
+        return getattr(self, '_house_id', None)
 
     @property
     def roles(self) -> list:
-        return self._roles
+        return getattr(self, '_roles', None)
+
+    @property
+    def joined_at(self) -> str:
+        return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:
         """`openhivenpy.types.Member.kick()`

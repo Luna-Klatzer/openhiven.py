@@ -15,6 +15,7 @@ from openhivenpy import load_env
 
 logger = logging.getLogger(__name__)
 
+# Hiven API endpoint formatting
 request_url_format = "https://{0}/{1}"
 
 # Loading the environment variables
@@ -48,7 +49,7 @@ class HTTP:
     def __init__(self, loop: Optional[asyncio.AbstractEventLoop], **kwargs):
 
         self._TOKEN = kwargs.get('token')
-        self.host = kwargs.get('api_url', _default_host)
+        self.host = kwargs.get('host', _default_host)
         self.api_version = kwargs.get('api_version', _default_api_version)
         self.api_url = request_url_format.format(self.host, self.api_version)
         self.headers = {"Authorization": self._TOKEN,

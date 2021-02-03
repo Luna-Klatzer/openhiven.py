@@ -8,14 +8,15 @@ import traceback
 from typing import Optional
 import aiohttp
 
+__all__ = ['Websocket']
+
 import openhivenpy.types as types
 import openhivenpy.exceptions as errs
 import openhivenpy.utils as utils
 from openhivenpy.events import EventHandler
 from openhivenpy.types import Client
 from openhivenpy.settings import load_env
-
-__all__ = ['Websocket']
+from openhivenpy.types.entity import Entity
 
 logger = logging.getLogger(__name__)
 
@@ -411,20 +412,23 @@ class Websocket(Client):
             elif swarm_event == "HOUSE_MEMBERS_CHUNK":
                 event_handler = self.member_chunk_handler(ws_msg_data)
 
+            elif swarm_event == "HOUSE_MEMBER_JOIN":
+                event_handler = self.house_member_join_handler(ws_msg_data)
+
             elif swarm_event == "HOUSE_MEMBER_ENTER":
                 event_handler = self.house_member_enter(ws_msg_data)
+
+            elif swarm_event == "HOUSE_MEMBER_LEAVE":
+                event_handler = self.house_member_leave(ws_msg_data)
+
+            elif swarm_event == "HOUSE_MEMBER_EXIT":
+                event_handler = self.house_member_exit_handler(ws_msg_data)
 
             elif swarm_event == "HOUSE_MEMBER_UPDATE":
                 event_handler = self.house_member_update_handler(ws_msg_data)
 
-            elif swarm_event == "HOUSE_MEMBER_JOIN":
-                event_handler = self.house_member_join_handler(ws_msg_data)
-
             elif swarm_event == "ROOM_CREATE":
                 event_handler = self.room_create_handler(ws_msg_data)
-
-            elif swarm_event == "HOUSE_MEMBER_EXIT":
-                event_handler = self.house_member_exit_handler(ws_msg_data)
 
             elif swarm_event == "PRESENCE_UPDATE":
                 event_handler = self.presence_update_handler(ws_msg_data)
@@ -467,20 +471,23 @@ class Websocket(Client):
         Handler for downtime of a house! Triggers on_house_down and
         returns as parameter the time of downtime and the house
 
+        If the property unavailable of the message is false
+
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
             if self.initialised:
                 data = ws_msg_data
-                t = time.time()
-                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
-                if data.get('unavailable'):
+
+                house = utils.get(self._houses, id=int(data.get('house_id')))
+                if data.get('unavailable') is True:
                     logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
                                  "House was either deleted or is currently unavailable!")
+                    await self.event_handler.dispatch_on_house_down_time(house_id=house.id)
                 else:
-                    pass
-
-                await self.event_handler.dispatch_on_house_down_time(time=t, house=house)
+                    # Removing the deleted house
+                    self._houses.remove(house)
+                    await self.event_handler.dispatch_on_house_delete(house_id=house.id)
             else:
                 return
 
@@ -645,36 +652,34 @@ class Websocket(Client):
 
                 # Fetching the id of the house
                 house_id = ws_msg_data.get('house_id')
-                if house_id is None:
-                    house_id = ws_msg_data.get('house', {}).get('id')
+                # Fetching the house from the cache
+                house = utils.get(self.houses, id=int(house_id))
 
-                house = utils.get(self._houses, id=int(house_id))
+                user_id = int(data.get('user', {}).get('id'))
 
-                user_id = int(data.get('user_id'))
-                if user_id is None:
-                    # Backup is user id data
-                    user_id = int(data.get('user', {}).get('id', 0))
+                # Fetching the user from the cache
+                cached_user = utils.get(self.users, id=user_id)
 
-                # Getting the cached user
-                cached_user = utils.get(self._users, id=user_id)
-                # Removing cached data if it exists
-                if cached_user:
-                    # Removing old data
-                    self._users.remove(cached_user)
+                if cached_user is None:
+                    # Requesting full data of the user
+                    raw_data = self.http.request(f"/users/{user_id}")
 
-                user = types.User(data.get('user'), self.http)
-                # Appending the newly created user-object
-                self._users.append(user)
+                    if raw_data:
+                        user = types.User(raw_data.get('data'), self.http)
+                        # Appending the newly created user-object
+                        self._users.append(user)
 
-                # Removing cached data if it exists
-                cached_member = utils.get(house.members, user_id=int(ws_msg_data.get('user_id')))
-                if cached_member:
+                    else:
+                        raise errs.HTTPReceivedNoData()
+
+                cached_member = utils.get(house.members, user_id=user_id)
+                if cached_member is None:
                     # Removing the cached_data
                     house._members.remove(cached_member)
 
-                member = types.Member(ws_msg_data, house, self.http)
-                # Appending the newly created member-object
-                house._members.append(member)
+                    member = types.Member(data, house, self.http)
+                    # Appending the newly created member-object
+                    house._members.append(member)
 
                 await self.event_handler.dispatch_on_house_member_join(member=cached_member, house=house)
 
@@ -718,22 +723,10 @@ class Websocket(Client):
         try:
             if self.ready:
                 data = ws_msg_data
-                user = utils.get(self._users, id=int(data.get('id')))
                 house = utils.get(self._houses, id=int(data.get('house_id')))
+                cached_mem = utils.get(house.members, user_id=int(data.get('id')))
 
-                # House exists
-                if house:
-                    cached_mem = utils.get(house._members, user_id=int(data.get('id')))
-                    if cached_mem:
-                        house._members.remove(cached_mem)
-                    else:
-                        logger.warning("[HOUSE_MEMBER_EXIT] Failed to find member in the client cache! "
-                                       "Possibly faulty client data!")
-                else:
-                    logger.warning("[HOUSE_MEMBER_EXIT] Failed to find House in the client cache! "
-                                   "Possibly faulty client data!")
-
-                await self.event_handler.dispatch_on_house_member_exit(user=user, house=house)
+                await self.event_handler.dispatch_on_house_member_exit(member=cached_mem, house=house)
             else:
                 return
 
@@ -832,22 +825,20 @@ class Websocket(Client):
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
-        if self.ready:
-            try:
+        try:
+            if self.ready:
                 msg = types.DeletedMessage(ws_msg_data)
 
                 # Creating a new task for handling the event
                 # TODO! Needs error handling and name traceback and log!
                 await self.event_handler.dispatch_on_message_delete(msg)
-
-            except Exception as e:
-                logger.critical("[MESSAGE_DELETE] Traceback:")
-                traceback.print_tb(sys.exc_info()[2])
-                logger.critical(f"[MESSAGE_DELETE] >> Failed to handle the event due to an exception occurring! "
-                                f"> {sys.exc_info()[0].__name__}, {str(e)}")
-
-        else:
-            return
+            else:
+                return
+        except Exception as e:
+            logger.critical("[MESSAGE_DELETE] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.critical(f"[MESSAGE_DELETE] >> Failed to handle the event due to an exception occurring! "
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def message_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.message_update_handler()`
@@ -996,7 +987,7 @@ class Websocket(Client):
                             f"> {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_leave_handler()``
+        r"""`openhivenpy.gateway.Websocket.house_leave_handler()`
 
         Handler for the event on_house_remove, which will return as parameter the removed house.
 
@@ -1026,8 +1017,6 @@ class Websocket(Client):
     async def house_entity_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_entity_update_handler()`
 
-        In Work!
-
         Handler for a house entity update. Triggers on_house_entity_update and
         returns as parameter the house obj, the entity obj and the raw data
 
@@ -1037,7 +1026,7 @@ class Websocket(Client):
             if self.ready:
                 data = ws_msg_data
                 house = utils.get(self._houses, id=int(data.get('house_id')))
-                entity = None  # TODO! Insert entity
+                entity = Entity(data, self.http)
 
                 await self.event_handler.dispatch_on_house_entity_update(house=house, entity=entity, data=data)
 
@@ -1061,8 +1050,9 @@ class Websocket(Client):
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
         """
-        if self.ready:
-            try:
+        try:
+            if self.ready:
+
                 data = ws_msg_data
                 house = utils.get(self._houses, id=int(data.get('house_id')))
 
@@ -1072,11 +1062,12 @@ class Websocket(Client):
                 # For every created member the local member data will be replaced
                 for member in members:
                     mem_id = getattr(member, "id")
+
                     # Checking whether the id exists and the object was created correctly
                     if mem_id:
                         cached_mem = utils.get(house.members, id=int(mem_id))
                         if cached_mem is not None:
-                            #
+                            # Replacing the cached member with the newly created member object
                             house._members.remove(cached_mem)
                             house._members.append(member)
                         else:
@@ -1097,7 +1088,7 @@ class Websocket(Client):
                     if usr_id:
                         cached_user = utils.get(self._users, id=int(usr_id))
                         if cached_user is not None:
-                            # Replaying the users data
+                            # Replacing the cached user with the newly created user object
                             self._users.remove(cached_user)
                             self._users.append(user)
                         else:
@@ -1110,11 +1101,14 @@ class Websocket(Client):
 
                 await self.event_handler.dispatch_on_batch_house_member_update(members=members, data=data, house=house)
 
-            except Exception as e:
-                logger.critical("[BATCH_HOUSE_MEMBER_UPDATE] Traceback:")
-                traceback.print_tb(sys.exc_info()[2])
-                logger.critical(f"[BATCH_HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception "
-                                f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
+            else:
+                return
+
+        except Exception as e:
+            logger.critical("[BATCH_HOUSE_MEMBER_UPDATE] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.critical(f"[BATCH_HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception "
+                            f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
 
     async def typing_start_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.typing_start_handler()`
@@ -1129,6 +1123,7 @@ class Websocket(Client):
             if self.ready:
                 data = ws_msg_data
 
+                # recipient_ids only exists in private room typing so it is a house if it does not exist!
                 if data.get('recipient_ids') is None:
                     room = utils.get(self._rooms, id=int(data.get('room_id')))
                     house = utils.get(self._houses, id=int(data.get('house_id')))
@@ -1151,3 +1146,19 @@ class Websocket(Client):
             logger.critical(f"[TYPING_START] >> Failed to handle the event due to an exception "
                             f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
 
+    async def house_member_leave(self, ws_msg_data):
+        try:
+            if self._initialised:
+                data = ws_msg_data
+                house = utils.get(self._houses, id=int(data.get('house_id')))
+                cached_mem = utils.get(house.members, user_id=int(data.get('id')))
+
+                await self.event_handler.dispatch_on_house_member_leave(member=cached_mem, house=house)
+            else:
+                return
+
+        except Exception as e:
+            logger.critical("[HOUSE_MEMBER_LEAVE] Traceback:")
+            traceback.print_tb(sys.exc_info()[2])
+            logger.critical(f"[HOUSE_MEMBER_LEAVE] >> Failed to handle the event due to an exception occurring! "
+                            f"> {sys.exc_info()[0].__name__}, {str(e)}")

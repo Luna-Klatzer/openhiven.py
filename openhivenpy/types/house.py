@@ -1,12 +1,14 @@
 import asyncio
 import logging
 import sys
+import typing
 from typing import Optional, Union
 
 from ._get_type import getType
 from openhivenpy.gateway.http import HTTP
 import openhivenpy.utils.utils as utils
 import openhivenpy.exceptions as errs
+from .entity import Entity
 
 logger = logging.getLogger(__name__)
 
@@ -154,10 +156,10 @@ class House:
 
             self._roles = list(data.get('roles'))
 
-            self._categories = []
-            for category in data.get('entities'):
-                category = getType.category(category, http)
-                self._categories.append(category)
+            self._entities = []
+            for entity in data.get('entities'):
+                entity = getType.entity(entity, http)
+                self._entities.append(entity)
 
             self._default_permissions = data.get('default_permissions')
 
@@ -235,8 +237,8 @@ class House:
         return self._roles
 
     @property
-    def categories(self) -> list:
-        return self._categories
+    def entities(self) -> list:
+        return self._entities
 
     @property
     def users(self) -> list:
@@ -347,12 +349,10 @@ class House:
 
     # TODO! Delete Room!
 
-    async def create_category(self, name: str) -> bool:
-        """openhivenpy.types.House.create_category()
+    async def create_entity(self, name: str) -> typing.Union[Entity, None]:
+        """openhivenpy.types.House.create_entity()
 
-        Creates a Category in the house with the specified name.
-
-        Returns currently only a bool object since no Category exists yet
+        Creates a entity in the house with the specified name.
 
         """
         try:
@@ -365,9 +365,9 @@ class House:
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    category = getType.category(data, self._http)
-                    self._categories.append(category)
-                    return category
+                    entity = getType.entity(data, self._http)
+                    self._entities.append(entity)
+                    return entity
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -376,7 +376,7 @@ class House:
         except Exception as e:
             logger.error(f"[HOUSE] Failed to create category '{name}' in house {repr(self)}!"
                          f" > {sys.exc_info()[0].__name__}, {str(e)}")
-            return False
+            return None
 
     async def leave(self) -> bool:
         """openhivenpy.types.House.leave()
@@ -476,3 +476,4 @@ class House:
 
         except Exception as e:
             logger.error(f"[HOUSE] Failed to delete House {repr(self)}! > {e}")
+            return None

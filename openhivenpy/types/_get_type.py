@@ -107,12 +107,12 @@ class getType:
     
     # -------------------------------------------
     @staticmethod
-    def category(data: dict, http):
+    def entity(data: dict, http):
         """
-        Regular Function for getting a house category
+        Regular Function for getting a house entity
         """
-        from .category import Category
-        return Category(data, http)
+        from .entity import Entity
+        return Entity(data, http)
 
     @staticmethod
     def embed(data: dict):

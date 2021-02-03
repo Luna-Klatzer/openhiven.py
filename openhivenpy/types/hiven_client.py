@@ -3,7 +3,7 @@ import logging
 import datetime
 import asyncio
 import time
-from typing import Union
+import typing
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
@@ -190,7 +190,7 @@ class Client:
         return getattr(self.user, 'presence', None)
 
     @property
-    def joined_at(self) -> Union[datetime.datetime, None]:
+    def joined_at(self) -> typing.Union[datetime.datetime, None]:
         if self.user.joined_at and self.user.joined_at != "":
             return datetime.datetime.fromisoformat(self.user.joined_at[:10])
         else:
