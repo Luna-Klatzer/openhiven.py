@@ -1143,11 +1143,20 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_leave(self, ws_msg_data):
+        r"""`openhivenpy.gateway.Websocket.house_member_leave()`
+
+        Event for a member leaving a house. Triggers on_house_member_leave()
+
+        :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
+        """
         try:
             if self._initialised:
                 data = ws_msg_data
                 house = utils.get(self._houses, id=int(data.get('house_id')))
                 cached_mem = utils.get(house.members, user_id=int(data.get('id')))
+
+                # Removing the cached member
+                house._members.remove(cached_mem)
 
                 await self.event_handler.dispatch_on_house_member_leave(member=cached_mem, house=house)
             else:
