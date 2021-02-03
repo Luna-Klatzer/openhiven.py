@@ -8,8 +8,8 @@ with open("requirements.txt") as file:
 
 setuptools.setup(
     name="openhivenpy",
-    version="0.1.2",
-    author="FrostbyteSpace",
+    version="0.1.2.1",
+    author="Nicolas Klatzer",
     author_email="nicolas.klatzer@gmail.com",
     description="The OpenSource Python API Wrapper for Hiven!",
     long_description=long_description,
@@ -17,9 +17,8 @@ setuptools.setup(
     license="MIT",
     url="https://github.com/FrostbyteSpace/openhiven.py",
     project_urls={
-        "documentation": "https://openhivenpy.readthedocs.io/",
-        "docs-rewrite": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/",
-        "api-docs": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/api_reference/"
+        "Docs Rewrite": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/",
+        "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/api_reference/"
     },
     packages=setuptools.find_packages(),
     classifiers=[
