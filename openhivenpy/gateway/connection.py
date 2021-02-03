@@ -6,6 +6,8 @@ import traceback
 from functools import wraps
 import os
 
+from openhivenpy import utils
+
 import openhivenpy.exceptions as errs
 from openhivenpy.events import EventHandler
 from . import Websocket, HTTP
@@ -129,8 +131,9 @@ class ExecutionLoop:
                     logger.debug(f"[EXEC-LOOP] Startup tasks were cancelled and stopped unexpectedly!")
 
                 except Exception as e:
-                    logger.error(f"[EXEC-LOOP] Error in startup tasks in the execution loop!"
-                                 f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                    utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
+                                        suffix="Error in startup tasks in the execution loop; \n"
+                                               f"{sys.exc_info()[0].__name__}: {e}")
 
                 finally:
                     self._startup_finished = True
@@ -167,8 +170,9 @@ class ExecutionLoop:
             logger.debug("[EXEC-LOOP] Async task was cancelled and stopped unexpectedly! "
                          "No more tasks will be executed!")
         except Exception as e:
-            logger.error("[EXEC-LOOP] Failed to start or keep alive execution_loop!"
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
+                                suffix="Failed to start or keep alive execution_loop; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
         finally:
             self._active = False
             return
@@ -193,10 +197,11 @@ class ExecutionLoop:
             self.running_loop = None
 
         except Exception as e:
-            logger.critical(f"[EXCE-LOOP] Failed to stop or keep alive execution_loop!"
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.UnableToClose(f"Failed to stop or keep alive execution_loop!"
-                                     f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
+                                suffix="Failed to stop or keep alive execution_loop; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.UnableToClose("Failed to stop or keep alive execution_loop!"
+                                     f"> {sys.exc_info()[0].__name__}: {e}")
         finally:
             return
 
@@ -409,22 +414,20 @@ class Connection(Websocket):
                 # Starting the websocket connection and the execution_loop parallel to avoid
                 # that they both interfere each other
                 await asyncio.gather(self.ws_connect(session), self._execution_loop.start())
+
             else:
-                error_msg = "[CONNECTION] Failed to get connected Client data!"
-                logger.critical(error_msg)
-                raise errs.HivenConnectionError(error_msg)
+                raise errs.HivenConnectionError("[CONNECTION] Failed to get connected Client data!")
 
         except Exception as e:
-            logger.critical("[CONNECTION] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[CONNECTION] Failed to establish the connection to Hiven! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.HivenConnectionError(f"Failed to establish the connection to Hiven! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[CONNECTION] Traceback:",
+                                suffix="Failed to establish the connection to Hiven; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.HivenConnectionError("Failed to establish the connection to Hiven! "
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
         finally:
             self._connection_status = "CLOSED"
-            logger.info("[CONNECTION] The Client-Session has been closed! Use connect() or run() to reconnect if wanted!")
+            logger.info("[CONNECTION] The Client-Session has been closed! Use connect() or run() to reconnect!")
             return
 
     # Kills the connection as well as the event loop
@@ -466,9 +469,11 @@ class Connection(Websocket):
             return
 
         except Exception as e:
-            logger.critical(f"[CONNECTION] Closing the connection to Hiven failed!"
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.UnableToClose(e)
+            utils.log_traceback(msg="[CONNECTION] Traceback:",
+                                suffix=f"Closing the connection to Hiven failed; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.UnableToClose("Closing the connection to Hiven failed!"
+                                     f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def close(self, exec_loop=True, **kwargs) -> None:
         """`openhivenpy.gateway.Connection.close()`
@@ -509,9 +514,11 @@ class Connection(Websocket):
             return
 
         except Exception as e:
-            logger.critical(f"[CONNECTION] Closing the connection to Hiven failed! > "
-                            f"{sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.UnableToClose(e)
+            utils.log_traceback(msg="[CONNECTION] Traceback:",
+                                suffix=f"Closing the connection to Hiven failed; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.UnableToClose("Closing the connection to Hiven failed! "
+                                     f"> {sys.exc_info()[0].__name__}: {e}")
 
     # Restarts the connection if it errored or crashed
     async def handler_restart_websocket(self):

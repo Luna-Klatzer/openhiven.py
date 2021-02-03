@@ -2,6 +2,8 @@ import logging
 import sys
 import asyncio
 
+from openhivenpy import utils
+
 from ._get_type import getType
 from .user import User
 from openhivenpy.gateway.http import HTTP
@@ -73,18 +75,13 @@ class Relationship:
             if self._recipient_id:
                 self._recipient_id = int(self.recipient_id)
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
-        except Exception as e: 
-            logger.error(f"[RELATIONSHIP] Failed to initialize the Relationship object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Relationship object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+        except Exception as e:
+            utils.log_traceback(msg="[RELATIONSHIP] Traceback:",
+                                suffix="Failed to initialize the Relationship object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize Relationship object! "
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))

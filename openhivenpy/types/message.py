@@ -1,7 +1,10 @@
+import traceback
 from datetime import datetime
 import logging
 import sys
 import asyncio
+
+from openhivenpy import utils
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
@@ -120,21 +123,16 @@ class Message:
             self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
 
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
-        except Exception as e: 
-            logger.error(f"[MESSAGE] Failed to initialize the Message object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
+        except Exception as e:
+            utils.log_traceback(msg="[MESSAGE] Traceback:",
+                                suffix=f"Failed to initialize the Message object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return f"<Message: '{self.id}' from '{self.author.name}'>"
 
     def __repr__(self) -> str:
         info = [
@@ -227,8 +225,9 @@ class Message:
                 raise errs.HTTPFaultyResponse
         
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to mark message as read {repr(self)}" 
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE] Traceback:",
+                                suffix=f"Failed to mark message as read {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def delete(self, delay: float) -> bool:
         """`openhivenpy.types.Message.delete()`
@@ -254,8 +253,9 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
         
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to delete the message {repr(self)}!" 
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE] Traceback:",
+                                suffix=f"Failed to delete the message {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def edit(self, content: str) -> bool:
         """`openhivenpy.types.House.edit()`
@@ -276,6 +276,7 @@ class Message:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"[MESSAGE] Failed to edit message {repr(self)}!" 
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE] Traceback:",
+                                suffix=f"Failed to edit message {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False

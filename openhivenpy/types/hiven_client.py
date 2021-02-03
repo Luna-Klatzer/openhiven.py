@@ -3,7 +3,10 @@ import logging
 import datetime
 import asyncio
 import time
+import traceback
 import typing
+
+from openhivenpy import utils
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
@@ -90,10 +93,11 @@ class Client:
             self._house_memberships = _house_memberships
 
         except Exception as e:
-            logger.error(f"[CLIENT] FAILED to update client data! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[CLIENT] Traceback: ",
+                                suffix="Failed to update client data; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
         r"""
@@ -140,14 +144,14 @@ class Client:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("[CLIENT] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
             keys = "".join(str(key + " ") for key in kwargs.keys())
-            logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.HTTPError(f"Failed to edit following data of the Client: {keys}")
+
+            utils.log_traceback(msg="[CLIENT] Traceback:",
+                                suffix=f"Failed change the values {keys}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     @property
     def user(self):

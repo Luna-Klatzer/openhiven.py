@@ -213,8 +213,7 @@ class Websocket(Client):
                 pass
 
             except Exception as ws_e:
-                logger.critical("[WEBSOCKET] Traceback:")
-                traceback.print_tb(sys.exc_info()[2])
+                utils.log_traceback(level='critical', msg="[CONNECTION] Traceback:")
                 logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
                                 f"> {sys.exc_info()[0].__name__}, {str(ws_e)}")
 
@@ -245,10 +244,10 @@ class Websocket(Client):
 
         except Exception as e:
             logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped and failed to process! "
-                         f"> {sys.exc_info()[0].__name__}: {str(e)}!")
+                         f"> {sys.exc_info()[0].__name__}: {e}!")
 
             raise errs.GatewayException(f"[WEBSOCKET] << Exception in main-websocket process!"
-                                        f"> {sys.exc_info()[0].__name__}: {str(e)}!")
+                                        f"> {sys.exc_info()[0].__name__}: {e}!")
 
     # Loop for receiving messages from Hiven
     async def message_handler(self, ws) -> None:
@@ -380,10 +379,9 @@ class Websocket(Client):
             return
 
         except Exception as e:
-            logger.critical("[WEBSOCKET] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.debug(f"[WEBSOCKET] << Failed to keep lifesignal alive! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(level='critical', msg="[WEBSOCKET] Traceback:")
+            logger.critical(f"[WEBSOCKET] << Failed to keep lifesignal alive! "
+                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     # Event Triggers
     async def text_based_message_handler(self, resp_data: dict):
@@ -460,10 +458,10 @@ class Websocket(Client):
             asyncio.create_task(event_handler)
 
         except Exception as e:
-            logger.critical("[WEBSOCKET] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.debug(f"[WEBSOCKET] << Failed to handle incoming json-type text message in the websocket! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(level='debug',
+                                msg="[WEBSOCKET] Traceback:",
+                                suffix=f"Failed to handle incoming json-type text message in the websocket; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_down_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_down_handler()`
@@ -492,10 +490,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_DOWN] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_DOWN] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_DOWN] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def member_chunk_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.member_chunk_handler()`
@@ -527,7 +524,7 @@ class Websocket(Client):
                         house._members.remove(cached_mem)
 
                         # Creating a new Member Class and appending the new data
-                        member = types.Member(mem_data, self.http, house)
+                        member = types.Member(mem_data, house, self.http)
 
                         # Appending the new member
                         house._members.append(member)
@@ -559,10 +556,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBERS_CHUNK] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBERS_CHUNK] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBERS_CHUNK] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_enter(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_member_enter()`
@@ -590,10 +586,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBER_ENTER] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBER_ENTER] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBER_ENTER] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_member_update_handler()`
@@ -633,10 +628,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBER_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBER_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_join_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_member_join_handler()`
@@ -651,7 +645,7 @@ class Websocket(Client):
                 data = ws_msg_data
 
                 # Fetching the id of the house
-                house_id = ws_msg_data.get('house_id')
+                house_id = data.get('house_id')
                 # Fetching the house from the cache
                 house = utils.get(self.houses, id=int(house_id))
 
@@ -687,10 +681,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBER_JOIN] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBER_JOIN] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBER_JOIN] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def room_create_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.room_create_handler()`
@@ -701,15 +694,31 @@ class Websocket(Client):
         """
         try:
             if self.ready:
-                pass
+                data = ws_msg_data
+
+                # House Room
+                if data.get('house_id'):
+                    house = utils.get(self._houses, id=int(data.get('house_id')))
+
+                    # Creating a new room
+                    room = types.Room(data, self.http, house)
+                    self._rooms.append(room)
+
+                    # Appending the updated room
+                    house._rooms.append(room)
+                else:
+                    # Private Group Room
+                    room = types.PrivateGroupRoom(data, self.http)
+                    self._private_rooms.append(room)
+
+                await self.event_handler.dispatch_on_room_create(room=room)
             else:
                 return
 
         except Exception as e:
-            logger.critical("[ROOM_CREATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[ROOM_CREATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[ROOM_CREATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_exit_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_member_exit_handler()`
@@ -731,10 +740,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBER_EXIT] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBER_EXIT] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBER_EXIT] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def presence_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.presence_update_handler()`
@@ -756,10 +764,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[PRESENCE_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[PRESENCE_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[PRESENCE_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_create_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.message_create_handler()`
@@ -784,7 +791,6 @@ class Websocket(Client):
                         # Updating the last message_id
                         room._last_message_id = data.get('id')
                     else:
-                        room = None
                         logger.warning("[MESSAGE_CREATE] Unable to find room in the cache! "
                                        f"ROOM_ID={data.get('room_id')}")
 
@@ -799,7 +805,6 @@ class Websocket(Client):
                         # Room where the message was sent => private_room
                         room = private_room
                     else:
-                        room = None
                         logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                        f"ROOM_ID={data.get('room_id')}")
 
@@ -812,10 +817,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[MESSAGE_CREATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[MESSAGE_CREATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE_CREATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_delete_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.message_delete_handler()`
@@ -835,10 +839,9 @@ class Websocket(Client):
             else:
                 return
         except Exception as e:
-            logger.critical("[MESSAGE_DELETE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[MESSAGE_DELETE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE_DELETE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def message_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.message_update_handler()`
@@ -903,10 +906,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[MESSAGE_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[MESSAGE_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[MESSAGE_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def relationship_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.relationship_update_handler()`
@@ -935,10 +937,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[RELATIONSHIP_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[RELATIONSHIP_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[RELATIONSHIP_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_join_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_join_handler()`
@@ -981,10 +982,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_JOIN] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_JOIN] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_JOIN] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_leave_handler()`
@@ -1009,10 +1009,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_LEAVE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_LEAVE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_LEAVE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_entity_update_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.house_entity_update_handler()`
@@ -1034,10 +1033,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_ENTITIES_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_ENTITIES_UPDATE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_ENTITIES_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def batch_house_member_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.batch_house_member_handler()`
@@ -1105,10 +1103,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[BATCH_HOUSE_MEMBER_UPDATE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[BATCH_HOUSE_MEMBER_UPDATE] >> Failed to handle the event due to an exception "
-                            f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[BATCH_HOUSE_MEMBER_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def typing_start_handler(self, ws_msg_data: dict):
         r"""`openhivenpy.gateway.Websocket.typing_start_handler()`
@@ -1141,10 +1138,9 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[TYPING_START] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[TYPING_START] >> Failed to handle the event due to an exception "
-                            f"occurring! > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[TYPING_START] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_leave(self, ws_msg_data):
         try:
@@ -1158,7 +1154,6 @@ class Websocket(Client):
                 return
 
         except Exception as e:
-            logger.critical("[HOUSE_MEMBER_LEAVE] Traceback:")
-            traceback.print_tb(sys.exc_info()[2])
-            logger.critical(f"[HOUSE_MEMBER_LEAVE] >> Failed to handle the event due to an exception occurring! "
-                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE_MEMBER_LEAVE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")

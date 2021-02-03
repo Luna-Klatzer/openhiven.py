@@ -1,7 +1,10 @@
 import logging
 import sys
 import asyncio
+import traceback
 from typing import Union
+
+from openhivenpy import utils
 
 from ._get_type import getType
 from .user import User
@@ -36,18 +39,13 @@ class PrivateGroupRoom:
             self._type = data.get('type')
              
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! " 
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
-        except Exception as e: 
-            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
+        except Exception as e:
+            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
+                                suffix="Failed to initialize the PrivateRoom object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -129,8 +127,9 @@ class PrivateGroupRoom:
                 raise errs.HTTPFaultyResponse()
         
         except Exception as e:
-            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
+                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -157,8 +156,9 @@ class PrivateGroupRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"[PRIVATE_GROUP_ROOM] Failed to start call in {repr(self)}! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
+                                suffix=f"Failed to start call in {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False         
 
 
@@ -181,18 +181,13 @@ class PrivateRoom:
             self._type = data.get('type')
              
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
-        except Exception as e: 
-            logger.error(f"[PRIVATE_ROOM] Failed to initialize the PrivateRoom object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
+        except Exception as e:
+            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
+                                suffix="Failed to initialize the PrivateRoom object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -204,7 +199,7 @@ class PrivateRoom:
             ('recipients', self.recipient),
             ('type', self.type)
         ]
-        return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
+        return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def user(self) -> User:
@@ -255,8 +250,9 @@ class PrivateRoom:
                 return False
             
         except Exception as e:
-            logger.error(f"[PRIVATE_ROOM] Failed to start call in room {repr(self)}! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
+                                suffix=f"Failed to start call in room {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False             
 
     async def send(self, content: str, delay: float = None) -> getType.message:
@@ -307,6 +303,7 @@ class PrivateRoom:
                 raise errs.HTTPFaultyResponse()
         
         except Exception as e:
-            logger.error(f"[PRIVATE_ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
+                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None

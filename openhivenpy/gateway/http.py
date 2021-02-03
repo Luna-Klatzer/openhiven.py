@@ -1,4 +1,6 @@
 import os
+import traceback
+
 import aiohttp
 import asyncio
 import logging
@@ -11,7 +13,7 @@ import openhivenpy.exceptions as errs
 
 __all__ = 'HTTP'
 
-from openhivenpy import load_env
+from openhivenpy import load_env, utils
 
 logger = logging.getLogger(__name__)
 
@@ -137,10 +139,12 @@ class HTTP:
                 return None
 
         except Exception as e:
-            logger.error(f"[HTTP] FAILED to create Session! > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HTTP] Traceback:",
+                                suffix="Failed to create HTTP-Session; \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e}")
             self._ready = False
             await self.session.close()
-            raise errs.UnableToCreateSession(f"{sys.exc_info()[0].__name__}, {str(e)}")
+            raise errs.SessionCreateException(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
 
     async def close(self) -> bool:
         r"""`openhivenpy.gateway.HTTP.connect()`
@@ -155,7 +159,8 @@ class HTTP:
             return True
 
         except Exception as e:
-            logger.critical(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[CONNECTION] Traceback:")
+            logger.critical(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def raw_request(
@@ -271,15 +276,16 @@ class HTTP:
                             # counted as possible issues if the code is 204. If not it's an exception since data was
                             # expected but not received!
                             if http_resp_code == 204:
-                                logger.warning("[HTTP] Received empty response!")
+                                logger.debug("[HTTP] Received empty response!")
                             else:
                                 logger.error("[HTTP] Received empty response!")
 
                         return _resp
 
                 except Exception as _e:
-                    logger.error(f"[HTTP] << FAILED HTTP '{_method.upper()}' with endpoint: {_endpoint}; "
-                                 f"{sys.exc_info()[0].__name__}, {str(_e)}")
+                    utils.log_traceback(msg="[HTTP] Traceback:",
+                                        suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}; \n"
+                                               f"{sys.exc_info()[0].__name__}, {str(_e)}")
 
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
@@ -303,10 +309,11 @@ class HTTP:
             logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint}' was cancelled!")
             return
         except Exception as e:
-            logger.error(f"[HTTP] >> FAILED HTTP '{method.upper()}' with endpoint: {self.host}{endpoint}; "
-                         f"{sys.exc_info()[0].__name__}, {str(e)}")
-            raise errs.HTTPError(f"An error occurred while performing HTTP '{method.upper()}' with endpoint: "
-                                 f"{self.host}{endpoint}; {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HTTP] Suffix",
+                                suffix=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.HTTPError(f"HTTP '{method.upper()}' failed with endpoint: "
+                                 f"{self.host}{endpoint}; {sys.exc_info()[0].__name__}: {e}")
 
         # Updating the last request object with the response object and data to signalise no request is currently
         # running!

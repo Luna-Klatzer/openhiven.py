@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import traceback
 import typing
 from typing import Optional, Union
 
@@ -184,17 +185,12 @@ class House:
 
             self._http = http
 
-        except AttributeError as e:
-            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[0].__name__}, "
-                         f"{str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize House object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to initialize the House object! > {sys.exc_info()[0].__name__}, "
-                         f"{str(e)} >> Data: {data}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to initialize the House object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} \n>> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize House object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -281,8 +277,9 @@ class House:
             return None
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to get the member with id {member_id}!"
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to get the member with id {member_id}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def get_room(self, room_id: int):
@@ -304,8 +301,9 @@ class House:
 
             return None
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to get the room with id {room_id} in house {repr(self)} "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def create_room(
@@ -324,9 +322,12 @@ class House:
             if parent_entity_id:
                 json['parent_entity_id'] = parent_entity_id
             else:
-                category = utils.get(self._categories, name="Rooms")
-                json['parent_entity_id'] = category.id
+                # If no id was passed it will default to the Rooms category which serves as default for all
+                # entities
+                entity = utils.get(self.entities, name="Rooms")
+                json['parent_entity_id'] = entity.id
 
+            # Creating the room using the api
             resp = await self._http.post(
                 f"/houses/{self._id}/rooms",
                 json=json)
@@ -335,7 +336,7 @@ class House:
                 data = (await resp.json()).get('data')
                 if data:
                     room = await getType.a_room(data, self._http, self)
-                    self._rooms.append(room)
+
                     return room
                 else:
                     raise errs.HTTPReceivedNoData()
@@ -343,8 +344,9 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to create room '{name}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to create room '{name}' in house {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
     # TODO! Delete Room!
@@ -374,8 +376,9 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to create category '{name}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to create category '{name}' in house {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
     async def leave(self) -> bool:
@@ -395,8 +398,9 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to leave {repr(self)}! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to leave {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def edit(self, **kwargs) -> bool:
@@ -421,13 +425,14 @@ class House:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("[HOUSE] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
-            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"[HOUSE] Failed edit request of values '{keys}' in house {repr(self)}!"
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
+
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def create_invite(self, max_uses: int) -> Union[str, None]:
@@ -454,8 +459,9 @@ class House:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to create invite for house {self.name} with id {self.id}!"
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
     async def delete(self) -> Union[int, None]:
@@ -475,5 +481,7 @@ class House:
                 return None
 
         except Exception as e:
-            logger.error(f"[HOUSE] Failed to delete House {repr(self)}! > {e}")
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to delete House {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None

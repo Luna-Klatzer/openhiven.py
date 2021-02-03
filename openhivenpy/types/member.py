@@ -1,7 +1,10 @@
 import datetime
 import logging
 import sys
+import traceback
 import typing
+
+from openhivenpy import utils
 
 from .user import User
 from openhivenpy.gateway.http import HTTP
@@ -36,18 +39,13 @@ class Member(User):
             
             self._house = house
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Member object! Most likely faulty data! " 
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-        
-        except Exception as e: 
-            logger.error(f"[MEMBER] Failed to initialize the Member object! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
+
+        except Exception as e:
+            utils.log_traceback(msg="[MEMBER] Traceback:",
+                                suffix="Failed to initialize the Member object; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! " 
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))

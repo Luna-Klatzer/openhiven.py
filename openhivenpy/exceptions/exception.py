@@ -11,7 +11,7 @@ __all__ = (
 
         'WSFailedToHandle',
 
-        'HTTPError', 'UnableToCreateSession', 'HTTPFaultyResponse',
+        'HTTPError', 'SessionCreateException', 'HTTPFaultyResponse',
         'HTTPFailedRequest', 'HTTPReceivedNoData',
 
         'FaultyInitialization', 'InvalidData',
@@ -73,14 +73,14 @@ class Forbidden(HivenException):
 class FaultyInitialization(HivenException):
     """`openhivenpy.exception.FaultyInitialization`
     
-    The object was not initialised correctly and values were faulty passed or are entirely missing!
+    The object failed to initialise
     
     """
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The object was not initialised correctly and values were faulty passed or are entirely missing!"
+            arg = "The object failed to initialise"
         super().__init__(arg)
 
 
@@ -202,17 +202,17 @@ class HTTPReceivedNoData(HTTPFaultyResponse):
         super().__init__(arg)
 
 
-class UnableToCreateSession(HTTPError):
+class SessionCreateException(HTTPError):
     """`openhivenpy.exception.UnableToCreateSession`
        
-    Was unable to create HTTP session and request init client data!
+    Failed to create Session!
     
     """    
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = f"Failed to establish and test HTTP Session!"
+            arg = f"Failed to create Session!"
         super().__init__(arg)
 
 

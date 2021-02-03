@@ -1,5 +1,8 @@
 import logging
 import sys
+import traceback
+
+from openhivenpy import utils
 
 import openhivenpy.exceptions as errs
 from openhivenpy.gateway.http import HTTP
@@ -35,17 +38,12 @@ class Entity:
             self._house_id = data.get('house_id')
             self._http = http
 
-        except AttributeError as e:
-            logger.error(f"[CATEGORY] Failed to initialize the Category object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize the Category object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
-
         except Exception as e:
-            logger.error(f"[CATEGORY] Failed to initialize the Category object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize the Category object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[ENTITY] Traceback:",
+                                suffix=f"Failed to initialize the Category object; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
+            raise errs.FaultyInitialization(f"Failed to initialize the Category object! "
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))

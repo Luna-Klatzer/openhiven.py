@@ -105,6 +105,14 @@ class EventHandler:
             func_args=param
         )
 
+    async def dispatch_on_room_create(self, room) -> None:
+        param = [room]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_room_create',
+            func_args=param
+        )
+
     async def dispatch_on_house_member_join(self, member, house) -> None:
         param = [member, house]
         await dispatch_func_if_exists(

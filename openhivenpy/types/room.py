@@ -1,7 +1,10 @@
 import logging
 import sys
 import asyncio
+import traceback
 from typing import Union
+
+from openhivenpy import utils
 
 from ._get_type import getType
 from openhivenpy.utils import get
@@ -29,27 +32,22 @@ class Room:
         try:
             self._id = int(data.get('id'))
             self._name = data.get('name')
-            self._house_id = data.get('house_id')
+            self._house_id = int(data.get('house_id'))
             self._position = data.get('position')
             self._type = data.get('type')  # 0 = Text, 1 = Portal
             self._emoji = data.get('emoji')
             self._description = data.get('description')
             self._last_message_id = data.get('last_message_id')
             self._house = house 
-            
+
             self._http = http
-            
-        except AttributeError as e: 
-            logger.error(f"[ROOM] Failed to initialize the Room object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Room object! Most likely faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
         
-        except Exception as e: 
-            logger.error(f"[ROOM] Failed to initialize the Room object! "
-                         f"> {sys.exc_info()[0].__name__}, {str(e)} >> Data: {data}")
+        except Exception as e:
+            utils.log_traceback(msg="[ROOM] Traceback:",
+                                suffix=f"Failed to initialize the Room object; \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -144,8 +142,9 @@ class Room:
                 raise errs.HTTPFaultyResponse()
         
         except Exception as e:
-            logger.error(f"[ROOM] Failed to send message in room {repr(self)}! " 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[ROOM] Traceback:",
+                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
         
     async def edit(self, **kwargs) -> bool:
@@ -168,13 +167,14 @@ class Room:
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("[ROOM] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
     
         except Exception as e:
-            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else None
-            logger.error(f"[ROOM] Failed to change the values {keys} in room {repr(self)}!"
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
+
+            utils.log_traceback(msg="[ROOM] Traceback:",
+                                suffix=f"Failed to change the values {keys} in room {repr(self)}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
         
     async def start_typing(self) -> bool:
@@ -194,8 +194,9 @@ class Room:
                 raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
     
         except Exception as e:
-            logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
-                         f" > {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[ROOM] Traceback:",
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
         
     async def get_recent_messages(self) -> Union[list, getType.a_message]:
@@ -235,6 +236,7 @@ class Room:
                 raise errs.HTTPReceivedNoData()
     
         except Exception as e:
-            logger.error(f"[ROOM] Failed to create invite for house {self.name} with id {self.id}!" 
-                         f"> {sys.exc_info()[0].__name__}, {str(e)}")
+            utils.log_traceback(msg="[ROOM] Traceback:",
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n" 
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None

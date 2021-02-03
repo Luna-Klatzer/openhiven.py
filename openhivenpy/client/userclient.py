@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import sys
+import traceback
 from typing import Optional, Union
 
 from .hivenclient import HivenClient
@@ -89,8 +91,6 @@ class UserClient(HivenClient):
             if user_id is None and user:
                 user_id = getattr(user, 'id', None)
                 if user_id is None or not isinstance(user, types.User):
-                    logger.error("[CLIENT] Invalid parameter for 'cancel_friend_request'! Expected user or user_id! > "
-                                 f"<user_id={user_id} user={user}>")
                     raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
 
             # If both are none it will raise an error
@@ -105,7 +105,9 @@ class UserClient(HivenClient):
                 raise errs.HTTPFailedRequest()
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to cancel the friend request of a user with id {user_id}! > {e}")
+            utils.log_traceback(msg="[USERCLIENT] Traceback:",
+                                suffix="Failed to cancel the friend request of a user with id {user_id}! \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def fetch_current_friend_requests(self) -> Union[dict, None]:
@@ -128,7 +130,9 @@ class UserClient(HivenClient):
                 return None
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to fetch the current open friend requests! > {e}")
+            utils.log_traceback(msg="[USERCLIENT] Traceback:",
+                                suffix=f"Failed to fetch the current open friend requests; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
     async def block_user(self, user_id: int or float = None, user: types.User = None) -> bool:
@@ -154,8 +158,6 @@ class UserClient(HivenClient):
                 user_id = getattr(user, 'id', None)
                 # TODO! Needs proper check!
                 if user_id is None or not isinstance(user, types.User):
-                    logger.error("[CLIENT] Invalid parameter for 'block_user'! Expected user or user_id! > "
-                                 f"<user_id={user_id} user={user}>")
                     raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
 
             # If both are none it will raise an error
@@ -170,7 +172,9 @@ class UserClient(HivenClient):
                 raise errs.HTTPFailedRequest()
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to block user with id {user_id}! > {e}")
+            utils.log_traceback(msg="[USERCLIENT] Traceback:",
+                                suffix=f"Failed to block user with id {user_id}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def unblock_user(self, user_id: int or float = None, user: types.User = None) -> bool:
@@ -195,8 +199,6 @@ class UserClient(HivenClient):
             if user_id is None and user:
                 user_id = getattr(user, 'id', None)
                 if user_id is None or not isinstance(user, types.User):
-                    logger.error("[CLIENT] Invalid parameter for 'unblock_user'! Expected user or user_id! > "
-                                 f"<user_id={user_id} user={user}>")
                     raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
 
             # If both are none it will raise an error
@@ -211,7 +213,9 @@ class UserClient(HivenClient):
                 raise errs.HTTPFailedRequest()
 
         except Exception as e:
-            logger.error(f"[CLIENT]Failed to unblock a user with id {user_id}! > {e}")
+            utils.log_traceback(msg="[USERCLIENT] Traceback:",
+                                suffix=f"Failed to unblock a user with id {user_id}; \n"
+                                       f" {e}")
             return False
 
     async def send_friend_request(self, user_id: int or float = None, user: types.User = None) -> bool:
@@ -236,8 +240,6 @@ class UserClient(HivenClient):
             if user_id is None and user:
                 user_id = getattr(user, 'id', None)
                 if user_id is None or not isinstance(user, types.User):
-                    logger.error("[CLIENT] Invalid parameter for `send_friend_request`! Expected user or user_id! > "
-                                 f"<user_id={user_id} user={user}>")
                     raise ValueError(f"Expected correct user initialised object! Not {type(user)}")
 
             # If both are none it will raise an error
@@ -253,5 +255,7 @@ class UserClient(HivenClient):
                 raise errs.HTTPFailedRequest()
 
         except Exception as e:
-            logger.error(f"[CLIENT] Failed to send a friend request a user with id {user_id}! > {e}")
+            utils.log_traceback(msg="[USERCLIENT] Traceback:",
+                                suffix=f"Failed to send a friend request a user with id {user_id}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
