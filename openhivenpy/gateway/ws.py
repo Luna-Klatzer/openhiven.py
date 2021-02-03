@@ -805,6 +805,7 @@ class Websocket(Client):
                         # Room where the message was sent => private_room
                         room = private_room
                     else:
+                        room = None
                         logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                        f"ROOM_ID={data.get('room_id')}")
 
