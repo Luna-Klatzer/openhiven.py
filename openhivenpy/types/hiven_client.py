@@ -3,7 +3,10 @@ import logging
 import datetime
 import asyncio
 import time
-from typing import Union
+import traceback
+import typing
+
+from openhivenpy import utils
 
 from ._get_type import getType
 import openhivenpy.exceptions as errs
@@ -14,27 +17,25 @@ __all__ = ['Client']
 
 
 class Client:
-    """`openhivenpy.types.Client`
+    r"""`openhivenpy.types.Client`
 
-    Date Class for a Client
-    ~~~~~~~~~~~~~~~~~~~~~~~
-
-    Data Class that stores the data of the connected client
+    Data Class that stores the data of the connected Client
 
     """
     def __init__(self, *, http=None, **kwargs):
         self._http = http if http is not None else self._http
 
-        self._amount_houses = 0
+        # Base data lists for all Objects in the scope of the HivenClient
         self._houses = []
         self._users = []
         self._rooms = []
         self._private_rooms = []
         self._relationships = []
-        self._USER = None
+        self._house_memberships = []
+        self._client_user = None
 
         # Init Data that will be overwritten by the connection and websocket
-        self._initialized = False
+        self._initialised = False
         self._connection_start = None
         self._startup_time = None
         self._ready = False
@@ -43,7 +44,7 @@ class Client:
         self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.add_to_startup(self.__check_meta_data)
+        self._execution_loop.add_to_startup(self.__check_if_data_is_complete)
 
     def __str__(self) -> str:
         return str(repr(self))
@@ -55,78 +56,71 @@ class Client:
     def connection_start(self) -> float:
         return getattr(self, "connection_start")
 
-    async def init_meta_data(self, data: dict = None) -> None:
-        """`openhivenpy.types.client.update_client_user_data()`
+    async def initialise_hiven_client_data(self, data: dict = None) -> None:
+        r"""`openhivenpy.types.client.update_client_user_data()`
+
         Updates or creates the standard user data attributes of the Client
+
         """
         try:
-            # Using a USER object to actually store all user data
-            self._USER = await getType.a_user(data, self.http)
+            # Initialising the Client-User object for storing the user data
+            self._client_user = await getType.a_user(data.get('user'), self.http)
 
+            # Initialising the client relationships
             _relationships = data.get('relationships')
-            if _relationships:
-                for key in _relationships:
-                    _rel_data = _relationships.get(key, {})
-                    _rel = await getType.a_relationship(
-                        data=_rel_data,
-                        http=self.http)
+            for key in _relationships:
+                _rel_data = _relationships.get(key, {})
+                _rel = await getType.a_relationship(
+                    data=_rel_data,
+                    http=self.http)
 
-                    self._relationships.append(_rel)
-            else:
-                raise errs.WSFailedToHandle("Missing 'relationships' in 'INIT_STATE' event message!")
+                self._relationships.append(_rel)
 
+            # Initialising the private rooms
             _private_rooms = data.get('private_rooms')
-            if _private_rooms:
-                for private_room in _private_rooms:
-                    t = int(private_room.get('type', 0))
-                    if t == 1:
-                        room = await getType.a_private_room(private_room, self.http)
-                    elif t == 2:
-                        room = await getType.a_private_group_room(private_room, self.http)
-                    else:
-                        room = await getType.a_private_room(private_room, self.http)
-                    self._private_rooms.append(room)
-            else:
-                raise errs.WSFailedToHandle("Missing 'private_rooms' in 'INIT_STATE' event message!")
-
-            _house_ids = data.get('house_memberships')
-            if _house_ids:
-                self._amount_houses = len(_house_ids)
-            else:
-                raise errs.WSFailedToHandle("Missing 'house_memberships' in 'INIT_STATE' event message!")
-
-            # Requesting user data of the client itself
-            _raw_data = await self.http.request("/users/@me", timeout=15)
-            if _raw_data:
-                _data = _raw_data.get('data')
-                if _data:
-                    self._USER = getType.user(data=data, http=self.http)
+            for private_room in _private_rooms:
+                t = int(private_room.get('type', 0))
+                if t == 1:
+                    room = await getType.a_private_room(private_room, self.http)
+                elif t == 2:
+                    room = await getType.a_private_group_room(private_room, self.http)
                 else:
-                    raise errs.HTTPReceivedNoData()
-            else:
-                raise errs.HTTPReceivedNoData()
+                    room = await getType.a_private_room(private_room, self.http)
+                self._private_rooms.append(room)
+
+            # Passing the amount of houses as variable
+            _house_memberships = data.get('house_memberships')
+            self._house_memberships = _house_memberships
 
         except Exception as e:
-            logger.error(f"[CLIENT] FAILED to update client data! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+            utils.log_traceback(msg="[CLIENT] Traceback: ",
+                                suffix="Failed to update client data; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
+                                            f"> {sys.exc_info()[0].__name__}: {e}")
 
-    async def __check_meta_data(self):
-        """
+    async def __check_if_data_is_complete(self):
+        r"""
         Checks whether the meta data is complete and triggers on_ready
         """
-        check = True
+        # boolean that will trigger the warning that the process is taking too long
+        is_taking_long = False
         while True:
-            if self._amount_houses == len(self._houses) and self._initialized:
+            # If all expected houses were received and the client was initialised it will trigger
+            # on_ready()
+            if self.amount_houses == len(self._houses) and self._initialised:
                 self._startup_time = time.time() - self.connection_start
                 self._ready = True
                 logger.info("[CLIENT] Client loaded all data and is ready for usage! ")
-                asyncio.create_task(self._event_handler.ev_ready_state())
+                asyncio.create_task(self._event_handler.dispatch_on_ready())
                 break
-            if (time.time() - self.connection_start) > 30 and check:
+
+            # Triggering a warning if the Initialisation takes too long!
+            if (time.time() - self.connection_start) > 30 and is_taking_long is not True:
                 logger.warning("[CLIENT] Initialization takes unusually long! Possible connection or data issues!")
-                check = False
+                is_taking_long = True
+
+            # Checking after a small bit again => don't remove!
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
@@ -141,26 +135,27 @@ class Client:
         """
         try:
             for key in kwargs.keys():
-                if key in ['header', 'icon', 'bio', 'location', 'website']:
-                    resp = await self.http.patch(endpoint="/users/@me", data={key: kwargs.get(key)})
+                # Available keys
+                if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
+                    resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
                     if resp.status < 300:
                         return True
                     else:
                         raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
                 else:
-                    logger.error("[CLIENT] The passed value does not exist in the user context!")
                     raise NameError("The passed value does not exist in the user context!")
 
         except Exception as e:
-            keys = "".join(str(" " + key) for key in kwargs.keys())
-            logger.error(f"[CLIENT] Failed change the values {keys} on the client Account! "
-                         f"> {sys.exc_info()[1].__class__.__name__}, {str(e)}")
-            raise errs.HTTPError(f"Failed change the values {keys} on the client Account!")
+            keys = "".join(str(key + " ") for key in kwargs.keys())
+
+            utils.log_traceback(msg="[CLIENT] Traceback:",
+                                suffix=f"Failed change the values {keys}; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     @property
     def user(self):
-        return getattr(self, '_USER', object)
+        return getattr(self, '_client_user', None)
 
     @property
     def username(self) -> str:
@@ -199,36 +194,40 @@ class Client:
         return getattr(self.user, 'presence', None)
 
     @property
-    def joined_at(self) -> Union[datetime.datetime, None]:
+    def joined_at(self) -> typing.Union[datetime.datetime, None]:
         if self.user.joined_at and self.user.joined_at != "":
             return datetime.datetime.fromisoformat(self.user.joined_at[:10])
         else:
             return None
 
     @property
-    def houses(self):
-        return getattr(self.user, '_houses', [])
+    def houses(self) -> int:
+        return getattr(self, '_houses', [])
 
     @property
-    def private_rooms(self):
-        return getattr(self.user, '_private_rooms', [])
+    def private_rooms(self) -> int:
+        return getattr(self, '_private_rooms', [])
 
     @property
-    def users(self):
-        return getattr(self.user, '_users', [])
+    def users(self) -> int:
+        return getattr(self, '_users', [])
 
     @property
-    def rooms(self):
-        return getattr(self.user, '_rooms', [])
+    def rooms(self) -> int:
+        return getattr(self, '_rooms', [])
 
     @property
     def amount_houses(self) -> int:
-        return getattr(self.user, '_amount_houses', [])
+        return len(getattr(self, '_house_memberships', []))
+
+    @property
+    def house_memberships(self) -> dict:
+        return getattr(self, '_house_memberships', [])
 
     @property
     def relationships(self) -> list:
-        return getattr(self.user, '_relationships', [])
+        return getattr(self, '_relationships', [])
 
     @property
     def http(self):
-        return getattr(self, 'http', None)
+        return getattr(self, '_http', None)

@@ -1,4 +1,6 @@
 import logging
+import sys
+import traceback
 from operator import attrgetter
 from functools import lru_cache
 import inspect
@@ -33,14 +35,19 @@ async def dispatch_func_if_exists(obj: object,
         # Checking if the func is callable:
         if callable(func):
             logger.debug(f"Dispatching '{func_name}'")
+            try:
+                # If the function is a coroutine it will be called as an async function
+                if inspect.iscoroutinefunction(func):
+                    return await func(*func_args, **func_kwargs)
+                # If it's a regular function it will be called normally
+                else:
+                    return func(*func_args, **func_kwargs)
 
-            # If the function is a coroutine it will be called as an async function
-            if inspect.iscoroutinefunction(func):
-                return await func(*func_args, **func_kwargs)
+            except Exception as e:
+                log_traceback(level='error',
+                              msg=f'Function {func.__name__} encountered an exception:',
+                              suffix=f"{sys.exc_info()[0].__name__}: {e}")
 
-            # If it's a regular function it will be called normally
-            else:
-                return func(*func_args, **func_kwargs)
         else:
             raise TypeError(f"{obj.__class__.__name__} is not callable!")
     else:
@@ -66,8 +73,29 @@ def raise_value_to_type(val: Any, data_type: type) -> Any:
         return val
 
 
-def get(iterable, **attrs) -> Any:
+def log_traceback(level: Union[str, None] = 'error', msg: str = 'Traceback: ', suffix: str = None):
     r"""
+    Logs the traceback of the current exception
+
+    :param msg: Message for the logging. Only gets printed out if logging level was correctly set
+    :param level: Logger level for the exception. If '' or None it will not use the logger module
+    :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
+    :return: None
+    """
+    tb = traceback.format_tb(sys.exc_info()[2])
+    if level is not None and level != '':
+        log_level = getattr(logger, level)
+        if callable(log_level):
+            # Creating the string that will be printed out
+            tb_str = "".join(frame for frame in tb)
+            # Fetches and prints the current traceback with the passed message
+            log_level(f"{msg}\n{tb_str} \n{suffix if suffix else ''}\n")
+    else:
+        traceback.print_tb(tb)
+
+
+def get(iterable, **attrs) -> Any:
+    r"""`openhivenpy.utils.get()`
 
     Fetches an object in the passed iterable if the passed attribute align!
 

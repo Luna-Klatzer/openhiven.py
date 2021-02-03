@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from ._get_type import getType
+from openhivenpy.types import LazyHouse
 from openhivenpy.gateway.http import HTTP
 import openhivenpy.types as types
 import openhivenpy.exceptions as errs
@@ -31,7 +31,7 @@ class Invite:
     created_at: `str` - String with the creation date
     
     """
-    def __init__(self, data: dict, http: HTTP):
+    def __init__(self, data: dict, house: LazyHouse, http: HTTP):
         self._http = http
         
         invite = data.get('invite')
@@ -46,20 +46,7 @@ class Invite:
         self._max_age = invite.get('max_age')
         self._max_uses = invite.get('max_uses')
         self._type = invite.get('type')
-        
-        house_data = data.get('house')
-        _raw_data = asyncio.run(self._http.request(endpoint=f"/users/{house_data.get('owner_id')}"))
-        if _raw_data:
-            _data = _raw_data.get('data')
-            if _data:
-                self._house = types.LazyHouse(
-                    data=house_data,
-                    http=self._http)
-            else:
-                raise errs.HTTPReceivedNoData()
-        else:
-            raise errs.HTTPReceivedNoData()
-
+        self._house = house
         self._house_members = data.get('counts', {}).get('house_members')
 
     def __str__(self) -> str:

@@ -1,17 +1,16 @@
 """
 Test-file for testing purposes and development!
 """
-
 import asyncio
+import time
 import openhivenpy
-from openhivenpy import utils
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='tests/openhiven.log', encoding='utf-8', mode='w')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
@@ -34,23 +33,21 @@ async def on_ready():
 
     house = await client.get_house(175036727902074248)
 
-    update_room = utils.get(house.rooms, name="Announcements")
-    await update_room.edit(name="Updates")
-
     url = await client.fetch_invite("openhivenpy")
 
-    house = await client.create_house("test house")
+    house = await client.create_house(name="test 2d")
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(.1)
+
     house = openhivenpy.utils.get(client.houses, id=house.id)
 
     await house.create_room(name="stuff")
     
     room = house.rooms[0]
     
-    await room.send("test")
+    print(await room.send("test"))
     
-    await house.delete()
+    print(await house.delete())
     
     feed = await client.get_feed()
     
@@ -62,27 +59,25 @@ async def on_ready():
 
     print(friend_request)
 
-    # await client.create_private_room()
-
 
 @client.event()
 async def on_message_create(message):
-    print(message.content)
+    print(f"{message.author.name} sent a message in {message.room.name}: {message.content}")
 
 
 @client.event()
-async def on_house_add(house):
-    print(house.name)
+async def on_house_join(house):
+    print(f"Joined {house.name}")
 
 
 @client.event()
 async def on_house_remove(house):
-    print(house.name)
+    print(f"Left {house.name}")
 
 
 @client.event()
-async def on_house_downage(t, house):
-    print(f"{house.name} was reported to be done at {t}")
+async def on_house_delete(house_id):
+    print(f"{house_id} was deleted at {time.time()}")
 
 
 @client.event()

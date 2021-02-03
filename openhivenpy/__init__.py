@@ -1,11 +1,10 @@
 """
 
-OpenHiven.py
+OpenHiven.py - The OpenSource Python API Wrapper for Hiven
 
-The OpenSource Python API Wrapper for Hiven
+---
 
-
-MIT License
+Under MIT License
 
 Copyright © 2020 Frostbyte Development Team
 
