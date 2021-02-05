@@ -19,7 +19,7 @@
 ### Install (PyPi Release)
 
 ```bash
-pip install openhivenpy
+python3 -m pip install -U openhivenpy
 ```
 
 ### PyPi Specific Version
@@ -30,7 +30,7 @@ python3 -m pip install -U openhivenpy==version
 
 ### Install (Github Build)
 ```bash
-pip install https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
+python3 -m pip install -U https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
 ```
 
 ## Documentation

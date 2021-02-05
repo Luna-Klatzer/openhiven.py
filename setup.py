@@ -18,7 +18,9 @@ setuptools.setup(
     url="https://github.com/FrostbyteSpace/openhiven.py",
     project_urls={
         "Docs Rewrite": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/",
-        "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/api_reference/"
+        "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/api_reference/",
+        "Issues": "https://github.com/FrostbyteSpace/openhiven.py/issues/",
+        "Changelog": ""
     },
     packages=setuptools.find_packages(),
     classifiers=[

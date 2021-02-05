@@ -1,15 +1,12 @@
 """
-`openhivenpy.types`
 
-Module types 
-~~~~~~~~~~~~
+Module for all data classes that represent Hiven Objects.
 
-Module for all data classes that create Hiven Objects.
+---
 
-MIT License
-~~~~~~~~~~~
+Under MIT License
 
-Copyright (c) 2020 Frostbyte Development Team 
+Copyright © 2020 Frostbyte Development Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,20 +27,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ._get_type import getType
+from .hiven_object import HivenObject
 from .room import *
-from .private_room import *
 from .house import *
+from .private_room import *
 from .message import *
 from .user import *
 from .context import *
 from .member import *
 from .hiven_client import *
-from .typing import *
+from .usertyping import *
 from .attatchment import *
 from .presence import *
 from .feed import *
+from .entity import *
 from .invite import *
 from .mention import *
-from .typing import *
+from .embed import *
+from .usertyping import *
 from .relationship import *

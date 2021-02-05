@@ -4,19 +4,16 @@ import sys
 import os
 import json
 import logging
-import traceback
-from typing import Optional
+import typing
 import aiohttp
 
 __all__ = ['Websocket']
 
 import openhivenpy.types as types
-import openhivenpy.exceptions as errs
-import openhivenpy.utils as utils
-from openhivenpy.events import EventHandler
-from openhivenpy.types import Client
-from openhivenpy.settings import load_env
-from openhivenpy.types.entity import Entity
+from ..exceptions import exception as errs
+from ..utils import utils as utils
+from ..events import EventHandler
+from ..settings import load_env
 
 logger = logging.getLogger(__name__)
 
@@ -29,14 +26,10 @@ _default_connection_heartbeat = int(os.getenv("CONNECTION_HEARTBEAT"))
 _default_close_timeout = int(os.getenv("CLOSE_TIMEOUT"))
 
 
-class Websocket(Client):
-    r"""
-
+class Websocket(types.Client):
+    """
     Websocket Class that will listen to the Hiven Swarm and handle server-sent message and trigger events if received!
     Uses an instance of `openhivenpy.EventHandler` for EventHandling and will execute registered functions.
-
-    Is directly inherited into connection and cannot be used as a standalone class due to missing data!
-
     """
 
     def __init__(
@@ -50,35 +43,25 @@ class Websocket(Client):
             heartbeat: int = _default_connection_heartbeat,
             close_timeout: int = _default_close_timeout,
             event_handler: EventHandler,
-            event_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+            event_loop: typing.Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
             **kwargs):
-        r"""`openhivenpy.gateway.Websocket.__init__()`
-
+        """
         Object Instance Construction
-
         :param token: Authorisation Token for Hiven
-
         :param restart: If set to True the process will restart if an exception occurred
-
         :param host: Url for the API which will be used to interact with Hiven.
-                     Defaults to the pre-set environment host (api.hiven.io
-
+                     Defaults to the pre-set environment host (api.hiven.io)
         :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
-
-        :param heartbeat: Intervals in which the bot will send life signals to the Websocket.
+        :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
-
         :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
                               successfully. Defaults to the pre-set environment close_timeout (40)
-
-        :param event_loop: Event loop that will be used to execute all async functions. Fetching current event_loop
-
+        :param event_loop: Event loop that will be used to execute all async functions. Will use 'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one was created yet
         :param event_handler: Handler for Websocket Events
-
         """
 
-        self._HOST = host
-        self._API_VERSION = api_version
+        self._host = host
+        self._api_version = api_version
 
         self._WEBSOCKET_URL = "wss://swarm-dev.hiven.io/socket?encoding=json&compression=text_json"
         self._ENCODING = "json"
@@ -86,15 +69,11 @@ class Websocket(Client):
         # In milliseconds
         self._HEARTBEAT = heartbeat
         self._TOKEN = token
-
         self._close_timeout = close_timeout
-
         self._event_handler = event_handler
         self._event_loop = event_loop
-
         self._restart = restart
         self._log_ws_output = log_ws_output
-
         self._CUSTOM_HEARTBEAT = False if self._HEARTBEAT == int(os.getenv("CONNECTION_HEARTBEAT")) else True
         self._ws_session = None
         self._ws = None
@@ -103,13 +82,11 @@ class Websocket(Client):
 
         # Websocket and Connection Attribute
         self._open = False
-
         self._connection_start = None
         self._startup_time = None
         self._initialised = False
         self._ready = False
         self._connection_start = None
-
         self._connection_status = "CLOSED"
 
         # Initialising the parent class Client which handles the data
@@ -169,14 +146,10 @@ class Websocket(Client):
 
     # Starts the connection over a new websocket
     async def ws_connect(self, session: aiohttp.ClientSession, heartbeat: int = None) -> None:
-        """`openhivenpy.gateway.Websocket.ws_connect()`
-
+        """
         Creates a connection to the Hiven API.
 
-        Not supposed to be called by the user!
-
-        Consider using HivenClient.connect() or HivenClient.run()
-
+        Not Intended for User Usage
         """
         self._HEARTBEAT = heartbeat if heartbeat is not None else self._HEARTBEAT
         self._ws_session = session
@@ -213,14 +186,17 @@ class Websocket(Client):
                 pass
 
             except Exception as ws_e:
-                utils.log_traceback(level='critical', msg="[CONNECTION] Traceback:")
-                logger.critical(f"[WEBSOCKET] >> The connection to Hiven failed to be kept alive or started! "
-                                f"> {sys.exc_info()[0].__name__}, {str(ws_e)}")
+                utils.log_traceback(level='critical',
+                                    msg="[WEBSOCKET] Traceback:",
+                                    suffix=f"[WEBSOCKET] The connection to Hiven failed to be kept alive or started;\n"
+                                           f"{sys.exc_info()[0].__name__}, {str(ws_e)}")
 
                 # Closing
                 close = getattr(self, "close", None)
                 if callable(close):
-                    await close(exec_loop=not self._restart, reason="WS encountered an error!", restart=self._restart)
+                    await close(close_exec_loop=not self._restart,
+                                reason="WebSocket encountered an error!",
+                                block_restart=not self._restart)
 
                 return
 
@@ -251,8 +227,7 @@ class Websocket(Client):
 
     # Loop for receiving messages from Hiven
     async def message_handler(self, ws) -> None:
-        r"""`openhivenpy.gateway.Websocket.message_handler()`
-
+        """
         Message Handler for the websocket that will handle messages received over the websocket connection
         and if needed trigger an event using the function text_based_message_handler(), which triggers events
         if needed. The incoming messages in this case are handled when they arrive meaning that a loop will
@@ -342,16 +317,15 @@ class Websocket(Client):
         # Trying to fetch the close method of the Connection class which stops the currently running processes
         close = getattr(self, "close", None)
         if callable(close):
-            await close(exec_loop=True, reason="Response Handler stopped!", restart=self._restart)
+            await close(close_exec_loop=True, reason="Response Handler stopped!", block_restart=not self._restart)
 
         return
 
     async def lifesignal(self, ws) -> None:
-        """`openhivenpy.gateway.Websocket.lifesignal()`
-
+        """
         Lifesignal Task sending lifesignal messages to the Hiven Swarm
 
-        Not supposed to be called by a user!
+        Not Intended for User Usage
 
         :param ws: The aiohttp websocket instance needed for interaction with Hiven
         :return: None - Only returns if the process failed or the websocket was forced to close!
@@ -385,12 +359,12 @@ class Websocket(Client):
 
     # Event Triggers
     async def text_based_message_handler(self, resp_data: dict):
-        """`openhivenpy.gateway.Websocket.text_based_message_handler()`
-
+        """
         Handler for the Websocket events and the message data.
 
         Triggers based on the passed data an event
 
+        :param resp_data: The incoming WebSocket message
         """
         try:
             ws_msg_data = resp_data.get('d', {})
@@ -464,8 +438,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_down_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_down_handler()`
-
+        """
         Handler for downtime of a house! Triggers on_house_down and
         returns as parameter the time of downtime and the house
 
@@ -495,8 +468,7 @@ class Websocket(Client):
                                        f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def member_chunk_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.member_chunk_handler()`
-
+        """
         In Work!
 
         Handler for a house member chunk update which updates for every
@@ -509,7 +481,7 @@ class Websocket(Client):
         try:
             if self.ready:
                 data = ws_msg_data
-                # Fetching the house based on the id
+                # Fetching the house based on the ID
                 house = utils.get(self._houses, id=int(data.get('house_id')))
 
                 # Member data that was sent with the request
@@ -561,8 +533,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_enter(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_member_enter()`
-
+        """
         Handler for a member going online in a mutual house. Trigger on_house_enter
         and returns as parameters the member obj and house obj.
 
@@ -591,8 +562,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_update_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_member_update_handler()`
-
+        """
         Handler for a house member update which will trigger on_member_update and return
         as parameter the old member obj, the new member obj and the house.
 
@@ -601,7 +571,7 @@ class Websocket(Client):
         try:
             if self.initialised:
                 data = ws_msg_data
-                house = utils.get(self._houses, id=int(data.get('house_id')))
+                house = utils.get(self.houses, id=int(data.get('house_id')))
 
                 cached_user = utils.get(self._users, id=int(data.get('user_id')))
                 user = types.User(data['user'], self.http)
@@ -633,8 +603,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_join_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_member_join_handler()`
-
+        """
         Handler for a House Join Event where a user joined a house. Triggers on_member_join and passes the house and
         the member as arguments.
 
@@ -644,7 +613,7 @@ class Websocket(Client):
             if self.ready:
                 data = ws_msg_data
 
-                # Fetching the id of the house
+                # Fetching the ID of the house
                 house_id = data.get('house_id')
                 # Fetching the house from the cache
                 house = utils.get(self.houses, id=int(house_id))
@@ -686,8 +655,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def room_create_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.room_create_handler()`
-
+        """
         Handler for Room creation in a house. Triggers on_room_create() and passes the room as argument
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
@@ -721,8 +689,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_exit_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_member_exit_handler()`
-
+        """
         Handler for a house member exit event. Removes the member
         from the house members list and triggers on_house_exit and
         returns as parameter the user obj and house obj.
@@ -745,8 +712,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def presence_update_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.presence_update_handler()`
-
+        """
         Handler for a User Presence update
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
@@ -769,8 +735,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_create_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.message_create_handler()`
-
+        """
         Handler for a user-created messages which will trigger the 'on_message_create' event.
         Will return as parameter the created msg object.
 
@@ -785,7 +750,7 @@ class Websocket(Client):
                     house = None
 
                 if house:
-                    # Updating the last message id in the Room
+                    # Updating the last message ID in the Room
                     room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
                     if room is not None:
                         # Updating the last message_id
@@ -796,7 +761,7 @@ class Websocket(Client):
 
                 # It's a private_room with no existing house
                 else:
-                    # Updating the last message id in the Private-Room
+                    # Updating the last message ID in the Private-Room
                     private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
                     if private_room is not None:
                         # Updating the last message_id
@@ -823,8 +788,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_delete_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.message_delete_handler()`
-
+        """
         Handler for a deleted message which will trigger the on_message_delete event
         and return as parameter a DeletedMessage object.
 
@@ -845,8 +809,7 @@ class Websocket(Client):
                                        f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def message_update_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.message_update_handler()`
-
+        """
         Handler for a deleted message which will create a new msg object
         and return as parameter the object.
 
@@ -864,7 +827,7 @@ class Websocket(Client):
                     house = None
 
                 if house:
-                    # Updating the last message id in the Room
+                    # Updating the last message ID in the Room
                     room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
                     if room in self._rooms:
                         self._rooms.remove(room)
@@ -876,7 +839,7 @@ class Websocket(Client):
                                        f"ROOM_ID={data.get('room_id')}")
 
                 else:
-                    # Updating the last message id in the Private-Room
+                    # Updating the last message ID in the Private-Room
                     private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
                     if private_room:
                         self._private_rooms.remove(private_room)
@@ -912,8 +875,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def relationship_update_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.relationship_update_handler()`
-
+        """
         Handler for a relationship update. Triggers on_relationship_update
         and returns as parameter the relationship obj.
 
@@ -943,8 +905,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_join_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_join_handler()`
-
+        """
         Handler for the dispatch_on_house_add event of the connected client which will trigger
         the on_house_join event and return as parameter the house.
 
@@ -955,13 +916,13 @@ class Websocket(Client):
                 data = ws_msg_data
 
                 # Creating a house object that will then be appended
-                house = types.House(data, self.http, self.id)
+                house = await types.House.from_dict(data, self.http, client_id=self.id)
 
                 for member_data in data['members']:
                     if hasattr(member_data, 'id'):
                         user_id = int(member_data.get('id'))
                     else:
-                        # Falling back to the nested user object and the id that is stored there
+                        # Falling back to the nested user object and the ID that is stored there
                         user_id = int(member_data['user'].get('id', 0))
 
                     # Getting the user from the list if it exists
@@ -988,8 +949,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_leave_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_leave_handler()`
-
+        """
         Handler for the event on_house_remove, which will return as parameter the removed house.
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format
@@ -1015,8 +975,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_entity_update_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.house_entity_update_handler()`
-
+        """
         Handler for a house entity update. Triggers on_house_entity_update and
         returns as parameter the house obj, the entity obj and the raw data
 
@@ -1026,7 +985,7 @@ class Websocket(Client):
             if self.ready:
                 data = ws_msg_data
                 house = utils.get(self._houses, id=int(data.get('house_id')))
-                entity = Entity(data, self.http)
+                entity = types.Entity(data, self.http)
 
                 await self.event_handler.dispatch_on_house_entity_update(house=house, entity=entity, data=data)
 
@@ -1039,8 +998,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def batch_house_member_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.batch_house_member_handler()`
-
+        """
         In Work!
 
         Handler for a batch house member update that includes a list of
@@ -1062,7 +1020,7 @@ class Websocket(Client):
                 for member in members:
                     mem_id = getattr(member, "id")
 
-                    # Checking whether the id exists and the object was created correctly
+                    # Checking whether the ID exists and the object was created correctly
                     if mem_id:
                         cached_mem = utils.get(house.members, id=int(mem_id))
                         if cached_mem is not None:
@@ -1083,7 +1041,7 @@ class Websocket(Client):
                 # For every created user the local user data will be replaced
                 for user in users:
                     usr_id = getattr(user, "id")
-                    # Checking whether the id exists and the object was created correctly
+                    # Checking whether the ID exists and the object was created correctly
                     if usr_id:
                         cached_user = utils.get(self._users, id=int(usr_id))
                         if cached_user is not None:
@@ -1109,8 +1067,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def typing_start_handler(self, ws_msg_data: dict):
-        r"""`openhivenpy.gateway.Websocket.typing_start_handler()`
-
+        """
         Handler for the typing_start event that will trigger the event
         on_typing_start and return as parameter the typing object with
         the room, house and member as attributes.
@@ -1131,7 +1088,7 @@ class Websocket(Client):
                     house = None
                     author = utils.get(self._users, id=int(data.get('author_id')))
 
-                typing = types.Typing(data, author, room, house, self.http)
+                typing = types.UserTyping(data, author, room, house, self.http)
 
                 await self.event_handler.dispatch_on_typing_start(typing)
 
@@ -1144,8 +1101,7 @@ class Websocket(Client):
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_leave(self, ws_msg_data):
-        r"""`openhivenpy.gateway.Websocket.house_member_leave()`
-
+        """
         Event for a member leaving a house. Triggers on_house_member_leave()
 
         :param ws_msg_data: The incoming ws text msg - Should be in correct python dict format

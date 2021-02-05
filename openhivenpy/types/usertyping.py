@@ -1,28 +1,22 @@
 import datetime
 import logging
 import sys
-import traceback
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Typing']
+__all__ = ['UserTyping']
 
 
-class Typing:
-    """`openhivenpy.types.Typing`
-    
-    Data Class for Typing
-    ~~~~~~~~~~~~~~~~~~~~~
-    
-    Returned with HivenClient.on_typing_start() and HivenClient.on_typing_end()
-    
+class UserTyping(HivenObject):
     """
-    def __init__(self, data: dict, member, room, house, http: HTTP):
+    Represents a Hiven User Typing in a room
+    """
+    def __init__(self, data: dict, member, room, house, http):
         try:
             self._author = member
             self._room = room
@@ -42,7 +36,7 @@ class Typing:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [

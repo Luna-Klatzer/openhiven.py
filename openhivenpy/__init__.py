@@ -41,11 +41,12 @@ load_env()
 
 import logging
 
-from .client import *
+from . import utils
+from . import exceptions
+from . import types
 from . import events
 from . import gateway
-from . import utils
-from . import types
-from . import exceptions
+from .client import HivenClient, BotClient, UserClient
+
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

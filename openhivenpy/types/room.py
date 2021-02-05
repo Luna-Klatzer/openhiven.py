@@ -1,34 +1,25 @@
 import logging
 import sys
 import asyncio
-import traceback
-from typing import Union
+import typing
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from ._get_type import getType
-from openhivenpy.utils import get
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from . import message
+from . import user
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Room']
 
 
-class Room:
-    """`openhivenpy.types.Room`
-    
-    Data Class for a Hiven Room
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    
-    Returned with house room lists and House.get_room()
-    
+class Room(HivenObject):
     """
-    def __init__(self, data: dict, http: HTTP, house):
-        # These are all the attribs rooms have for now.
-        # Will add more when Phin says they've been updated. Theres no functions. Yet.
+    Represents a Hiven Room inside a House
+    """
+    def __init__(self, data: dict, http, house):
         try:
             self._id = int(data.get('id'))
             self._name = data.get('name')
@@ -38,7 +29,7 @@ class Room:
             self._emoji = data.get('emoji')
             self._description = data.get('description')
             self._last_message_id = data.get('last_message_id')
-            self._house = house 
+            self._house = house
 
             self._http = http
         
@@ -50,7 +41,7 @@ class Room:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -96,26 +87,17 @@ class Room:
     def description(self):
         return self._description
 
-    async def send(self, content: str, delay: float = None) -> getType.message:
-        """openhivenpy.types.Room.send()
-
-        Sends a message in the room. Returns the message if successful.
-
-        Parameter:
-        ----------
-        
-        content: `str` - Content of the message
-    
-        delay: `float` - Seconds to wait until sending the message (in seconds)
-
+    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
         """
-        # POST /rooms/roomid/messages
-        # Media: POST /rooms/roomid/media_messages
+        Sends a message in the current room.
+        
+        :param content: Content of the message
+        :param delay: Seconds to wait until sending the message (in seconds)
+        :return: A new message object if the request was successful
+        """
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http.post(
-                f"/rooms/{self.id}/messages",
-                json={"content": content})
+            resp = await self._http.post(f"/rooms/{self.id}/messages", json={"content": content})
 
             raw_data = await resp.json()
             if raw_data:
@@ -126,8 +108,8 @@ class Room:
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = getType.user(author_data, self._http)
-                        msg = await getType.a_message(
+                        author = user.User(author_data, self._http)
+                        msg = user.Message(
                             data=data,
                             http=self._http,
                             house=None,
@@ -148,14 +130,12 @@ class Room:
             return None
         
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.types.Room.edit()`
-        
-        Change the rooms data.
-        
+        """
+        Changes the rooms data on Hiven
+
         Available options: emoji, name, description
-        
-        Returns `True` if successful
-        
+
+        :return: True if the request was successful else False
         """
         try:
             for key in kwargs.keys():
@@ -178,12 +158,10 @@ class Room:
             return False
         
     async def start_typing(self) -> bool:
-        """`openhivenpy.types.House.start_typing()`
-
+        """
         Adds the client to the list of users typing
             
-        Returns 'True' if successful.
-
+        :return: True if the request was successful else False
         """
         try:
             resp = await self._http.post(f"/rooms/{self.id}/typing")
@@ -199,13 +177,11 @@ class Room:
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
         
-    async def get_recent_messages(self) -> Union[list, getType.a_message]:
-        """`openhivenpy.types.House.get_recent_messages()`
-
+    async def get_recent_messages(self) -> typing.Union[list, message.Message, None]:
+        """
         Gets the recent messages from the current room
             
-        Returns a list of all messages in form of `message` objects if successful.
-
+        :return: A list of all messages in form of Message instances if successful.
         """
         try:
             raw_data = await self._http.request(f"/rooms/{self.id}/messages")
@@ -218,8 +194,8 @@ class Room:
                     if _raw_data:
                         _author_data = _raw_data.get('data')
                         if _author_data:
-                            author = await getType.a_user(_author_data, self._http)
-                            msg = await getType.a_message(
+                            author = user.User(_author_data, self._http)
+                            msg = message.Message(
                                 data=message,
                                 http=self._http,
                                 house=self.house,

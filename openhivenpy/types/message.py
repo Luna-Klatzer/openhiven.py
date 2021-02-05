@@ -1,37 +1,23 @@
-import traceback
-from datetime import datetime
+import datetime
 import logging
 import sys
 import asyncio
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from ._get_type import getType
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from . import mention
+from . import embed
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['DeletedMessage', 'Message']
 
 
-class DeletedMessage:
-    """`openhivenpy.types.DeletedMessage`
-    
-    Data Class for a removed Hiven message
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Returned with on_message_delete()
-    
-    Attributes
-    ~~~~~~~~~~
-    
-    house_id: `int` - ID of the House where the message was deleted
-    
-    message_id: `int` - ID of the message that was deleted
-    
-    room_id: `int` - ID of the Room where the message was deleted
-    
+class DeletedMessage(HivenObject):
+    """
+    Represents a Deleted Message
     """
     def __init__(self, data: dict):
         self._message_id = int(data.get('message_id'))
@@ -55,45 +41,10 @@ class DeletedMessage:
     
 
 class Message:
-    """`openhivenpy.types.Message`
-    
-    Data Class for a standard Hiven message
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    
-    Returned with room message list and House.get_message()
- 
-    Attributes
-    ~~~~~~~~~~
-    
-    id: `int` - ID of the Message
-    
-    content: `str` - Simple string content of the message
-    
-    author: `openhivenpy.types.User` - Author Object
-    
-    author_id: `int` - ID of the Author that created the message
-    
-    room: `openhivenpy.types.Room` - Room where the message was sent
-    
-    room_id: `int` - ID of the Room where the message was deleted
-    
-    house: `openhivenpy.types.House` - House where the message was sent
-    
-    house_id: `int` - ID of the House where the message was deleted
-    
-    created_at: `datetime.datetime` - Creation timestamp
-    
-    edited_at: `datetime.datetime` - If edited returns a string timestamp else None
-    
-    attachment: `str` - In work
-    
-    mentions: `openhivenpy.types.Mention` - A list of Mention objects 
-    
-    exploding: `None` - In work
-    
     """
-    def __init__(self, data: dict, http: HTTP, house, room, author):
+    Data Class for a standard Hiven message
+    """
+    def __init__(self, data: dict, http, house, room, author):
         try:
             self._id = int(data.get('id'))
             self._author = author
@@ -102,14 +53,14 @@ class Message:
             
             # Converting to seconds because it's in milliseconds
             if data.get('timestamp') is not None:
-                self._timestamp = datetime.fromtimestamp(int(data.get('timestamp')) / 1000) 
+                self._timestamp = datetime.datetime.fromtimestamp(int(data.get('timestamp')) / 1000)
             else:
                 self._timestamp = None
                 
             self._edited_at = data.get('edited_at')
             self._mentions = []
             for _data in data.get('mentions', []):
-                self._mentions.append(getType.mention(_data, self._timestamp, self._author, http))
+                self._mentions.append(mention.Mention(_data, self._timestamp, self._author, http))
 
             self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
             self._exploding = data.get('exploding')
@@ -120,7 +71,7 @@ class Message:
             self._room_id = int(data.get('room_id')) if data.get('room_id') is not None else None
             self._room = room 
             
-            self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
+            self._embed = embed.Embed(data.get('embed')) if data.get('embed') is not None else None
 
             self._http = http
         
@@ -203,17 +154,11 @@ class Message:
         return self._embed
 
     async def mark_as_read(self, delay: float) -> bool:
-        """`openhivenpy.types.Message.ack`
-
-        Marks the message as read. This doesn't need to be done for bot clients. 
+        """
+        Marks the message as read. This doesn't need to be done for bot clients.
         
-        Returns `True` if successful.
-        
-        Parameter
-        ~~~~~~~~~
-        
-        delay: `float` - Delay until marking the message as read (in seconds)
-        
+        :param delay: Delay until marking the message as read (in seconds)
+        :return: True if the request was successful else False
         """
         try:
             await asyncio.sleep(delay=delay)
@@ -230,27 +175,21 @@ class Message:
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def delete(self, delay: float) -> bool:
-        """`openhivenpy.types.Message.delete()`
-
-        Deletes the message. Raises Forbidden if not allowed. 
+        """
+        Deletes the message. Raises Forbidden if not allowed.
         
-        Returns a `DeletedMessage` Object if successful
-        
-        Parameter
-        ~~~~~~~~~
-        
-        delay: `float` - Delay until deleting the message as read (in seconds)
-        
+        :param delay: Delay until deleting the message as read (in seconds)
+        :return: A DeletedMessage object if successful
         """
         try:
             await asyncio.sleep(delay=delay)
             
             resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             
-            if resp.status < 300:
-                return True
+            if not resp.status < 300:
+                raise errs.Forbidden()
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                return True
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
@@ -258,12 +197,10 @@ class Message:
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def edit(self, content: str) -> bool:
-        """`openhivenpy.types.House.edit()`
-
+        """
         Edits a message on Hiven
             
-        Returns 'True' if successful.
-
+        :return: True if the request was successful else False
         """
         try:
             resp = await self._http.patch(

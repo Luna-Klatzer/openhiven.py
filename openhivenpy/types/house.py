@@ -1,49 +1,113 @@
-import asyncio
+"""House Module for Hiven House Objects"""
 import logging
 import sys
-import traceback
 import typing
-from typing import Optional, Union
+from marshmallow import Schema
+from marshmallow import fields
+from marshmallow import post_load
+from marshmallow import ValidationError, RAISE, INCLUDE
 
-from ._get_type import getType
-from openhivenpy.gateway.http import HTTP
-import openhivenpy.utils.utils as utils
-import openhivenpy.exceptions as errs
-from .entity import Entity
+from . import HivenObject, invite, user
+from ..utils import utils
+from ..exceptions import exception as errs
+from . import entity
+from . import member
+from . import room
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['House', 'LazyHouse']
 
 
-class LazyHouse:
-    """`openhivenpy.types.LazyHouse`
+class LazyHouseSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
 
+    id = fields.Int(required=True)
+    name = fields.Str(required=True)
+    icon = fields.Str(required=True, allow_none=True)
+    owner_id = fields.Int(default=None)
+    rooms = fields.List(fields.Field(), default=[], allow_none=True)
+
+    @post_load
+    def make_house(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Attachment Object
+        """
+        return LazyHouse(**data)
+
+
+class HouseSchema(LazyHouseSchema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    banner = fields.Raw(allow_none=True)
+    roles = fields.List(fields.Raw(), required=True, allow_none=True)
+    default_permissions = fields.Int(required=True)
+    entities = fields.Raw(required=True, default=[])
+    members = fields.List(fields.Raw(), default=[])
+    client_member = fields.Raw(default=None, allow_none=True)
+
+    @post_load
+    def make_house(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Attachment Object
+        """
+        return House(**data)
+
+
+class LazyHouse(HivenObject):
+    """
     Low-Level Data Class for a Hiven House
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    Returned with create_house
 
     Note! This class is a lazy class and does not have every available data!
+
     Consider fetching for more data the regular house object with utils.get()
-
     """
-
-    def __init__(self, data: dict, http):
-        self._id = int(data['id']) if data.get('id') is not None else None
-        self._name = data.get('name')
-        self._icon = data.get('icon')
-        self._owner_id = data.get('owner_id')
-        self._type = data.get('type')
-
-        _rooms_data = data.get("rooms")
-        if _rooms_data:
-            self._rooms = list(getType.room(_room_data, http, self) for _room_data in _rooms_data)
-        else:
-            self._rooms = None
+    def __init__(self, kwargs: dict):
+        self._id = kwargs.get('id')
+        self._name = kwargs.get('name')
+        self._icon = kwargs.get('icon')
+        self._owner_id = kwargs.get('owner_id')
+        self._rooms = kwargs.get('rooms')
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    async def from_dict(cls, data: dict, http, **kwargs):
+        """
+        Creates an instance of the LazyHouse Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :return: The newly constructed LazyHouse Instance
+        """
+        try:
+            instance = LazyHouseSchema().load(data, unknown=INCLUDE)
+
+            # Updating the rooms afterwards when the object was already created
+            _rooms = data.get('rooms')
+            if _rooms is not None:
+                instance._rooms = list(room.Room(d, http, instance) for d in _rooms)
+            else:
+                instance._rooms = None
+
+            # Adding the http attribute for http interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
 
     @property
     def id(self) -> int:
@@ -55,8 +119,7 @@ class LazyHouse:
 
     @property
     def icon(self) -> str:
-        return (f"https://media.hiven.io/v1/houses/"
-                f"{self.id}/icons/{self._icon}")
+        return "https://media.hiven.io/v1/houses/{}/icons/{}".format(self.id, self._icon)
 
     @property
     def owner_id(self) -> int:
@@ -67,133 +130,18 @@ class LazyHouse:
         return self._rooms
 
 
-class House:
-    """`openhivenpy.types.House`
-    
-    Data Class for a Hiven House
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Returned with the getHouse() and get_house()
-    
+class House(LazyHouse):
     """
-
-    def __init__(
-            self,
-            data: dict,
-            http: HTTP,
-            client_id: int):
-        """
-        Expected JSON-DATA
-        -------------------
-        rooms: room[{
-            type: int,
-            recipients: null
-            position: int,
-            permission_overrides: bits,
-            owner_id: string,
-            name: string,
-            last_message_id: string,
-            id: string,
-            house_id: string,
-            emoji: object,
-            description: string,
-            default_permission_override: int
-          }],
-        roles: role[{
-            position: int,
-            name: string,
-            level: int,
-            id: string,
-            deny: bits,
-            color: string,
-            allow: bits
-          }],
-        owner_id: string,
-        name: string,
-        members: [{
-            user_id: string,
-            user: {
-              username: string,
-              user_flags: string,
-              name: string,
-              id: string,
-              icon: string,
-              header: string,
-              presence: string
-            },
-            roles: array,
-            last_permission_update: string,
-            joined_at: string,
-            house_id: string
-          }],
-        id: string,
-        icon: string,
-        entities: [{
-            type: int,
-            resource_pointers: [{
-              resource_type: string,
-              resource_id: string
-            }],
-            position: int,
-            name: string,
-            id: string
-          }],
-        default_permissions: int,
-        banner: string
-        """
-        try:
-            for _needed_prop in ['id', 'name', 'banner', 'icon', 'owner_id', 'roles', 'entities',
-                                 'default_permissions', 'members', 'rooms']:
-                if _needed_prop in data.keys():
-                    continue
-                else:
-                    raise errs.InvalidData(f"Missing '{_needed_prop}' field in passed data", data=data)
-
-            self._id = int(data.get('id'))
-            self._name = data.get('name')
-            self._banner = data.get('banner')
-            self._icon = data.get('icon')
-            self._owner_id = data.get('owner_id')
-
-            self._roles = list(data.get('roles'))
-
-            self._entities = []
-            for entity in data.get('entities'):
-                entity = getType.entity(entity, http)
-                self._entities.append(entity)
-
-            self._default_permissions = data.get('default_permissions')
-
-            _members = data.get("members")
-            self._members = list(getType.member(mem_data, self, http) for mem_data in _members)
-
-            self._rooms = list(getType.room(room_data, http, self) for room_data in data.get("rooms"))
-            self._client_member = utils.get(self._members, user_id=client_id)
-
-            # TODO! See if possible request is reasonable
-            # _raw_data = http.loop.create_task(http.request(endpoint=f"/users/{self._owner_id}"))
-            # if _raw_data:
-            #     _data = _raw_data.get('data')
-            #     if _data:
-            #         self._owner = getType.user(
-            #             data=_data,
-            #             http=http)
-            #     else:
-            #         raise errs.HTTPReceivedNoData()
-            # else:
-            #     raise errs.HTTPReceivedNoData()
-
-            self._http = http
-
-        except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to initialize the House object; \n"
-                                       f"{sys.exc_info()[0].__name__}: {e} \n>> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize House object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return str(repr(self))
+    Data Class for a Hiven House
+    """
+    def __init__(self, **kwargs):
+        self._roles = kwargs.get('roles')
+        self._entities = kwargs.get('entities')
+        self._default_permissions = kwargs.get('default_permissions')
+        self._members = kwargs.get('members')
+        self._client_member = kwargs.get('client_member')
+        self._banner = kwargs.get('banner')
+        super().__init__(kwargs)
 
     def __repr__(self) -> str:
         info = [
@@ -204,29 +152,57 @@ class House:
         ]
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    @property
-    def client_member(self) -> getType.member:
-        return self._client_member
+    @classmethod
+    async def from_dict(cls, data: dict, http, **kwargs):
+        """
+        Creates an instance of the House Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed House Instance
+        """
+        try:
+            data['client_member'] = None
+            instance = HouseSchema().load(dict(data), unknown=RAISE)
+            # Adding the http attribute for http interaction
+            instance._http = http
+
+            entities = [await entity.Entity.from_dict(e, http) for e in data.get('entities')]
+            instance._entities = entities
+            instance._default_permissions = data.get('default_permissions')
+
+            members = data.get('members')
+            rooms = data.get('rooms')
+            instance._members = list(member.Member(d, instance, http) for d in members)
+            instance._rooms = list(room.Room(d, http, instance) for d in rooms)
+            instance._client_member = utils.get(instance.members, user_id=kwargs.get('client_id'))
+
+            # Fetching the Owner of the House
+            raw_data = await http.request(f"/users/{instance.owner_id}")
+            if raw_data:
+                data = raw_data.get('data')
+                if data:
+                    instance._owner = user.User(data=data, http=http)
+                else:
+                    raise errs.HTTPReceivedNoData()
+            else:
+                raise errs.HTTPFaultyResponse()
+
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+    
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
-    def id(self) -> int:
-        return self._id
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def banner(self) -> str:
+    def banner(self) -> list:
         return self._banner
-
-    @property
-    def icon(self) -> str:
-        return f"https://media.hiven.io/v1/houses/{self.id}/icons/{self._icon}"
-
-    @property
-    def owner_id(self) -> int:
-        return self._owner_id
 
     @property
     def roles(self) -> list:
@@ -244,14 +220,10 @@ class House:
     def members(self) -> list:
         return self._members
 
-    @property
-    def rooms(self) -> list:
-        return self._rooms
-
     async def get_member(self, member_id: int):
         """openhivenpy.types.House.get_member()
 
-        Returns a Hiven Member Object based on the passed id.
+        Returns a Hiven Member Object based on the passed ID.
 
         Returns the Member if it exists else returns None
         """
@@ -263,7 +235,7 @@ class House:
                 if _raw_data:
                     _data = _raw_data.get('data')
                     if _data:
-                        return await getType.a_room(
+                        return member.Member(
                             data=_data,
                             http=self._http,
                             house=self)
@@ -285,7 +257,7 @@ class House:
     async def get_room(self, room_id: int):
         """openhivenpy.types.House.get_room()
 
-        Returns a Hiven Room Object based on the passed id.
+        Returns a Hiven Room Object based on the passed ID.
 
         Returns the Room if it exists else returns None
         """
@@ -295,7 +267,7 @@ class House:
                 return cached_room
                 # Not Possible yet
                 # data = await self._http.request(f"/rooms/{room_id}")
-                # return await getType.a_room(data, self._http)
+                # return Room(data, self._http)
             else:
                 logger.warning(f"[HOUSE] Found no room with specified id={room_id} in the client cache!")
 
@@ -309,20 +281,18 @@ class House:
     async def create_room(
             self,
             name: str,
-            parent_entity_id: Optional[Union[float, int]] = None) -> Union[getType.room, None]:
-        """openhivenpy.types.House.create_room()
-
+            parent_entity_id: typing.Optional[typing.Union[float, int]] = None) -> typing.Union[room.Room, None]:
+        """
         Creates a Room in the house with the specified name. 
         
-        Returns a `Room` object of the room that was created if successful
-        
+        :return: A Room Instance for the Hiven Room that was created if successful else None
         """
         try:
             json = {'name': name}
             if parent_entity_id:
                 json['parent_entity_id'] = parent_entity_id
             else:
-                # If no id was passed it will default to the Rooms category which serves as default for all
+                # If no ID was passed it will default to the Rooms category which serves as default for all
                 # entities
                 entity = utils.get(self.entities, name="Rooms")
                 json['parent_entity_id'] = entity.id
@@ -335,9 +305,9 @@ class House:
             if resp.status < 300:
                 data = (await resp.json()).get('data')
                 if data:
-                    room = await getType.a_room(data, self._http, self)
+                    _room = room.Room(data, self._http, self)
 
-                    return room
+                    return _room
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -351,7 +321,7 @@ class House:
 
     # TODO! Delete Room!
 
-    async def create_entity(self, name: str) -> typing.Union[Entity, None]:
+    async def create_entity(self, name: str) -> typing.Union[entity.Entity, None]:
         """openhivenpy.types.House.create_entity()
 
         Creates a entity in the house with the specified name.
@@ -367,9 +337,9 @@ class House:
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    entity = getType.entity(data, self._http)
-                    self._entities.append(entity)
-                    return entity
+                    _entity = entity.Entity(data, self._http)
+                    self._entities.append(_entity)
+                    return _entity
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -386,7 +356,7 @@ class House:
 
         Leaves the house.
         
-        Returns the house id if successful.
+        Returns the house ID if successful.
         
         """
         try:
@@ -404,14 +374,12 @@ class House:
             return False
 
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.types.House.edit()`
-        
-        Change the houses data.
-        
+        """
+        Changes the houses data on Hiven.
+
         Available options: name, icon(base64)
-        
-        Returns `True` if successful
-        
+
+        :return: True if the request was successful else False
         """
         try:
             for key in kwargs.keys():
@@ -435,15 +403,15 @@ class House:
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
-    async def create_invite(self, max_uses: int) -> Union[str, None]:
-        """`openhivenpy.types.House.create_invite()`
-
+    async def create_invite(self, max_uses: int) -> typing.Union[invite.Invite, None]:
+        """
         Creates an invite for the current house. 
-            
-        Returns the invite url if successful.
 
+        :param max_uses: Maximal uses for the invite code
+        :return: The invite url if successful.
         """
         try:
+            # TODO! Needs implementation for max_uses
             resp = await self._http.post(endpoint=f"/houses/{self.id}/invites")
 
             if resp.status < 300:
@@ -451,8 +419,7 @@ class House:
                 data = raw_data.get('data', {})
 
                 if data:
-                    code = data.get('code')
-                    return f"https://hiven.house/{code}"
+                    return invite.Invite(data, self, self._http)
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -464,13 +431,11 @@ class House:
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
-    async def delete(self) -> Union[int, None]:
-        """`openhivenpy.types.House.delete()`
-        
+    async def delete(self) -> typing.Union[int, None]:
+        """
         Deletes the house if permissions are sufficient!
         
-        Returns the house id if successful
-        
+        :return: The house ID if successful else None
         """
         try:
             resp = await self._http.delete(f"/houses/{self.id}")

@@ -3,24 +3,25 @@ import logging
 import datetime
 import asyncio
 import time
-import traceback
 import typing
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from ._get_type import getType
-import openhivenpy.exceptions as errs
+from . import HivenObject
+from . import user
+from . import relationship
+from . import private_room
+from . import presence
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Client']
 
 
-class Client:
-    r"""`openhivenpy.types.Client`
-
+class Client(HivenObject):
+    """
     Data Class that stores the data of the connected Client
-
     """
     def __init__(self, *, http=None, **kwargs):
         self._http = http if http is not None else self._http
@@ -44,10 +45,7 @@ class Client:
         self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.add_to_startup(self.__check_if_data_is_complete)
-
-    def __str__(self) -> str:
-        return str(repr(self))
+        self._execution_loop.add_to_startup(self.__check_if_data_is_complete())
 
     def __repr__(self) -> str:
         return repr(self.user)
@@ -57,20 +55,20 @@ class Client:
         return getattr(self, "connection_start")
 
     async def initialise_hiven_client_data(self, data: dict = None) -> None:
-        r"""`openhivenpy.types.client.update_client_user_data()`
-
+        """
         Updates or creates the standard user data attributes of the Client
 
+        :param data: Data used for Initialisation
         """
         try:
             # Initialising the Client-User object for storing the user data
-            self._client_user = await getType.a_user(data.get('user'), self.http)
+            self._client_user = user.User(data.get('user'), self.http)
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
             for key in _relationships:
                 _rel_data = _relationships.get(key, {})
-                _rel = await getType.a_relationship(
+                _rel = relationship.Relationship(
                     data=_rel_data,
                     http=self.http)
 
@@ -78,14 +76,14 @@ class Client:
 
             # Initialising the private rooms
             _private_rooms = data.get('private_rooms')
-            for private_room in _private_rooms:
-                t = int(private_room.get('type', 0))
+            for _private_room in _private_rooms:
+                t = int(_private_room.get('type', 0))
                 if t == 1:
-                    room = await getType.a_private_room(private_room, self.http)
+                    room = private_room.PrivateRoom(_private_room, self.http)
                 elif t == 2:
-                    room = await getType.a_private_group_room(private_room, self.http)
+                    room = private_room.PrivateGroupRoom(_private_room, self.http)
                 else:
-                    room = await getType.a_private_room(private_room, self.http)
+                    room = private_room.PrivateRoom(_private_room, self.http)
                 self._private_rooms.append(room)
 
             # Passing the amount of houses as variable
@@ -100,7 +98,7 @@ class Client:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
-        r"""
+        """
         Checks whether the meta data is complete and triggers on_ready
         """
         # boolean that will trigger the warning that the process is taking too long
@@ -124,14 +122,12 @@ class Client:
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.types.Client.edit()`
+        """
+        Edits the Clients data on Hiven
 
-        Change the signed in user's/bot's data.
+        Available options: header, icon, bio, location, website, username
 
-        Available options: header, icon, bio, location, website
-
-        Returns `True` if successful
-
+        :return: True if the request was successful else False
         """
         try:
             for key in kwargs.keys():
@@ -190,7 +186,7 @@ class Client:
         return getattr(self.user, 'website', None)
 
     @property
-    def presence(self) -> getType.presence:
+    def presence(self) -> presence.Presence:
         return getattr(self.user, 'presence', None)
 
     @property

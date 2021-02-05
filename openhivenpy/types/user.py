@@ -1,27 +1,19 @@
 import sys
-import datetime
 import logging
-import traceback
-from typing import Union
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['LazyUser', 'User']
 
 
-class LazyUser:
-    """`openhivenpy.types.LazyUser` 
-    
-    Data Class for a light-weight Hiven User
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+class LazyUser(HivenObject):
+    """
     Represents the standard Hiven User
-    
     """
     def __init__(self, data: dict):
         try:
@@ -44,7 +36,7 @@ class LazyUser:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -83,20 +75,10 @@ class LazyUser:
 
 
 class User(LazyUser):
-    """`openhivenpy.types.User` 
-    
-    Data Class for a Hiven User
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents the extended Hiven User
-    
-    Returned with events, guilds user lists, getUser() and get_user()
-    
-    Attributes
-    ~~~~~~~~~~
-    
     """
-    def __init__(self, data: dict, http: HTTP):
+    Represents the regular extended Hiven User
+    """
+    def __init__(self, data: dict, http):
         try:
             super().__init__(data) 
             self._location = data.get('location', "")

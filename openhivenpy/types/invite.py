@@ -1,56 +1,34 @@
-import asyncio
 import logging
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy.types import LazyHouse
-from openhivenpy.gateway.http import HTTP
-import openhivenpy.types as types
-import openhivenpy.exceptions as errs
+from . import HivenObject
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Invite']
 
 
-class Invite:
-    """`openhivenpy.types.Invite`
-    
-    Data Class for a Invite
-    ~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents an Invite to a Hiven House
-    
-    Attributes
-    ~~~~~~~~~~
-    
-    code: `int` - The invite code itself
-    
-    url: `int` - Url of the invite to the House
-    
-    room_id: `int` - ID of the Room where the message was deleted
-    
-    created_at: `str` - String with the creation date
-    
+class Invite(HivenObject):
     """
-    def __init__(self, data: dict, house: LazyHouse, http: HTTP):
-        self._http = http
-        
+    Represents an Invite to a Hiven House
+    """
+    def __init__(self, data: dict, _house, http):
         invite = data.get('invite')
         self._code = invite.get('code')
-
         if self._code is None:
             logger.warning("[INVITE] Got a non-type invite-code! Data is likely faulty!")
-
         self._url = "hiven.house/"+self._code
         self._created_at = invite.get('created_at')
         self._house_id = invite.get('house_id')
         self._max_age = invite.get('max_age')
         self._max_uses = invite.get('max_uses')
         self._type = invite.get('type')
-        self._house = house
+        self._house = _house
         self._house_members = data.get('counts', {}).get('house_members')
+        self._http = http
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [

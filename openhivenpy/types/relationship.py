@@ -1,30 +1,24 @@
 import logging
 import sys
-import asyncio
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from ._get_type import getType
-from .user import User
-from openhivenpy.gateway.http import HTTP
-from openhivenpy.utils.utils import get
-import openhivenpy.exceptions as errs
+from . import HivenObject
+from . import user
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Relationship']
 
 
-class Relationship:
-    """`openhivenpy.types.Relationship`
-    
-    Data Class for a Hiven Relationship
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents a relationship with a person 
-    
-    Possible Types
-    ~~~~~~~~~~~~~~
+class Relationship(HivenObject):
+    """
+    Represents a user-relationship with another user or bot
+
+    ---
+
+    Possible Types:
     
     0 - No Relationship
     
@@ -37,36 +31,17 @@ class Relationship:
     4 - Restricted User
     
     5 - Blocked User
-
-    Expected JSON-DATA
-    -------------------
-    Already friend:
-    ---------------
-    {'user_id': string,
-    'user': {
-        'username': str,
-        'user_flags': int,
-        'name': str,
-        'id': str,
-        'icon': str,
-        'header': str,
-        'bot': bool},
-    'type': int,
-    'last_updated_at': str}
-
-    # TODO! Needs other types added here!
-
     """
-    def __init__(self, data: dict, http: HTTP):
+    def __init__(self, data: dict, http):
         try:
             user_data = data.get('user')
             # user_id does not always exist
             self._user_id = data.get('user_id')
             if self._user_id:
                 self._user_id = int(self._user_id)
-            self._user = getType.user(user_data, http)
+            self._user = user.User(user_data, http)
             self._type = data.get('type')
-            # id does not always exist
+            # ID does not always exist
             self._id = data.get('id')
             if self._id:
                 self._id = int(self._id)
@@ -84,7 +59,7 @@ class Relationship:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -97,7 +72,7 @@ class Relationship:
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def user(self) -> User:
+    def user(self) -> user.User:
         return self._user
 
     @property

@@ -1,4 +1,4 @@
-""" openhiven.py related Exceptions """
+"""Exceptions used specifically for the module OpenHiven.py"""
 
 
 __all__ = (
@@ -20,8 +20,7 @@ __all__ = (
 
 
 class HivenException(Exception):
-    """`openhivenpy.exception.HivenException`
-
+    """
     Base Exception in the openhivenpy library!
     
     All other exceptions inherit from this base class
@@ -43,10 +42,8 @@ class HivenException(Exception):
 
 
 class HivenConnectionError(HivenException):
-    """`openhivenpy.exception.HivenConnectionError`
-    
+    """
     The connection to Hiven failed to be kept alive or started!
-    
     """
     def __init__(self, *args):
         if args:
@@ -57,10 +54,8 @@ class HivenConnectionError(HivenException):
 
 
 class Forbidden(HivenException):
-    """`openhivenpy.exception.Forbidden`
-
-    The client was forbidden to execute a certain task or function
-    
+    """
+    The client was forbidden to perform a Request
     """
     def __init__(self, *args):
         if args:
@@ -71,10 +66,8 @@ class Forbidden(HivenException):
 
 
 class FaultyInitialization(HivenException):
-    """`openhivenpy.exception.FaultyInitialization`
-    
+    """
     The object failed to initialise
-    
     """
     def __init__(self, *args):
         if args:
@@ -85,10 +78,8 @@ class FaultyInitialization(HivenException):
 
 
 class InvalidData(FaultyInitialization):
-    """`openhivenpy.exception.FaultyInitialization`
-
-    Failed to use data likely due to Faulty/Missing/Corrupt Data!
-
+    """
+    Failed to utilise data as wanted due to missing or unexpected data!
     """
 
     def __init__(self, *args, data):
@@ -103,10 +94,8 @@ class InvalidData(FaultyInitialization):
 
 
 class InvalidClientType(HivenException):
-    """`openhivenpy.exception.InvalidClientType`
-    
-    Invalid client type was passed resulting in a failed initialization!
-    
+    """
+    Invalid client type was passed resulting in a failed initialisation!
     """
     def __init__(self, *args):
         if args:
@@ -117,10 +106,8 @@ class InvalidClientType(HivenException):
 
 
 class InvalidToken(HivenException):
-    """`openhivenpy.exception.InvalidToken`
-    
+    """
     Invalid Token was passed!
-    
     """
     def __init__(self, *args):
         if args:
@@ -131,10 +118,8 @@ class InvalidToken(HivenException):
 
 
 class GatewayException(HivenConnectionError):
-    """`openhivenpy.exception.GatewayException`
-       
+    """
     General Exception in the Gateway and Connection to Hiven!
-    
     """
     def __init__(self, *args):
         if args:
@@ -145,10 +130,8 @@ class GatewayException(HivenConnectionError):
 
 
 class HTTPError(GatewayException):
-    """`openhivenpy.exception.HTTPError`
-       
+    """
     Base Exception for exceptions in the HTTP and overall requesting
-    
     """    
     def __init__(self, *args, code="Unknown"):
         if args:
@@ -159,10 +142,8 @@ class HTTPError(GatewayException):
 
 
 class HTTPFailedRequest(HTTPError):
-    """`openhivenpy.exception.HTTPFailedRequest`
-       
-    General Exception while handling a request
-    
+    """
+    General Exception for errors while handling a request
     """    
     def __init__(self, *args):
         if args:
@@ -173,10 +154,8 @@ class HTTPFailedRequest(HTTPError):
 
 
 class HTTPFaultyResponse(HTTPError):
-    """`openhivenpy.exception.HTTPFaultyResponse`
-       
+    """
     Response was in wrong format or expected data was not received
-    
     """    
     def __init__(self, *args):
         if args:
@@ -187,13 +166,10 @@ class HTTPFaultyResponse(HTTPError):
 
 
 class HTTPReceivedNoData(HTTPFaultyResponse):
-    """`openhivenpy.exception.HTTPReceivedNoData`
-
+    """
     Received a response without the required data field or
     received a 204(No Content) in a request that expected data.
-
     """
-
     def __init__(self, *args):
         if args:
             arg = "".join([str(arg) for arg in args])
@@ -203,10 +179,8 @@ class HTTPReceivedNoData(HTTPFaultyResponse):
 
 
 class SessionCreateException(HTTPError):
-    """`openhivenpy.exception.UnableToCreateSession`
-       
+    """
     Failed to create Session!
-    
     """    
     def __init__(self, *args):
         if args:
@@ -217,10 +191,8 @@ class SessionCreateException(HTTPError):
 
 
 class UnableToClose(GatewayException):
-    """`openhivenpy.exception.UnableToClose`
-    
+    """
     The client is unable to close the connection to Hiven!
-    
     """
     def __init__(self, *args):
         if args:
@@ -231,10 +203,8 @@ class UnableToClose(GatewayException):
 
 
 class WSFailedToHandle(GatewayException):
-    """`openhivenpy.exception.WSFailedToHandle`
-    
+    """
     An Exception occurred while handling a message/response from Hiven
-    
     """
     def __init__(self, *args):
         if args:
@@ -245,10 +215,8 @@ class WSFailedToHandle(GatewayException):
 
 
 class NoneClientType(Warning):
-    """`openhivenpy.exception.NoneClientType`
-    
+    """
     A None Type was passed in the Initialization!
-    
     """    
     def __init__(self, *args):
         if args:
@@ -261,10 +229,8 @@ class NoneClientType(Warning):
 
 
 class CommandException(HivenException):
-    """`openhivenpy.exception.CommandException`
-    
+    """
     General Exception while executing a command function on Hiven!
-    
     """
     def __init__(self, *args):
         if args:

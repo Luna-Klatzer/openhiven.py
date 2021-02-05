@@ -1,55 +1,31 @@
 import logging
-from datetime import datetime
-from typing import Union
+import datetime
+import typing
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from ._get_type import getType
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from . import user
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Mention']
 
 
-class Mention:
-    """`openhivenpy.types.Mention`
-    
-    Data Class for a Mention
-    ~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents an mention for a user in Hiven
-    
-    Simple User Object
-    
-    Attributes
-    ~~~~~~~~~~
-    
-    timestamp: `datetime.timestamp` - Creation date of the mention
-    
-    author: `openhivenpy.types.User` - Author that created the mention
-    
+class Mention(HivenObject):
     """
-    def __init__(self, data: dict, timestamp: Union[datetime, str], author, http: HTTP):
+    Represents an mention for a user in Hiven
+    """
+    def __init__(self, data: dict, timestamp: typing.Union[datetime.datetime, str], author, http):
         # Converting to seconds because it's in milliseconds
         if data.get('timestamp') is not None:
-            self._timestamp = datetime.fromtimestamp(int(timestamp) / 1000) 
+            self._timestamp = datetime.datetime.fromtimestamp(int(timestamp) / 1000)
         else:
             self._timestamp = None
             
-        self._user = getType.user(data, http)
+        self._user = user.User(data, http)
             
         self._author = author
         self._http = http
-
-    def __str__(self) -> str:
-        return str(repr(self))
-
-    def __repr__(self) -> str:
-        info = [
-            ('timestamp', self.timestamp),
-            ('user', repr(self.user)),
-            ('author', self.author)
-        ]
-        return '<Mention {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
     def timestamp(self):

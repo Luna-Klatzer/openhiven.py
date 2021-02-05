@@ -1,15 +1,13 @@
 import os
-import traceback
-
 import aiohttp
 import asyncio
 import logging
 import sys
 import time
 import json as json_decoder
-from typing import Optional, Union
+import typing
 
-import openhivenpy.exceptions as errs
+from ..exceptions import exception as errs
 
 __all__ = 'HTTP'
 
@@ -28,44 +26,40 @@ _default_api_version = os.getenv("HIVEN_API_VERSION")
 
 
 class HTTP:
-    """`openhivenpy.gateway.HTTP`
-    
-
-    HTTP-Client for requests and interaction with the Hiven API
-    
-    Parameter:
-    ----------
-    
-    api_url: `str` - Url for the API which will be used to interact with Hiven. Defaults to 'https://api.hiven.io/v1' 
-    
-    host: `str` - Host URL. Defaults to "api.hiven.io"
-    
-    api_version: `str` - Version string for the API Version. Defaults to 'v1' 
-    
-    token: `str` - Needed for the authorization to Hiven.
-    
-    event_loop: `asyncio.AbstractEventLoop` - Event loop that will be used to execute all async functions.
-    
     """
+    HTTP-Client for requests and interaction with the Hiven API
+    """
+    def __init__(self,
+                 token: str,
+                 *,
+                 event_loop: typing.Optional[asyncio.AbstractEventLoop],
+                 host: typing.Optional[str] = _default_host,
+                 api_version: typing.Optional[str] = _default_api_version):
+        """
+        Object Instance Construction
 
-    def __init__(self, loop: Optional[asyncio.AbstractEventLoop], **kwargs):
-
-        self._TOKEN = kwargs.get('token')
-        self.host = kwargs.get('host', _default_host)
-        self.api_version = kwargs.get('api_version', _default_api_version)
+        :param token: Authorisation Token for Hiven
+        :param event_loop: Event loop that will be used to execute all async functions. Will use
+                           'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no
+                           one was created yet
+        :param host: Url for the API which will be used to interact with Hiven.
+                     Defaults to the pre-set environment host (api.hiven.io)
+        :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
+        """
+        self._token = token
+        self.host = host
+        self.api_version = api_version
         self.api_url = request_url_format.format(self.host, self.api_version)
-        self.headers = {"Authorization": self._TOKEN,
-                        "Host": self.host}  # Default header used for a request
-
+        self.headers = {"Authorization": self._token, "Host": self.host}  # Default header used for requests
         self._ready = False
         self._session = None  # Will be created during start of connection
-        self._event_loop = loop
+        self._event_loop = event_loop
 
         # Last/Currently executed request
         self._request = None
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -88,9 +82,8 @@ class HTTP:
     def event_loop(self):
         return self._event_loop
 
-    async def connect(self) -> Union[aiohttp.ClientSession, None]:
-        r"""`openhivenpy.gateway.HTTP.connect()`
-
+    async def connect(self) -> typing.Union[aiohttp.ClientSession, None]:
+        """
         Establishes for the HTTP a connection to Hiven
 
         :return: The created aiohttp.ClientSession
@@ -147,8 +140,7 @@ class HTTP:
             raise errs.SessionCreateException(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
 
     async def close(self) -> bool:
-        r"""`openhivenpy.gateway.HTTP.connect()`
-
+        """
         Closes the HTTP session that is currently connected to Hiven!
 
         :return: True if it was successful else False
@@ -171,9 +163,8 @@ class HTTP:
             json: dict = None,
             timeout: float = 15,
             headers: dict = None,  # Defaults to an empty header
-            **kwargs) -> Union[aiohttp.ClientResponse, None]:
-        r"""`openhivenpy.gateway.HTTP.raw_request()`
-
+            **kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
+        """
         Wrapped HTTP request for a specified endpoint.
         
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -220,10 +211,12 @@ class HTTP:
                                _method: str,
                                _json: dict,
                                _headers: dict,
-                               **_kwargs) -> Union[aiohttp.ClientResponse, None]:
+                               **_kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
             """
-            HTTP_Request Function that stores the request and the handling of exceptions! Will be used as
+
+            The Function that stores the request and the handling of exceptions! Will be used as
             a variable so the status of the request can be seen by the asyncio.Task status!
+
             :param _endpoint: Endpoint of the request
             :param _method: HTTP method of the request
             :param _json: Additional JSON Data if it exists
@@ -327,9 +320,8 @@ class HTTP:
                       json: dict = None,
                       timeout: float = 15,
                       headers: dict = None,
-                      **kwargs) -> Union[dict, None]:
-        """`openhivenpy.gateway.HTTP.request()`
-
+                      **kwargs) -> typing.Union[dict, None]:
+        """
         Wrapped HTTP 'GET' request for a specified endpoint, which returns only the response data!
         
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -359,8 +351,7 @@ class HTTP:
                   timeout: float = 15,
                   headers: dict = None,
                   **kwargs) -> aiohttp.ClientResponse:
-        r"""`openhivenpy.gateway.HTTP.post()`
-
+        """
         Wrapped HTTP 'GET' request for a specified endpoint
 
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -388,8 +379,7 @@ class HTTP:
                    timeout: float = 15,
                    headers: dict = None,
                    **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.post()`
-
+        """
         Wrapped HTTP 'POST' for a specified endpoint.
         
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -426,8 +416,7 @@ class HTTP:
                      timeout: float = 15,
                      headers: dict = None,
                      **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.delete()`
-
+        """
         Wrapped HTTP 'DELETE' for a specified endpoint.
         
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -455,8 +444,7 @@ class HTTP:
                   timeout: float = 15,
                   headers: dict = None,
                   **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.put()`
-
+        """
         Wrapped HTTP 'PUT' for a specified endpoint.
         
         Similar to post, but multiple requests do not affect performance
@@ -495,8 +483,7 @@ class HTTP:
                     timeout: float = 15,
                     headers: dict = None,
                     **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.patch()`
-
+        """
         Wrapped HTTP 'PATCH' for a specified endpoint.
         
         :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
@@ -533,8 +520,7 @@ class HTTP:
                       timeout: float = 15,
                       headers: dict = None,
                       **kwargs) -> aiohttp.ClientResponse:
-        """`openhivenpy.gateway.HTTP.options()`
-
+        """
         Wrapped HTTP 'OPTIONS' for a specified endpoint.
         
         Requests permission for performing communication with a URL or server

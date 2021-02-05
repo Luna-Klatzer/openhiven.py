@@ -1,15 +1,12 @@
 """
-`openhivenpy.gateway`
 
-Module gateway 
-~~~~~~~~~~~~~~
+Module for the OpenHiven.py Gateway and Connection to Hiven
 
-Module that represents the connection to Hiven over the Websocket and the HTTP
+---
 
-MIT License
-~~~~~~~~~~~
+Under MIT License
 
-Copyright (c) 2020 Frostbyte Development Team 
+Copyright © 2020 Frostbyte Development Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

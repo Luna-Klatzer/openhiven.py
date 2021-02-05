@@ -1,31 +1,25 @@
 import logging
 import sys
 import asyncio
-import traceback
-from typing import Union
+import typing
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from ._get_type import getType
-from .user import User
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from . import message
+from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 
-class PrivateGroupRoom:
-    """`openhivenpy.types.PrivateGroupRoom`
-    
-    Data Class for a Private Group Chat Room
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents a private group chat room with multiple person
-    
+class PrivateGroupRoom(HivenObject):
     """
-    def __init__(self, data: dict, http: HTTP):
+    Represents a private group chat room with multiple person
+    """
+    def __init__(self, data: dict, http):
         try:
             self._id = int(data.get('id'))
             self._last_message_id = data.get('last_message_id')
@@ -33,7 +27,7 @@ class PrivateGroupRoom:
             recipients_data = data.get("recipients")
             self._recipients = []
             for recipient in recipients_data:
-                self._recipients.append(getType.user(recipient, http))
+                self._recipients.append(module_user.User(recipient, http))
                 
             self._name = f"Private Group chat with {(''.join(r.name+', ' for r in self._recipients))[:-2]}"   
             self._type = data.get('type')
@@ -48,7 +42,7 @@ class PrivateGroupRoom:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -60,7 +54,7 @@ class PrivateGroupRoom:
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def recipients(self) -> Union[User, list]:
+    def recipients(self) -> typing.Union[module_user.User, list]:
         return self._recipients
     
     @property
@@ -79,23 +73,14 @@ class PrivateGroupRoom:
     def type(self) -> int:
         return self._type 
 
-    async def send(self, content: str, delay: float = None) -> getType.message:
-        """`openhivenpy.types.PrivateGroupRoom.send()`
-
-        Sends a message in the private room. 
-        
-        Returns a `Message` object if successful.
-
-        Parameter:
-        ----------
-        
-        content: `str` - Content of the message
-    
-        delay: `float` - Seconds to wait until sending the message (in seconds)
-
+    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
         """
-        # POST /rooms/roomid/messages
-        # Media: POST /rooms/roomid/media_messages
+        Sends a message in the private room. 
+
+        :param content: Content of the message
+        :param delay: Seconds to wait until sending the message (in seconds)
+        :return: A Message instance if successful else None
+        """
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
@@ -111,8 +96,8 @@ class PrivateGroupRoom:
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = getType.user(author_data, self._http)
-                        msg = await getType.a_message(
+                        author = module_user.User(author_data, self._http)
+                        msg = message.Message(
                             data=data,
                             http=self._http,
                             house=None,
@@ -136,14 +121,9 @@ class PrivateGroupRoom:
         """openhivenpy.types.PrivateGroupRoom.start_call()
 
         Starts a call with the user in the private room
-        
-        Returns `True` if successful
-        
-        Parameter:
-        ----------
-    
-        delay: `float` - Delay until calling (in seconds)
 
+        :param delay: Delay until calling (in seconds)
+        :return: True if successful
         """
         try:
             await asyncio.sleep(delay=delay)
@@ -163,20 +143,15 @@ class PrivateGroupRoom:
 
 
 class PrivateRoom:
-    """`openhivenpy.types.PrivateRoom`
-    
-    Data Class for a Private Chat Room
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents a private chat room with a person
-    
     """
-    def __init__(self, data: dict, http: HTTP):
+    Represents a private chat room with a user
+    """
+    def __init__(self, data: dict, http):
         try:
             self._id = int(data.get('id'))
             self._last_message_id = data.get('last_message_id')
             recipients = data.get("recipients")
-            self._recipient = getType.user(recipients[0], http)
+            self._recipient = module_user.User(recipients[0], http)
             self._name = f"Private chat with {recipients[0]['name']}"   
             self._type = data.get('type')
              
@@ -190,7 +165,7 @@ class PrivateRoom:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -202,11 +177,11 @@ class PrivateRoom:
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def user(self) -> User:
+    def user(self) -> module_user.User:
         return self._recipient
     
     @property
-    def recipient(self) -> User:
+    def recipient(self) -> module_user.User:
         return self._recipient
     
     @property
@@ -229,14 +204,9 @@ class PrivateRoom:
         """openhivenpy.types.PrivateRoom.start_call()
 
         Starts a call with the user in the private room
-        
-        Returns `True` if successful
-        
-        Parameter:
-        ----------
     
-        delay: `float` - Delay until calling (in seconds)
-
+        :param delay: Delay until calling (in seconds)
+        :return: True if successful
         """
         try:
             await asyncio.sleep(delay=delay)
@@ -255,23 +225,14 @@ class PrivateRoom:
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False             
 
-    async def send(self, content: str, delay: float = None) -> getType.message:
-        """openhivenpy.types.PrivateRoom.send(content)
-
-        Sends a message in the private room. 
-        
-        Returns a `Message` object if successful.
-
-        Parameter:
-        ----------
-        
-        content: `str` - Content of the message
-    
-        delay: `float` - Delay until sending the message (in seconds)
-
+    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
         """
-        #POST /rooms/roomid/messages
-        #Media: POST /rooms/roomid/media_messages
+        Sends a message in the private room. 
+
+        :param content: Content of the message
+        :param delay: Delay until sending the message (in seconds)
+        :return: Returns a Message Instance if successful.
+        """
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(
@@ -287,8 +248,8 @@ class PrivateRoom:
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = getType.user(author_data, self._http)
-                        msg = await getType.a_message(
+                        author = module_user.User(author_data, self._http)
+                        msg = message.Message(
                             data=data,
                             http=self._http,
                             house=None,

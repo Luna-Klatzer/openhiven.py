@@ -1,33 +1,22 @@
-import datetime
 import logging
 import sys
-import traceback
-import typing
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
-from openhivenpy import utils
-
-from .user import User
-from openhivenpy.gateway.http import HTTP
-from openhivenpy.utils import raise_value_to_type
-import openhivenpy.exceptions as errs
+from . import HivenObject
+from . import user
+from .. import utils
+from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Member']
 
 
-class Member(User):
-    """`openhivenpy.types.Member` 
-    
-    Data Class for a Hiven member
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only) and the User Class!
-    
-    Returned with house house member list and House.get_member()
-    
+class Member(user.User, HivenObject):
     """
-    def __init__(self, data: dict, house, http: HTTP):
+    Represents a House Member on Hiven
+    """
+    def __init__(self, data: dict, house, http):
         try:
             super().__init__(data.get('user', data), http)
             self._user_id = self._id
@@ -35,7 +24,7 @@ class Member(User):
             if self._house_id is None:
                 self._house_id = house.id
             self._joined_at = data.get('joined_at')
-            self._roles = raise_value_to_type(data.get('roles', []), list)
+            self._roles = utils.raise_value_to_type(data.get('roles', []), list)
             
             self._house = house
             self._http = http
@@ -48,7 +37,7 @@ class Member(User):
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -84,15 +73,14 @@ class Member(User):
         return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:
-        """`openhivenpy.types.Member.kick()`
-
+        """
         Kicks a user from the house.
 
-        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`. 
+        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`
             
-        Returns `True` if successful.
-        
+        :return: True if the request was successful else HivenException.Forbidden()
         """
+        # TODO! Needs be changed with the HTTP Exceptions Update
         resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
             raise errs.Forbidden()

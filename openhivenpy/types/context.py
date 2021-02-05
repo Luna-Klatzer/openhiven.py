@@ -1,41 +1,74 @@
 import logging
+import sys
 
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
-from ._get_type import getType
+from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+
+from .. import utils
+from . import HivenObject
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Context']
+__all__ = ('Context', 'ContextSchema')
 
 
-class Context:
-    """`openhivenpy.types.Context` 
-    
-    Data Class for a Command Context
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class ContextSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+    room = fields.Raw(required=True)
+    author = fields.Raw(required=True)
+    created_at = fields.Str(required=True)
+    house = fields.Raw(default=None)
 
-    Represents a Command Context for a triggered command in the CommandListener
+    @post_load
+    def make_house(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Attachment Object
+        """
+        return Context(**data)
+
+
+class Context(HivenObject):
     """
-    def __init__(self, data: dict, http: HTTP):
-        self._http = http
-        self._room = None
-        self._author = None
-        self._house = None
-        self._created_at = None
+    Represents a Command Context for a triggered command in the CommandListener
+    """
+    def __init__(self, **kwargs):
+        """
+        Object Instance Construction
 
-    def __str__(self) -> str:
-        return str(repr(self))
+        :param kwargs: Additional Parameter of the class that will be initialised with it
+        """
+        self._room = kwargs.get('room')
+        self._author = kwargs.get('author')
+        self._house = kwargs.get('house')
+        self._created_at = kwargs.get('created_at')
 
-    def __repr__(self) -> str:
-        info = [
-            ('author', repr(self.author)),
-            ('room', self.room),
-            ('house', self.house),
-            ('created_at', self.created_at)
-        ]
-        return '<Context {}>'.format(' '.join('%s=%s' % t for t in info))
+    @classmethod
+    async def from_dict(cls, data: dict, http, **kwargs):
+        """
+        Creates an instance of the Context Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed Context Instance
+        """
+        try:
+            instance = ContextSchema().load(data, unknown=RAISE)
+            # Adding the http attribute for http interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
     def house(self):

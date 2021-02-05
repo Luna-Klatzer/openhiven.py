@@ -33,4 +33,4 @@ class Bot(hiven.UserClient):
 
 if __name__ == '__main__':
     client = Bot(token="")
-    client.run()
+    client.run(restart=True)

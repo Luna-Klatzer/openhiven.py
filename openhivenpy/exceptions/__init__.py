@@ -1,15 +1,11 @@
 """
-`openhivenpy.exception`
+Exceptions used specifically for the module OpenHiven.py
 
-Module Exception 
-~~~~~~~~~~~~~~~~
+---
 
-Module that stores all exception classes in openhivenpy
+Under MIT License
 
-MIT License
-~~~~~~~~~~~
-
-Copyright (c) 2020 Frostbyte Development Team 
+Copyright © 2020 Frostbyte Development Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
