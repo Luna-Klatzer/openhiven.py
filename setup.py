@@ -20,7 +20,7 @@ setuptools.setup(
         "Docs Rewrite": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/",
         "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/api_reference/",
         "Issues": "https://github.com/FrostbyteSpace/openhiven.py/issues/",
-        "Changelog": ""
+        "Changelog": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/changelog.html"
     },
     packages=setuptools.find_packages(),
     classifiers=[
