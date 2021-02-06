@@ -29,7 +29,7 @@ class EntitySchema(Schema):
 
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
-        :return: A new Attachment Object
+        :return: A new Entity Object
         """
         return Entity(**data)
 
@@ -38,6 +38,8 @@ class Entity(HivenObject):
     """
     Represents a Hiven Entity
     """
+    _http = None
+
     def __init__(self, **kwargs):
         self._type = kwargs.get('type', 1)
         self._position = kwargs.get('position')

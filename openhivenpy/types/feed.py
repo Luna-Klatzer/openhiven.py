@@ -15,8 +15,8 @@ class Feed(HivenObject):
 
     Deprecated and will likely get removed in future releases
     """
-    def __init__(self, http, **kwargs):
-        self._http = http
+    def __init__(self, **kwargs):
+        pass
 
     def __str__(self) -> str:
         return repr(self)

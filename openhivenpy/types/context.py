@@ -26,7 +26,7 @@ class ContextSchema(Schema):
 
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
-        :return: A new Attachment Object
+        :return: A new Context Object
         """
         return Context(**data)
 

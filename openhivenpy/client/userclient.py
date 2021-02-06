@@ -86,7 +86,7 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
 
@@ -139,7 +139,7 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
 
@@ -168,7 +168,7 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
 
@@ -197,7 +197,7 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.http.post(endpoint=f"/relationships/@me/friend-requests",
                                         json={'user_id': f'{user_id}'})

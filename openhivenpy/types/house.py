@@ -36,7 +36,7 @@ class LazyHouseSchema(Schema):
 
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
-        :return: A new Attachment Object
+        :return: A new LazyHouse Object
         """
         return LazyHouse(**data)
 
@@ -60,7 +60,7 @@ class HouseSchema(LazyHouseSchema):
 
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
-        :return: A new Attachment Object
+        :return: A new LazyHouse Object
         """
         return House(**data)
 
@@ -102,8 +102,6 @@ class LazyHouse(HivenObject):
             else:
                 instance._rooms = None
 
-            # Adding the http attribute for http interaction
-            instance._http = http
             return instance
 
         except ValidationError as e:
@@ -440,7 +438,7 @@ class House(LazyHouse):
                 data = raw_data.get('data', {})
 
                 if data:
-                    return invite.Invite(data, self, self._http)
+                    return await invite.Invite.from_dict(data, self._http, house=self)
                 else:
                     raise errs.HTTPReceivedNoData()
             else:

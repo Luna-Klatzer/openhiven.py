@@ -71,7 +71,7 @@ class Message:
             self._room_id = int(data.get('room_id')) if data.get('room_id') is not None else None
             self._room = room 
             
-            self._embed = embed.Embed(data.get('embed')) if data.get('embed') is not None else None
+            self._embed = embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') is not None else None
 
             self._http = http
         

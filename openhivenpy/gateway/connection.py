@@ -414,6 +414,8 @@ class Connection(Websocket):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.HivenConnectionError("Failed to establish the connection to Hiven! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
 
         finally:
             self._connection_status = "CLOSED"

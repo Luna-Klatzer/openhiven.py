@@ -217,8 +217,8 @@ class EventHandler:
             func_args=param
         )
 
-    async def dispatch_on_house_entity_update(self, house, entity, data) -> None:
-        param = [house, entity, data]
+    async def dispatch_on_house_entity_update(self, house) -> None:
+        param = [house]
         await dispatch_func_if_exists(
             obj=self._call_obj,
             func_name='on_house_entity_update',

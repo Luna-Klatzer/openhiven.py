@@ -545,8 +545,8 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        house = types.LazyHouse(data, self.connection.http)
-                        return house
+                        lazy_house = await types.LazyHouse.from_dict(data, self.http)
+                        return lazy_house
                     else:
                         raise errs.HTTPReceivedNoData()
                 else:
@@ -595,21 +595,7 @@ class HivenClient(EventHandler):
 
             data = raw_data.get('data')
             if data:
-                house_data = data.get('house')
-                _raw_data = await self.http.request(endpoint=f"/users/{house_data.get('owner_id')}")
-                if _raw_data:
-                    _data = _raw_data.get('data')
-                    if _data:
-                        # Creating a house with the data
-                        house = types.LazyHouse(
-                            kwargs=house_data,
-                            http=self.http)
-                    else:
-                        raise errs.HTTPReceivedNoData()
-                else:
-                    raise errs.HTTPReceivedNoData()
-
-                return types.Invite(data, house, self.connection.http)
+                return await types.Invite.from_dict(data, self.connection.http, houses=self.houses)
             else:
                 raise errs.HTTPReceivedNoData()
 
@@ -694,7 +680,7 @@ class HivenClient(EventHandler):
             elif type(room) is types.User:
                 room_id = str(getattr(room, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(room)}")
+                raise TypeError(f"Expected User or int! Not {type(room)}")
 
             json = {}
             for key in kwargs:
@@ -737,7 +723,7 @@ class HivenClient(EventHandler):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))  # ID must be in string format
             else:
-                raise ValueError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.connection.http.post(endpoint="/users/@me/rooms",
                                                    json={'recipient': user_id})
@@ -782,7 +768,7 @@ class HivenClient(EventHandler):
                 elif type(user) is types.User:
                     user_ids.append(str(getattr(user, 'id')))  # ids must be in string format
                 else:
-                    raise ValueError(f"Expected User or int! Not {type(user)}")
+                    raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.connection.http.post(endpoint="/users/@me/rooms", json={'recipients': user_ids})
             if resp.status < 300:
