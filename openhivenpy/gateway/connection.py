@@ -421,17 +421,18 @@ class Connection(Websocket):
             return
 
     # Kills the connection as well as the event loop
-    async def destroy(self, exec_loop=True, **kwargs) -> None:
+    async def destroy(self, reason: str = None, exec_loop=True, block_restart: bool = False) -> None:
         """
         Kills the event loop and the running tasks! 
         
         Deprecated! Will be removed in later versions!
 
         :param exec_loop: If True closes the execution_loop with the other tasks. Defaults to True
-        :param reason: Reason that will be logged
+        :param reason: Reason for the call of the closing function
+        :param block_restart: If set to True restarting will be blocked entirely and the connection returns
         """
         try:
-            logger.info(f"[CONNECTION] Close method called! Reason: {kwargs.get('reason', 'None')} >>"
+            logger.info(f"[CONNECTION] Close method called! Reason: {reason} >>"
                         " Destroying current processes and gateway connection!")
             self._connection_status = "CLOSING"
 
@@ -458,7 +459,7 @@ class Connection(Websocket):
             raise errs.UnableToClose("Closing the connection to Hiven failed!"
                                      f"> {sys.exc_info()[0].__name__}: {e}")
 
-    async def close(self, reason: str = "", close_exec_loop=True, block_restart: bool = False) -> None:
+    async def close(self, reason: str = None, close_exec_loop=True, block_restart: bool = False) -> None:
         """
         Stops the active asyncio task that represents the connection and closes all internal processes!
 

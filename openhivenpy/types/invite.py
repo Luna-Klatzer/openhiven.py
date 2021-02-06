@@ -2,33 +2,49 @@ import logging
 from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from . import HivenObject
+from ..utils import utils
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Invite']
+__all__ = ('Invite', 'InviteSchema')
+
+
+class InviteSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    id = fields.Int(required=True)
+    name = fields.Str(required=True)
+    icon = fields.Str(required=True, allow_none=True)
+    owner_id = fields.Int(default=None)
+    rooms = fields.List(fields.Field(), default=[], allow_none=True)
+
+    @post_load
+    def make_house(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Attachment Object
+        """
+        return Invite(**data)
 
 
 class Invite(HivenObject):
     """
     Represents an Invite to a Hiven House
     """
-    def __init__(self, data: dict, _house, http):
-        invite = data.get('invite')
-        self._code = invite.get('code')
-        if self._code is None:
-            logger.warning("[INVITE] Got a non-type invite-code! Data is likely faulty!")
-        self._url = "hiven.house/"+self._code
-        self._created_at = invite.get('created_at')
-        self._house_id = invite.get('house_id')
-        self._max_age = invite.get('max_age')
-        self._max_uses = invite.get('max_uses')
-        self._type = invite.get('type')
-        self._house = _house
-        self._house_members = data.get('counts', {}).get('house_members')
-        self._http = http
-
-    def __str__(self) -> str:
-        return repr(self)
+    def __init__(self, data: dict):
+        self._code = data.get('code')
+        self._url = data.get('url')
+        self._created_at = data.get('created_at')
+        self._house_id = data.get('house_id')
+        self._max_age = data.get('max_age')
+        self._max_uses = data.get('max_uses')
+        self._type = data.get('type')
+        self._house = data.get('house')
+        self._house_members = data.get('house_members')
 
     def __repr__(self) -> str:
         info = [
@@ -41,7 +57,44 @@ class Invite(HivenObject):
             ('max_uses', self.max_uses),
         ]
         return '<Invite {}>'.format(' '.join('%s=%s' % t for t in info))
-    
+
+    @classmethod
+    async def from_dict(cls, data: dict, http, houses: list, **kwargs):
+        """
+        Creates an instance of the LazyHouse Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param houses: The cached list of Houses to fetch the corresponding House from
+        :return: The newly constructed LazyHouse Instance
+        """
+        try:
+            invite = data.get('invite')
+            data['code'] = invite.get('code')
+            data['url'] = "https://hiven.house/{}".format(data['code'])
+            data['created_at'] = invite.get('created_at')
+            data['house_id'] = invite.get('house_id')
+            data['max_age'] = invite.get('max_age')
+            data['max_uses'] = invite.get('max_uses')
+            data['type'] = invite.get('type')
+            data['house_members'] = data['counts'].get('house_members')
+            data['house'] = utils.get(houses, id=data['house_id'])
+
+            instance = InviteSchema().load(data, unknown=RAISE)
+
+            # Adding the http attribute for http interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+
     @property
     def code(self):
         return self._code

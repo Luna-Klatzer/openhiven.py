@@ -35,7 +35,6 @@ class HivenClient(EventHandler):
     """
     Main Class for connecting to Hiven and interacting with the API.
     """
-
     def __init__(
             self,
             token: str,
@@ -119,7 +118,7 @@ class HivenClient(EventHandler):
         # nest_asyncio.apply(loop=self.loop)
 
     def __str__(self) -> str:
-        return str(getattr(self, "name"))
+        return getattr(self, "name")
 
     def __repr__(self) -> str:
         info = [

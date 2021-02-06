@@ -47,10 +47,11 @@ class HouseSchema(LazyHouseSchema):
 
     banner = fields.Raw(allow_none=True)
     roles = fields.List(fields.Raw(), required=True, allow_none=True)
-    default_permissions = fields.Int(required=True)
-    entities = fields.Raw(required=True, default=[])
+    default_permissions = fields.Int(required=True, allow_none=True)
+    entities = fields.Raw(required=True, default=[], allow_none=True)
     members = fields.List(fields.Raw(), default=[])
     client_member = fields.Raw(default=None, allow_none=True)
+    owner = fields.Raw(default=None, allow_none=True)
 
     @post_load
     def make_house(self, data, **kwargs):
@@ -109,6 +110,11 @@ class LazyHouse(HivenObject):
             utils.log_validation_traceback(cls, e)
             return None
 
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+
     @property
     def id(self) -> int:
         return self._id
@@ -141,6 +147,7 @@ class House(LazyHouse):
         self._members = kwargs.get('members')
         self._client_member = kwargs.get('client_member')
         self._banner = kwargs.get('banner')
+        self._owner = kwargs.get('owner')
         super().__init__(kwargs)
 
     def __repr__(self) -> str:
@@ -163,7 +170,10 @@ class House(LazyHouse):
         :return: The newly constructed House Instance
         """
         try:
+            # Adding data that is not pre-shipped with the API
             data['client_member'] = None
+            data['owner'] = None
+
             instance = HouseSchema().load(dict(data), unknown=RAISE)
             # Adding the http attribute for http interaction
             instance._http = http
@@ -178,16 +188,23 @@ class House(LazyHouse):
             instance._rooms = list(room.Room(d, http, instance) for d in rooms)
             instance._client_member = utils.get(instance.members, user_id=kwargs.get('client_id'))
 
-            # Fetching the Owner of the House
+            # Fetching the Owner of the House using their id
             raw_data = await http.request(f"/users/{instance.owner_id}")
             if raw_data:
                 data = raw_data.get('data')
                 if data:
                     instance._owner = user.User(data=data, http=http)
-                else:
-                    raise errs.HTTPReceivedNoData()
-            else:
-                raise errs.HTTPFaultyResponse()
+
+            # If the id failed it will fall back to the username
+            if instance._owner is None:
+                # Fetching the username using the cached members
+                owner_name = getattr(utils.get(instance.members, id=instance.owner_id), 'username')
+
+                raw_data = await http.request(f"/users/{owner_name}")
+                if raw_data:
+                    data = raw_data.get('data')
+                    if data:
+                        instance._owner = user.User(data=data, http=http)
 
             return instance
 
@@ -199,6 +216,10 @@ class House(LazyHouse):
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+
+    @property
+    def owner(self) -> user.User:
+        return self._owner
 
     @property
     def banner(self) -> list:

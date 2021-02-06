@@ -3,9 +3,9 @@ import logging
 
 from openhivenpy.utils import utils
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -23,6 +23,7 @@ class Bot(hiven.UserClient):
 
     async def on_ready(self):
         print("Bot is ready!")
+        invite = await self.fetch_invite("openhivenpy")
 
     async def on_message_create(self, msg):
         print(f"{msg.author.name} wrote in {msg.room.name}: {msg.content}")

@@ -63,6 +63,7 @@ class Attachment(HivenObject):
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
             return None
+
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"

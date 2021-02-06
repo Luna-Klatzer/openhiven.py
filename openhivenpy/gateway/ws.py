@@ -357,6 +357,30 @@ class Websocket(types.Client):
             logger.critical(f"[WEBSOCKET] << Failed to keep lifesignal alive! "
                             f"> {sys.exc_info()[0].__name__}: {e}")
 
+    async def wait_for_ready(self):
+        """
+        Returns when the WebSocket is ready. Will be used to make sure events that happen while initialisation
+        wait until the Client has loaded successfully.
+
+        :return: None when the Websocket is ready
+        """
+        while True:
+            if self.ready:
+                return
+            await asyncio.sleep(0.05)
+
+    async def wait_for_initialised(self):
+        """
+        Returns when the WebSocket is initialised. Will be used to make sure events that happen while initialisation
+        wait until the Client has initialised successfully.
+
+        :return: None when the Websocket is initialised
+        """
+        while True:
+            if self.initialised:
+                return
+            await asyncio.sleep(0.05)
+
     # Event Triggers
     async def text_based_message_handler(self, resp_data: dict):
         """
@@ -572,6 +596,9 @@ class Websocket(types.Client):
             if self.initialised:
                 data = ws_msg_data
                 house = utils.get(self.houses, id=int(data.get('house_id')))
+
+                if house is None:
+                    await asyncio.wait_for(self.ready)
 
                 cached_user = utils.get(self._users, id=int(data.get('user_id')))
                 user = types.User(data['user'], self.http)
