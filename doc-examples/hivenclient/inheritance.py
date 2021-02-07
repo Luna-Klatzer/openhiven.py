@@ -12,9 +12,9 @@ logger.addHandler(handler)
 
 
 class Bot(hiven.UserClient):
-    def __init__(self, token):
+    def __init__(self, token, *args, **kwargs):
         self._token = token
-        super().__init__(token)
+        super().__init__(token, *args, **kwargs)
 
     # Not directly needed but protects the token from ever being changed!
     @property

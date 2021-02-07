@@ -41,7 +41,7 @@ For full documentation visit the documentation our readthedocs-page
 
 ### Usage Example
 
-A simple UserClient Bot for quick usage
+**A simple UserClient Bot for quick usage:**
 
 ```python
 
@@ -54,5 +54,52 @@ async def on_ready():
     print("Bot is ready")
 
 client.run()
+
+```
+
+**A simple CommandListener for reacting to commands:**
+
+```python 
+
+import openhivenpy as hiven
+
+client = hiven.UserClient("Insert token")
+
+@client.event()
+async def on_ready():
+    print("Bot is ready")
+
+@client.event()
+async def on_message_create(msg):
+    if msg.content.startswith("-"):
+        if msg.content == "-ping":
+            return await msg.room.send("pong")
+
+client.run()
+ 
+```
+
+**Inherited HivenClient Example:**
+
+```python 
+
+import openhivenpy as hiven
+
+class Bot(hiven.UserClient):
+    def __init__(self, token, *args, **kwargs):
+        self._token = token
+        super().__init__(token, *args, **kwargs)
+
+    # Not directly needed but protects the token from being changed while runtime!
+    @property
+    def token(self):
+        return self._token
+
+    async def on_ready(self):
+        print("Bot is ready!")
+
+if __name__ == '__main__':
+    client = Bot(token="")
+    client.run()
 
 ```
