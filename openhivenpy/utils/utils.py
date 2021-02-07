@@ -50,20 +50,6 @@ async def dispatch_func_if_exists(obj: object,
         return
 
 
-def raise_value_to_type(val: typing.Any, data_type: typing.Type) -> typing.Any:
-    """
-    Returns the value if the value is not None else returns the empty value in the specified data type
-
-    :param val: Value that should be checked
-    :param data_type: Data Type
-    :return: The passed value if it's not None else creates a new object with the passed datatype
-    """
-    if val is None:
-        return data_type()
-    else:
-        return val
-
-
 def log_traceback(level: typing.Union[str, None] = 'error',
                   msg: str = 'Traceback: ',
                   suffix: typing.Optional[str] = None):
@@ -141,3 +127,38 @@ def log_validation_traceback(cls: typing.Any, e: ValidationError):
     log_traceback(msg=f"Traceback of Initialisation of 'types.{cls.__name__}'",
                   suffix=f"ValidationError: Encountered errors while validating following data: \n{msg}\n\n"
                          f"  Correct Data: {e.valid_data}")
+
+
+def convert_value(dtype: typing.Any, value: typing.Any, default: typing.Any = None) -> typing.Union[typing.Any, None]:
+    """
+    Return the passed value in the specified value if it is not None and does not raise an Exception
+    while converting. Returns the passed default if the conversion failed
+
+    :param dtype: The datatype the value should be returned
+    :param value: The value that should be converted
+    :param default: The default Value that should be returned if the conversion failed
+    :return: The converted value or the default passed value
+    """
+    try:
+        if value is None:
+            return default
+        return dtype(value)
+
+    except Exception:
+        return default
+
+
+def convertible(dtype: typing.Any, value: typing.Any) -> bool:
+    """
+    Returns whether the value can be converted into the specified datatype
+
+    :param dtype: The datatype the value should be tested with
+    :param value: The passed value that should be checked
+    :return: True if it is convertible else False
+    """
+    try:
+        dtype(value)
+    except Exception:
+        return False
+    else:
+        return True

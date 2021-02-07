@@ -566,7 +566,7 @@ class HivenClient(EventHandler):
         :return: Returns the ID of the House if successful
         """
         try:
-            cached_house = utils.get(self.houses, id=int(house_id))
+            cached_house = utils.get(self.houses, id=utils.convert_value(int, house_id))
             if cached_house:
                 resp = await self.connection.http.delete(endpoint=f"/houses/{house_id}")
 
@@ -642,7 +642,7 @@ class HivenClient(EventHandler):
                 for msg_data in data:
                     author = await types.User.from_dict(msg_data.get('author'), self.connection.http)
 
-                    room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
+                    room = utils.get(self.rooms, id=utils.convert_value(int, msg_data.get('room_id')))
 
                     message = types.Message(
                         msg_data,
@@ -676,9 +676,9 @@ class HivenClient(EventHandler):
         """
         try:
             if type(room) is int:
-                room_id = str(room)  # ID must be in string format
+                room_id = room
             elif type(room) is types.User:
-                room_id = str(getattr(room, 'id'))  # ID must be in string format
+                room_id = getattr(room, 'id')
             else:
                 raise TypeError(f"Expected User or int! Not {type(room)}")
 
@@ -693,7 +693,7 @@ class HivenClient(EventHandler):
                 json=json)
 
             if resp.status < 300:
-                return utils.get(self.rooms, id=int(room_id))
+                return utils.get(self.rooms, id=room_id)
             else:
                 raise errs.HTTPFailedRequest()
 

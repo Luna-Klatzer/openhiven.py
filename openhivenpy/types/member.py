@@ -23,7 +23,7 @@ class MemberSchema(user.UserSchema):
     roles = fields.List(fields.Field, required=True, allow_none=True, default=[])
     house = fields.Raw(required=True)
     last_permission_update = fields.Raw(default=None, allow_none=True)
-    user = fields.Raw(required=True)
+    user = fields.Raw()
 
     @post_load
     def make(self, data, **kwargs):
@@ -35,6 +35,10 @@ class MemberSchema(user.UserSchema):
         :return: A new Member Object
         """
         return Member(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = MemberSchema()
 
 
 class Member(user.User, HivenObject):
@@ -81,19 +85,29 @@ class Member(user.User, HivenObject):
         """
         try:
             user_ = data.get('user')
+            user_['id'] = utils.convert_value(int, user_.get('id'))
+            data['id'] = utils.convert_value(int, user_.get('id'))
+            data['user_id'] = data['id']
             data['username'] = user_.get('username')
             data['website'] = user_.get('website', None)
             data['location'] = user_.get('location', None)
             data['name'] = user_.get('name')
-            data['roles'] = utils.raise_value_to_type(data.get('roles', []), list)
+            data['roles'] = utils.convert_value(list, data.get('roles'), [])
             if house is not None:
                 data['house'] = house
             elif houses is not None:
-                data['house'] = utils.get(houses, id=int(data['house']['id']))
+                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
             else:
                 raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
 
-            instance = MemberSchema().load(data, unknown=RAISE)
+            # If the house_id exists and works properly it will be directly used
+            if utils.convertible(int, data.get('house_id')):
+                data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            else:
+                # else the id of the house object will be used to not pass a None type to the Scheme
+                data['house_id'] = data['house'].id
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

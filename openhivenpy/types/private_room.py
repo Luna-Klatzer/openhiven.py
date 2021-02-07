@@ -2,7 +2,7 @@ import logging
 import sys
 import asyncio
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
 
 from . import HivenObject
 from . import message
@@ -20,10 +20,12 @@ class PrivateGroupRoomSchema(Schema):
     # will throw exception 'ValidationError' in case of an faulty data parsing
 
     id = fields.Int(required=True)
-    last_message_id = fields.Int(required=True)
+    last_message_id = fields.Int(required=True, allow_none=True)
     recipients = fields.List(fields.Field(), required=True)
     name = fields.Str(required=True)
     type = fields.Int(required=True)
+    emoji = fields.Raw(allow_none=True)
+    description = fields.Str(allow_none=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -35,6 +37,10 @@ class PrivateGroupRoomSchema(Schema):
         :return: A new PrivateGroupRoom Object
         """
         return PrivateGroupRoom(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_GROUP_SCHEMA = PrivateGroupRoomSchema()
 
 
 class PrivateRoomSchema(Schema):
@@ -42,10 +48,12 @@ class PrivateRoomSchema(Schema):
     # will throw exception 'ValidationError' in case of an faulty data parsing
 
     id = fields.Int(required=True)
-    last_message_id = fields.Int(required=True)
+    last_message_id = fields.Int(required=True, allow_none=True)
     recipient = fields.Raw(required=True)
     name = fields.Str(required=True)
     type = fields.Int(required=True)
+    emoji = fields.Raw(allow_none=True)
+    description = fields.Str(allow_none=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -56,7 +64,11 @@ class PrivateRoomSchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new PrivateGroupRoom Object
         """
-        return PrivateGroupRoom(**data, **kwargs)
+        return PrivateRoom(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = PrivateRoomSchema()
 
 
 class PrivateGroupRoom(HivenObject):
@@ -68,6 +80,8 @@ class PrivateGroupRoom(HivenObject):
         self._last_message_id = kwargs.get('last_message_id')
         self._recipients = kwargs.get('recipients')
         self._name = kwargs.get('name')
+        self._description = kwargs.get('description')
+        self._emoji = kwargs.get('emoji')
         self._type = kwargs.get('type')
 
     def __repr__(self) -> str:
@@ -92,15 +106,19 @@ class PrivateGroupRoom(HivenObject):
         :return: The newly constructed PrivateGroupRoom Instance
         """
         try:
-            data['id'] = int(data.get('id'))
+            data['id'] = utils.convert_value(int, data.get('id'))
+            data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
+            data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
 
+            # Using standard for in loop directly instead of a generator since the await syntax creates
+            # automatically a async generator which does not fetch the User correctly
             _recipients = []
             for d in data.get("recipients"):
                 _recipients.append(await module_user.User.from_dict(d, http))
             data['recipients'] = _recipients
             data['name'] = f"Private Group chat with {(', '.join(getattr(r, 'name') for r in _recipients))}"
 
-            instance = PrivateGroupRoomSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_GROUP_SCHEMA.load(data, unknown=INCLUDE)
 
             # Adding the http attribute for API interaction
             instance._http = http
@@ -130,6 +148,14 @@ class PrivateGroupRoom(HivenObject):
     @property
     def name(self) -> str:
         return self._name 
+
+    @property
+    def description(self) -> int:
+        return self._description
+
+    @property
+    def emoji(self) -> str:
+        return self._emoji
 
     @property
     def type(self) -> int:
@@ -188,7 +214,7 @@ class PrivateGroupRoom(HivenObject):
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
@@ -209,13 +235,14 @@ class PrivateRoom:
     """
     Represents a private chat room with a user
     """
-    def __init__(self, data: dict, http):
-        self._id = int(data.get('id'))
-        self._last_message_id = data.get('last_message_id')
-        recipients = data.get("recipients")
-        self._recipient = module_user.User.from_dict(recipients[0], http)
-        self._name = f"Private chat with {recipients[0]['name']}"
-        self._type = data.get('type')
+    def __init__(self, **kwargs):
+        self._id = kwargs.get('id')
+        self._last_message_id = kwargs.get('last_message_id')
+        self._recipient = kwargs.get('recipient')
+        self._name = kwargs.get('name')
+        self._description = kwargs.get('description')
+        self._emoji = kwargs.get('emoji')
+        self._type = kwargs.get('type')
 
     def __repr__(self) -> str:
         info = [
@@ -237,13 +264,13 @@ class PrivateRoom:
         :return: The newly constructed PrivateRoom Instance
         """
         try:
-            data['id'] = int(data.get('id'))
-            data['last_message_id'] = data.get('last_message_id')
-            data['recipients'] = await module_user.User.from_dict(data.get('recipients', [])[0], http)
-            data['name'] = f"Private chat with {data.get('recipients', [])[0].name}"
+            data['id'] = utils.convert_value(int, data.get('id'))
+            data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
+            data['recipient'] = await module_user.User.from_dict(data.get('recipients', [])[0], http)
+            data['name'] = f"Private chat with {data.get('recipient').name}"
             data['type'] = data.get('type')
 
-            instance = PrivateRoomSchema().load(dict(data), unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(dict(data), unknown=INCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
 
@@ -269,6 +296,14 @@ class PrivateRoom:
         return self._id
 
     @property
+    def description(self) -> int:
+        return self._description
+
+    @property
+    def emoji(self) -> str:
+        return self._emoji
+
+    @property
     def last_message_id(self) -> int:
         return self._last_message_id    
         
@@ -289,7 +324,7 @@ class PrivateRoom:
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
 
             resp = await self._http.post(f"/rooms/{self.id}/call")
 

@@ -34,6 +34,10 @@ class EntitySchema(Schema):
         return Entity(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = EntitySchema()
+
+
 class Entity(HivenObject):
     """
     Represents a Hiven Entity
@@ -68,9 +72,10 @@ class Entity(HivenObject):
         :return: The newly constructed Embed Instance
         """
         try:
-            data['id'] = int(data.get('id'))
+            data['id'] = utils.convert_value(int, data.get('id'))
 
-            instance = EntitySchema().load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

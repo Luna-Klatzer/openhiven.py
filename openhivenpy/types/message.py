@@ -20,24 +20,24 @@ class DeletedMessage(HivenObject):
     Represents a Deleted Message
     """
     def __init__(self, data: dict):
-        self._message_id = int(data.get('message_id'))
-        self._house_id = int(data.get('house_id'))
-        self._room_id = int(data.get('room_id'))
+        self._message_id = utils.convert_value(int, data.get('message_id'))
+        self._house_id = utils.convert_value(int, data.get('house_id'))
+        self._room_id = utils.convert_value(int, data.get('room_id'))
 
     def __str__(self):
         return f"Deleted message in room {self.room_id}"
 
     @property
     def message_id(self):
-        return int(self._message_id)
+        return utils.convert_value(int, self._message_id)
 
     @property
     def house_id(self):
-        return int(self._house_id)
+        return utils.convert_value(int, self._house_id)
 
     @property
     def room_id(self):
-        return int(self._room_id)
+        return utils.convert_value(int, self._room_id)
     
 
 class Message:
@@ -46,14 +46,15 @@ class Message:
     """
     def __init__(self, data: dict, http, house, room, author):
         try:
-            self._id = int(data.get('id'))
+            self._id = utils.convert_value(int, data.get('id'))
             self._author = author
             self._attachment = data.get('attachment')
             self._content = data.get('content')
-            
+
+            timestamp = data.get('timestamp')
             # Converting to seconds because it's in milliseconds
-            if data.get('timestamp') is not None:
-                self._timestamp = datetime.datetime.fromtimestamp(int(data.get('timestamp')) / 1000)
+            if timestamp is not None:
+                self._timestamp = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp, timestamp) / 1000)
             else:
                 self._timestamp = None
                 
@@ -66,12 +67,13 @@ class Message:
             self._exploding = data.get('exploding')
             
             self._house_id = data.get('house_id')
-            self._house_id = int(data.get('house_id')) if data.get('house_id') is not None else None
+            self._house_id = utils.convert_value(int, data.get('house_id'))
             self._house = house
-            self._room_id = int(data.get('room_id')) if data.get('room_id') is not None else None
+            self._room_id = utils.convert_value(int, data.get('room_id'))
             self._room = room 
-            
-            self._embed = embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') is not None else None
+
+            embed_ = data.get('embed')
+            self._embed = embed.Embed.from_dict(embed_, http) if embed_ is not None else None
 
             self._http = http
         
@@ -99,7 +101,7 @@ class Message:
 
     @property
     def id(self):
-        return int(self._id)
+        return utils.convert_value(int, self._id)
 
     @property
     def author(self):
@@ -153,7 +155,7 @@ class Message:
     def embed(self):
         return self._embed
 
-    async def mark_as_read(self, delay: float) -> bool:
+    async def mark_as_read(self, delay: float = None) -> bool:
         """
         Marks the message as read. This doesn't need to be done for bot clients.
         
@@ -161,7 +163,7 @@ class Message:
         :return: True if the request was successful else False
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
 
             if resp.status < 300:
@@ -174,7 +176,7 @@ class Message:
                                 suffix=f"Failed to mark message as read {repr(self)}; \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
-    async def delete(self, delay: float) -> bool:
+    async def delete(self, delay: float = None) -> bool:
         """
         Deletes the message. Raises Forbidden if not allowed.
         
@@ -182,7 +184,7 @@ class Message:
         :return: A DeletedMessage object if successful
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
             
             resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             

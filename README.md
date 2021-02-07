@@ -1,7 +1,7 @@
 # ![OpenHiven.py](https://images.nxybi.me/da4e88d64f12.png) <br> OpenHiven.py
 ## The OpenSource Python API Wrapper for Hiven!
 
-[![Package Version](https://img.shields.io/badge/package%20version-v0.1.2.1-purple?logo=python)](https://github.com/FrostbyteSpace/openhiven.py)
+[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3.dev1-purple?logo=python)](https://github.com/FrostbyteSpace/openhiven.py)
 [![Python Version](https://img.shields.io/badge/python->=3.7-blue?logo=python)](https://python.org)
 ![Build](https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github)
 [![Latest Commit](https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet)](https://github.com/FrostbyteSpace/openhiven.py/commits/mainy)

@@ -1,6 +1,5 @@
 import logging
 import sys
-
 from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from .. import utils
@@ -32,6 +31,10 @@ class EmbedSchema(Schema):
         return Embed(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = EmbedSchema()
+
+
 class Embed(HivenObject):
     """
     Represents an embed message object
@@ -59,7 +62,8 @@ class Embed(HivenObject):
         :return: The newly constructed Embed Instance
         """
         try:
-            instance = EmbedSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

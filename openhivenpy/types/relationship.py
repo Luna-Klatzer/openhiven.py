@@ -12,6 +12,18 @@ logger = logging.getLogger(__name__)
 __all__ = ['Relationship']
 
 
+class RelationshipSchema(Schema):
+    user_id = fields.Int(required=True)
+    user = fields.Raw(required=True)
+    type = fields.Int(required=True)
+    id = fields.Int(required=True)
+    recipient_id = fields.Int(required=True)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = RelationshipSchema()
+
+
 class Relationship(HivenObject):
     """
     Represents a user-relationship with another user or bot
@@ -36,19 +48,11 @@ class Relationship(HivenObject):
         try:
             user_data = data.get('user')
             # user_id does not always exist
-            self._user_id = data.get('user_id')
-            if self._user_id:
-                self._user_id = int(self._user_id)
+            self._user_id = utils.convert_value(int, data.get('user_id'))
             self._user = user.User.from_dict(user_data, http)
             self._type = data.get('type')
-            # ID does not always exist
-            self._id = data.get('id')
-            if self._id:
-                self._id = int(self._id)
-            # recipient_id does not always exist
-            self._recipient_id = data.get('recipient_id')
-            if self._recipient_id:
-                self._recipient_id = int(self.recipient_id)
+            self._id = utils.convert_value(int, data.get('id'))
+            self._recipient_id = utils.convert_value(int, data.get('recipient_id'))
             self._http = http
         
         except Exception as e:

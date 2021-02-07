@@ -1,6 +1,5 @@
 import logging
 import sys
-
 from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from . import HivenObject
@@ -27,6 +26,10 @@ class AttachmentSchema(Schema):
         :return: A new Attachment Object
         """
         return Attachment(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = AttachmentSchema()
 
 
 class Attachment(HivenObject):
@@ -56,7 +59,8 @@ class Attachment(HivenObject):
         try:
             data['raw'] = dict(data)  # Adding the raw field
 
-            instance = AttachmentSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

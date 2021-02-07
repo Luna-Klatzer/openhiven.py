@@ -4,7 +4,6 @@ from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from . import HivenObject
 from .. import utils
-from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,10 @@ class LazyUserSchema(Schema):
         return LazyUser(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_LAZY_SCHEMA = LazyUserSchema()
+
+
 class UserSchema(LazyUserSchema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
@@ -42,6 +45,9 @@ class UserSchema(LazyUserSchema):
     location = fields.Str(default=None, allow_none=True)
     website = fields.Str(default=None, allow_none=True)
     presence = fields.Str(default=None, allow_none=True)
+    bio = fields.Str(default=None, allow_none=True)
+    blocked = fields.Bool(default=False, allow_none=True)
+    email_verified = fields.Bool(allow_none=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -55,6 +61,10 @@ class UserSchema(LazyUserSchema):
         return User(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = UserSchema()
+
+
 class LazyUser(HivenObject):
     """
     Represents the standard Hiven User
@@ -62,7 +72,7 @@ class LazyUser(HivenObject):
     def __init__(self, **kwargs):
         self._username = kwargs.get('username')
         self._name = kwargs.get('name')
-        self._id = int(kwargs.get('id'))
+        self._id = kwargs.get('id')
         self._user_flags = kwargs.get('user_flags')  # ToDo: Discord.py-esque way of user flags
         self._icon = kwargs.get('icon')
         self._header = kwargs.get('header')
@@ -94,8 +104,9 @@ class LazyUser(HivenObject):
         try:
             if data.get('user') is not None:
                 data = data.get('user')
+            data['id'] = utils.convert_value(int, data.get('id'))
 
-            instance = LazyUserSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=RAISE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance
@@ -157,7 +168,7 @@ class User(LazyUser):
         :return: The newly constructed User Instance
         """
         try:
-            instance = UserSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

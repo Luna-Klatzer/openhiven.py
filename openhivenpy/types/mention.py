@@ -3,6 +3,7 @@ import datetime
 import typing
 from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
+from .. import utils
 from . import HivenObject
 from . import user
 
@@ -17,8 +18,8 @@ class Mention(HivenObject):
     """
     def __init__(self, data: dict, timestamp: typing.Union[datetime.datetime, str], author, http):
         # Converting to seconds because it's in milliseconds
-        if data.get('timestamp') is not None:
-            self._timestamp = datetime.datetime.fromtimestamp(int(timestamp) / 1000)
+        if utils.convertible(int, timestamp):
+            self._timestamp = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp) / 1000)
         else:
             self._timestamp = None
             

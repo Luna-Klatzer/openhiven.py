@@ -320,10 +320,6 @@ class Websocket(types.Client):
                                 # Calling the websocket message handler for handling the incoming ws message
                                 await self.text_based_message_handler(op, event, data)
 
-                        elif op == self.EVENT:
-                            # Calling the websocket message handler for handling the incoming ws message
-                            await self.text_based_message_handler(op, event, data)
-
                         else:
                             logger.warning(f"[WEBSOCKET] Received unexpected op code: '{op}' with event {event}")
                     else:
@@ -433,10 +429,19 @@ class Websocket(types.Client):
             event_handler = self.EVENT_PARSERS.get(event)
             coro = getattr(self, event_handler, None)
             if coro is not None:
+                # HOUSE_JOIN events must always be prioritised since they are needed for initialisation!
                 if event == 'HOUSE_JOIN':
                     await asyncio.wait_for(self.wait_for_initialised(), 30)
                 else:
-                    await asyncio.wait_for(self.wait_for_ready(), 30)
+                    coro_ = coro
+
+                    async def waiting_task(data_):
+                        await asyncio.wait_for(self.wait_for_ready(), 30)
+                        await coro_(data_)
+                        return
+
+                    # Updating the coro to the waiting coroutine
+                    coro = waiting_task
                 asyncio.create_task(coro(data))
             else:
                 logger.error(f"[WEBSOCKET] << Unknown Event {event} without Handler!")
@@ -458,7 +463,7 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self._houses, id=int(data.get('house_id')))
+            house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
             if data.get('unavailable') is True:
                 logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
                              "House was either deleted or is currently unavailable!")
@@ -486,7 +491,7 @@ class Websocket(types.Client):
         """
         try:
             # Fetching the house based on the ID
-            house = utils.get(self.houses, id=int(data.get('house_id')))
+            house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
 
             # Member data that was sent with the request
             sent_member_data = data.get('members')
@@ -494,7 +499,7 @@ class Websocket(types.Client):
 
             # For every member that was sent and their data the stored cached data will be replaced
             for mem_id, mem_data in sent_member_data.items():
-                cached_mem = utils.get(house.members, id=int(mem_id))
+                cached_mem = utils.get(house.members, id=utils.convert_value(int, mem_id))
                 if cached_mem is not None:
                     # Removing the older cached member
                     house._members.remove(cached_mem)
@@ -512,7 +517,7 @@ class Websocket(types.Client):
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update member data of "
                                    f"{name} in house {house.name} > Member not found locally!")
 
-                cached_user = utils.get(self._users, id=int(mem_id))
+                cached_user = utils.get(self._users, id=utils.convert_value(int, mem_id))
                 if cached_user is not None:
                     # Removing the older cached user
                     self._users.remove(cached_user)
@@ -547,10 +552,10 @@ class Websocket(types.Client):
                 house_id = data.get('house', {}).get('id')
 
             # Fetching the house
-            house = utils.get(self._houses, id=int(house_id))
+            house = utils.get(self._houses, id=utils.convert_value(int, house_id))
 
             # Fetching the cached_member
-            cached_member = utils.get(house.members, user_id=int(data.get('user_id', 0)))
+            cached_member = utils.get(house.members, user_id=utils.convert_value(int, data.get('user_id')))
 
             await self.event_handler.dispatch_on_house_member_enter(member=cached_member, house=house)
 
@@ -567,12 +572,9 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self.houses, id=int(data.get('house_id')))
+            house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
 
-            if house is None:
-                await asyncio.wait_for(self.ready)
-
-            cached_user = utils.get(self._users, id=int(data.get('user_id')))
+            cached_user = utils.get(self._users, id=utils.convert_value(int, data.get('user_id')))
             user = await types.User.from_dict(data.get('user'), self.http)
 
             # Removing the old user
@@ -582,7 +584,7 @@ class Websocket(types.Client):
             self._users.append(user)
 
             # Getting the cached member in the house if it exists
-            cached_member = utils.get(house.members, user_id=int(data.get('user_id')))
+            cached_member = utils.get(house.members, user_id=utils.convert_value(int, data.get('user_id')))
             member = await types.Member.from_dict(data, self.http, house=house)
 
             if cached_member:
@@ -609,9 +611,9 @@ class Websocket(types.Client):
             # Fetching the ID of the house
             house_id = data.get('house_id')
             # Fetching the house from the cache
-            house = utils.get(self.houses, id=int(house_id))
+            house = utils.get(self.houses, id=utils.convert_value(int, house_id))
 
-            user_id = int(data.get('user', {}).get('id'))
+            user_id = utils.convert_value(int, data.get('user', {}).get('id'))
 
             # Fetching the user from the cache
             cached_user = utils.get(self.users, id=user_id)
@@ -653,7 +655,7 @@ class Websocket(types.Client):
         try:
             # House Room
             if data.get('house_id'):
-                house = utils.get(self._houses, id=int(data.get('house_id')))
+                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
 
                 # Creating a new room
                 room = types.Room(data, self.http, house)
@@ -682,8 +684,8 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self._houses, id=int(data.get('house_id')))
-            cached_mem = utils.get(house.members, user_id=int(data.get('id')))
+            house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
+            cached_mem = utils.get(house.members, user_id=utils.convert_value(int, data.get('id')))
 
             await self.event_handler.dispatch_on_house_member_exit(member=cached_mem, house=house)
 
@@ -720,16 +722,16 @@ class Websocket(types.Client):
         """
         try:
             if data.get('house_id'):
-                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
+                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
             else:
                 house = None
 
             if house:
                 # Updating the last message ID in the Room
-                room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
+                room = utils.get(self._rooms, id=utils.convert_value(int, data.get('room_id')))
                 if room is not None:
                     # Updating the last message_id
-                    room._last_message_id = data.get('id')
+                    room._last_message_id = utils.convert_value(int, data.get('id'))
                 else:
                     logger.warning("[MESSAGE_CREATE] Unable to find room in the cache! "
                                    f"ROOM_ID={data.get('room_id')}")
@@ -737,10 +739,10 @@ class Websocket(types.Client):
             # It's a private_room with no existing house
             else:
                 # Updating the last message ID in the Private-Room
-                private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
+                private_room = utils.get(self._private_rooms, id=utils.convert_value(int, data.get('room_id', 0)))
                 if private_room is not None:
                     # Updating the last message_id
-                    private_room._last_message_id = data.get('id')
+                    private_room._last_message_id = utils.convert_value(int, data.get('id'))
 
                     # Room where the message was sent => private_room
                     room = private_room
@@ -749,7 +751,7 @@ class Websocket(types.Client):
                     logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                    f"ROOM_ID={data.get('room_id')}")
 
-            author = utils.get(self._users, id=int(data.get('author_id')))
+            author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id')))
             msg = types.Message(data, self.http, house, room, author)
 
             await self.event_handler.dispatch_on_message_create(msg)
@@ -790,16 +792,16 @@ class Websocket(types.Client):
             # no new data is getting sent with the event.
 
             if data.get('house_id') is not None:
-                house = utils.get(self._houses, id=int(data.get('house_id', 0)))
+                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id', 0)))
             else:
                 house = None
 
             if house:
                 # Updating the last message ID in the Room
-                room = utils.get(self._rooms, id=int(data.get('room_id', 0)))
+                room = utils.get(self._rooms, id=utils.convert_value(int, data.get('room_id', 0)))
                 if room in self._rooms:
                     self._rooms.remove(room)
-                    room._last_message_id = data.get('id')
+                    room._last_message_id = utils.convert_value(int, data.get('id'))
                     self._rooms.append(room)
                 else:
                     room = None
@@ -808,10 +810,10 @@ class Websocket(types.Client):
 
             else:
                 # Updating the last message ID in the Private-Room
-                private_room = utils.get(self._private_rooms, id=int(data.get('room_id', 0)))
+                private_room = utils.get(self._private_rooms, id=utils.convert_value(int, data.get('room_id', 0)))
                 if private_room:
                     self._private_rooms.remove(private_room)
-                    private_room._last_message_id = data.get('id')
+                    private_room._last_message_id = utils.convert_value(int, data.get('id'))
                     self._private_rooms.append(private_room)
 
                     room = private_room
@@ -821,7 +823,7 @@ class Websocket(types.Client):
                     room = None
 
             # Getting the author from the cache if it exists
-            cached_author = utils.get(self._users, id=int(data.get('author_id', 0)))
+            cached_author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id', 0)))
             if not cached_author:
                 logger.warning("[MESSAGE_UPDATE] Author from incoming ws event data not found "
                                "in cache! Possibly faulty client data!")
@@ -847,7 +849,7 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            cache_relationship = utils.get(self._relationships, id=int(data.get('id')))
+            cache_relationship = utils.get(self._relationships, id=utils.convert_value(int, data.get('id')))
             relationship = types.Relationship(data, self.http)
             if cache_relationship:
                 # Removing the old data
@@ -871,15 +873,16 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
+            print("Started")
             # Creating a house object that will then be appended
             house = await types.House.from_dict(data, self.http, client_id=self.id)
 
             for member_data in data['members']:
                 if hasattr(member_data, 'id'):
-                    user_id = int(member_data.get('id'))
+                    user_id = utils.convert_value(int, member_data.get('id'))
                 else:
                     # Falling back to the nested user object and the ID that is stored there
-                    user_id = int(member_data['user'].get('id', 0))
+                    user_id = utils.convert_value(int, member_data.get('user').get('id'))
 
                 # Getting the user from the list if it exists
                 cached_user = utils.get(self._users, id=user_id)
@@ -887,7 +890,11 @@ class Websocket(types.Client):
                 # If it doesn't exist it needs to be added to the list
                 if cached_user is None:
                     # Appending the new user
-                    self._users.append(await types.User.from_dict(member_data, self.http))
+                    user = await types.User.from_dict(member_data.get('user'), self.http)
+                    if user is not None:
+                        self._users.append(user)
+                    else:
+                        logger.warning(f"[WEBSOCKET] Failed to validate and create user with id {member_data.get('id')}")
 
             for room in data['rooms']:
                 self._rooms.append(types.Room(room, self.http, house))
@@ -895,6 +902,7 @@ class Websocket(types.Client):
             # Appending to the client houses list
             self._houses.append(house)
 
+            print(f"Finished at {time.time() - self.connection_start}")
             await self.event_handler.dispatch_on_house_add(house)
 
         except Exception as e:
@@ -909,7 +917,7 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self._houses, id=int(data.get('house_id')))
+            house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
 
             if house:
                 # Removing the house
@@ -933,12 +941,12 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self.houses, id=int(data.get('house_id')))
+            house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
             for e in data.get('entities'):
                 entity = await types.Entity.from_dict(e, self.http)
 
                 # Removing the old entity if they exist
-                cached_entity = utils.get(house.entities, id=int(e.get('id')))
+                cached_entity = utils.get(house.entities, id=utils.convert_value(int, e.get('id')))
                 if cached_entity:
                     house._entities.remove(cached_entity)
 
@@ -962,7 +970,7 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self._houses, id=int(data.get('house_id')))
+            house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
 
             # Creating a list of all updated members
             members = list([await types.Member.from_dict(data, self.http, house=house) for data in data.get('data')])
@@ -973,7 +981,7 @@ class Websocket(types.Client):
 
                 # Checking whether the ID exists and the object was created correctly
                 if mem_id:
-                    cached_mem = utils.get(house.members, id=int(mem_id))
+                    cached_mem = utils.get(house.members, id=utils.convert_value(int, mem_id))
                     if cached_mem is not None:
                         # Replacing the cached member with the newly created member object
                         house._members.remove(cached_mem)
@@ -996,7 +1004,7 @@ class Websocket(types.Client):
                 usr_id = getattr(user, "id")
                 # Checking whether the ID exists and the object was created correctly
                 if usr_id:
-                    cached_user = utils.get(self._users, id=int(usr_id))
+                    cached_user = utils.get(self._users, id=utils.convert_value(int, usr_id))
                     if cached_user is not None:
                         # Replacing the cached user with the newly created user object
                         self._users.remove(cached_user)
@@ -1027,13 +1035,13 @@ class Websocket(types.Client):
         try:
             # recipient_ids only exists in private room typing so it is a house if it does not exist!
             if data.get('recipient_ids') is None:
-                room = utils.get(self._rooms, id=int(data.get('room_id')))
-                house = utils.get(self._houses, id=int(data.get('house_id')))
-                author = utils.get(house.members, id=int(data.get('author_id')))
+                room = utils.get(self._rooms, id=utils.convert_value(int, data.get('room_id')))
+                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
+                author = utils.get(house.members, id=utils.convert_value(int, data.get('author_id')))
             else:
-                room = utils.get(self._private_rooms, id=int(data.get('room_id')))
+                room = utils.get(self._private_rooms, id=utils.convert_value(int, data.get('room_id')))
                 house = None
-                author = utils.get(self._users, id=int(data.get('author_id')))
+                author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id')))
 
             typing_ = types.UserTyping(data, author, room, house, self.http)
 
@@ -1051,8 +1059,8 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            house = utils.get(self._houses, id=int(data.get('house_id')))
-            cached_mem = utils.get(house.members, user_id=int(data.get('id')))
+            house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
+            cached_mem = utils.get(house.members, user_id=utils.convert_value(int, data.get('id')))
 
             # Removing the cached member
             house._members.remove(cached_mem)

@@ -7,7 +7,9 @@ from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import ValidationError, RAISE, INCLUDE
 
-from . import HivenObject, invite, user
+from . import HivenObject
+from . import invite
+from . import user
 from ..utils import utils
 from ..exceptions import exception as errs
 from . import entity
@@ -41,6 +43,10 @@ class LazyHouseSchema(Schema):
         return LazyHouse(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_LAZY_SCHEMA = LazyHouseSchema()
+
+
 class HouseSchema(LazyHouseSchema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
@@ -63,6 +69,10 @@ class HouseSchema(LazyHouseSchema):
         :return: A new House Object
         """
         return House(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = HouseSchema()
 
 
 class LazyHouse(HivenObject):
@@ -93,7 +103,7 @@ class LazyHouse(HivenObject):
         :return: The newly constructed LazyHouse Instance
         """
         try:
-            instance = LazyHouseSchema().load(data, unknown=INCLUDE)
+            instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=INCLUDE)
 
             # Updating the rooms afterwards when the object was already created
             _rooms = data.get('rooms')
@@ -171,9 +181,10 @@ class House(LazyHouse):
             # Adding data that is not pre-shipped with the API
             data['client_member'] = None
             data['owner'] = None
-            data['id'] = int(data.get('id'))
+            data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
+            data['id'] = utils.convert_value(int, data.get('id'))
 
-            instance = HouseSchema().load(dict(data), unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(dict(data), unknown=RAISE)
             # Adding the http attribute for API interaction
             instance._http = http
 
@@ -184,28 +195,20 @@ class House(LazyHouse):
             members = data.get('members')
             rooms = data.get('rooms')
 
+            members_ = []
             for d in members:
-                instance._members.append(await member.Member.from_dict(d, http, house=instance))
-            instance._rooms = list(room.Room(d, http, instance) for d in rooms)
-            instance._client_member = utils.get(instance.members, user_id=kwargs.get('client_id'))
+                members_.append(await member.Member.from_dict(d, http, house=instance))
+            instance._members = members_
 
-            # Fetching the Owner of the House using their id
-            raw_data = await http.request(f"/users/{instance.owner_id}")
-            if raw_data:
-                data = raw_data.get('data')
-                if data:
-                    instance._owner = await user.User.from_dict(data, http)
+            rooms_ = []
+            for d in rooms:
+                rooms_.append(room.Room(d, http, instance))
+            instance._rooms = rooms_
 
-            # If the id failed it will fall back to the username
-            if instance._owner is None:
-                # Fetching the username using the cached members
-                owner_name = getattr(utils.get(instance.members, id=instance.owner_id), 'username')
+            instance._client_member = utils.get(instance._members,
+                                                user_id=utils.convert_value(int, kwargs.get('client_id')))
 
-                raw_data = await http.request(f"/users/{owner_name}")
-                if raw_data:
-                    data = raw_data.get('data')
-                    if data:
-                        instance._owner = await user.User.from_dict(data, http)
+            instance._owner = utils.get(instance._members, id=instance.owner_id)
 
             return instance
 

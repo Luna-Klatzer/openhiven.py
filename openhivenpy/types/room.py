@@ -2,7 +2,7 @@ import logging
 import sys
 import asyncio
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import fields, post_load, ValidationError, RAISE
 
 from . import HivenObject
 from . import message
@@ -21,14 +21,14 @@ class Room(HivenObject):
     """
     def __init__(self, data: dict, http, house):
         try:
-            self._id = int(data.get('id'))
+            self._id = utils.convert_value(int, data.get('id'))
             self._name = data.get('name')
-            self._house_id = int(data.get('house_id'))
+            self._house_id = utils.convert_value(int, data.get('house_id'))
             self._position = data.get('position')
             self._type = data.get('type')  # 0 = Text, 1 = Portal
             self._emoji = data.get('emoji')
             self._description = data.get('description')
-            self._last_message_id = data.get('last_message_id')
+            self._last_message_id = utils.convert_value(int, data.get('last_message_id'))
             self._house = house
 
             self._http = http

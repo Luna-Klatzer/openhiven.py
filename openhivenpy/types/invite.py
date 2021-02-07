@@ -1,7 +1,6 @@
 import logging
 import sys
 import typing
-
 from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
 
 from . import HivenObject
@@ -36,6 +35,10 @@ class InviteSchema(Schema):
         :return: A new Invite Object
         """
         return Invite(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = InviteSchema()
 
 
 class Invite(HivenObject):
@@ -96,11 +99,11 @@ class Invite(HivenObject):
             if house is not None:
                 data['house'] = house
             elif houses is not None:
-                data['house'] = utils.get(houses, id=int(data['house']['id']))
+                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
             else:
                 raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
 
-            instance = InviteSchema().load(data, unknown=INCLUDE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=INCLUDE)
 
             # Adding the http attribute for API interaction
             instance._http = http

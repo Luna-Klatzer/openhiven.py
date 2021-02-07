@@ -1,6 +1,5 @@
 import logging
 import sys
-
 from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from .. import utils
@@ -31,6 +30,10 @@ class ContextSchema(Schema):
         return Context(**data, **kwargs)
 
 
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = ContextSchema()
+
+
 class Context(HivenObject):
     """
     Represents a Command Context for a triggered command in the CommandListener
@@ -57,7 +60,8 @@ class Context(HivenObject):
         :return: The newly constructed Context Instance
         """
         try:
-            instance = ContextSchema().load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+
             # Adding the http attribute for API interaction
             instance._http = http
             return instance
