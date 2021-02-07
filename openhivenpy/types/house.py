@@ -30,7 +30,7 @@ class LazyHouseSchema(Schema):
     rooms = fields.List(fields.Field(), default=[], allow_none=True)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
@@ -38,7 +38,7 @@ class LazyHouseSchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new LazyHouse Object
         """
-        return LazyHouse(**data)
+        return LazyHouse(**data, **kwargs)
 
 
 class HouseSchema(LazyHouseSchema):
@@ -54,15 +54,15 @@ class HouseSchema(LazyHouseSchema):
     owner = fields.Raw(default=None, allow_none=True)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
-        :return: A new LazyHouse Object
+        :return: A new House Object
         """
-        return House(**data)
+        return House(**data, **kwargs)
 
 
 class LazyHouse(HivenObject):
@@ -73,7 +73,7 @@ class LazyHouse(HivenObject):
 
     Consider fetching for more data the regular house object with utils.get()
     """
-    def __init__(self, kwargs: dict):
+    def __init__(self, **kwargs):
         self._id = kwargs.get('id')
         self._name = kwargs.get('name')
         self._icon = kwargs.get('icon')
@@ -146,7 +146,7 @@ class House(LazyHouse):
         self._client_member = kwargs.get('client_member')
         self._banner = kwargs.get('banner')
         self._owner = kwargs.get('owner')
-        super().__init__(kwargs)
+        super().__init__(**kwargs)
 
     def __repr__(self) -> str:
         info = [
@@ -171,9 +171,10 @@ class House(LazyHouse):
             # Adding data that is not pre-shipped with the API
             data['client_member'] = None
             data['owner'] = None
+            data['id'] = int(data.get('id'))
 
             instance = HouseSchema().load(dict(data), unknown=RAISE)
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
 
             entities = [await entity.Entity.from_dict(e, http) for e in data.get('entities')]
@@ -182,7 +183,9 @@ class House(LazyHouse):
 
             members = data.get('members')
             rooms = data.get('rooms')
-            instance._members = list(member.Member(d, instance, http) for d in members)
+
+            for d in members:
+                instance._members.append(await member.Member.from_dict(d, http, house=instance))
             instance._rooms = list(room.Room(d, http, instance) for d in rooms)
             instance._client_member = utils.get(instance.members, user_id=kwargs.get('client_id'))
 
@@ -191,7 +194,7 @@ class House(LazyHouse):
             if raw_data:
                 data = raw_data.get('data')
                 if data:
-                    instance._owner = user.User(data=data, http=http)
+                    instance._owner = await user.User.from_dict(data, http)
 
             # If the id failed it will fall back to the username
             if instance._owner is None:
@@ -202,7 +205,7 @@ class House(LazyHouse):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        instance._owner = user.User(data=data, http=http)
+                        instance._owner = await user.User.from_dict(data, http)
 
             return instance
 
@@ -249,15 +252,12 @@ class House(LazyHouse):
         try:
             cached_member = utils.get(self._members, id=member_id)
             if cached_member:
-                _raw_data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
+                raw_data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
 
-                if _raw_data:
-                    _data = _raw_data.get('data')
-                    if _data:
-                        return member.Member(
-                            data=_data,
-                            http=self._http,
-                            house=self)
+                if raw_data:
+                    data = raw_data.get('data')
+                    if data:
+                        return await member.Member.from_dict(data, self._http, house=self)
                     else:
                         raise errs.HTTPReceivedNoData()
                 else:

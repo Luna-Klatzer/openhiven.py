@@ -20,7 +20,7 @@ class ContextSchema(Schema):
     house = fields.Raw(default=None)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
@@ -28,7 +28,7 @@ class ContextSchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new Context Object
         """
-        return Context(**data)
+        return Context(**data, **kwargs)
 
 
 class Context(HivenObject):
@@ -58,7 +58,7 @@ class Context(HivenObject):
         """
         try:
             instance = ContextSchema().load(data, unknown=RAISE)
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
             return instance
 

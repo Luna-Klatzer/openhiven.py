@@ -19,14 +19,14 @@ class AttachmentSchema(Schema):
     raw = fields.Dict(required=True)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns the class Attachment using the @classmethod inside the Class to correctly initialise the object
         :param data: Dictionary that will be passed to the initialisation
         :param kwargs: Additional Data that can be passed
         :return: A new Attachment Object
         """
-        return Attachment(**data)
+        return Attachment(**data, **kwargs)
 
 
 class Attachment(HivenObject):
@@ -53,10 +53,11 @@ class Attachment(HivenObject):
         :param kwargs: Additional parameter or instances required for the initialisation
         :return: The newly constructed Attachment Instance
         """
-        data['raw'] = dict(data)  # Adding the raw field
         try:
+            data['raw'] = dict(data)  # Adding the raw field
+
             instance = AttachmentSchema().load(data, unknown=RAISE)
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
             return instance
 

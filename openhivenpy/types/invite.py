@@ -27,7 +27,7 @@ class InviteSchema(Schema):
     house_members = fields.Int(required=True, default=None)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
@@ -35,7 +35,7 @@ class InviteSchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new Invite Object
         """
-        return Invite(**data)
+        return Invite(**data, **kwargs)
 
 
 class Invite(HivenObject):
@@ -102,7 +102,7 @@ class Invite(HivenObject):
 
             instance = InviteSchema().load(data, unknown=INCLUDE)
 
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
             return instance
 

@@ -22,7 +22,7 @@ class Mention(HivenObject):
         else:
             self._timestamp = None
             
-        self._user = user.User(data, http)
+        self._user = user.User.from_dict(data, http)
             
         self._author = author
         self._http = http

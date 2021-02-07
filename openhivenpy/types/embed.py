@@ -21,7 +21,7 @@ class EmbedSchema(Schema):
     description = fields.Str(default=None)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
@@ -29,7 +29,7 @@ class EmbedSchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new Embed Object
         """
-        return Embed(**data)
+        return Embed(**data, **kwargs)
 
 
 class Embed(HivenObject):
@@ -60,7 +60,7 @@ class Embed(HivenObject):
         """
         try:
             instance = EmbedSchema().load(data, unknown=RAISE)
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
             return instance
 

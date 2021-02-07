@@ -486,7 +486,7 @@ class Websocket(types.Client):
         """
         try:
             # Fetching the house based on the ID
-            house = utils.get(self._houses, id=int(data.get('house_id')))
+            house = utils.get(self.houses, id=int(data.get('house_id')))
 
             # Member data that was sent with the request
             sent_member_data = data.get('members')
@@ -500,7 +500,7 @@ class Websocket(types.Client):
                     house._members.remove(cached_mem)
 
                     # Creating a new Member Class and appending the new data
-                    member = types.Member(mem_data, house, self.http)
+                    member = types.Member.from_dict(mem_data, self.http, house=house)
 
                     # Appending the new member
                     house._members.append(member)
@@ -517,7 +517,7 @@ class Websocket(types.Client):
                     # Removing the older cached user
                     self._users.remove(cached_user)
 
-                    user = types.User(sent_member_data.get(mem_id), self.http)
+                    user = await types.User.from_dict(sent_member_data.get(mem_id), self.http)
                     self._users.append(user)
                 else:
                     name = sent_member_data.get(mem_id).get('name')
@@ -573,7 +573,7 @@ class Websocket(types.Client):
                 await asyncio.wait_for(self.ready)
 
             cached_user = utils.get(self._users, id=int(data.get('user_id')))
-            user = types.User(data['user'], self.http)
+            user = await types.User.from_dict(data.get('user'), self.http)
 
             # Removing the old user
             if cached_user:
@@ -583,7 +583,7 @@ class Websocket(types.Client):
 
             # Getting the cached member in the house if it exists
             cached_member = utils.get(house.members, user_id=int(data.get('user_id')))
-            member = types.Member(data, house, self.http)
+            member = await types.Member.from_dict(data, self.http, house=house)
 
             if cached_member:
                 # Removing the old member
@@ -621,7 +621,7 @@ class Websocket(types.Client):
                 raw_data = self.http.request(f"/users/{user_id}")
 
                 if raw_data:
-                    user = types.User(raw_data.get('data'), self.http)
+                    user = await types.User.from_dict(raw_data.get('data'), self.http)
                     # Appending the newly created user-object
                     self._users.append(user)
 
@@ -633,7 +633,7 @@ class Websocket(types.Client):
                 # Removing the cached_data
                 house._members.remove(cached_member)
 
-                member = types.Member(data, house, self.http)
+                member = await types.Member.from_dict(data, self.http, house=house)
                 # Appending the newly created member-object
                 house._members.append(member)
 
@@ -699,7 +699,7 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            user = types.User(data, self.http)
+            user = await types.User.from_dict(data, self.http)
             presence = types.Presence(data, user, self.http)
 
             # TODO! Update user presence!
@@ -887,7 +887,7 @@ class Websocket(types.Client):
                 # If it doesn't exist it needs to be added to the list
                 if cached_user is None:
                     # Appending the new user
-                    self._users.append(types.User(member_data, self.http))
+                    self._users.append(await types.User.from_dict(member_data, self.http))
 
             for room in data['rooms']:
                 self._rooms.append(types.Room(room, self.http, house))
@@ -965,7 +965,7 @@ class Websocket(types.Client):
             house = utils.get(self._houses, id=int(data.get('house_id')))
 
             # Creating a list of all updated members
-            members = list([types.Member(data, house, self.http) for data in data.get('data')])
+            members = list([await types.Member.from_dict(data, self.http, house=house) for data in data.get('data')])
 
             # For every created member the local member data will be replaced
             for member in members:
@@ -986,8 +986,10 @@ class Websocket(types.Client):
                                    f"unknown member in house {house.name} because of faulty user data! "
                                    "Possibly faulty client data!")
 
+            users = []
             # Creating a list of all updated users
-            users = list([types.User(data, self.http) for data in data.get('data')])
+            for d in data.get('data'):
+                users.append(await types.User.from_dict(d, self.http))
 
             # For every created user the local user data will be replaced
             for user in users:

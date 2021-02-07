@@ -15,34 +15,60 @@ logger = logging.getLogger(__name__)
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 
+class PrivateGroupRoomSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    id = fields.Int(required=True)
+    last_message_id = fields.Int(required=True)
+    recipients = fields.List(fields.Field(), required=True)
+    name = fields.Str(required=True)
+    type = fields.Int(required=True)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new PrivateGroupRoom Object
+        """
+        return PrivateGroupRoom(**data, **kwargs)
+
+
+class PrivateRoomSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    id = fields.Int(required=True)
+    last_message_id = fields.Int(required=True)
+    recipient = fields.Raw(required=True)
+    name = fields.Str(required=True)
+    type = fields.Int(required=True)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new PrivateGroupRoom Object
+        """
+        return PrivateGroupRoom(**data, **kwargs)
+
+
 class PrivateGroupRoom(HivenObject):
     """
     Represents a private group chat room with multiple person
     """
-    def __init__(self, data: dict, http):
-        try:
-            self._id = int(data.get('id'))
-            self._last_message_id = data.get('last_message_id')
-            
-            recipients_data = data.get("recipients")
-            self._recipients = []
-            for recipient in recipients_data:
-                self._recipients.append(module_user.User(recipient, http))
-                
-            self._name = f"Private Group chat with {(''.join(r.name+', ' for r in self._recipients))[:-2]}"   
-            self._type = data.get('type')
-             
-            self._http = http
-        
-        except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix="Failed to initialize the PrivateRoom object; \n"
-                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return repr(self)
+    def __init__(self, **kwargs):
+        self._id = kwargs.get('id')
+        self._last_message_id = kwargs.get('last_message_id')
+        self._recipients = kwargs.get('recipients')
+        self._name = kwargs.get('name')
+        self._type = kwargs.get('type')
 
     def __repr__(self) -> str:
         info = [
@@ -52,6 +78,42 @@ class PrivateGroupRoom(HivenObject):
             ('type', self.type)
         ]
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @classmethod
+    async def from_dict(cls,
+                        data: dict,
+                        http,
+                        **kwargs):
+        """
+        Creates an instance of the PrivateGroupRoom Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :return: The newly constructed PrivateGroupRoom Instance
+        """
+        try:
+            data['id'] = int(data.get('id'))
+
+            _recipients = []
+            for d in data.get("recipients"):
+                _recipients.append(await module_user.User.from_dict(d, http))
+            data['recipients'] = _recipients
+            data['name'] = f"Private Group chat with {(', '.join(getattr(r, 'name') for r in _recipients))}"
+
+            instance = PrivateGroupRoomSchema().load(data, unknown=RAISE)
+
+            # Adding the http attribute for API interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
     def recipients(self) -> typing.Union[module_user.User, list]:
@@ -96,7 +158,7 @@ class PrivateGroupRoom(HivenObject):
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = module_user.User(author_data, self._http)
+                        author = await module_user.User.from_dict(author_data, self._http)
                         msg = message.Message(
                             data=data,
                             http=self._http,
@@ -131,9 +193,10 @@ class PrivateGroupRoom(HivenObject):
 
             data = await resp.json()
             if data.get('data') is True:
+                # TODO! Needs implementation
                 return True
             else:
-                return False
+                raise errs.HTTPFaultyResponse()
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -147,25 +210,12 @@ class PrivateRoom:
     Represents a private chat room with a user
     """
     def __init__(self, data: dict, http):
-        try:
-            self._id = int(data.get('id'))
-            self._last_message_id = data.get('last_message_id')
-            recipients = data.get("recipients")
-            self._recipient = module_user.User(recipients[0], http)
-            self._name = f"Private chat with {recipients[0]['name']}"   
-            self._type = data.get('type')
-             
-            self._http = http
-        
-        except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix="Failed to initialize the PrivateRoom object; \n"
-                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize PrivateRoom object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return repr(self)
+        self._id = int(data.get('id'))
+        self._last_message_id = data.get('last_message_id')
+        recipients = data.get("recipients")
+        self._recipient = module_user.User.from_dict(recipients[0], http)
+        self._name = f"Private chat with {recipients[0]['name']}"
+        self._type = data.get('type')
 
     def __repr__(self) -> str:
         info = [
@@ -175,6 +225,36 @@ class PrivateRoom:
             ('type', self.type)
         ]
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @classmethod
+    async def from_dict(cls, data: dict, http, **kwargs):
+        """
+        Creates an instance of the PrivateRoom Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed PrivateRoom Instance
+        """
+        try:
+            data['id'] = int(data.get('id'))
+            data['last_message_id'] = data.get('last_message_id')
+            data['recipients'] = await module_user.User.from_dict(data.get('recipients', [])[0], http)
+            data['name'] = f"Private chat with {data.get('recipients', [])[0].name}"
+            data['type'] = data.get('type')
+
+            instance = PrivateRoomSchema().load(dict(data), unknown=RAISE)
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
     def user(self) -> module_user.User:
@@ -248,7 +328,7 @@ class PrivateRoom:
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = module_user.User(author_data, self._http)
+                        author = await module_user.User.from_dict(author_data, self._http)
                         msg = message.Message(
                             data=data,
                             http=self._http,

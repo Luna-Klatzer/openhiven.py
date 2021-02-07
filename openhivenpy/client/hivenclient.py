@@ -438,7 +438,7 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        user = types.User(data, self.connection.http)
+                        user = await types.User.from_dict(data, self.connection.http)
                         self.connection._users.remove(cached_user)
                         self.connection._users.append(user)
                         return user
@@ -640,7 +640,7 @@ class HivenClient(EventHandler):
             if data:
                 mention_list = []
                 for msg_data in data:
-                    author = types.User(msg_data.get('author'), self.connection.http)
+                    author = await types.User.from_dict(msg_data.get('author'), self.connection.http)
 
                     room = utils.get(self.rooms, id=int(msg_data.get('room_id')))
 

@@ -39,7 +39,7 @@ class Relationship(HivenObject):
             self._user_id = data.get('user_id')
             if self._user_id:
                 self._user_id = int(self._user_id)
-            self._user = user.User(user_data, http)
+            self._user = user.User.from_dict(user_data, http)
             self._type = data.get('type')
             # ID does not always exist
             self._id = data.get('id')

@@ -108,8 +108,8 @@ class Room(HivenObject):
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = user.User(author_data, self._http)
-                        msg = user.Message(
+                        author = await user.User.from_dict(author_data, self._http)
+                        msg = message.Message(
                             data=data,
                             http=self._http,
                             house=None,
@@ -194,7 +194,7 @@ class Room(HivenObject):
                     if _raw_data:
                         _author_data = _raw_data.get('data')
                         if _author_data:
-                            author = user.User(_author_data, self._http)
+                            author = await user.User.from_dict(_author_data, self._http)
                             msg = message.Message(
                                 data=message,
                                 http=self._http,

@@ -62,7 +62,7 @@ class Client(HivenObject):
         """
         try:
             # Initialising the Client-User object for storing the user data
-            self._client_user = user.User(data.get('user'), self.http)
+            self._client_user = await user.User.from_dict(data.get('user'), self.http)
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
@@ -76,26 +76,24 @@ class Client(HivenObject):
 
             # Initialising the private rooms
             _private_rooms = data.get('private_rooms')
-            for _private_room in _private_rooms:
-                t = int(_private_room.get('type', 0))
-                if t == 1:
-                    room = private_room.PrivateRoom(_private_room, self.http)
-                elif t == 2:
-                    room = private_room.PrivateGroupRoom(_private_room, self.http)
+            for d in _private_rooms:
+                type_ = int(d.get('type', 0))
+                if type_ == 1:
+                    self._private_rooms.append(await private_room.PrivateRoom.from_dict(d, self.http))
+                elif type_ == 2:
+                    self._private_rooms.append(await private_room.PrivateGroupRoom.from_dict(d, self.http))
                 else:
-                    room = private_room.PrivateRoom(_private_room, self.http)
-                self._private_rooms.append(room)
+                    self._private_rooms.append(await private_room.PrivateRoom.from_dict(d, self.http))
 
             # Passing the amount of houses as variable
-            _house_memberships = data.get('house_memberships')
-            self._house_memberships = _house_memberships
+            self._house_memberships = data.get('house_memberships')
 
         except Exception as e:
             utils.log_traceback(msg="[CLIENT] Traceback: ",
-                                suffix="Failed to update client data; \n"
+                                suffix="Failed to initialise the Client User Data; \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
+            raise errs.FaultyInitialization(f"Failed to initialise the Client User Data: "
+                                            f"{sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
         """
@@ -197,19 +195,19 @@ class Client(HivenObject):
             return None
 
     @property
-    def houses(self) -> int:
+    def houses(self) -> list:
         return getattr(self, '_houses', [])
 
     @property
-    def private_rooms(self) -> int:
+    def private_rooms(self) -> list:
         return getattr(self, '_private_rooms', [])
 
     @property
-    def users(self) -> int:
+    def users(self) -> list:
         return getattr(self, '_users', [])
 
     @property
-    def rooms(self) -> int:
+    def rooms(self) -> list:
         return getattr(self, '_rooms', [])
 
     @property

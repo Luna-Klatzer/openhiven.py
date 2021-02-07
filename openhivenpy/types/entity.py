@@ -23,7 +23,7 @@ class EntitySchema(Schema):
     position = fields.Int(default=0)
 
     @post_load
-    def make_house(self, data, **kwargs):
+    def make(self, data, **kwargs):
         """
         Returns an instance of the class using the @classmethod inside the Class to initialise the object
 
@@ -31,7 +31,7 @@ class EntitySchema(Schema):
         :param kwargs: Additional Data that can be passed
         :return: A new Entity Object
         """
-        return Entity(**data)
+        return Entity(**data, **kwargs)
 
 
 class Entity(HivenObject):
@@ -68,8 +68,10 @@ class Entity(HivenObject):
         :return: The newly constructed Embed Instance
         """
         try:
+            data['id'] = int(data.get('id'))
+
             instance = EntitySchema().load(data, unknown=RAISE)
-            # Adding the http attribute for http interaction
+            # Adding the http attribute for API interaction
             instance._http = http
             return instance
 
