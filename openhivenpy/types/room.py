@@ -195,7 +195,7 @@ class Room(HivenObject):
         
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                suffix=f"Failed to send message in room {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
         
@@ -223,7 +223,7 @@ class Room(HivenObject):
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
 
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to change the values {keys} in room {repr(self)}; \n"
+                                suffix=f"Failed to change the values {keys} in room {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
         
@@ -243,7 +243,7 @@ class Room(HivenObject):
     
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n" 
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
         
@@ -284,6 +284,6 @@ class Room(HivenObject):
     
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n" 
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None

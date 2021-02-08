@@ -136,7 +136,7 @@ class ExecutionLoop:
 
                 except Exception as e:
                     utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
-                                        suffix="Error in startup tasks in the execution loop; \n"
+                                        suffix="Error in startup tasks in the execution loop: \n"
                                                f"{sys.exc_info()[0].__name__}: {e}")
 
                 finally:
@@ -175,7 +175,7 @@ class ExecutionLoop:
                          "No more tasks will be executed!")
         except Exception as e:
             utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
-                                suffix="Failed to start or keep alive execution_loop; \n"
+                                suffix="Failed to start or keep alive execution_loop: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
         finally:
             self._active = False
@@ -201,7 +201,7 @@ class ExecutionLoop:
 
         except Exception as e:
             utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
-                                suffix="Failed to stop or keep alive execution_loop; \n"
+                                suffix="Failed to stop or keep alive execution_loop: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.UnableToClose("Failed to stop or keep alive execution_loop!"
                                      f"> {sys.exc_info()[0].__name__}: {e}")
@@ -410,7 +410,7 @@ class Connection(Websocket):
 
         except Exception as e:
             utils.log_traceback(msg="[CONNECTION] Traceback:",
-                                suffix="Failed to establish the connection to Hiven; \n"
+                                suffix="Failed to establish the connection to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.HivenConnectionError("Failed to establish the connection to Hiven! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
@@ -456,7 +456,7 @@ class Connection(Websocket):
 
         except Exception as e:
             utils.log_traceback(msg="[CONNECTION] Traceback:",
-                                suffix=f"Closing the connection to Hiven failed; \n"
+                                suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.UnableToClose("Closing the connection to Hiven failed!"
                                      f"> {sys.exc_info()[0].__name__}: {e}")
@@ -496,7 +496,7 @@ class Connection(Websocket):
 
         except Exception as e:
             utils.log_traceback(msg="[CONNECTION] Traceback:",
-                                suffix=f"Closing the connection to Hiven failed; \n"
+                                suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.UnableToClose("Closing the connection to Hiven failed! "
                                      f"> {sys.exc_info()[0].__name__}: {e}")

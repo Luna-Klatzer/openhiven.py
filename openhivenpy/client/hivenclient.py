@@ -181,7 +181,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to establish or keep the connection alive; \n"
+                                suffix=f"Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
             raise errs.SessionCreateException("Failed to establish HivenClient session! >"
                                               f"{sys.exc_info()[0].__name__}: {e}")
@@ -220,7 +220,7 @@ class HivenClient(EventHandler):
         except Exception as e:
             utils.log_traceback(level='critical',
                                 msg="[HIVENCLIENT] Traceback:",
-                                suffix="Failed to establish or keep the connection alive; \n"
+                                suffix="Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
             raise errs.SessionCreateException("Failed to establish HivenClient session! >"
                                               f"{sys.exc_info()[0].__name__}: {e}")
@@ -245,7 +245,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to close client session and websocket to Hiven; \n"
+                                suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
                                      f"{sys.exc_info()[0].__name__}: {e}")
@@ -272,7 +272,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to close client session and websocket to Hiven; \n"
+                                suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
                                      f"{sys.exc_info()[0].__name__}: {e}")
@@ -421,7 +421,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get House based with id {house_id}; \n"
+                                suffix=f"Failed to get House based with id {house_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def get_user(self, user_id: int) -> typing.Union[types.User, None]:
@@ -453,7 +453,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get User based with id {user_id}; \n"
+                                suffix=f"Failed to get User based with id {user_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def get_room(self, room_id: int) -> typing.Union[types.Room, None]:
@@ -490,7 +490,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get Room with id {room_id}; \n"
+                                suffix=f"Failed to get Room with id {room_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def get_private_room(self, room_id: float) -> typing.Union[types.PrivateRoom, None]:
@@ -525,7 +525,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get Private Room with id {room_id}; \n"
+                                suffix=f"Failed to get Private Room with id {room_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def create_house(self, name: str) -> types.LazyHouse:
@@ -558,7 +558,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to create House; \n"
+                                suffix=f"Failed to create House: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def delete_house(self, house_id: int) -> typing.Union[int, None]:
@@ -582,7 +582,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to delete House; \n"
+                                suffix=f"Failed to delete House: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def fetch_invite(self, invite_code: str) -> typing.Union[types.Invite, None]:
@@ -603,7 +603,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to fetch the invite with invite_code '{invite_code}'; \n"
+                                suffix=f"Failed to fetch the invite with invite_code '{invite_code}': \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def get_feed(self) -> typing.Union[types.Feed, None]:
@@ -626,7 +626,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get the users feed; \n"
+                                suffix=f"Failed to get the users feed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def get_mentions(self) -> typing.Union[list, types.Mention]:
@@ -660,7 +660,7 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to get the users mentions; \n"
+                                suffix=f"Failed to get the users mentions: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def change_room_settings(self,
@@ -702,7 +702,7 @@ class HivenClient(EventHandler):
         except Exception as e:
             room_id = room if room is not None else getattr(room, 'id', None)
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to edit the room with id {room_id}; \n"
+                                suffix=f"Failed to edit the room with id {room_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -745,7 +745,7 @@ class HivenClient(EventHandler):
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to create private_room with user with the id={user_id}; \n"
+                                suffix=f"Failed to create private_room with user with the id={user_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -789,6 +789,6 @@ class HivenClient(EventHandler):
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
-                                suffix=f"Failed to send a friend request a user with ids={recipients}; \n"
+                                suffix=f"Failed to send a friend request a user with ids={recipients}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None

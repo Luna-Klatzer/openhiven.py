@@ -210,7 +210,7 @@ class PrivateGroupRoom(HivenObject):
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                suffix=f"Failed to send message in room {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -235,7 +235,7 @@ class PrivateGroupRoom(HivenObject):
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix=f"Failed to start call in {repr(self)}; \n"
+                                suffix=f"Failed to start call in {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False         
 
@@ -346,7 +346,7 @@ class PrivateRoom(HivenObject):
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix=f"Failed to start call in room {repr(self)}; \n" 
+                                suffix=f"Failed to start call in room {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False             
 
@@ -390,6 +390,6 @@ class PrivateRoom(HivenObject):
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}; \n" 
+                                suffix=f"Failed to send message in room {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None

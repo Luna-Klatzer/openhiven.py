@@ -213,7 +213,7 @@ class Websocket(types.Client):
             except Exception as ws_e:
                 utils.log_traceback(level='critical',
                                     msg="[WEBSOCKET] Traceback:",
-                                    suffix=f"[WEBSOCKET] The connection to Hiven failed to be kept alive or started;\n"
+                                    suffix=f"[WEBSOCKET] The connection to Hiven failed to be kept alive or started:\n"
                                            f"{sys.exc_info()[0].__name__}, {str(ws_e)}")
 
                 # Closing
@@ -312,7 +312,7 @@ class Websocket(types.Client):
                                     await super().initialise_hiven_client_data(json_data.get('d'))
                                 except Exception as e:
                                     utils.log_traceback(msg="Traceback of failed Initialisation: ",
-                                                        suffix=f"Failed to initialise and load data of the Client; \n"
+                                                        suffix=f"Failed to initialise and load data of the Client: \n"
                                                                f"{sys.exc_info()[0].__name__}: {e}")
                                     raise errs.FaultyInitialization()
 
@@ -392,7 +392,7 @@ class Websocket(types.Client):
         except Exception as e:
             utils.log_traceback(level='critical',
                                 msg="[WEBSOCKET] Traceback:",
-                                suffix=f"[WEBSOCKET] << Failed to keep lifesignal alive!; \n"
+                                suffix=f"[WEBSOCKET] << Failed to keep lifesignal alive!: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def wait_for_ready(self):
@@ -457,7 +457,7 @@ class Websocket(types.Client):
         except Exception as e:
             utils.log_traceback(level='debug',
                                 msg="[WEBSOCKET] Traceback:",
-                                suffix=f"Failed to handle incoming json-type text message in the websocket; \n"
+                                suffix=f"Failed to handle incoming json-type text message in the websocket: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_down_handler(self, data: dict):
@@ -482,7 +482,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_DOWN] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def member_chunk_handler(self, data: dict):
@@ -506,23 +506,26 @@ class Websocket(types.Client):
 
             # For every member that was sent and their data the stored cached data will be replaced
             for mem_id, mem_data in sent_member_data.items():
-                cached_mem = utils.get(house.members, id=utils.convert_value(int, mem_id))
-                if cached_mem is not None:
+                cached_member = utils.get(house.members, id=utils.convert_value(int, mem_id))
+                if cached_member is not None:
                     # Removing the older cached member
-                    house._members.remove(cached_mem)
+                    house._members.remove(cached_member)
 
                     # Creating a new Member Class and appending the new data
                     member = await types.Member.from_dict(mem_data, self.http, house=house)
 
-                    # Appending the new member
-                    house._members.append(member)
-                    # Appending to the 'changelog' list the member
-                    updated_members.append(member)
+                    if member is not None:
+                        # Appending the new member
+                        house._members.append(member)
 
+                        # Appending to the 'changelog' list the member
+                        updated_members.append(member)
+                    else:
+                        logger.warning("[HOUSE_MEMBERS_CHUNK] Failed to create Member instance of user with id "
+                                       f"{mem_data.get('id')}")
                 else:
-                    name = sent_member_data.get(mem_id).get('name')
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update member data of "
-                                   f"{name} in house {house.name}; Member not found locally!")
+                                   f"{mem_data.get('name')} in house {house.name}: Member not found locally!")
 
                 cached_user = utils.get(self._users, id=utils.convert_value(int, mem_id))
                 if cached_user is not None:
@@ -530,11 +533,14 @@ class Websocket(types.Client):
                     self._users.remove(cached_user)
 
                     user = await types.Member.from_dict(sent_member_data.get(mem_id), self.http)
-                    self._users.append(user)
+                    if user:
+                        self._users.append(user)
+                    else:
+                        logger.warning("[HOUSE_MEMBERS_CHUNK] Failed to create User instance of user with id "
+                                       f"{mem_data.get('id')}")
                 else:
-                    name = sent_member_data.get(mem_id).get('name')
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
-                                   f"{name} in client cache; Member not found locally!")
+                                   f"{mem_data.get('name')} in client cache: Member not found locally!")
 
             await self.event_handler.dispatch_on_house_member_chunk(
                 members=updated_members,
@@ -543,7 +549,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBERS_CHUNK] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_enter(self, data: dict):
@@ -568,7 +574,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBER_ENTER] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_update_handler(self, data: dict):
@@ -581,7 +587,7 @@ class Websocket(types.Client):
         try:
             house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
 
-            cached_user = utils.get(self._users, id=utils.convert_value(int, data.get('user_id')))
+            cached_user = utils.get(self.users, id=utils.convert_value(int, data.get('user_id')))
             user = await types.User.from_dict(data.get('user'), self.http)
 
             # Removing the old user
@@ -604,7 +610,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBER_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_join_handler(self, data: dict):
@@ -650,7 +656,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBER_JOIN] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def room_create_handler(self, data: dict):
@@ -679,7 +685,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[ROOM_CREATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_exit_handler(self, data: dict):
@@ -698,7 +704,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBER_EXIT] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def presence_update_handler(self, data: dict):
@@ -717,7 +723,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[PRESENCE_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_create_handler(self, data: dict):
@@ -765,7 +771,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE_CREATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def message_delete_handler(self, data: dict):
@@ -784,7 +790,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE_DELETE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def message_update_handler(self, data: dict):
@@ -845,7 +851,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def relationship_update_handler(self, data: dict):
@@ -869,7 +875,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[RELATIONSHIP_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_join_handler(self, data: dict):
@@ -912,7 +918,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_JOIN] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_leave_handler(self, data: dict):
@@ -935,7 +941,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_LEAVE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_entity_update_handler(self, data: dict):
@@ -961,7 +967,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_ENTITIES_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def batch_house_member_handler(self, data: dict):
@@ -1026,7 +1032,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[BATCH_HOUSE_MEMBER_UPDATE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def typing_start_handler(self, data: dict):
@@ -1054,7 +1060,7 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[TYPING_START] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def house_member_leave(self, data):
@@ -1074,5 +1080,5 @@ class Websocket(types.Client):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBER_LEAVE] Traceback:",
-                                suffix="Failed to handle the event due to an exception occurring; \n"
+                                suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")

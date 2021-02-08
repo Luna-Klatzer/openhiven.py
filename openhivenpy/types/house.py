@@ -290,7 +290,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to get the member with id {member_id}; \n"
+                                suffix=f"Failed to get the member with id {member_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
@@ -314,7 +314,7 @@ class House(LazyHouse):
             return None
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}; \n"
+                                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
@@ -355,7 +355,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create room '{name}' in house {repr(self)}; \n"
+                                suffix=f"Failed to create room '{name}' in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -387,7 +387,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create category '{name}' in house {repr(self)}; \n"
+                                suffix=f"Failed to create category '{name}' in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -409,7 +409,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to leave {repr(self)}; \n"
+                                suffix=f"Failed to leave {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
@@ -439,7 +439,7 @@ class House(LazyHouse):
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
 
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}; \n"
+                                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
@@ -467,7 +467,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}; \n"
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
@@ -487,6 +487,6 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to delete House {repr(self)}; \n"
+                                suffix=f"Failed to delete House {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None

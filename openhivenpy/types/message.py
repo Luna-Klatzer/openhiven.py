@@ -79,7 +79,7 @@ class Message:
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to initialize the Message object; \n"
+                                suffix=f"Failed to initialize the Message object: \n"
                                        f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
@@ -173,7 +173,7 @@ class Message:
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to mark message as read {repr(self)}; \n" 
+                                suffix=f"Failed to mark message as read {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def delete(self, delay: float = None) -> bool:
@@ -195,7 +195,7 @@ class Message:
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to delete the message {repr(self)}; \n" 
+                                suffix=f"Failed to delete the message {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def edit(self, content: str) -> bool:
@@ -216,6 +216,6 @@ class Message:
     
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to edit message {repr(self)}; \n" 
+                                suffix=f"Failed to edit message {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False

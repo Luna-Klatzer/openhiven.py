@@ -133,7 +133,7 @@ class HTTP:
 
         except Exception as e:
             utils.log_traceback(msg="[HTTP] Traceback:",
-                                suffix="Failed to create HTTP-Session; \n"
+                                suffix="Failed to create HTTP-Session: \n"
                                        f"> {sys.exc_info()[0].__name__}: {e}")
             self._ready = False
             await self.session.close()
@@ -247,7 +247,7 @@ class HTTP:
 
                 except Exception as _e:
                     utils.log_traceback(msg="[HTTP] Traceback:",
-                                        suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}; \n"
+                                        suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}: \n"
                                                f"{sys.exc_info()[0].__name__}, {str(_e)}")
 
             else:
@@ -269,10 +269,10 @@ class HTTP:
 
         except Exception as e:
             utils.log_traceback(msg="[HTTP] Suffix",
-                                suffix=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}; \n"
+                                suffix=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.HTTPError(f"HTTP '{method.upper()}' failed with endpoint: "
-                                 f"{self.host}{endpoint}; {sys.exc_info()[0].__name__}: {e}")
+                                 f"{self.host}{endpoint}: {sys.exc_info()[0].__name__}: {e}")
 
         # Returning the response instance
         return http_client_response

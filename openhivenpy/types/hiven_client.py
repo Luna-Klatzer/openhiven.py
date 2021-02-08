@@ -98,7 +98,7 @@ class Client(HivenObject):
 
         except Exception as e:
             utils.log_traceback(msg="[CLIENT] Traceback: ",
-                                suffix="Failed to initialise the Client User Data; \n"
+                                suffix="Failed to initialise the Client User Data: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.FaultyInitialization(f"Failed to initialise the Client User Data: "
                                             f"{sys.exc_info()[0].__name__}: {e}")
@@ -152,7 +152,7 @@ class Client(HivenObject):
             keys = "".join(str(key + " ") for key in kwargs.keys())
 
             utils.log_traceback(msg="[CLIENT] Traceback:",
-                                suffix=f"Failed change the values {keys}; \n"
+                                suffix=f"Failed change the values {keys}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     @property

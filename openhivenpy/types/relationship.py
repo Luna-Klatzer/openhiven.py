@@ -57,7 +57,7 @@ class Relationship(HivenObject):
         
         except Exception as e:
             utils.log_traceback(msg="[RELATIONSHIP] Traceback:",
-                                suffix="Failed to initialize the Relationship object; \n"
+                                suffix="Failed to initialize the Relationship object: \n"
                                        f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
