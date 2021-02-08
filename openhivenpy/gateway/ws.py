@@ -512,7 +512,7 @@ class Websocket(types.Client):
                     house._members.remove(cached_mem)
 
                     # Creating a new Member Class and appending the new data
-                    member = types.Member.from_dict(mem_data, self.http, house=house)
+                    member = await types.Member.from_dict(mem_data, self.http, house=house)
 
                     # Appending the new member
                     house._members.append(member)
@@ -522,19 +522,19 @@ class Websocket(types.Client):
                 else:
                     name = sent_member_data.get(mem_id).get('name')
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update member data of "
-                                   f"{name} in house {house.name} > Member not found locally!")
+                                   f"{name} in house {house.name}; Member not found locally!")
 
                 cached_user = utils.get(self._users, id=utils.convert_value(int, mem_id))
                 if cached_user is not None:
                     # Removing the older cached user
                     self._users.remove(cached_user)
 
-                    user = await types.User.from_dict(sent_member_data.get(mem_id), self.http)
+                    user = await types.Member.from_dict(sent_member_data.get(mem_id), self.http)
                     self._users.append(user)
                 else:
                     name = sent_member_data.get(mem_id).get('name')
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
-                                   f"{name} in client cache! > Member not found locally!")
+                                   f"{name} in client cache; Member not found locally!")
 
             await self.event_handler.dispatch_on_house_member_chunk(
                 members=updated_members,
