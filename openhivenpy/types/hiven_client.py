@@ -61,9 +61,14 @@ class Client(HivenObject):
         :param data: Data used for Initialisation
         """
         try:
-            # Initialising the Client-User object for storing the user data
-            self._client_user = await user.User.from_dict(data.get('user'), self.http)
-            self._users.append(self._client_user)
+            raw_data = await self.http.request("/users/@me")
+            user_data = raw_data.get('data')
+            if user_data:
+                # Initialising the Client-User object for storing the user data
+                self._client_user = await user.User.from_dict(user_data, self.http)
+                self._users.append(self._client_user)
+            else:
+                raise errs.HTTPReceivedNoData()
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
@@ -80,11 +85,13 @@ class Client(HivenObject):
             for d in _private_rooms:
                 type_ = utils.convert_value(int, d.get('type', 0))
                 if type_ == 1:
-                    self._private_rooms.append(await private_room.PrivateRoom.from_dict(d, self.http))
+                    r = await private_room.PrivateRoom.from_dict(d, self.http)
                 elif type_ == 2:
-                    self._private_rooms.append(await private_room.PrivateGroupRoom.from_dict(d, self.http))
+                    r = await private_room.PrivateGroupRoom.from_dict(d, self.http, users=self.users)
                 else:
-                    self._private_rooms.append(await private_room.PrivateRoom.from_dict(d, self.http))
+                    r = await private_room.PrivateRoom.from_dict(d, self.http)
+
+                self._private_rooms.append(r)
 
             # Passing the amount of houses as variable
             self._house_memberships = data.get('house_memberships')

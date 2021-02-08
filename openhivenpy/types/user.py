@@ -47,7 +47,9 @@ class UserSchema(LazyUserSchema):
     presence = fields.Str(default=None, allow_none=True)
     bio = fields.Str(default=None, allow_none=True)
     blocked = fields.Bool(default=False, allow_none=True)
-    email_verified = fields.Bool(allow_none=True)
+    email_verified = fields.Bool()
+    email = fields.Str(default=None, allow_none=True)
+    mfa_enabled = fields.Bool(default=None, allow_none=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -151,9 +153,11 @@ class User(LazyUser):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._location = kwargs.get('location', "")
-        self._website = kwargs.get('website', "")
-        self._presence = kwargs.get('presence', "")  # ToDo: Presence class
+        self._location = kwargs.get('location')
+        self._website = kwargs.get('website')
+        self._presence = kwargs.get('presence')  # ToDo: Replace with classic presence string
+        self._email = kwargs.get('email')
+        self._mfa_enabled = kwargs.get('mfa_enabled')
 
     @classmethod
     async def from_dict(cls,

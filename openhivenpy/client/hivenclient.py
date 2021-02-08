@@ -473,9 +473,10 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        room = types.Room(data, self.connection.http, house)
-                        # Appending the data to the client cache
+                        room = await types.Room.from_dict(data, self.connection.http, house=house)
+                        # Removing the older cached room
                         self.connection._rooms.remove(cached_room)
+                        # Appending the data to the client cache
                         self.connection._rooms.append(room)
                         return room
                     else:
@@ -507,7 +508,8 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        room = types.PrivateRoom(data, self.connection.http)
+                        room = await types.PrivateRoom.from_dict(data, self.connection.http)
+
                         # Appending the data to the client cache
                         self.connection._private_rooms.remove(cached_private_room)
                         self.connection._private_rooms.append(room)
@@ -731,8 +733,8 @@ class HivenClient(EventHandler):
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    private_room = types.PrivateRoom(data, self.connection.http)
-                    # Adding the PrivateRoom to the stored list
+                    private_room = await types.PrivateRoom.from_dict(data, self.connection.http)
+                    # Adding the PrivateRoom to the Cache
                     self.connection._private_rooms.append(private_room)
                     return private_room
                 else:
@@ -775,9 +777,9 @@ class HivenClient(EventHandler):
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    private_room = types.PrivateGroupRoom(data, self.connection.http)
+                    private_room = await types.PrivateGroupRoom.from_dict(data, self.connection.http)
 
-                    # Adding the PrivateGroupRoom to the stored list
+                    # Adding the PrivateGroupRoom to the Cache
                     self.connection._private_rooms.append(private_room)
                     return private_room
                 else:

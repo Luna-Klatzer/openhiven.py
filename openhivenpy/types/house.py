@@ -94,21 +94,24 @@ class LazyHouse(HivenObject):
         return self.name
 
     @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
+    async def from_dict(cls, data: dict, http, rooms: typing.List[room.Room], **kwargs):
         """
         Creates an instance of the LazyHouse Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
+        :param rooms: The cached Room List to fetch rooms from or add ones if passed
         :return: The newly constructed LazyHouse Instance
         """
         try:
             instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=INCLUDE)
 
             # Updating the rooms afterwards when the object was already created
-            _rooms = data.get('rooms')
-            if _rooms is not None:
-                instance._rooms = list(room.Room(d, http, instance) for d in _rooms)
+            rooms_ = data.get('rooms')
+            if rooms_ is not None:
+                instance._rooms = []
+                for d in rooms_:
+                    instance._rooms.append(await room.Room.from_dict(d, http, house=instance))
             else:
                 instance._rooms = None
 
@@ -168,12 +171,13 @@ class House(LazyHouse):
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
+    async def from_dict(cls, data: dict, http, rooms: typing.List[room.Room], **kwargs):
         """
         Creates an instance of the House Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
+        :param rooms: The cached Room List to fetch rooms from or add ones if passed
         :param kwargs: Additional parameter or instances required for the initialisation
         :return: The newly constructed House Instance
         """
@@ -183,31 +187,42 @@ class House(LazyHouse):
             data['owner'] = None
             data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
             data['id'] = utils.convert_value(int, data.get('id'))
+            data['default_permissions'] = data.get('default_permissions')
 
-            instance = GLOBAL_SCHEMA.load(dict(data), unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
             # Adding the http attribute for API interaction
             instance._http = http
 
-            entities = [await entity.Entity.from_dict(e, http) for e in data.get('entities')]
-            instance._entities = entities
-            instance._default_permissions = data.get('default_permissions')
+            # Updating the rooms afterwards when the object was already created
+            entities_ = data.get('entities')
+            if entities_ is not None:
+                instance._entities = []
+                for d in entities_:
+                    instance._entities.append(await entity.Entity.from_dict(d, http))
+            else:
+                instance._entities = None
 
-            members = data.get('members')
-            rooms = data.get('rooms')
+            members_ = data.get('members')
+            if members_ is not None:
+                instance._members = []
+                for d in members_:
+                    instance._members.append(await member.Member.from_dict(d, http, house=instance))
+            else:
+                instance._members = None
 
-            members_ = []
-            for d in members:
-                members_.append(await member.Member.from_dict(d, http, house=instance))
-            instance._members = members_
-
-            rooms_ = []
-            for d in rooms:
-                rooms_.append(room.Room(d, http, instance))
-            instance._rooms = rooms_
+            rooms_ = data.get('rooms')
+            if rooms_ is not None:
+                instance._rooms = []
+                for d in rooms_:
+                    room_ = await room.Room.from_dict(d, http, house=instance)
+                    instance._rooms.append(room_)
+                    # Adding the room to the cache
+                    rooms.append(room_)
+            else:
+                instance._rooms = None
 
             instance._client_member = utils.get(instance._members,
                                                 user_id=utils.convert_value(int, kwargs.get('client_id')))
-
             instance._owner = utils.get(instance._members, id=instance.owner_id)
 
             return instance
@@ -222,8 +237,12 @@ class House(LazyHouse):
                                        f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
-    def owner(self) -> user.User:
+    def owner(self) -> member.Member:
         return self._owner
+
+    @property
+    def client_member(self) -> member.Member:
+        return self._client_member
 
     @property
     def banner(self) -> list:
@@ -327,7 +346,7 @@ class House(LazyHouse):
             if resp.status < 300:
                 data = (await resp.json()).get('data')
                 if data:
-                    _room = room.Room(data, self._http, self)
+                    _room = await room.Room.from_dict(data, self._http, house=self)
 
                     return _room
                 else:

@@ -2,7 +2,7 @@ import logging
 import sys
 import asyncio
 import typing
-from marshmallow import fields, post_load, ValidationError, RAISE
+from marshmallow import fields, post_load, ValidationError, EXCLUDE, Schema
 
 from . import HivenObject
 from . import message
@@ -15,33 +15,59 @@ logger = logging.getLogger(__name__)
 __all__ = ['Room']
 
 
+class RoomSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    id = fields.Int(required=True)
+    name = fields.Str(required=True)
+    house_id = fields.Int(required=True)
+    position = fields.Int(default=0, required=True)
+    type = fields.Int(required=True)
+    emoji = fields.Raw(default=None, allow_none=True)
+    description = fields.Str(default=None, allow_none=True)
+    last_message_id = fields.Int(required=True, allow_none=True)
+    house = fields.Raw(allow_none=True)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new User Object
+        """
+        return Room(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = RoomSchema()
+
+
 class Room(HivenObject):
     """
     Represents a Hiven Room inside a House
+
+    ---
+
+    Possible Types:
+
+    0 - Text
+
+    1 - Portal
+
     """
-    def __init__(self, data: dict, http, house):
-        try:
-            self._id = utils.convert_value(int, data.get('id'))
-            self._name = data.get('name')
-            self._house_id = utils.convert_value(int, data.get('house_id'))
-            self._position = data.get('position')
-            self._type = data.get('type')  # 0 = Text, 1 = Portal
-            self._emoji = data.get('emoji')
-            self._description = data.get('description')
-            self._last_message_id = utils.convert_value(int, data.get('last_message_id'))
-            self._house = house
-
-            self._http = http
-        
-        except Exception as e:
-            utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to initialize the Room object; \n"
-                                       f"> {sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Room object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return repr(self)
+    def __init__(self, **kwargs):
+        self._id = kwargs.get('id')
+        self._name = kwargs.get('name')
+        self._house_id = kwargs.get('house_id')
+        self._position = kwargs.get('position')
+        self._type = kwargs.get('type')
+        self._emoji = kwargs.get('emoji')
+        self._description = kwargs.get('description')
+        self._last_message_id = kwargs.get('last_message_id')
+        self._house = kwargs.get('house')
 
     def __repr__(self) -> str:
         info = [
@@ -54,6 +80,50 @@ class Room(HivenObject):
             ('description', self.description)
         ]
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
+
+    @classmethod
+    async def from_dict(cls,
+                        data: dict,
+                        http,
+                        *,
+                        houses: typing.Optional[typing.List] = None,
+                        house: typing.Optional[typing.Any] = None,
+                        **kwargs):
+        """
+        Creates an instance of the Room Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param houses: The cached list of Houses to automatically fetch the corresponding House from
+        :param house: House passed for the Room. Requires direct specification to work with the Invite
+        :return: The newly constructed Room Instance
+        """
+        try:
+            data['id'] = utils.convert_value(int, data.get('id'))
+            data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
+
+            if house is not None:
+                data['house'] = house
+            elif houses is not None:
+                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
+            else:
+                raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+
+            # Adding the http attribute for API interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
     def id(self):

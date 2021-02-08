@@ -62,9 +62,6 @@ class Relationship(HivenObject):
             raise errs.FaultyInitialization(f"Failed to initialize Relationship object! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
-    def __str__(self) -> str:
-        return repr(self)
-
     def __repr__(self) -> str:
         info = [
             ('id', self.id),

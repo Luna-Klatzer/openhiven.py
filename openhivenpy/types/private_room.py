@@ -2,7 +2,7 @@ import logging
 import sys
 import asyncio
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
+from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE, EXCLUDE
 
 from . import HivenObject
 from . import message
@@ -97,12 +97,14 @@ class PrivateGroupRoom(HivenObject):
     async def from_dict(cls,
                         data: dict,
                         http,
+                        users: typing.List[module_user.User],
                         **kwargs):
         """
         Creates an instance of the PrivateGroupRoom Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
+        :param users: The cached users list to fetch the user from if it already exists or adding it
         :return: The newly constructed PrivateGroupRoom Instance
         """
         try:
@@ -110,11 +112,18 @@ class PrivateGroupRoom(HivenObject):
             data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
             data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
 
-            # Using standard for in loop directly instead of a generator since the await syntax creates
-            # automatically a async generator which does not fetch the User correctly
             _recipients = []
             for d in data.get("recipients"):
-                _recipients.append(await module_user.User.from_dict(d, http))
+                cached_user = utils.get(users, id=utils.convert_value(int, d.get('id')))
+                # Testing if the user was already created or if the object needs to be entirely newly created
+                if cached_user is None:
+                    user_ = await module_user.User.from_dict(d, http)
+                    users.append(user_)
+                else:
+                    user_ = cached_user
+                # Adding the user
+                _recipients.append(user_)
+
             data['recipients'] = _recipients
             data['name'] = f"Private Group chat with {(', '.join(getattr(r, 'name') for r in _recipients))}"
 
@@ -231,7 +240,7 @@ class PrivateGroupRoom(HivenObject):
             return False         
 
 
-class PrivateRoom:
+class PrivateRoom(HivenObject):
     """
     Represents a private chat room with a user
     """
@@ -270,9 +279,10 @@ class PrivateRoom:
             data['name'] = f"Private chat with {data.get('recipient').name}"
             data['type'] = data.get('type')
 
-            instance = GLOBAL_SCHEMA.load(dict(data), unknown=INCLUDE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
+            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)

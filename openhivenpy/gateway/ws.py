@@ -219,7 +219,7 @@ class Websocket(types.Client):
                 # Closing
                 close = getattr(self, "close", None)
                 if callable(close):
-                    await close(close_exec_loop=not self._restart,
+                    await close(close_exec_loop=True,
                                 reason="WebSocket encountered an error!",
                                 block_restart=not self._restart)
 
@@ -307,8 +307,14 @@ class Websocket(types.Client):
 
                         elif op == self.EVENT:
                             if event == "INIT_STATE":
-                                # Initialising the data of the Client
-                                await super().initialise_hiven_client_data(json_data.get('d'))
+                                try:
+                                    # Initialising the data of the Client
+                                    await super().initialise_hiven_client_data(json_data.get('d'))
+                                except Exception as e:
+                                    utils.log_traceback(msg="Traceback of failed Initialisation: ",
+                                                        suffix=f"Failed to initialise and load data of the Client; \n"
+                                                               f"{sys.exc_info()[0].__name__}: {e}")
+                                    raise errs.FaultyInitialization()
 
                                 # init_time = Time it took to initialise
                                 init_time = time.time() - self._connection_start
@@ -384,9 +390,10 @@ class Websocket(types.Client):
             return
 
         except Exception as e:
-            utils.log_traceback(level='critical', msg="[WEBSOCKET] Traceback:")
-            logger.critical(f"[WEBSOCKET] << Failed to keep lifesignal alive! "
-                            f"> {sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(level='critical',
+                                msg="[WEBSOCKET] Traceback:",
+                                suffix=f"[WEBSOCKET] << Failed to keep lifesignal alive!; \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
 
     async def wait_for_ready(self):
         """
@@ -658,14 +665,14 @@ class Websocket(types.Client):
                 house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
 
                 # Creating a new room
-                room = types.Room(data, self.http, house)
-                self._rooms.append(room)
+                room = await types.Room.from_dict(data, self.http, house=house)
 
                 # Appending the updated room
+                self._rooms.append(room)
                 house._rooms.append(room)
             else:
                 # Private Group Room
-                room = types.PrivateGroupRoom(data, self.http)
+                room = await types.PrivateGroupRoom.from_dict(data, self.http, users=self.users)
                 self._private_rooms.append(room)
 
             await self.event_handler.dispatch_on_room_create(room=room)
@@ -875,8 +882,9 @@ class Websocket(types.Client):
         try:
             print("Started")
             # Creating a house object that will then be appended
-            house = await types.House.from_dict(data, self.http, client_id=self.id)
+            house = await types.House.from_dict(data, self.http, client_id=self.id, rooms=self.rooms, users=self.users)
 
+            # Adding all new cached users
             for member_data in data['members']:
                 if hasattr(member_data, 'id'):
                     user_id = utils.convert_value(int, member_data.get('id'))
@@ -895,9 +903,6 @@ class Websocket(types.Client):
                         self._users.append(user)
                     else:
                         logger.warning(f"[WEBSOCKET] Failed to validate and create user with id {member_data.get('id')}")
-
-            for room in data['rooms']:
-                self._rooms.append(types.Room(room, self.http, house))
 
             # Appending to the client houses list
             self._houses.append(house)
