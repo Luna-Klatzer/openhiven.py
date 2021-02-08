@@ -26,16 +26,16 @@ class EventHandler:
         :param func: Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
         
         """
-        def decorator(func):
-            @wraps(func) 
+        def decorator(func_: typing.Coroutine):
+            @wraps(func_)
             async def wrapper(*args, **kwargs): 
-                return await func(*args, **kwargs)
+                return await func_(*args, **kwargs)
             
-            setattr(self, func.__name__, wrapper)  # Adding the function to the object
+            setattr(self, func_.__name__, wrapper)  # Adding the function to the object
 
-            logger.debug(f"[EVENT-HANDLER] >> Event {func.__name__} registered")
+            logger.debug(f"[EVENT-HANDLER] >> Event {func_.__name__} registered")
 
-            return func  # func can still be used normally
+            return func_  # func can still be used normally
 
         # TODO! Needs to raise Exception if not async using 'inspect.iscoroutinefunction(func):'
         if func is None:

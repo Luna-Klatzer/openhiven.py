@@ -13,6 +13,8 @@ import openhivenpy.utils as utils
 
 __all__ = 'UserClient'
 
+from ..types import entity
+
 logger = logging.getLogger(__name__)
 
 # Loading the environment variables
@@ -113,9 +115,22 @@ class UserClient(HivenClient):
 
             if resp.get('success', False):
                 data = resp.get('data')
+
+                incoming_ = data.get('incoming')
+                if incoming_:
+                    data['incoming'] = []
+                    for d in incoming_:
+                        data['incoming'].append(await types.LazyUser.from_dict(d, self.http))
+
+                outgoing_ = data.get('outgoing')
+                if outgoing_:
+                    data['outgoing'] = []
+                    for d in outgoing_:
+                        data['outgoing'].append(await types.LazyUser.from_dict(d, self.http))
+
                 return {
-                    'incoming': list(types.LazyUser(data) for data in data.get('incoming', [])),
-                    'outgoing': list(types.LazyUser(data) for data in data.get('outgoing', []))
+                    'incoming': data['incoming'],
+                    'outgoing': data['outgoing']
                 }
             else:
                 return None

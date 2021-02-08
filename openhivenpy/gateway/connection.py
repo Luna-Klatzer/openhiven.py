@@ -217,18 +217,18 @@ class ExecutionLoop:
         
         """
 
-        def decorator(__func):
-            @wraps(__func)
+        def decorator(func_: typing.Awaitable):
+            @wraps(func_)
             async def wrapper():
                 await asyncio.sleep(0.05)  # Sleeping to avoid too many executions at once
-                return await __func
+                return await func_
 
-            setattr(self._background_tasks_handler, __func.__name__, wrapper)
-            self._background_tasks.append(__func.__name__)
+            setattr(self._background_tasks_handler, func_.__name__, wrapper)
+            self._background_tasks.append(func_.__name__)
 
-            logger.debug(f"[EXEC-LOOP] >> Task {__func.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Task {func_.__name__} added to loop")
 
-            return __func  # returning func so it still can be used outside the class
+            return func_  # returning func so it still can be used outside the class
 
         if func is None:
             return decorator
@@ -245,18 +245,18 @@ class ExecutionLoop:
                      Only usable if the wrapper is used in the function syntax: 'event(func)'!
         """
 
-        def decorator(__func):
-            @wraps(__func)
+        def decorator(func_: typing.Awaitable):
+            @wraps(func_)
             async def wrapper():
                 await asyncio.sleep(0.05)  # Sleeping to avoid too many executions at once
-                return await __func
+                return await func_
 
-            setattr(self._startup_tasks_handler, __func.__name__, wrapper)
-            self._startup_tasks.append(__func.__name__)
+            setattr(self._startup_tasks_handler, func_.__name__, wrapper)
+            self._startup_tasks.append(func_.__name__)
 
-            logger.debug(f"[EXEC-LOOP] >> Startup Task {__func.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Startup Task {func_.__name__} added to loop")
 
-            return __func  # returning func so it still can be used outside the class
+            return func_  # returning func so it still can be used outside the class
 
         if func is None:
             return decorator

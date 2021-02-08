@@ -258,26 +258,27 @@ class Room(HivenObject):
             data = raw_data.get('data')
 
             if data:
-                messages = []
-                for message in data:
-                    _raw_data = await self._http.request(f"/users/{message.get('author_id')}")
+                messages_ = []
+                for d in data:
+                    _raw_data = await self._http.request(f"/users/{d.get('author_id')}")
                     if _raw_data:
                         _author_data = _raw_data.get('data')
                         if _author_data:
                             author = await user.User.from_dict(_author_data, self._http)
-                            msg = message.Message(
-                                data=message,
+                            msg = d.Message(
+                                data=d,
                                 http=self._http,
                                 house=self.house,
                                 room=self,
                                 author=author)
-                            messages.append(msg)
+                            messages_.append(msg)
                         else:
                             raise errs.HTTPReceivedNoData()
                     else:
                         raise errs.HTTPReceivedNoData()
 
-                return messages
+                return messages_
+
             else:
                 raise errs.HTTPReceivedNoData()
     

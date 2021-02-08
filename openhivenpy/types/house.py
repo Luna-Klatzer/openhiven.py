@@ -9,7 +9,6 @@ from marshmallow import ValidationError, RAISE, INCLUDE
 
 from . import HivenObject
 from . import invite
-from . import user
 from ..utils import utils
 from ..exceptions import exception as errs
 from . import entity
@@ -193,7 +192,7 @@ class House(LazyHouse):
             # Adding the http attribute for API interaction
             instance._http = http
 
-            # Updating the rooms afterwards when the object was already created
+            # Updating the cached lists when the object was already created
             entities_ = data.get('entities')
             if entities_ is not None:
                 instance._entities = []
@@ -335,8 +334,8 @@ class House(LazyHouse):
             else:
                 # If no ID was passed it will default to the Rooms category which serves as default for all
                 # entities
-                entity = utils.get(self.entities, name="Rooms")
-                json['parent_entity_id'] = entity.id
+                entity_ = utils.get(self.entities, name="Rooms")
+                json['parent_entity_id'] = entity_.id
 
             # Creating the room using the api
             resp = await self._http.post(
@@ -378,7 +377,7 @@ class House(LazyHouse):
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    _entity = entity.Entity(data, self._http)
+                    _entity = await entity.Entity.from_dict(data, self._http)
                     self._entities.append(_entity)
                     return _entity
                 else:

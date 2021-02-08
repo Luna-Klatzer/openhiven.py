@@ -729,13 +729,13 @@ class Websocket(types.Client):
         """
         try:
             if data.get('house_id'):
-                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
+                house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
             else:
                 house = None
 
             if house:
                 # Updating the last message ID in the Room
-                room = utils.get(self._rooms, id=utils.convert_value(int, data.get('room_id')))
+                room = utils.get(self.rooms, id=utils.convert_value(int, data.get('room_id')))
                 if room is not None:
                     # Updating the last message_id
                     room._last_message_id = utils.convert_value(int, data.get('id'))
@@ -746,7 +746,7 @@ class Websocket(types.Client):
             # It's a private_room with no existing house
             else:
                 # Updating the last message ID in the Private-Room
-                private_room = utils.get(self._private_rooms, id=utils.convert_value(int, data.get('room_id', 0)))
+                private_room = utils.get(self.private_rooms, id=utils.convert_value(int, data.get('room_id', 0)))
                 if private_room is not None:
                     # Updating the last message_id
                     private_room._last_message_id = utils.convert_value(int, data.get('id'))
@@ -758,7 +758,7 @@ class Websocket(types.Client):
                     logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                    f"ROOM_ID={data.get('room_id')}")
 
-            author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id')))
+            author = utils.get(self.users, id=utils.convert_value(int, data.get('author_id')))
             msg = types.Message(data, self.http, house, room, author)
 
             await self.event_handler.dispatch_on_message_create(msg)
@@ -885,12 +885,12 @@ class Websocket(types.Client):
             house = await types.House.from_dict(data, self.http, client_id=self.id, rooms=self.rooms, users=self.users)
 
             # Adding all new cached users
-            for member_data in data['members']:
-                if hasattr(member_data, 'id'):
-                    user_id = utils.convert_value(int, member_data.get('id'))
+            for d in data['members']:
+                if hasattr(d, 'id'):
+                    user_id = utils.convert_value(int, d.get('id'))
                 else:
                     # Falling back to the nested user object and the ID that is stored there
-                    user_id = utils.convert_value(int, member_data.get('user').get('id'))
+                    user_id = utils.convert_value(int, d.get('user').get('id'))
 
                 # Getting the user from the list if it exists
                 cached_user = utils.get(self._users, id=user_id)
@@ -898,11 +898,11 @@ class Websocket(types.Client):
                 # If it doesn't exist it needs to be added to the list
                 if cached_user is None:
                     # Appending the new user
-                    user = await types.User.from_dict(member_data.get('user'), self.http)
+                    user = await types.User.from_dict(d.get('user'), self.http)
                     if user is not None:
                         self._users.append(user)
                     else:
-                        logger.warning(f"[WEBSOCKET] Failed to validate and create user with id {member_data.get('id')}")
+                        logger.warning(f"[WEBSOCKET] Failed to validate and create user with id {d.get('id')}")
 
             # Appending to the client houses list
             self._houses.append(house)

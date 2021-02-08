@@ -39,7 +39,9 @@ class BotClient(HivenClient):
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
         :param event_handler: Handler for the events. Creates a new one on Default
-        :param event_loop: Event loop that will be used to execute all async functions. Will use 'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one was created yet
+        :param event_loop: Event loop that will be used to execute all async functions.
+                           Will use 'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one
+                           was created yet.
         :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
                               successfully. Defaults to the pre-set environment close_timeout (40)
         :param log_ws_output: Will additionally to normal debug information also log the ws responses

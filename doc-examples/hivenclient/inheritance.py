@@ -25,6 +25,7 @@ class Bot(hiven.UserClient):
         print("Bot is ready!")
         invite = await self.fetch_invite("openhivenpy")
         print(invite)
+        print(await self.fetch_current_friend_requests())
 
     async def on_message_create(self, msg):
         print(f"{msg.author.name} wrote in {msg.room.name}: {msg.content}")

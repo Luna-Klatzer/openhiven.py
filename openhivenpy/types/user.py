@@ -89,7 +89,7 @@ class LazyUser(HivenObject):
             ('header', self.header),
             ('bot', self.bot)
         ]
-        return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
+        return '<LazyUser {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
     async def from_dict(cls,

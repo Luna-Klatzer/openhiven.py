@@ -85,7 +85,7 @@ class Message:
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __str__(self) -> str:
-        return f"<Message: '{self.id}' from '{self.author.name}'>"
+        return f"<Message id='{self.id}' from '{self.author.name}'>"
 
     def __repr__(self) -> str:
         info = [
