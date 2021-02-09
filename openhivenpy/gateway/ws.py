@@ -764,8 +764,7 @@ class Websocket(types.Client):
                     logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                    f"ROOM_ID={data.get('room_id')}")
 
-            author = utils.get(self.users, id=utils.convert_value(int, data.get('author_id')))
-            msg = types.Message(data, self.http, house, room, author)
+            msg = await types.Message.from_dict(data, self.http, house_=house, room_=room)
 
             await self.event_handler.dispatch_on_message_create(msg)
 
@@ -782,10 +781,9 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            msg = types.DeletedMessage(data)
+            msg = await types.DeletedMessage.from_dict(data)
 
             # Creating a new task for handling the event
-            # TODO! Needs error handling and name traceback and log!
             await self.event_handler.dispatch_on_message_delete(msg)
 
         except Exception as e:
@@ -835,17 +833,7 @@ class Websocket(types.Client):
                                    f"ROOM_ID={data.get('room_id')}")
                     room = None
 
-            # Getting the author from the cache if it exists
-            cached_author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id', 0)))
-            if not cached_author:
-                logger.warning("[MESSAGE_UPDATE] Author from incoming ws event data not found "
-                               "in cache! Possibly faulty client data!")
-                author = None
-            else:
-                # Using the cached author since no data is received
-                author = cached_author
-
-            message = types.Message(data, self.http, house=house, room=room, author=author)
+            message = await types.Message.from_dict(data, self.http, house_=house, room_=room)
 
             await self.event_handler.dispatch_on_message_update(message)
 

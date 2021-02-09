@@ -194,11 +194,10 @@ class PrivateGroupRoom(HivenObject):
                     author_data = raw_data.get('data')
                     if author_data:
                         author = await module_user.User.from_dict(author_data, self._http)
-                        msg = message.Message(
+                        msg = await message.Message.from_dict(
                             data=data,
                             http=self._http,
-                            house=None,
-                            room=self,
+                            room_=self,
                             author=author)
                         return msg
                     else:
@@ -374,11 +373,10 @@ class PrivateRoom(HivenObject):
                     author_data = raw_data.get('data')
                     if author_data:
                         author = await module_user.User.from_dict(author_data, self._http)
-                        msg = message.Message(
+                        msg = await message.Message.from_dict(
                             data=data,
                             http=self._http,
-                            house=None,
-                            room=self,
+                            room_=self,
                             author=author)
                         return msg
                     else:

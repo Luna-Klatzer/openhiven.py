@@ -642,16 +642,12 @@ class HivenClient(EventHandler):
             if data:
                 mention_list = []
                 for msg_data in data:
-                    author = await types.User.from_dict(msg_data.get('author'), self.connection.http)
-
                     room = utils.get(self.rooms, id=utils.convert_value(int, msg_data.get('room_id')))
-
-                    message = types.Message(
+                    message = await types.Message.from_dict(
                         msg_data,
                         self.connection.http,
-                        room.house,
-                        room,
-                        author)
+                        house_=room.house,
+                        room_=room)
                     mention_list.append(message)
 
                 return mention_list

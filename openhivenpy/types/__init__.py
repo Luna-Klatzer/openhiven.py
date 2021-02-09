@@ -31,8 +31,8 @@ from .hiven_object import HivenObject
 from .room import *
 from .house import *
 from .private_room import *
-from .message import *
 from .user import *
+from .message import *
 from .context import *
 from .member import *
 from .hiven_client import *

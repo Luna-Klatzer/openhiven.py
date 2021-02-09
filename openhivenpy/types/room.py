@@ -179,11 +179,10 @@ class Room(HivenObject):
                     author_data = raw_data.get('data')
                     if author_data:
                         author = await user.User.from_dict(author_data, self._http)
-                        msg = message.Message(
+                        msg = await message.Message.from_dict(
                             data=data,
                             http=self._http,
-                            house=None,
-                            room=self,
+                            room_=self,
                             author=author)
                         return msg
                     else:
@@ -265,11 +264,11 @@ class Room(HivenObject):
                         _author_data = _raw_data.get('data')
                         if _author_data:
                             author = await user.User.from_dict(_author_data, self._http)
-                            msg = d.Message(
+                            msg = await d.Message.from_dict(
                                 data=d,
                                 http=self._http,
-                                house=self.house,
-                                room=self,
+                                house_=self.house,
+                                room_=self,
                                 author=author)
                             messages_.append(msg)
                         else:
