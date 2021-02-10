@@ -50,7 +50,7 @@ class Mention(HivenObject):
                         data: dict,
                         users: typing.List[user.User]):
         """
-        Creates an instance of the PrivateGroupRoom Class with the passed data
+        Creates an instance of the Mention Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param users: The cached users list to fetch the mentioned user and author from

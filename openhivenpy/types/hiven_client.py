@@ -72,11 +72,11 @@ class Client(HivenObject):
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
-            for key in _relationships:
-                _rel_data = _relationships.get(key, {})
-                _rel = relationship.Relationship(
-                    data=_rel_data,
-                    http=self.http)
+            for key, d in _relationships.items():
+                _rel = await relationship.Relationship.from_dict(
+                    data=d,
+                    http=self.http,
+                    users=self.users)
 
                 self._relationships.append(_rel)
 

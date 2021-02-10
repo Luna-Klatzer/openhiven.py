@@ -851,7 +851,7 @@ class Websocket(types.Client):
         """
         try:
             cache_relationship = utils.get(self._relationships, id=utils.convert_value(int, data.get('id')))
-            relationship = types.Relationship(data, self.http)
+            relationship = await types.Relationship.from_dict(data, self.http, self.users)
             if cache_relationship:
                 # Removing the old data
                 self._relationships.remove(cache_relationship)
