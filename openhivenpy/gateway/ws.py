@@ -331,13 +331,17 @@ class Websocket(types.Client):
                     else:
                         logger.warning(f"[WEBSOCKET] Received unexpected non-json text type: '{ws_msg.data}'")
 
-                elif ws_msg.type == aiohttp.WSMsgType.CLOSE:
+                elif ws_msg.type == aiohttp.WSMsgType.CLOSE or ws_msg.type == aiohttp.WSMsgType.CLOSING:
                     # Close Frame can be received because of these issues:
                     # - Faulty token
                     # - Error occurred while handling a ws message => aiohttp automatically stops
                     # - Server unreachable
                     # - Hiven send one back because faulty authorisation!
                     logger.debug(f"[WEBSOCKET] << Received close frame with msg='{ws_msg.extra}'!")
+                    break
+
+                elif ws_msg.type == aiohttp.WSMsgType.CLOSED:
+                    logger.debug(f"[WEBSOCKET] << Websocket closed due to aiohttp CLOSE call!")
                     break
 
                 elif ws_msg.type == aiohttp.WSMsgType.ERROR:
