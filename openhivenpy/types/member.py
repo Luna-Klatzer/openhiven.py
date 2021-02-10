@@ -17,6 +17,7 @@ __all__ = ('Member', 'MemberSchema')
 class MemberSchema(user.UserSchema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
+
     user_id = fields.Int(required=True)
     house_id = fields.Int(required=True)
     joined_at = fields.Str(required=True)

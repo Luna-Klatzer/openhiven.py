@@ -13,6 +13,7 @@ __all__ = ('Embed', 'EmbedSchema')
 class EmbedSchema(Schema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
+
     url = fields.Str(required=True)
     type = fields.Str(required=True)
     title = fields.Str(required=True)

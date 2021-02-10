@@ -13,6 +13,7 @@ __all__ = ('Context', 'ContextSchema')
 class ContextSchema(Schema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
+
     room = fields.Raw(required=True)
     author = fields.Raw(required=True)
     created_at = fields.Str(required=True)

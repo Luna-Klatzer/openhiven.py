@@ -1042,7 +1042,7 @@ class Websocket(types.Client):
                 house = None
                 author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id')))
 
-            typing_ = types.UserTyping(data, author, room, house, self.http)
+            typing_ = await types.UserTyping.from_dict(data, self.http, author, room, house)
 
             await self.event_handler.dispatch_on_typing_start(typing_)
 

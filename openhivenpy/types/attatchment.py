@@ -13,6 +13,7 @@ __all__ = ('Attachment', 'AttachmentSchema')
 class AttachmentSchema(Schema):
     # Validations to check for the datatype and that it's passed correctly =>
     # will throw exception 'ValidationError' in case of an faulty data parsing
+
     filename = fields.Str(required=True)
     media_url = fields.Str(required=True)
     raw = fields.Dict(required=True)

@@ -4,7 +4,6 @@ from marshmallow import Schema, fields, post_load, ValidationError, RAISE
 
 from . import HivenObject
 from .. import utils
-from ..exceptions import exception as errs
 
 logger = logging.getLogger(__name__)
 

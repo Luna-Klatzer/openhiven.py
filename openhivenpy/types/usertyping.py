@@ -12,21 +12,47 @@ logger = logging.getLogger(__name__)
 __all__ = ['UserTyping']
 
 
+class UserTypingSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    author = fields.Raw(required=True)
+    room = fields.Raw(required=True)
+    house = fields.Raw(allow_none=True)
+    author_id = fields.Int(required=True)
+    house_id = fields.Int(allow_none=True)
+    room_id = fields.Int(required=True)
+    timestamp = fields.Raw(required=True)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new UserTyping Object
+        """
+        return UserTyping(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = UserTypingSchema()
+
+
 class UserTyping(HivenObject):
     """
     Represents a Hiven User Typing in a room
     """
-    def __init__(self, data: dict, member, room, house, http):
+    def __init__(self, **kwargs):
         try:
-            self._author = member
-            self._room = room
-            self._house = house
-            self._author_id = data.get('author_id')
-            self._house_id = data.get('house_id')
-            self._room_id = data.get('room_id')
-            self._timestamp = data.get('timestamp')
-            
-            self._http = http
+            self._author = kwargs.get('member')
+            self._room = kwargs.get('room')
+            self._house = kwargs.get('house')
+            self._author_id = kwargs.get('author_id')
+            self._house_id = kwargs.get('house_id')
+            self._room_id = kwargs.get('room_id')
+            self._timestamp = kwargs.get('timestamp')
         
         except Exception as e:
             utils.log_traceback(msg="[TYPING] Traceback:",
@@ -34,9 +60,6 @@ class UserTyping(HivenObject):
                                        f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
             raise errs.FaultyInitialization(f"Failed to initialize Typing object! Possibly faulty data! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return repr(self)
 
     def __repr__(self) -> str:
         info = [
@@ -47,9 +70,55 @@ class UserTyping(HivenObject):
         ]
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    @classmethod
+    async def from_dict(cls,
+                        data: dict,
+                        http,
+                        user,
+                        room,
+                        house):
+        """
+        Creates an instance of the Relationship Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param user: The user typing
+        :param room: The room where the user is typing
+        :param house: The house if the room is a house-room else private_room
+        :return: The newly constructed Relationship Instance
+        """
+        try:
+            data['author'] = user
+            data['house'] = house
+            data['room'] = room
+            data['author_id'] = utils.convert_value(int, data.get('author_id'))
+            data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            data['room_id'] = utils.convert_value(int, data.get('room_id'))
+
+            timestamp = data.get('timestamp')
+            # Converting to seconds because it's in milliseconds
+            if utils.convertible(int, timestamp):
+                data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp))
+            else:
+                data['timestamp'] = timestamp
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            # Adding the http attribute for API interaction
+            instance._http = http
+            return instance
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+
     @property
     def timestamp(self) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(self._timestamp)
+        return self._timestamp
 
     @property
     def author(self):
