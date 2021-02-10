@@ -173,42 +173,41 @@ class Message(HivenObject):
                         data: dict,
                         http,
                         *,
-                        author: typing.List[user.User] = None,
+                        author: user.User = None,
                         users: typing.List[user.User] = None,
                         room_: typing.Any = None,
+                        rooms: typing.List[typing.Any] = None,
                         houses: typing.List[typing.Any] = [],
                         house_: typing.Any = None,
                         **kwargs):
         """
-        Creates an instance of the House Class with the passed data
+        Creates an instance of the Message Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
         :param author: The Author of the Message that can be passed if it was already fetched
         :param users: The cached users List to fetch the mentioned users from
-        :param room_: The Room of the Message that can be passed if it was already fetched
-        :param houses: The cached Room List to fetch the house from or add ones if passed
+        :param room_: The room of the Message
+        :param rooms: The cached Room List to fetch the room from
+        :param houses: The cached House List to fetch the house from or add ones if passed
         :param house_: The House of the Message that can be passed if it was already fetched
         :param kwargs: Additional parameter or instances required for the initialisation
-        :return: The newly constructed House Instance
+        :return: The newly constructed Message Instance
         """
         try:
             data['id'] = utils.convert_value(int, data.get('id'))
             data['house_id'] = utils.convert_value(int, data.get('house_id'))
-            data['house'] = house_ if house_ is not None else utils.get(houses,
-                                                                        id=utils.convert_value(int, data['house_id']))
             data['room_id'] = utils.convert_value(int, data.get('room_id'))
-            data['room'] = room_ if room_ is not None else utils.get(data['house'].rooms,
-                                                                     id=utils.convert_value(int, data['room_id']))
-            data['author'] = author if author is not None else utils.get(data['house'].members,
-                                                                         id=utils.convert_value(int,
-                                                                                                data.get('author_id')))
+            data['house'] = house_ if house_ else utils.get(houses, id=utils.convert_value(int, data['house_id']))
+            data['room'] = room_ if room_ else utils.get(rooms, id=utils.convert_value(int, data['room_id']))
+            data['author'] = author if author else utils.get(data['house'].members if data['house'] else users,
+                                                             id=utils.convert_value(int, data.get('author_id')))
             data['attachment'] = data.get('attachment')
             data['content'] = data.get('content')
             data['edited_at'] = data.get('edited_at')
             data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
             data['exploding'] = data.get('exploding')
-            data['embed'] = embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') is not None else None
+            data['embed'] = await embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') else None
             data['bucket'] = utils.convert_value(int, data.get('bucket'))
             data['device_id'] = utils.convert_value(int, data.get('device_id'))
             data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))

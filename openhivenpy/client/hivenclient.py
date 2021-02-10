@@ -648,7 +648,7 @@ class HivenClient(EventHandler):
                         self.connection.http,
                         house_=room.house,
                         room_=room,
-                        users=self.users)
+                        author=self.user)
                     mention_list.append(message)
 
                 return mention_list

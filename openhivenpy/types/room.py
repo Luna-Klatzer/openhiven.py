@@ -174,20 +174,12 @@ class Room(HivenObject):
                 # Raw_data not in correct format => needs to access data field
                 data = raw_data.get('data')
                 if data:
-                    # Getting the author / self
-                    raw_data = await self._http.request(f"/users/@me")
-                    author_data = raw_data.get('data')
-                    if author_data:
-                        author = await user.User.from_dict(author_data, self._http)
-                        msg = await message.Message.from_dict(
-                            data=data,
-                            http=self._http,
-                            room_=self,
-                            author=author,
-                            users=self.house.members)
-                        return msg
-                    else:
-                        raise errs.HTTPReceivedNoData()
+                    return await message.Message.from_dict(
+                        data=data,
+                        http=self._http,
+                        room_=self,
+                        house_=self.house,
+                        users=self.house.members)
                 else:
                     raise errs.HTTPFaultyResponse()
             else:
@@ -260,18 +252,17 @@ class Room(HivenObject):
             if data:
                 messages_ = []
                 for d in data:
-                    _raw_data = await self._http.request(f"/users/{d.get('author_id')}")
-                    if _raw_data:
-                        _author_data = _raw_data.get('data')
-                        if _author_data:
-                            author = await user.User.from_dict(_author_data, self._http)
+                    raw_data = await self._http.request(f"/users/{d.get('author_id')}")
+                    if raw_data:
+                        author_data = raw_data.get('data')
+                        if author_data:
+                            author = utils.get(self.house.members, id=utils.convert_value(int, author_data.get('room_id')))
                             msg = await d.Message.from_dict(
                                 data=d,
                                 http=self._http,
                                 house_=self.house,
                                 room_=self,
-                                author=author,
-                                users=self.house.members)
+                                author=author)
                             messages_.append(msg)
                         else:
                             raise errs.HTTPReceivedNoData()

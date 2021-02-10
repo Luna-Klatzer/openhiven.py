@@ -1,7 +1,7 @@
 import datetime
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from .. import utils
@@ -46,7 +46,7 @@ class UserTyping(HivenObject):
     """
     def __init__(self, **kwargs):
         try:
-            self._author = kwargs.get('member')
+            self._author = kwargs.get('author')
             self._room = kwargs.get('room')
             self._house = kwargs.get('house')
             self._author_id = kwargs.get('author_id')
@@ -102,7 +102,7 @@ class UserTyping(HivenObject):
             else:
                 data['timestamp'] = timestamp
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

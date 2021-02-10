@@ -198,22 +198,11 @@ class PrivateGroupRoom(HivenObject):
                 # Raw_data not in correct format => needs to access data field
                 data = raw_data.get('data')
                 if data:
-                    # Getting the author / self
-                    raw_data = await self._http.request(f"/users/@me")
-                    author_data = raw_data.get('data')
-                    if author_data:
-                        author = await module_user.User.from_dict(author_data, self._http)
-                        msg = await message.Message.from_dict(
-                            data=data,
-                            http=self._http,
-                            room_=self,
-                            author=author,
-                            users=[*self.recipients, self.client_user])
-                        return msg
-                    else:
-                        raise errs.HTTPReceivedNoData()
-                else:
-                    raise errs.HTTPFaultyResponse()
+                    return await message.Message.from_dict(
+                        data=data,
+                        http=self._http,
+                        room_=self,
+                        author=self.client_user)
             else:
                 raise errs.HTTPFaultyResponse()
         
@@ -385,13 +374,11 @@ class PrivateRoom(HivenObject):
                     raw_data = await self._http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        author = await module_user.User.from_dict(author_data, self._http)
                         msg = await message.Message.from_dict(
                             data=data,
                             http=self._http,
                             room_=self,
-                            author=author,
-                            users=[self.recipient, self.client_user])
+                            author=self.client_user)
                         return msg
                     else:
                         raise errs.HTTPReceivedNoData()

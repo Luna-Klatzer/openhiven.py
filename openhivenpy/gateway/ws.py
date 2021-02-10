@@ -94,6 +94,7 @@ class Websocket(types.Client):
         self._connection_status = "CLOSED"
 
         self.EVENT_PARSERS = {
+            "USER_UPDATE": "user_update_handler",
             "HOUSE_JOIN": 'house_join_handler',
             "HOUSE_LEAVE": 'house_leave_handler',
             "HOUSE_DOWN": 'house_down_handler',
@@ -438,8 +439,9 @@ class Websocket(types.Client):
             logger.debug(f"Received Event {event}")
 
             event_handler = self.EVENT_PARSERS.get(event)
-            coro = getattr(self, event_handler, None)
-            if coro is not None:
+            if event_handler:
+                coro = getattr(self, event_handler, None)
+
                 # HOUSE_JOIN events must always be prioritised since they are needed for initialisation!
                 if event == 'HOUSE_JOIN':
                     await asyncio.wait_for(self.wait_for_initialised(), 30)
@@ -463,6 +465,36 @@ class Websocket(types.Client):
                                 msg="[WEBSOCKET] Traceback:",
                                 suffix=f"Failed to handle incoming json-type text message in the websocket: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
+
+    async def user_update_handler(self, data: dict):
+        """
+        Handler for User Account Updates
+
+        :param data: The incoming ws text msg - Should be in correct python dict format
+        """
+        try:
+            cached_user = utils.get(self._users, id=utils.convert_value(int, data.get('id')))
+            if cached_user is not None:
+                # Removing the older cached user
+                self._users.remove(cached_user)
+
+                user = await types.User.from_dict(data, self.http)
+                if user:
+                    self._users.append(user)
+                else:
+                    logger.warning("[USER_UPDATE] Failed to create User instance of user with id "
+                                   f"{data.get('id')}")
+            else:
+                user = None
+                logger.warning(f"[USER_UPDATE] Failed to update user data of "
+                               f"{data.get('name')} in client cache: Member not found locally!")
+
+            await self.event_handler.dispatch_on_user_update(old=cached_user, new=user)
+
+        except Exception as e:
+            utils.log_traceback(msg="[USER_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring: \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def house_down_handler(self, data: dict):
         """
@@ -536,7 +568,7 @@ class Websocket(types.Client):
                     # Removing the older cached user
                     self._users.remove(cached_user)
 
-                    user = await types.Member.from_dict(sent_member_data.get(mem_id), self.http, house=house)
+                    user = await types.User.from_dict(sent_member_data.get(mem_id), self.http)
                     if user:
                         self._users.append(user)
                     else:
@@ -546,10 +578,7 @@ class Websocket(types.Client):
                     logger.warning(f"[HOUSE_MEMBERS_CHUNK] Failed to update user data of "
                                    f"{mem_data.get('name')} in client cache: Member not found locally!")
 
-            await self.event_handler.dispatch_on_house_member_chunk(
-                members=updated_members,
-                data=data,
-                house=house)
+            await self.event_handler.dispatch_on_house_member_chunk(members=updated_members, data=data, house=house)
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE_MEMBERS_CHUNK] Traceback:",
@@ -1038,13 +1067,13 @@ class Websocket(types.Client):
         try:
             # recipient_ids only exists in private room typing so it is a house if it does not exist!
             if data.get('recipient_ids') is None:
-                room = utils.get(self._rooms, id=utils.convert_value(int, data.get('room_id')))
-                house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
+                room = utils.get(self.rooms, id=utils.convert_value(int, data.get('room_id')))
+                house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
                 author = utils.get(house.members, id=utils.convert_value(int, data.get('author_id')))
             else:
                 room = utils.get(self._private_rooms, id=utils.convert_value(int, data.get('room_id')))
                 house = None
-                author = utils.get(self._users, id=utils.convert_value(int, data.get('author_id')))
+                author = utils.get(self.users, id=utils.convert_value(int, data.get('author_id')))
 
             typing_ = await types.UserTyping.from_dict(data, self.http, author, room, house)
 
