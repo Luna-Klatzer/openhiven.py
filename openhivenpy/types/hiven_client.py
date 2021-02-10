@@ -85,11 +85,14 @@ class Client(HivenObject):
             for d in _private_rooms:
                 type_ = utils.convert_value(int, d.get('type', 0))
                 if type_ == 1:
-                    r = await private_room.PrivateRoom.from_dict(d, self.http)
+                    r = await private_room.PrivateRoom.from_dict(d, self.http, client_user=self.user)
                 elif type_ == 2:
-                    r = await private_room.PrivateGroupRoom.from_dict(d, self.http, users=self.users)
+                    r = await private_room.PrivateGroupRoom.from_dict(d,
+                                                                      self.http,
+                                                                      users=self.users,
+                                                                      client_user=self.user)
                 else:
-                    r = await private_room.PrivateRoom.from_dict(d, self.http)
+                    r = await private_room.PrivateRoom.from_dict(d, self.http, self.users, client_user=self.user)
 
                 self._private_rooms.append(r)
 

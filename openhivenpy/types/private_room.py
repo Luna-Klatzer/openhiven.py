@@ -26,6 +26,7 @@ class PrivateGroupRoomSchema(Schema):
     type = fields.Int(required=True)
     emoji = fields.Raw(allow_none=True)
     description = fields.Str(allow_none=True)
+    client_user = fields.Raw(required=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -54,6 +55,7 @@ class PrivateRoomSchema(Schema):
     type = fields.Int(required=True)
     emoji = fields.Raw(allow_none=True)
     description = fields.Str(allow_none=True)
+    client_user = fields.Raw(required=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -83,6 +85,7 @@ class PrivateGroupRoom(HivenObject):
         self._description = kwargs.get('description')
         self._emoji = kwargs.get('emoji')
         self._type = kwargs.get('type')
+        self._client_user = kwargs.get('client_user')
 
     def __repr__(self) -> str:
         info = [
@@ -98,13 +101,14 @@ class PrivateGroupRoom(HivenObject):
                         data: dict,
                         http,
                         users: typing.List[module_user.User],
-                        **kwargs):
+                        client_user: module_user.User):
         """
         Creates an instance of the PrivateGroupRoom Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
         :param users: The cached users list to fetch the user from if it already exists or adding it
+        :param client_user: The client user in the private room
         :return: The newly constructed PrivateGroupRoom Instance
         """
         try:
@@ -126,6 +130,7 @@ class PrivateGroupRoom(HivenObject):
 
             data['recipients'] = _recipients
             data['name'] = f"Private Group chat with {(', '.join(getattr(r, 'name') for r in _recipients))}"
+            data['client_user'] = client_user
 
             instance = GLOBAL_GROUP_SCHEMA.load(data, unknown=INCLUDE)
 
@@ -143,7 +148,11 @@ class PrivateGroupRoom(HivenObject):
                                        f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
-    def recipients(self) -> typing.Union[module_user.User, list]:
+    def client_user(self) -> module_user.User:
+        return self._client_user
+
+    @property
+    def recipients(self) -> typing.List[module_user.User]:
         return self._recipients
     
     @property
@@ -198,7 +207,8 @@ class PrivateGroupRoom(HivenObject):
                             data=data,
                             http=self._http,
                             room_=self,
-                            author=author)
+                            author=author,
+                            users=[*self.recipients, self.client_user])
                         return msg
                     else:
                         raise errs.HTTPReceivedNoData()
@@ -251,6 +261,7 @@ class PrivateRoom(HivenObject):
         self._description = kwargs.get('description')
         self._emoji = kwargs.get('emoji')
         self._type = kwargs.get('type')
+        self._client_user = kwargs.get('client_user')
 
     def __repr__(self) -> str:
         info = [
@@ -262,12 +273,13 @@ class PrivateRoom(HivenObject):
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
+    async def from_dict(cls, data: dict, http, client_user, **kwargs):
         """
         Creates an instance of the PrivateRoom Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
+        :param client_user: The client user in the private room
         :param kwargs: Additional parameter or instances required for the initialisation
         :return: The newly constructed PrivateRoom Instance
         """
@@ -277,6 +289,7 @@ class PrivateRoom(HivenObject):
             data['recipient'] = await module_user.User.from_dict(data.get('recipients', [])[0], http)
             data['name'] = f"Private chat with {data.get('recipient').name}"
             data['type'] = data.get('type')
+            data['client_user'] = client_user
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
@@ -293,9 +306,9 @@ class PrivateRoom(HivenObject):
                                        f"{sys.exc_info()[0].__name__}: {e}!")
 
     @property
-    def user(self) -> module_user.User:
-        return self._recipient
-    
+    def client_user(self) -> module_user.User:
+        return self._client_user
+
     @property
     def recipient(self) -> module_user.User:
         return self._recipient
@@ -377,7 +390,8 @@ class PrivateRoom(HivenObject):
                             data=data,
                             http=self._http,
                             room_=self,
-                            author=author)
+                            author=author,
+                            users=[self.recipient, self.client_user])
                         return msg
                     else:
                         raise errs.HTTPReceivedNoData()

@@ -70,7 +70,6 @@ class Member(user.User, HivenObject):
     async def from_dict(cls,
                         data: dict,
                         http,
-                        *,
                         houses: typing.Optional[typing.List] = None,
                         house: typing.Optional[typing.Any] = None,
                         **kwargs):

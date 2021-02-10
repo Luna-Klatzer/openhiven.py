@@ -183,7 +183,8 @@ class Room(HivenObject):
                             data=data,
                             http=self._http,
                             room_=self,
-                            author=author)
+                            author=author,
+                            users=self.house.members)
                         return msg
                     else:
                         raise errs.HTTPReceivedNoData()
@@ -269,7 +270,8 @@ class Room(HivenObject):
                                 http=self._http,
                                 house_=self.house,
                                 room_=self,
-                                author=author)
+                                author=author,
+                                users=self.house.members)
                             messages_.append(msg)
                         else:
                             raise errs.HTTPReceivedNoData()

@@ -532,7 +532,7 @@ class Websocket(types.Client):
                     # Removing the older cached user
                     self._users.remove(cached_user)
 
-                    user = await types.Member.from_dict(sent_member_data.get(mem_id), self.http)
+                    user = await types.Member.from_dict(sent_member_data.get(mem_id), self.http, house=house)
                     if user:
                         self._users.append(user)
                     else:
@@ -678,7 +678,7 @@ class Websocket(types.Client):
                 house._rooms.append(room)
             else:
                 # Private Group Room
-                room = await types.PrivateGroupRoom.from_dict(data, self.http, users=self.users)
+                room = await types.PrivateGroupRoom.from_dict(data, self.http, users=self.users, client_user=self.user)
                 self._private_rooms.append(room)
 
             await self.event_handler.dispatch_on_room_create(room=room)
@@ -764,7 +764,7 @@ class Websocket(types.Client):
                     logger.warning("[MESSAGE_CREATE] Unable to find private-room in the cache! "
                                    f"ROOM_ID={data.get('room_id')}")
 
-            msg = await types.Message.from_dict(data, self.http, house_=house, room_=room)
+            msg = await types.Message.from_dict(data, self.http, house_=house, room_=room, users=self.users)
 
             await self.event_handler.dispatch_on_message_create(msg)
 
@@ -833,7 +833,7 @@ class Websocket(types.Client):
                                    f"ROOM_ID={data.get('room_id')}")
                     room = None
 
-            message = await types.Message.from_dict(data, self.http, house_=house, room_=room)
+            message = await types.Message.from_dict(data, self.http, house_=house, room_=room, users=self.users)
 
             await self.event_handler.dispatch_on_message_update(message)
 

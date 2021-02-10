@@ -174,6 +174,7 @@ class Message(HivenObject):
                         http,
                         *,
                         author: typing.List[user.User] = None,
+                        users: typing.List[user.User] = None,
                         room_: typing.Any = None,
                         houses: typing.List[typing.Any] = [],
                         house_: typing.Any = None,
@@ -184,6 +185,7 @@ class Message(HivenObject):
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
         :param author: The Author of the Message that can be passed if it was already fetched
+        :param users: The cached users List to fetch the mentioned users from
         :param room_: The Room of the Message that can be passed if it was already fetched
         :param houses: The cached Room List to fetch the house from or add ones if passed
         :param house_: The House of the Message that can be passed if it was already fetched
@@ -219,9 +221,13 @@ class Message(HivenObject):
             else:
                 data['timestamp'] = timestamp
 
-            data['mentions'] = []
+            mentions_ = []
             for d in data.get('mentions', []):
-                data['mentions'].append(mention.Mention(d, data['timestamp'], data['author'], http))
+                mentions_.append(await mention.Mention.from_dict({'timestamp': data['timestamp'],
+                                                                  'author': data['author'],
+                                                                  'user': d},
+                                                                 users=users))
+            data['mentions'] = mentions_
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction

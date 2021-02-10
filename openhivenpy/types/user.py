@@ -159,6 +159,18 @@ class User(LazyUser):
         self._email = kwargs.get('email')
         self._mfa_enabled = kwargs.get('mfa_enabled')
 
+    def __repr__(self) -> str:
+        info = [
+            ('username', self.username),
+            ('name', self.name),
+            ('id', self.id),
+            ('icon', self.icon),
+            ('header', self.header),
+            ('bot', self.bot)
+        ]
+        return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
+
+
     @classmethod
     async def from_dict(cls,
                         data: dict,

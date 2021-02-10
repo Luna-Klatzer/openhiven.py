@@ -647,7 +647,8 @@ class HivenClient(EventHandler):
                         msg_data,
                         self.connection.http,
                         house_=room.house,
-                        room_=room)
+                        room_=room,
+                        users=self.users)
                     mention_list.append(message)
 
                 return mention_list
@@ -773,7 +774,10 @@ class HivenClient(EventHandler):
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    private_room = await types.PrivateGroupRoom.from_dict(data, self.connection.http)
+                    private_room = await types.PrivateGroupRoom.from_dict(data,
+                                                                          self.connection.http,
+                                                                          users=self.users,
+                                                                          client_user=self.user)
 
                     # Adding the PrivateGroupRoom to the Cache
                     self.connection._private_rooms.append(private_room)
