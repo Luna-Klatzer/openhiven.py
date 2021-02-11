@@ -1,3 +1,5 @@
+import asyncio
+
 import openhivenpy as hiven
 import logging
 
@@ -26,6 +28,27 @@ class Bot(hiven.UserClient):
         invite = await self.fetch_invite("openhivenpy")
         print(invite)
         print(await self.fetch_current_friend_requests())
+
+        robyn_channel = self.fetch_private_room(175699760957616349)
+        print(robyn_channel.name)
+
+        house = await self.create_house("A pretty good House")
+        await asyncio.sleep(.5)
+        house = self.fetch_house(house.id)
+        await house.rooms[0].send("test")
+
+        entity = await house.create_entity("stuff")
+        print(entity.name)
+
+        invite = await house.create_invite(24)
+        print(invite)
+
+        await house.edit(name="d")
+        await asyncio.sleep(.5)
+        house = self.fetch_house(house.id)
+        print(house.name)
+
+        await house.delete()
 
     async def on_user_update(self, old, new):
         print(f"{old.name} updated their account")

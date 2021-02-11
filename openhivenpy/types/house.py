@@ -5,7 +5,7 @@ import typing
 from marshmallow import Schema
 from marshmallow import fields
 from marshmallow import post_load
-from marshmallow import ValidationError, RAISE, INCLUDE
+from marshmallow import ValidationError, EXCLUDE, INCLUDE
 
 from . import HivenObject
 from . import invite
@@ -26,9 +26,10 @@ class LazyHouseSchema(Schema):
 
     id = fields.Int(required=True)
     name = fields.Str(required=True)
-    icon = fields.Str(required=True, allow_none=True)
+    icon = fields.Str(default=None, allow_none=True)
     owner_id = fields.Int(default=None)
     rooms = fields.List(fields.Field(), default=[], allow_none=True)
+    type = fields.Raw(default=None)
 
     @post_load
     def make(self, data, **kwargs):
@@ -88,6 +89,7 @@ class LazyHouse(HivenObject):
         self._icon = kwargs.get('icon')
         self._owner_id = kwargs.get('owner_id')
         self._rooms = kwargs.get('rooms')
+        self._type = kwargs.get('type')
 
     def __str__(self):
         return self.name
@@ -188,7 +190,7 @@ class House(LazyHouse):
             data['id'] = utils.convert_value(int, data.get('id'))
             data['default_permissions'] = data.get('default_permissions')
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
 
@@ -197,7 +199,7 @@ class House(LazyHouse):
             if entities_ is not None:
                 instance._entities = []
                 for d in entities_:
-                    instance._entities.append(await entity.Entity.from_dict(d, http))
+                    instance._entities.append(await entity.Entity.from_dict(d, http, house=instance))
             else:
                 instance._entities = None
 
@@ -220,9 +222,9 @@ class House(LazyHouse):
             else:
                 instance._rooms = None
 
-            instance._client_member = utils.get(instance._members,
+            instance._client_member = utils.get(instance.members,
                                                 user_id=utils.convert_value(int, kwargs.get('client_id')))
-            instance._owner = utils.get(instance._members, id=instance.owner_id)
+            instance._owner = utils.get(instance.members, id=instance.owner_id)
 
             return instance
 
@@ -262,6 +264,10 @@ class House(LazyHouse):
     @property
     def members(self) -> list:
         return self._members
+
+    @property
+    def default_permissions(self) -> int:
+        return self._default_permissions
 
     async def get_member(self, member_id: int):
         """openhivenpy.types.House.get_member()
@@ -377,9 +383,15 @@ class House(LazyHouse):
                 raw_data = await resp.json()
                 data = raw_data.get('data')
                 if data:
-                    _entity = await entity.Entity.from_dict(data, self._http)
-                    self._entities.append(_entity)
-                    return _entity
+                    # Fetching all existing ids
+                    existing_entity_ids = [e.id for e in self.entities]
+                    for d in data:
+                        id_ = utils.convert_value(int, d.get('id'))
+                        # if the id is not found in the entities that's the newly created entity
+                        if id_ not in existing_entity_ids:
+                            _entity = await entity.Entity.from_dict(d, self._http, house=self)
+                            self._entities.append(_entity)
+                            return _entity
                 else:
                     raise errs.HTTPReceivedNoData()
             else:
@@ -451,8 +463,10 @@ class House(LazyHouse):
         :return: The invite url if successful.
         """
         try:
-            # TODO! Needs implementation for max_uses
-            resp = await self._http.post(endpoint=f"/houses/{self.id}/invites")
+            json = {
+                "max_uses": max_uses
+            }
+            resp = await self._http.post(endpoint=f"/houses/{self.id}/invites", json=json)
 
             if resp.status < 300:
                 raw_data = await resp.json()
@@ -467,7 +481,7 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
+                                suffix=f"Failed to create invite for house '{self.name}' with id {self.id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 

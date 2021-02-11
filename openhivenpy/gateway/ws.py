@@ -97,6 +97,7 @@ class Websocket(types.Client):
             "USER_UPDATE": "user_update_handler",
             "HOUSE_JOIN": 'house_join_handler',
             "HOUSE_LEAVE": 'house_leave_handler',
+            "HOUSE_UPDATE": 'house_update_handler',
             "HOUSE_DOWN": 'house_down_handler',
             "HOUSE_MEMBERS_CHUNK": 'member_chunk_handler',
             "HOUSE_MEMBER_JOIN": 'house_member_join_handler',
@@ -496,6 +497,37 @@ class Websocket(types.Client):
                                 suffix="Failed to handle the event due to an exception occurring: \n"
                                        f"> {sys.exc_info()[0].__name__}: {e}")
 
+    async def house_update_handler(self, data: dict):
+        """
+        Handler for the update of a house. Dispatches the handler `on_house_update`
+        and returns as parameter the updated House instance
+
+        :param data: The incoming ws text msg - Should be in correct python dict format
+        """
+        try:
+            cached_house = utils.get(self.houses, id=utils.convert_value(int, data.get('id')))
+            # Fetching the old data to overwrite the new house
+            members = list(cached_house.members)
+            rooms = list(cached_house.rooms)
+            data['members'] = []
+            data['rooms'] = []
+
+            # Creating a new instance
+            house = await types.House.from_dict(data, self.http, self.rooms, client_id=self.user.id)
+            house._members = members
+            house._rooms = rooms
+            house._client_member = self.user
+
+            self._houses.remove(cached_house)
+            self._houses.append(house)
+
+            await self.event_handler.dispatch_on_house_update(old=cached_house, new=house)
+
+        except Exception as e:
+            utils.log_traceback(msg="[HOUSE_UPDATE] Traceback:",
+                                suffix="Failed to handle the event due to an exception occurring: \n"
+                                       f"> {sys.exc_info()[0].__name__}: {e}")
+
     async def house_down_handler(self, data: dict):
         """
         Handler for downtime of a house! Triggers on_house_down and
@@ -598,7 +630,7 @@ class Websocket(types.Client):
                 house_id = data.get('house', {}).get('id')
 
             # Fetching the house
-            house = utils.get(self._houses, id=utils.convert_value(int, house_id))
+            house = utils.get(self.houses, id=utils.convert_value(int, house_id))
 
             # Fetching the cached_member
             cached_member = utils.get(house.members, user_id=utils.convert_value(int, data.get('user_id')))
@@ -621,7 +653,7 @@ class Websocket(types.Client):
             house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
 
             cached_user = utils.get(self.users, id=utils.convert_value(int, data.get('user_id')))
-            user = await types.User.from_dict(data.get('user'), self.http)
+            user = await types.User.from_dict(data, self.http)
 
             # Removing the old user
             if cached_user:
@@ -659,7 +691,8 @@ class Websocket(types.Client):
             # Fetching the house from the cache
             house = utils.get(self.houses, id=utils.convert_value(int, house_id))
 
-            user_id = utils.convert_value(int, data.get('user', {}).get('id'))
+            id_ = data.get('user', {}).get('id')
+            user_id = utils.convert_value(int, id_ if id_ is not None else data.get('id'))
 
             # Fetching the user from the cache
             cached_user = utils.get(self.users, id=user_id)
@@ -925,7 +958,7 @@ class Websocket(types.Client):
                 # If it doesn't exist it needs to be added to the list
                 if cached_user is None:
                     # Appending the new user
-                    user = await types.User.from_dict(d.get('user'), self.http)
+                    user = await types.User.from_dict(d, self.http)
                     if user is not None:
                         self._users.append(user)
                     else:
@@ -974,11 +1007,12 @@ class Websocket(types.Client):
         """
         try:
             house = utils.get(self.houses, id=utils.convert_value(int, data.get('house_id')))
-            for e in data.get('entities'):
-                entity = await types.Entity.from_dict(e, self.http)
+
+            for d in data.get('entities'):
+                entity = await types.Entity.from_dict(d, self.http, house=house)
 
                 # Removing the old entity if they exist
-                cached_entity = utils.get(house.entities, id=utils.convert_value(int, e.get('id')))
+                cached_entity = utils.get(house.entities, id=utils.convert_value(int, d.get('id')))
                 if cached_entity:
                     house._entities.remove(cached_entity)
 

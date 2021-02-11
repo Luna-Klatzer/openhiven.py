@@ -2,7 +2,7 @@ import logging
 import sys
 import typing
 
-from marshmallow import Schema, fields, ValidationError, RAISE, post_load
+from marshmallow import Schema, fields, ValidationError, EXCLUDE, post_load
 
 from ..exceptions import exception as errs
 from . import HivenObject
@@ -103,7 +103,7 @@ class Relationship(HivenObject):
             data['id'] = utils.convert_value(int, data.get('id'))
             data['recipient_id'] = utils.convert_value(int, data.get('recipient_id'))
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

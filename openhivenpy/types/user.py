@@ -1,6 +1,6 @@
 import sys
 import logging
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from .. import utils
@@ -108,7 +108,7 @@ class LazyUser(HivenObject):
                 data = data.get('user')
             data['id'] = utils.convert_value(int, data.get('id'))
 
-            instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance
@@ -184,7 +184,11 @@ class User(LazyUser):
         :return: The newly constructed User Instance
         """
         try:
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            if data.get('user') is not None:
+                data = data.get('user')
+            data['id'] = utils.convert_value(int, data.get('id'))
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

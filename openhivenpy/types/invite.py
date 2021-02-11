@@ -20,10 +20,10 @@ class InviteSchema(Schema):
     created_at = fields.Str(default=None, allow_none=True)
     url = fields.Str(required=True)
     house_id = fields.Int(required=True)
-    max_age = fields.Raw(default=None, allow_none=True)
+    max_age = fields.Raw(required=True, default=None, allow_none=True)
     code = fields.Str(required=True, allow_none=True)
-    max_uses = fields.Raw(allow_none=True)
-    house_members = fields.Int(required=True, default=None)
+    max_uses = fields.Raw(required=True, allow_none=True)
+    house_members = fields.Int(required=True, default=None, allow_none=True)
 
     @post_load
     def make(self, data, **kwargs):
@@ -86,7 +86,10 @@ class Invite(HivenObject):
         :return: The newly constructed Invite Instance
         """
         try:
-            invite = data.get('invite')
+            if data.get('invite') is not None:
+                invite = data.get('invite')
+            else:
+                invite = data
             data['code'] = invite.get('code')
             data['url'] = "https://hiven.house/{}".format(data['code'])
             data['created_at'] = invite.get('created_at')
@@ -94,7 +97,7 @@ class Invite(HivenObject):
             data['max_age'] = invite.get('max_age')
             data['max_uses'] = invite.get('max_uses')
             data['type'] = invite.get('type')
-            data['house_members'] = data['counts'].get('house_members')
+            data['house_members'] = data.get('counts', {}).get('house_members')
 
             if house is not None:
                 data['house'] = house

@@ -1,6 +1,6 @@
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from .. import utils
@@ -60,7 +60,7 @@ class Attachment(HivenObject):
         try:
             data['raw'] = dict(data)  # Adding the raw field
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
 
             # Adding the http attribute for API interaction
             instance._http = http

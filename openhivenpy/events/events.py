@@ -73,6 +73,14 @@ class EventHandler:
             func_args=param
         )
 
+    async def dispatch_on_house_update(self, old, new) -> None:
+        param = [old, new]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_house_update',
+            func_args=param
+        )
+
     async def dispatch_on_house_add(self, house) -> None:
         param = [house]
         await dispatch_func_if_exists(

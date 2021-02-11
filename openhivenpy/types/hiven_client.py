@@ -4,7 +4,7 @@ import datetime
 import asyncio
 import time
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user

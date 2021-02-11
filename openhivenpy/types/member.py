@@ -2,7 +2,7 @@ import logging
 import sys
 import typing
 
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user
@@ -107,7 +107,7 @@ class Member(user.User, HivenObject):
                 # else the id of the house object will be used to not pass a None type to the Scheme
                 data['house_id'] = data['house'].id
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
             # Adding the http attribute for API interaction
             instance._http = http
             return instance

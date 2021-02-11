@@ -1,6 +1,6 @@
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from .. import utils
 from . import HivenObject
@@ -63,7 +63,7 @@ class Embed(HivenObject):
         :return: The newly constructed Embed Instance
         """
         try:
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
 
             # Adding the http attribute for API interaction
             instance._http = http

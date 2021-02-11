@@ -375,39 +375,53 @@ class HivenClient(EventHandler):
 
         Available options: header, icon, bio, location, website, username
 
+        :param kwargs: The data-fields that will be changed
         :return: True if the request was successful else False
         """
         # Connection Object contains inherited Client data => edit() stored there
         return await self.connection.edit(**kwargs)
 
-    async def fetch_room(self, room_id: int) -> typing.Union[types.Room, None]:
+    def fetch_room(self, room_id: int) -> typing.Union[types.Room, None]:
         """
         Returns a cached Hiven Room Object
 
+        :param room_id: The id of the room that should be fetched
         :return: The Room Object if it was found
         """
         return utils.get(self.rooms, id=room_id)
 
-    async def fetch_house(self, house_id: int) -> typing.Union[types.House, None]:
+    def fetch_house(self, house_id: int) -> typing.Union[types.House, None]:
         """
         Returns a cached Hiven Room Object
 
+        :param house_id: The id of the house that should be fetched
         :return: The User Object if it was found
         """
         return utils.get(self.houses, id=house_id)
 
-    async def fetch_user(self, user_id: int) -> typing.Union[types.User, None]:
+    def fetch_user(self, user_id: int) -> typing.Union[types.User, None]:
         """
         Returns a cached Hiven User Object
 
+        :param user_id: The id of the user that should be fetched
         :return: The User Object if it was found
         """
         return utils.get(self.users, id=user_id)
 
+    def fetch_private_room(self, room_id: int) -> typing.Union[types.PrivateRoom, None]:
+        """
+        Returns a cached Hiven PrivateRoom Object
+
+        :param room_id: The id of the private room that should be fetched
+        :return: The PrivateRoom Object if it was found
+        """
+        return utils.get(self.private_rooms, id=room_id)
+
     async def get_house(self, house_id: int) -> typing.Union[types.House, None]:
         """
         Returns a Hiven House Object based on the passed ID.
-        
+
+        :param house_id: The id of the house that should be fetched
         :return: The House Object if it was found
         """
         try:
@@ -427,13 +441,15 @@ class HivenClient(EventHandler):
     async def get_user(self, user_id: int) -> typing.Union[types.User, None]:
         """
         Returns a Hiven User Object based on the passed ID.
-        
+
+        :param user_id: The id of the user that should be fetched
         :return: The User Object if it was found
         """
         # TODO! Needs username added to request options!
         try:
             cached_user = utils.get(self.users, id=user_id)
             if cached_user:
+
                 raw_data = await self.connection.http.request(endpoint=f"/users/{id}")
                 if raw_data:
                     data = raw_data.get('data')
@@ -459,32 +475,35 @@ class HivenClient(EventHandler):
     async def get_room(self, room_id: int) -> typing.Union[types.Room, None]:
         """
         Returns a Hiven Room Object based on the passed room ID.
-        
+
+        :param room_id: The id of the room that should be fetched
         :return: The Room Object if it was found
         """
         try:
             cached_room = utils.get(self.rooms, id=room_id)
             if cached_room:
-                house = cached_room.house
+                return cached_room
 
-                raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
-                # Currently not possible to request room data from Hiven!
-                # Therefore only cached rooms can be accessed at the moment!
-                if raw_data:
-                    data = raw_data.get('data')
-                    if data:
-                        room = await types.Room.from_dict(data, self.connection.http, house=house)
-                        # Removing the older cached room
-                        self.connection._rooms.remove(cached_room)
-                        # Appending the data to the client cache
-                        self.connection._rooms.append(room)
-                        return room
-                    else:
-                        logger.warning("[HIVENCLIENT] Failed to request room data from the Hiven-API!")
-                        return cached_room
-                else:
-                    logger.warning("[HIVENCLIENT] Failed to request room data from the Hiven-API!")
-                    return cached_room
+                # house = cached_room.house
+                #
+                # raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
+                # # Currently not possible to request room data from Hiven!
+                # # Therefore only cached rooms can be accessed at the moment!
+                # if raw_data:
+                #     data = raw_data.get('data')
+                #     if data:
+                #         room = await types.Room.from_dict(data, self.connection.http, house=house)
+                #         # Removing the older cached room
+                #         self.connection._rooms.remove(cached_room)
+                #         # Appending the data to the client cache
+                #         self.connection._rooms.append(room)
+                #         return room
+                #     else:
+                #         logger.warning("[HIVENCLIENT] Failed to request room data from the Hiven-API!")
+                #         return cached_room
+                # else:
+                #     logger.warning("[HIVENCLIENT] Failed to request room data from the Hiven-API!")
+                #     return cached_room
             else:
                 return None
 
@@ -502,24 +521,26 @@ class HivenClient(EventHandler):
         try:
             cached_private_room = utils.get(self.private_rooms, id=room_id)
             if cached_private_room:
-                raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
-                # Currently not possible to request room data from Hiven!
-                # Therefore only cached rooms can be accessed at the moment!
-                if raw_data:
-                    data = raw_data.get('data')
-                    if data:
-                        room = await types.PrivateRoom.from_dict(data, self.connection.http)
+                return cached_private_room
 
-                        # Appending the data to the client cache
-                        self.connection._private_rooms.remove(cached_private_room)
-                        self.connection._private_rooms.append(room)
-                        return room
-                    else:
-                        logger.warning("[HIVENCLIENT] Failed to request private_room data from the Hiven-API!")
-                        return cached_private_room
-                else:
-                    logger.warning("[HIVENCLIENT] Failed to request private_room data from the Hiven-API!")
-                    return cached_private_room
+                # raw_data = await self.connection.http.request(endpoint=f"/rooms/{room_id}")
+                # # Currently not possible to request room data from Hiven!
+                # # Therefore only cached rooms can be accessed at the moment!
+                # if raw_data:
+                #     data = raw_data.get('data')
+                #     if data:
+                #         room = await types.PrivateRoom.from_dict(data, self.connection.http)
+                #
+                #         # Appending the data to the client cache
+                #         self.connection._private_rooms.remove(cached_private_room)
+                #         self.connection._private_rooms.append(room)
+                #         return room
+                #     else:
+                #         logger.warning("[HIVENCLIENT] Failed to request private_room data from the Hiven-API!")
+                #         return cached_private_room
+                # else:
+                #     logger.warning("[HIVENCLIENT] Failed to request private_room data from the Hiven-API!")
+                #     return cached_private_room
             else:
                 return None
 
@@ -547,7 +568,7 @@ class HivenClient(EventHandler):
                 if raw_data:
                     data = raw_data.get('data')
                     if data:
-                        lazy_house = await types.LazyHouse.from_dict(data, self.http)
+                        lazy_house = await types.LazyHouse.from_dict(data, self.http, self.rooms)
                         return lazy_house
                     else:
                         raise errs.HTTPReceivedNoData()

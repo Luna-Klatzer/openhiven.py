@@ -1,6 +1,6 @@
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from .. import utils
@@ -50,6 +50,7 @@ class Entity(HivenObject):
         self._name = kwargs.get('name')
         self._id = kwargs.get('id')
         self._house_id = kwargs.get('house_id')
+        self._house = kwargs.get('house')
 
     def __repr__(self) -> str:
         info = [
@@ -61,19 +62,21 @@ class Entity(HivenObject):
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
+    async def from_dict(cls, data: dict, http, house, **kwargs):
         """
         Creates an instance of the Entity Class with the passed data
 
         :param data: Dict for the data that should be passed
         :param http: HTTP Client for API-interaction and requests
+        :param house: House of the Entity
         :param kwargs: Additional parameter or instances required for the initialisation
         :return: The newly constructed Embed Instance
         """
         try:
             data['id'] = utils.convert_value(int, data.get('id'))
+            data['house'] = house
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
 
             # Adding the http attribute for API interaction
             instance._http = http
@@ -111,3 +114,7 @@ class Entity(HivenObject):
     @property
     def position(self) -> int:
         return self._position
+
+    @property
+    def house(self) -> int:
+        return self._house

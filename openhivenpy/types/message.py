@@ -4,7 +4,7 @@ import sys
 import asyncio
 import typing
 
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE, EXCLUDE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE, EXCLUDE
 
 from . import HivenObject
 from . import user
@@ -104,7 +104,7 @@ class DeletedMessage(HivenObject):
         :return: The newly constructed DeletedMessage Instance
         """
         try:
-            instance = GLOBAL_DELETED_SCHEMA.load(data, unknown=RAISE)
+            instance = GLOBAL_DELETED_SCHEMA.load(data, unknown=EXCLUDE)
             return instance
 
         except ValidationError as e:

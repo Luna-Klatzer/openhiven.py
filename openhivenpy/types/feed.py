@@ -1,5 +1,5 @@
 import logging
-from marshmallow import Schema, fields, post_load, ValidationError, RAISE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 from .. import utils
 
 from . import HivenObject
