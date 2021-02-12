@@ -940,7 +940,6 @@ class Websocket(types.Client):
         :param data: The incoming ws text msg - Should be in correct python dict format
         """
         try:
-            print("Started")
             # Creating a house object that will then be appended
             house = await types.House.from_dict(data, self.http, client_id=self.id, rooms=self.rooms, users=self.users)
 
@@ -967,7 +966,6 @@ class Websocket(types.Client):
             # Appending to the client houses list
             self._houses.append(house)
 
-            print(f"Finished at {time.time() - self.connection_start}")
             await self.event_handler.dispatch_on_house_add(house)
 
         except Exception as e:

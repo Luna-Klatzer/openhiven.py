@@ -148,7 +148,7 @@ class Client(HivenObject):
                     else:
                         raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
-                    raise NameError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the Client!")
 
         except Exception as e:
             keys = "".join(str(key + " ") for key in kwargs.keys())

@@ -24,7 +24,7 @@ class Bot(hiven.UserClient):
         return self._token
 
     async def on_ready(self):
-        print("Bot is ready!")
+        print(f"Bot is ready after {self.startup_time}s")
         invite = await self.fetch_invite("openhivenpy")
         print(invite)
         print(await self.fetch_current_friend_requests())
@@ -35,7 +35,11 @@ class Bot(hiven.UserClient):
         house = await self.create_house("A pretty good House")
         await asyncio.sleep(.5)
         house = self.fetch_house(house.id)
-        await house.rooms[0].send("test")
+
+        room = house.get_room(house.rooms[0].id)
+        msg = await room.send("test")
+        await msg.edit("g")
+        await msg.delete()
 
         entity = await house.create_entity("stuff")
         print(entity.name)
@@ -73,5 +77,5 @@ class Bot(hiven.UserClient):
 
 
 if __name__ == '__main__':
-    client = Bot(token="")
+    client = Bot("")
     client.run(restart=True)

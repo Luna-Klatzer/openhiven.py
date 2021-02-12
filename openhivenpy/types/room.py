@@ -212,7 +212,7 @@ class Room(HivenObject):
                     else:
                         raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
-                    raise NameError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the Room!")
 
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''

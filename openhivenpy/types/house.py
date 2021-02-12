@@ -277,28 +277,16 @@ class House(LazyHouse):
     def default_permissions(self) -> int:
         return self._default_permissions
 
-    async def get_member(self, member_id: int):
-        """openhivenpy.types.House.get_member()
+    def get_member(self, member_id: int):
+        """
+        Fetches a member from the cache based on the id
 
-        Returns a Hiven Member Object based on the passed ID.
-
-        Returns the Member if it exists else returns None
+        :returns: The Member Instance if it exists else returns None
         """
         try:
-            cached_member = utils.get(self._members, id=member_id)
+            cached_member = utils.get(self.members, id=member_id)
             if cached_member:
                 return cached_member
-
-                # raw_data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
-                #
-                # if raw_data:
-                #     data = raw_data.get('data')
-                #     if data:
-                #         return await member.Member.from_dict(data, self._http, house=self)
-                #     else:
-                #         raise errs.HTTPReceivedNoData()
-                # else:
-                #     raise errs.HTTPReceivedNoData()
             else:
                 logger.warning(f"[HOUSE] Found no member with specified id={member_id} in {repr(self)}!")
 
@@ -310,21 +298,16 @@ class House(LazyHouse):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
-    async def get_room(self, room_id: int):
-        """openhivenpy.types.House.get_room()
+    def get_room(self, room_id: int):
+        """
+        Fetches a room from the cache based on the id
 
-        Returns a Hiven Room Object based on the passed ID.
-
-        Returns the Room if it exists else returns None
+        :returns: The Room Instance if it exists else returns None
         """
         try:
-            cached_room = utils.get(self._rooms, id=room_id)
+            cached_room = utils.get(self.rooms, id=room_id)
             if cached_room:
                 return cached_room
-
-                # Not Possible yet
-                # data = await self._http.request(f"/rooms/{room_id}")
-                # return Room(data, self._http)
             else:
                 logger.warning(f"[HOUSE] Found no room with specified id={room_id} in the client cache!")
 
@@ -332,6 +315,27 @@ class House(LazyHouse):
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
                                 suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
+                                       f"{sys.exc_info()[0].__name__}: {e}")
+            return False
+
+    def get_entity(self, entity_id: int):
+        """
+        Fetches a entity from the cache based on the id
+
+        :returns: The Entity Instance if it exists else returns None
+        """
+        try:
+            cached_member = utils.get(self.members, id=entity_id)
+            if cached_member:
+                return cached_member
+            else:
+                logger.warning(f"[HOUSE] Found no member with specified id={entity_id} in {repr(self)}!")
+
+            return None
+
+        except Exception as e:
+            utils.log_traceback(msg="[HOUSE] Traceback:",
+                                suffix=f"Failed to get the member with id {entity_id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
@@ -433,22 +437,19 @@ class House(LazyHouse):
         :return: True if the request was successful else False
         """
         try:
-            for key in kwargs.keys():
+            for key, data in kwargs.items():
                 if key in ['name']:
-                    resp = await self._http.patch(
-                        endpoint=f"/houses/{self.id}",
-                        json={key: kwargs.get(key)})
+                    resp = await self._http.patch(endpoint=f"/houses/{self.id}", json={key: data})
 
                     if resp.status < 300:
                         return True
                     else:
                         raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
-                    raise NameError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the House!")
 
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
-
             utils.log_traceback(msg="[HOUSE] Traceback:",
                                 suffix=f"Failed edit request of values '{keys}' in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
@@ -462,10 +463,7 @@ class House(LazyHouse):
         :return: The invite url if successful.
         """
         try:
-            json = {
-                "max_uses": max_uses
-            }
-            resp = await self._http.post(endpoint=f"/houses/{self.id}/invites", json=json)
+            resp = await self._http.post(endpoint=f"/houses/{self.id}/invites", json={"max_uses": max_uses})
 
             if resp.status < 300:
                 raw_data = await resp.json()
