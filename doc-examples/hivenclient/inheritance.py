@@ -5,9 +5,9 @@ import logging
 
 from openhivenpy.utils import utils
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)

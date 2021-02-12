@@ -6,7 +6,8 @@ from marshmallow import fields, post_load, ValidationError, EXCLUDE, Schema
 
 from . import HivenObject
 from . import message
-from .. import utils, exception as errs
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ class Room(HivenObject):
     1 - Portal
 
     """
+
     def __init__(self, **kwargs):
         self._id = kwargs.get('id')
         self._name = kwargs.get('name')
@@ -110,29 +112,32 @@ class Room(HivenObject):
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
 
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
-
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def house_id(self):
+    def house_id(self) -> int:
         return self._house_id
 
     @property
@@ -140,19 +145,19 @@ class Room(HivenObject):
         return self._house
 
     @property
-    def position(self):
+    def position(self) -> int:
         return self._position
-    
+
     @property
-    def type(self):
+    def type(self) -> int:
         return self._type  # ToDo: Other room classes.
 
     @property
     def emoji(self):
         return self._emoji.get("data") if self._emoji is not None else None  # Random type attrib there aswell
-    
+
     @property
-    def description(self):
+    def description(self) -> typing.Union[str, None]:
         return self._description
 
     async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
@@ -182,13 +187,13 @@ class Room(HivenObject):
                     raise errs.HTTPResponseError()
             else:
                 raise errs.HTTPResponseError()
-        
+
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n" 
+                                suffix=f"Failed to send message in room {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
-        
+
     async def edit(self, **kwargs) -> bool:
         """
         Changes the rooms data on Hiven
@@ -208,7 +213,7 @@ class Room(HivenObject):
                         raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the user context!")
-    
+
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
 
@@ -216,7 +221,7 @@ class Room(HivenObject):
                                 suffix=f"Failed to change the values {keys} in room {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
-        
+
     async def start_typing(self) -> bool:
         """
         Adds the client to the list of users typing
@@ -230,13 +235,13 @@ class Room(HivenObject):
                 return True
             else:
                 raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
-    
+
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n" 
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
-        
+
     async def get_recent_messages(self) -> typing.Union[list, message.Message, None]:
         """
         Gets the recent messages from the current room
@@ -254,7 +259,8 @@ class Room(HivenObject):
                     if raw_data:
                         author_data = raw_data.get('data')
                         if author_data:
-                            author = utils.get(self.house.members, id=utils.convert_value(int, author_data.get('room_id')))
+                            author = utils.get(self.house.members,
+                                               id=utils.convert_value(int, author_data.get('room_id')))
                             msg = await d.Message.from_dict(
                                 data=d,
                                 http=self._http,
@@ -271,9 +277,9 @@ class Room(HivenObject):
 
             else:
                 raise errs.HTTPReceivedNoDataError()
-    
+
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n" 
+                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None

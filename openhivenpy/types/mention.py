@@ -7,6 +7,7 @@ from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
 from .. import utils
 from . import HivenObject
 from . import user
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -60,16 +61,19 @@ class Mention(HivenObject):
             data['user'] = utils.get(users, id=utils.convert_value(int, data['user']['id']))
 
             instance = GLOBAL_SCHEMA.load(data, unknown=INCLUDE)
-            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            return instance
 
     @property
     def timestamp(self):

@@ -4,7 +4,8 @@ import sys
 from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
-from .. import utils, exception as errs
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -44,21 +45,13 @@ class UserTyping(HivenObject):
     Represents a Hiven User Typing in a room
     """
     def __init__(self, **kwargs):
-        try:
-            self._author = kwargs.get('author')
-            self._room = kwargs.get('room')
-            self._house = kwargs.get('house')
-            self._author_id = kwargs.get('author_id')
-            self._house_id = kwargs.get('house_id')
-            self._room_id = kwargs.get('room_id')
-            self._timestamp = kwargs.get('timestamp')
-        
-        except Exception as e:
-            utils.log_traceback(msg="[TYPING] Traceback:",
-                                suffix="Failed to initialize the Typing object! \n"
-                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.InitializationError(f"Failed to initialize Typing object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
+        self._author = kwargs.get('author')
+        self._room = kwargs.get('room')
+        self._house = kwargs.get('house')
+        self._author_id = kwargs.get('author_id')
+        self._house_id = kwargs.get('house_id')
+        self._room_id = kwargs.get('room_id')
+        self._timestamp = kwargs.get('timestamp')
 
     def __repr__(self) -> str:
         info = [
@@ -102,18 +95,22 @@ class UserTyping(HivenObject):
                 data['timestamp'] = timestamp
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def timestamp(self) -> datetime.datetime:

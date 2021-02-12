@@ -4,6 +4,7 @@ from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -109,18 +110,22 @@ class LazyUser(HivenObject):
             data['id'] = utils.convert_value(int, data.get('id'))
 
             instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=EXCLUDE)
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def username(self) -> str:
@@ -189,18 +194,22 @@ class User(LazyUser):
             data['id'] = utils.convert_value(int, data.get('id'))
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def location(self) -> str:

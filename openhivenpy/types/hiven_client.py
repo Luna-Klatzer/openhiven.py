@@ -10,7 +10,8 @@ from . import user
 from . import relationship
 from . import private_room
 from . import presence
-from .. import utils, exception as errs
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 

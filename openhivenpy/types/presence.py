@@ -2,6 +2,7 @@ import logging
 from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 

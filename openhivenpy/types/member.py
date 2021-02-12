@@ -6,7 +6,8 @@ from marshmallow import fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user
-from .. import utils, exception as errs
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -107,18 +108,22 @@ class Member(user.User, HivenObject):
                 data['house_id'] = data['house'].id
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def id(self) -> int:

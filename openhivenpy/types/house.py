@@ -9,11 +9,11 @@ from marshmallow import ValidationError, EXCLUDE, INCLUDE
 
 from . import HivenObject
 from . import invite
-from ..utils import utils
-from .. import exception as errs
 from . import entity
 from . import member
 from . import room
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -116,16 +116,21 @@ class LazyHouse(HivenObject):
             else:
                 instance._rooms = None
 
-            return instance
-
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def id(self) -> int:
@@ -191,8 +196,6 @@ class House(LazyHouse):
             data['default_permissions'] = data.get('default_permissions')
 
             instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-            # Adding the http attribute for API interaction
-            instance._http = http
 
             # Updating the cached lists when the object was already created
             entities_ = data.get('entities')
@@ -226,16 +229,21 @@ class House(LazyHouse):
                                                 user_id=utils.convert_value(int, kwargs.get('client_id')))
             instance._owner = utils.get(instance.members, id=instance.owner_id)
 
-            return instance
-
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
     
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def owner(self) -> member.Member:

@@ -5,6 +5,7 @@ from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
 
 from . import HivenObject
 from ..utils import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -108,25 +109,28 @@ class Invite(HivenObject):
 
             instance = GLOBAL_SCHEMA.load(data, unknown=INCLUDE)
 
-            # Adding the http attribute for API interaction
-            instance._http = http
-            return instance
-
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            return None
+            raise errs.InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
-    def code(self):
+    def code(self) -> int:
         return self._code
     
     @property
-    def url(self):
+    def url(self) -> str:
         return self._url
     
     @property
