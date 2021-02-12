@@ -6,14 +6,11 @@ import typing
 
 from ..events import EventHandler
 from .hivenclient import HivenClient
-from .. import load_env
-from ..exceptions import exception as errs
+from .. import load_env, exception as errs
 import openhivenpy.types as types
 import openhivenpy.utils as utils
 
 __all__ = 'UserClient'
-
-from ..types import entity
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +92,7 @@ class UserClient(HivenClient):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -161,7 +158,7 @@ class UserClient(HivenClient):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -190,7 +187,7 @@ class UserClient(HivenClient):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -220,7 +217,7 @@ class UserClient(HivenClient):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)

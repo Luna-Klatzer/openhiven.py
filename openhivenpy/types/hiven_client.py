@@ -4,15 +4,13 @@ import datetime
 import asyncio
 import time
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user
 from . import relationship
 from . import private_room
 from . import presence
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +66,7 @@ class Client(HivenObject):
                 self._client_user = await user.User.from_dict(user_data, self.http)
                 self._users.append(self._client_user)
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPReceivedNoDataError()
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
@@ -103,7 +101,7 @@ class Client(HivenObject):
             utils.log_traceback(msg="[CLIENT] Traceback: ",
                                 suffix="Failed to initialise the Client User Data: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.FaultyInitialization(f"Failed to initialise the Client User Data: "
+            raise errs.InitializationError(f"Failed to initialise the Client User Data: "
                                             f"{sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
@@ -147,7 +145,7 @@ class Client(HivenObject):
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the user context!")
 

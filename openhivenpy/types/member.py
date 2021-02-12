@@ -2,12 +2,11 @@ import logging
 import sys
 import typing
 
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+from marshmallow import fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +155,6 @@ class Member(user.User, HivenObject):
         # TODO! Needs be changed with the HTTP Exceptions Update
         resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
-            raise errs.Forbidden()
+            raise errs.HTTPForbiddenError()
         else:
             return True

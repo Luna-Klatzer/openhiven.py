@@ -4,7 +4,6 @@ import typing
 
 from marshmallow import Schema, fields, ValidationError, EXCLUDE, post_load
 
-from ..exceptions import exception as errs
 from . import HivenObject
 from . import user
 from .. import utils

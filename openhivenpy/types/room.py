@@ -6,9 +6,7 @@ from marshmallow import fields, post_load, ValidationError, EXCLUDE, Schema
 
 from . import HivenObject
 from . import message
-from . import user
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -181,9 +179,9 @@ class Room(HivenObject):
                         house_=self.house,
                         users=self.house.members)
                 else:
-                    raise errs.HTTPFaultyResponse()
+                    raise errs.HTTPResponseError()
             else:
-                raise errs.HTTPFaultyResponse()
+                raise errs.HTTPResponseError()
         
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
@@ -207,7 +205,7 @@ class Room(HivenObject):
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the user context!")
     
@@ -231,7 +229,7 @@ class Room(HivenObject):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
     
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
@@ -265,14 +263,14 @@ class Room(HivenObject):
                                 author=author)
                             messages_.append(msg)
                         else:
-                            raise errs.HTTPReceivedNoData()
+                            raise errs.HTTPReceivedNoDataError()
                     else:
-                        raise errs.HTTPReceivedNoData()
+                        raise errs.HTTPReceivedNoDataError()
 
                 return messages_
 
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPReceivedNoDataError()
     
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",

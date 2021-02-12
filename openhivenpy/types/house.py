@@ -10,7 +10,7 @@ from marshmallow import ValidationError, EXCLUDE, INCLUDE
 from . import HivenObject
 from . import invite
 from ..utils import utils
-from ..exceptions import exception as errs
+from .. import exception as errs
 from . import entity
 from . import member
 from . import room
@@ -279,16 +279,18 @@ class House(LazyHouse):
         try:
             cached_member = utils.get(self._members, id=member_id)
             if cached_member:
-                raw_data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
+                return cached_member
 
-                if raw_data:
-                    data = raw_data.get('data')
-                    if data:
-                        return await member.Member.from_dict(data, self._http, house=self)
-                    else:
-                        raise errs.HTTPReceivedNoData()
-                else:
-                    raise errs.HTTPReceivedNoData()
+                # raw_data = await self._http.request(f"/houses/{self.id}/users/{member_id}")
+                #
+                # if raw_data:
+                #     data = raw_data.get('data')
+                #     if data:
+                #         return await member.Member.from_dict(data, self._http, house=self)
+                #     else:
+                #         raise errs.HTTPReceivedNoData()
+                # else:
+                #     raise errs.HTTPReceivedNoData()
             else:
                 logger.warning(f"[HOUSE] Found no member with specified id={member_id} in {repr(self)}!")
 
@@ -311,6 +313,7 @@ class House(LazyHouse):
             cached_room = utils.get(self._rooms, id=room_id)
             if cached_room:
                 return cached_room
+
                 # Not Possible yet
                 # data = await self._http.request(f"/rooms/{room_id}")
                 # return Room(data, self._http)
@@ -324,29 +327,21 @@ class House(LazyHouse):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
-    async def create_room(
-            self,
-            name: str,
-            parent_entity_id: typing.Optional[typing.Union[float, int]] = None) -> typing.Union[room.Room, None]:
+    async def create_room(self,
+                          name: str,
+                          parent_entity_id: typing.Optional[int] = None) -> typing.Union[room.Room, None]:
         """
         Creates a Room in the house with the specified name. 
         
         :return: A Room Instance for the Hiven Room that was created if successful else None
         """
         try:
-            json = {'name': name}
-            if parent_entity_id:
-                json['parent_entity_id'] = parent_entity_id
-            else:
-                # If no ID was passed it will default to the Rooms category which serves as default for all
-                # entities
-                entity_ = utils.get(self.entities, name="Rooms")
-                json['parent_entity_id'] = entity_.id
+            default_entity = utils.get(self.entities, name="Rooms")
+            json = {'name': name,
+                    'parent_entity_id': parent_entity_id if parent_entity_id else default_entity.id}
 
             # Creating the room using the api
-            resp = await self._http.post(
-                f"/houses/{self._id}/rooms",
-                json=json)
+            resp = await self._http.post(f"/houses/{self._id}/rooms", json=json)
 
             if resp.status < 300:
                 data = (await resp.json()).get('data')
@@ -355,9 +350,9 @@ class House(LazyHouse):
 
                     return _room
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -368,34 +363,32 @@ class House(LazyHouse):
     # TODO! Delete Room!
 
     async def create_entity(self, name: str) -> typing.Union[entity.Entity, None]:
-        """openhivenpy.types.House.create_entity()
-
+        """
         Creates a entity in the house with the specified name.
 
+        :param name: The name of the new entity
+        :returns: The newly created Entity Instance
         """
         try:
             json = {'name': name, 'type': 1}
-            resp = await self._http.post(
-                endpoint=f"/houses/{self._id}/entities",
-                json=json)
+            resp = await self._http.post(endpoint=f"/houses/{self.id}/entities", json=json)
 
             if resp.status < 300:
-                raw_data = await resp.json()
-                data = raw_data.get('data')
+                data = (await resp.json()).get('data')
                 if data:
                     # Fetching all existing ids
                     existing_entity_ids = [e.id for e in self.entities]
                     for d in data:
                         id_ = utils.convert_value(int, d.get('id'))
-                        # if the id is not found in the entities that's the newly created entity
+                        # Returning the new entity
                         if id_ not in existing_entity_ids:
                             _entity = await entity.Entity.from_dict(d, self._http, house=self)
                             self._entities.append(_entity)
                             return _entity
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -404,12 +397,10 @@ class House(LazyHouse):
             return None
 
     async def leave(self) -> bool:
-        """openhivenpy.types.House.leave()
-
-        Leaves the house.
+        """
+        Leaves the house
         
-        Returns the house ID if successful.
-        
+        :returns: True if it was successful else False
         """
         try:
             resp = await self._http.delete(endpoint=f"/users/@me/houses/{self.id}")
@@ -417,7 +408,7 @@ class House(LazyHouse):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -443,7 +434,7 @@ class House(LazyHouse):
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the user context!")
 
@@ -475,9 +466,9 @@ class House(LazyHouse):
                 if data:
                     return await invite.Invite.from_dict(data, self._http, house=self)
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",

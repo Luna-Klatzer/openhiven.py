@@ -4,14 +4,13 @@ import sys
 import asyncio
 import typing
 
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE, EXCLUDE
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
 from . import user
 from . import mention
 from . import embed
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -329,7 +328,7 @@ class Message(HivenObject):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse
+                raise errs.HTTPResponseError
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
@@ -349,7 +348,7 @@ class Message(HivenObject):
             resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             
             if not resp.status < 300:
-                raise errs.Forbidden()
+                raise errs.HTTPForbiddenError()
             else:
                 return True
         
@@ -372,7 +371,7 @@ class Message(HivenObject):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
     
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",

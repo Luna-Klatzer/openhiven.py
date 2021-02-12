@@ -8,7 +8,7 @@ from ..settings import load_env
 from ..gateway.connection import ExecutionLoop
 from ..gateway import Connection, HTTP
 from ..events import EventHandler
-from ..exceptions import exception as errs
+from .. import exception as errs
 import openhivenpy.utils as utils
 import openhivenpy.types as types
 
@@ -81,18 +81,18 @@ class HivenClient(EventHandler):
 
         else:
             logger.error(f"[HIVENCLIENT] Expected 'user' or 'bot', got '{client_type}'")
-            raise errs.InvalidClientType(f"Expected 'user' or 'bot', got '{client_type}'")
+            raise errs.ClientTypeError(f"Expected 'user' or 'bot', got '{client_type}'")
 
         _user_token_len = int(os.getenv("USER_TOKEN_LEN"))
         _bot_token_len = int(os.getenv("BOT_TOKEN_LEN"))
 
         if token is None or token == "":
             logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
-            raise errs.InvalidToken()
+            raise errs.InvalidTokenError()
 
         elif len(token) != _user_token_len and len(token) != _bot_token_len:  # Bot TOKEN
             logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
-            raise errs.InvalidToken()
+            raise errs.InvalidTokenError()
 
         _check_dependencies()
 
@@ -183,7 +183,7 @@ class HivenClient(EventHandler):
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
                                 suffix=f"Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.SessionCreateException("Failed to establish HivenClient session! >"
+            raise errs.SessionCreateError("Failed to establish HivenClient session! >"
                                               f"{sys.exc_info()[0].__name__}: {e}")
 
     def run(self,
@@ -222,7 +222,7 @@ class HivenClient(EventHandler):
                                 msg="[HIVENCLIENT] Traceback:",
                                 suffix="Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.SessionCreateException("Failed to establish HivenClient session! >"
+            raise errs.SessionCreateError("Failed to establish HivenClient session! >"
                                               f"{sys.exc_info()[0].__name__}: {e}")
 
     async def destroy(self, reason: str = "", *, exec_loop=True) -> bool:
@@ -247,7 +247,7 @@ class HivenClient(EventHandler):
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
                                 suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
+            raise errs.ClosingError(f"Failed to close client session and websocket to Hiven! > "
                                      f"{sys.exc_info()[0].__name__}: {e}")
 
     async def close(self, reason: str = "", *, close_exec_loop=True) -> bool:
@@ -274,7 +274,7 @@ class HivenClient(EventHandler):
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
                                 suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.UnableToClose(f"Failed to close client session and websocket to Hiven! > "
+            raise errs.ClosingError(f"Failed to close client session and websocket to Hiven! > "
                                      f"{sys.exc_info()[0].__name__}: {e}")
 
     @property
@@ -571,11 +571,11 @@ class HivenClient(EventHandler):
                         lazy_house = await types.LazyHouse.from_dict(data, self.http, self.rooms)
                         return lazy_house
                     else:
-                        raise errs.HTTPReceivedNoData()
+                        raise errs.HTTPReceivedNoDataError()
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
@@ -596,7 +596,7 @@ class HivenClient(EventHandler):
                 if resp.status < 300:
                     return self.user.id
                 else:
-                    raise errs.HTTPFailedRequest()
+                    raise errs.HTTPFailedRequestError()
             else:
                 logger.warning(f"[HIVENCLIENT] The house with id {house_id} does not exist in the client cache!")
                 return None
@@ -620,7 +620,7 @@ class HivenClient(EventHandler):
             if data:
                 return await types.Invite.from_dict(data, self.connection.http, houses=self.houses)
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPReceivedNoDataError()
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
@@ -641,9 +641,9 @@ class HivenClient(EventHandler):
                 if data:
                     return types.Feed(data, self.connection.http)
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPReceivedNoDataError()
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
@@ -674,7 +674,7 @@ class HivenClient(EventHandler):
 
                 return mention_list
             else:
-                raise errs.HTTPReceivedNoData()
+                raise errs.HTTPReceivedNoDataError()
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
@@ -715,7 +715,7 @@ class HivenClient(EventHandler):
             if resp.status < 300:
                 return utils.get(self.rooms, id=room_id)
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             room_id = room if room is not None else getattr(room, 'id', None)
@@ -756,9 +756,9 @@ class HivenClient(EventHandler):
                     self.connection._private_rooms.append(private_room)
                     return private_room
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -804,9 +804,9 @@ class HivenClient(EventHandler):
                     self.connection._private_rooms.append(private_room)
                     return private_room
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPFailedRequest()
+                raise errs.HTTPFailedRequestError()
 
         except Exception as e:
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",

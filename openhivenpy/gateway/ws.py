@@ -10,7 +10,7 @@ import aiohttp
 __all__ = ['Websocket']
 
 import openhivenpy.types as types
-from ..exceptions import exception as errs
+from .. import exception as errs
 from ..utils import utils as utils
 from ..events import EventHandler
 from ..settings import load_env
@@ -249,7 +249,7 @@ class Websocket(types.Client):
             logger.debug("[WEBSOCKET] << The websocket Connection to Hiven unexpectedly stopped and failed to process! "
                          f"> {sys.exc_info()[0].__name__}: {e}!")
 
-            raise errs.GatewayException(f"[WEBSOCKET] << Exception in main-websocket process!"
+            raise errs.HivenGatewayError(f"[WEBSOCKET] << Exception in main-websocket process!"
                                         f"> {sys.exc_info()[0].__name__}: {e}!")
 
     # Loop for receiving messages from Hiven
@@ -316,7 +316,7 @@ class Websocket(types.Client):
                                     utils.log_traceback(msg="Traceback of failed Initialisation: ",
                                                         suffix=f"Failed to initialise and load data of the Client: \n"
                                                                f"{sys.exc_info()[0].__name__}: {e}")
-                                    raise errs.FaultyInitialization()
+                                    raise errs.InitializationError()
 
                                 # init_time = Time it took to initialise
                                 init_time = time.time() - self._connection_start
@@ -348,7 +348,7 @@ class Websocket(types.Client):
 
                 elif ws_msg.type == aiohttp.WSMsgType.ERROR:
                     logger.critical(f"[WEBSOCKET] Failed to handle response >> {ws.exception()} >>{ws_msg}")
-                    raise errs.WSFailedToHandle(ws_msg.data)
+                    raise errs.WebSocketMessageError(ws_msg.data)
 
         # Closing the websocket instance if it wasn't closed
         if not ws.closed:
@@ -539,7 +539,7 @@ class Websocket(types.Client):
         """
         try:
             house = utils.get(self._houses, id=utils.convert_value(int, data.get('house_id')))
-            if data.get('unavailable') is True:
+            if data.get('unavailable'):
                 logger.debug(f"[HOUSE_DOWN] << Downtime of '{house.name}' reported! "
                              "House was either deleted or is currently unavailable!")
                 await self.event_handler.dispatch_on_house_down_time(house_id=house.id)
@@ -707,7 +707,7 @@ class Websocket(types.Client):
                     self._users.append(user)
 
                 else:
-                    raise errs.HTTPReceivedNoData()
+                    raise errs.HTTPReceivedNoDataError()
 
             cached_member = utils.get(house.members, user_id=user_id)
             if cached_member is None:

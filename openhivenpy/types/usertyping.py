@@ -4,8 +4,7 @@ import sys
 from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
 from . import HivenObject
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +57,7 @@ class UserTyping(HivenObject):
             utils.log_traceback(msg="[TYPING] Traceback:",
                                 suffix="Failed to initialize the Typing object! \n"
                                        f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Typing object! Possibly faulty data! "
+            raise errs.InitializationError(f"Failed to initialize Typing object! Possibly faulty data! "
                                             f"> {sys.exc_info()[0].__name__}: {e}")
 
     def __repr__(self) -> str:

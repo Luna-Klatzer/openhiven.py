@@ -31,22 +31,20 @@ SOFTWARE.
 __title__ = "openhiven.py"
 __author__ = "Nicolas Klatzer"
 __license__ = "MIT"
-__version__ = "0.1"
+__version__ = "0.1.3.dev2"
 __copyright__ = "FrostbyteSpace"
-
-# Loading the environment
-from openhivenpy.settings import load_env
-
-load_env()
 
 import logging
 
+from openhivenpy.settings import load_env
+# Loading the environment
+load_env()
+
+from . import exception
 from . import utils
-from . import exceptions
 from . import types
 from . import events
 from . import gateway
-from .client import HivenClient, BotClient, UserClient
-
+from .client import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

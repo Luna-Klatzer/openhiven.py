@@ -7,11 +7,9 @@ import time
 import json as json_decoder
 import typing
 
-from ..exceptions import exception as errs
-
 __all__ = 'HTTP'
 
-from openhivenpy import load_env, utils
+from .. import load_env, utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +135,7 @@ class HTTP:
                                        f"> {sys.exc_info()[0].__name__}: {e}")
             self._ready = False
             await self.session.close()
-            raise errs.SessionCreateException(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
+            raise errs.SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
 
     async def close(self) -> bool:
         """

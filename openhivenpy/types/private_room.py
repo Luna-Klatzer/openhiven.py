@@ -7,8 +7,7 @@ from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE, EXC
 from . import HivenObject
 from . import message
 from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
-from .. import utils
-from ..exceptions import exception as errs
+from .. import utils, exception as errs
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +203,7 @@ class PrivateGroupRoom(HivenObject):
                         room_=self,
                         author=self.client_user)
             else:
-                raise errs.HTTPFaultyResponse()
+                raise errs.HTTPResponseError()
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -225,11 +224,11 @@ class PrivateGroupRoom(HivenObject):
             resp = await self._http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
-            if data.get('data') is True:
+            if data.get('data'):
                 # TODO! Needs implementation
                 return True
             else:
-                raise errs.HTTPFaultyResponse()
+                raise errs.HTTPResponseError()
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -340,7 +339,7 @@ class PrivateRoom(HivenObject):
             resp = await self._http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
-            if data.get('data') is True:
+            if data.get('data'):
                 return True
             else:
                 return False
@@ -381,11 +380,11 @@ class PrivateRoom(HivenObject):
                             author=self.client_user)
                         return msg
                     else:
-                        raise errs.HTTPReceivedNoData()
+                        raise errs.HTTPReceivedNoDataError()
                 else:
-                    raise errs.HTTPFaultyResponse()
+                    raise errs.HTTPResponseError()
             else:
-                raise errs.HTTPFaultyResponse()
+                raise errs.HTTPResponseError()
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",

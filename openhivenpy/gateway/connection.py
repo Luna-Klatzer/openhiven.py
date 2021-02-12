@@ -6,9 +6,8 @@ import typing
 from functools import wraps
 import os
 
-from openhivenpy import utils, load_env
+from openhivenpy import utils, load_env, exception as errs
 
-from ..exceptions import exception as errs
 from openhivenpy.events import EventHandler
 from . import Websocket, HTTP
 
@@ -203,7 +202,7 @@ class ExecutionLoop:
             utils.log_traceback(msg="[EXEC-LOOP] Traceback:",
                                 suffix="Failed to stop or keep alive execution_loop: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.UnableToClose("Failed to stop or keep alive execution_loop!"
+            raise errs.ClosingError("Failed to stop or keep alive execution_loop!"
                                      f"> {sys.exc_info()[0].__name__}: {e}")
         finally:
             return
@@ -458,7 +457,7 @@ class Connection(Websocket):
             utils.log_traceback(msg="[CONNECTION] Traceback:",
                                 suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.UnableToClose("Closing the connection to Hiven failed!"
+            raise errs.ClosingError("Closing the connection to Hiven failed!"
                                      f"> {sys.exc_info()[0].__name__}: {e}")
 
     async def close(self, reason: str = None, close_exec_loop=True, block_restart: bool = False) -> None:
@@ -498,7 +497,7 @@ class Connection(Websocket):
             utils.log_traceback(msg="[CONNECTION] Traceback:",
                                 suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.UnableToClose("Closing the connection to Hiven failed! "
+            raise errs.ClosingError("Closing the connection to Hiven failed! "
                                      f"> {sys.exc_info()[0].__name__}: {e}")
 
     # Restarts the connection if it errored or crashed
