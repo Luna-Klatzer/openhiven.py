@@ -397,6 +397,7 @@ class House(LazyHouse):
                             _entity = await entity.Entity.from_dict(d, self._http, house=self)
                             self._entities.append(_entity)
                             return _entity
+                    raise errs.InitializationError(f"Failed to initialise the Entity Instance! Data: {data}")
                 else:
                     raise errs.HTTPReceivedNoDataError()
             else:

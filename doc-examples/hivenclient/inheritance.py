@@ -5,9 +5,9 @@ import logging
 
 from openhivenpy.utils import utils
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='openhiven.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -42,15 +42,6 @@ class Bot(hiven.UserClient):
         await msg.delete()
 
         entity = await house.create_entity("stuff")
-        print(entity.name)
-
-        invite = await house.create_invite(24)
-        print(invite)
-
-        await house.edit(name="d")
-        await asyncio.sleep(.5)
-        house = self.fetch_house(house.id)
-        print(house.name)
 
         await house.delete()
 

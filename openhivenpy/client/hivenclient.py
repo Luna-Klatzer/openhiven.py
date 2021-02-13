@@ -773,10 +773,6 @@ class HivenClient(EventHandler):
         """
         Adds the passed users to a private group chat room where you can send messages.
 
-        Planned: Called when trying to send a message to a user and not room exists yet
-
-        ---
-
         :param recipients: List of recipients
         :return: The created PrivateGroupRoom if the request was successful else None
         """
