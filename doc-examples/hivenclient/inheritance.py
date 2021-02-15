@@ -25,25 +25,6 @@ class Bot(hiven.UserClient):
 
     async def on_ready(self):
         print(f"Bot is ready after {self.startup_time}s")
-        invite = await self.fetch_invite("openhivenpy")
-        print(invite)
-        print(await self.fetch_current_friend_requests())
-
-        robyn_channel = self.fetch_private_room(175699760957616349)
-        print(robyn_channel.name)
-
-        house = await self.create_house("A pretty good House")
-        await asyncio.sleep(.5)
-        house = self.fetch_house(house.id)
-
-        room = house.get_room(house.rooms[0].id)
-        msg = await room.send("test")
-        await msg.edit("g")
-        await msg.delete()
-
-        entity = await house.create_entity("stuff")
-
-        await house.delete()
 
     async def on_user_update(self, old, new):
         print(f"{old.name} updated their account")
