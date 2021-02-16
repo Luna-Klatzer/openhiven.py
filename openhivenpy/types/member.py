@@ -1,54 +1,58 @@
-import datetime
 import logging
 import sys
-import traceback
 import typing
 
-from openhivenpy import utils
+from marshmallow import fields, post_load, ValidationError, EXCLUDE
 
-from .user import User
-from openhivenpy.gateway.http import HTTP
-from openhivenpy.utils import raise_value_to_type
-import openhivenpy.exceptions as errs
+from . import HivenObject
+from . import user
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Member']
+__all__ = ('Member', 'MemberSchema')
 
 
-class Member(User):
-    """`openhivenpy.types.Member` 
-    
-    Data Class for a Hiven member
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    The class inherits all the available data from Hiven(attr -> read-only) and the User Class!
-    
-    Returned with house house member list and House.get_member()
-    
+class MemberSchema(user.UserSchema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    user_id = fields.Int(required=True)
+    house_id = fields.Int(required=True)
+    joined_at = fields.Str(required=True)
+    roles = fields.List(fields.Field, required=True, allow_none=True, default=[])
+    house = fields.Raw(required=True)
+    last_permission_update = fields.Raw(default=None, allow_none=True)
+    user = fields.Raw()
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Member Object
+        """
+        return Member(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = MemberSchema()
+
+
+class Member(user.User, HivenObject):
     """
-    def __init__(self, data: dict, house, http: HTTP):
-        try:
-            super().__init__(data.get('user', data), http)
-            self._user_id = self._id
-            self._house_id = data.get('house_id')
-            if self._house_id is None:
-                self._house_id = house.id
-            self._joined_at = data.get('joined_at')
-            self._roles = raise_value_to_type(data.get('roles', []), list)
-            
-            self._house = house
-            self._http = http
-
-        except Exception as e:
-            utils.log_traceback(msg="[MEMBER] Traceback:",
-                                suffix="Failed to initialize the Member object; \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Member object! Possibly faulty data! " 
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
-
-    def __str__(self) -> str:
-        return str(repr(self))
+    Represents a House Member on Hiven
+    """
+    def __init__(self, **kwargs):
+        self._user_id = kwargs.get('user_id')
+        self._house_id = kwargs.get('house_id')
+        self._joined_at = kwargs.get('joined_at')
+        self._roles = kwargs.get('roles')
+        self._house = kwargs.get('house')
+        super().__init__(**kwargs.get('user'))
 
     def __repr__(self) -> str:
         info = [
@@ -62,6 +66,68 @@ class Member(User):
             ('joined_house_at', self.joined_house_at)
         ]
         return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @classmethod
+    async def from_dict(cls,
+                        data: dict,
+                        http,
+                        houses: typing.Optional[typing.List] = None,
+                        house: typing.Optional[typing.Any] = None,
+                        **kwargs):
+        """
+        Creates an instance of the Member Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param houses: The cached list of Houses to automatically fetch the corresponding House from
+        :param house: House passed for the Member. Requires direct specification to work with the Invite
+        :return: The newly constructed Member Instance
+        """
+        try:
+            user_ = data.get('user')
+            user_['id'] = utils.convert_value(int, user_.get('id'))
+            data['id'] = utils.convert_value(int, user_.get('id'))
+            data['user_id'] = data['id']
+            data['username'] = user_.get('username')
+            data['website'] = user_.get('website', None)
+            data['location'] = user_.get('location', None)
+            data['name'] = user_.get('name')
+            data['roles'] = utils.convert_value(list, data.get('roles'), [])
+            if house is not None:
+                data['house'] = house
+            elif houses is not None:
+                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
+            else:
+                raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
+
+            # If the house_id exists and works properly it will be directly used
+            if utils.convertible(int, data.get('house_id')):
+                data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            else:
+                # else the id of the house object will be used to not pass a None type to the Scheme
+                data['house_id'] = data['house'].id
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            raise errs.InvalidPassedDataError(data=data)
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
+
+    @property
+    def id(self) -> int:
+        return getattr(self, '_user_id', None)
 
     @property
     def user_id(self) -> int:
@@ -84,17 +150,16 @@ class Member(User):
         return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:
-        """`openhivenpy.types.Member.kick()`
-
+        """
         Kicks a user from the house.
 
-        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`. 
+        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`
             
-        Returns `True` if successful.
-        
+        :return: True if the request was successful else HivenException.Forbidden()
         """
+        # TODO! Needs be changed with the HTTP Exceptions Update
         resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
-            raise errs.Forbidden()
+            raise errs.HTTPForbiddenError()
         else:
             return True

@@ -1,30 +1,26 @@
 import logging
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+from .. import utils
 
-from ._get_type import getType
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Feed']
 
 
-class Feed:
-    """`openhivenpy.types.Feed`
-    
-    Data Class for a users's Feed
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents the feed that is displayed on Hiven
-    
-    Attributes
-    ~~~~~~~~~~
-    
+class Feed(HivenObject):
     """
-    def __init__(self, data: dict, http: HTTP):
-        self._http = http
+    Represents the feed that is displayed on Hiven
+
+    Deprecated and will likely get removed in future releases
+    """
+    def __init__(self, **kwargs):
+        pass
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [

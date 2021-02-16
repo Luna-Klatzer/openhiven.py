@@ -1,30 +1,27 @@
-import asyncio
 import logging
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
-from ._get_type import getType
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Presence']
 
 
-class Presence:
-    """`openhivenpy.types.Presence`
-    
-    Data Class for a User Presence
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Represents a User Presence
-    
+class Presence(HivenObject):
     """
-    def __init__(self, data: dict, user, http: HTTP):
+    Represents a User Presence
+
+    Deprecated! Will be removed in v0.1.3
+    """
+    def __init__(self, data: dict, user, http):
         self._http = http
         self._user = user
         self._presence = data.get('presence')
 
     def __str__(self) -> str:
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self) -> str:
         info = [

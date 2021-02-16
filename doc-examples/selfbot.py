@@ -1,10 +1,10 @@
-#Created by Robyn at 29/11/2020, at precisely 00:58.28 GMT-00. We're in the end game people.
-#Yes, this is meant to act as a real life usage example. For testing.
+# Created by Robyn at 29/11/2020, at precisely 00:58.28 GMT-00. We're in the end game people.
+# Yes, this is meant to act as a real life usage example. For testing.
 
 import openhivenpy
-import asyncio
 import time
 import logging
+
 
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
@@ -16,12 +16,13 @@ bot = openhivenpy.UserClient(token="")
 init = time.time()
 
 @bot.event
-async def on_ready(time):
-    print(f"Init'd")
+async def on_ready():
+    print("Bot is ready")
 
 @bot.event
 async def on_message_create(message):
-    if message.content == ".ping": # Until theres a command handler, might as well go old-school discord.py
+    # Until theres a command handler, might as well go old-school discord.py
+    if message.content == ".ping":
         await message.room.send(":table_tennis_paddle_and_ball:!")
 
 if __name__ == '__main__':

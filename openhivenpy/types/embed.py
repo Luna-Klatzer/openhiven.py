@@ -1,56 +1,86 @@
 import logging
+import sys
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
-from ._get_type import getType
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from .. import utils
+from . import HivenObject
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Embed']
+__all__ = ('Embed', 'EmbedSchema')
 
 
-class Embed:
-    """`openhivenpy.types.Embed`
-    
-    Data Class for a Embed Object
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Returned with a message object if an embed object is added
-    
-    Attributes
-    ~~~~~~~~~~
-    
-    url: `str` - Endpoint of the embed object
-    
-    type: `str` - Type of the embed message
-    
-    title: `str` - Title that displays on the embed object
-    
-    image: `dict or str` - Url for the image (Currently not in correct format)
-                           or dict with data for a video file
-    
-    description: `str` - Description of the embed object
-    
+class EmbedSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    url = fields.Str(required=True)
+    type = fields.Str(required=True)
+    title = fields.Str(required=True)
+    image = fields.Str(default=None)
+    description = fields.Str(default=None)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Embed Object
+        """
+        return Embed(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = EmbedSchema()
+
+
+class Embed(HivenObject):
     """
-    def __init__(self, data: dict):
-        self._url = data.get('url')
-        self._type = data.get('type')
-        self._title = data.get('title')
-        self._image = data.get('image')
-        self._description = data.get('description')
+    Represents an embed message object
+    """
+    def __init__(self, **kwargs):
+        """
+        Object Instance Construction
 
-    def __str__(self) -> str:
-        return str(repr(self))
+        :param kwargs: Additional Parameter of the class that will be initialised with it
+        """
+        self._url = kwargs.get('url')
+        self._type = kwargs.get('type')
+        self._title = kwargs.get('title')
+        self._image = kwargs.get('image', None)
+        self._description = kwargs.get('description', None)
 
-    def __repr__(self) -> str:
-        info = [
-            ('url', self.url),
-            ('type', self.type),
-            ('title', self.title),
-            ('image', self.image),
-            ('description', self.description)
-        ]
-        return '<Embed {}>'.format(' '.join('%s=%s' % t for t in info))
+    @classmethod
+    async def from_dict(cls, data: dict, http, **kwargs):
+        """
+        Creates an instance of the Embed Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed Embed Instance
+        """
+        try:
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            raise errs.InvalidPassedDataError(data=data)
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
 
     @property
     def url(self):

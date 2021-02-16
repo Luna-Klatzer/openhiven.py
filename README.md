@@ -1,7 +1,7 @@
 # ![OpenHiven.py](https://images.nxybi.me/da4e88d64f12.png) <br> OpenHiven.py
 ## The OpenSource Python API Wrapper for Hiven!
 
-[![Package Version](https://img.shields.io/badge/package%20version-v0.1.2.1-purple?logo=python)](https://github.com/FrostbyteSpace/openhiven.py)
+[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3.dev2-purple?logo=python)](https://github.com/FrostbyteSpace/openhiven.py)
 [![Python Version](https://img.shields.io/badge/python->=3.7-blue?logo=python)](https://python.org)
 ![Build](https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github)
 [![Latest Commit](https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet)](https://github.com/FrostbyteSpace/openhiven.py/commits/mainy)
@@ -19,7 +19,7 @@
 ### Install (PyPi Release)
 
 ```bash
-pip install openhivenpy
+python3 -m pip install -U openhivenpy
 ```
 
 ### PyPi Specific Version
@@ -30,7 +30,7 @@ python3 -m pip install -U openhivenpy==version
 
 ### Install (Github Build)
 ```bash
-pip install https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
+python3 -m pip install -U https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
 ```
 
 ## Documentation
@@ -41,7 +41,7 @@ For full documentation visit the documentation our readthedocs-page
 
 ### Usage Example
 
-A simple UserClient Bot for quick usage
+**A simple UserClient Bot for quick usage:**
 
 ```python
 
@@ -54,5 +54,52 @@ async def on_ready():
     print("Bot is ready")
 
 client.run()
+
+```
+
+**A simple CommandListener for reacting to commands:**
+
+```python 
+
+import openhivenpy as hiven
+
+client = hiven.UserClient("Insert token")
+
+@client.event()
+async def on_ready():
+    print("Bot is ready")
+
+@client.event()
+async def on_message_create(msg):
+    if msg.content.startswith("-"):
+        if msg.content == "-ping":
+            return await msg.room.send("pong")
+
+client.run()
+ 
+```
+
+**Inherited HivenClient Example:**
+
+```python 
+
+import openhivenpy as hiven
+
+class Bot(hiven.UserClient):
+    def __init__(self, token, *args, **kwargs):
+        self._token = token
+        super().__init__(token, *args, **kwargs)
+
+    # Not directly needed but protects the token from being changed while runtime!
+    @property
+    def token(self):
+        return self._token
+
+    async def on_ready(self):
+        print("Bot is ready!")
+
+if __name__ == '__main__':
+    client = Bot(token="")
+    client.run()
 
 ```

@@ -3,24 +3,24 @@ import logging
 import datetime
 import asyncio
 import time
-import traceback
 import typing
 
-from openhivenpy import utils
-
-from ._get_type import getType
-import openhivenpy.exceptions as errs
+from . import HivenObject
+from . import user
+from . import relationship
+from . import private_room
+from . import presence
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Client']
 
 
-class Client:
-    r"""`openhivenpy.types.Client`
-
+class Client(HivenObject):
+    """
     Data Class that stores the data of the connected Client
-
     """
     def __init__(self, *, http=None, **kwargs):
         self._http = http if http is not None else self._http
@@ -44,10 +44,7 @@ class Client:
         self._execution_loop = getattr(self, '_execution_loop')
 
         # Appends the ready check function to the execution_loop
-        self._execution_loop.add_to_startup(self.__check_if_data_is_complete)
-
-    def __str__(self) -> str:
-        return str(repr(self))
+        self._execution_loop.add_to_startup(self.__check_if_data_is_complete())
 
     def __repr__(self) -> str:
         return repr(self.user)
@@ -57,50 +54,59 @@ class Client:
         return getattr(self, "connection_start")
 
     async def initialise_hiven_client_data(self, data: dict = None) -> None:
-        r"""`openhivenpy.types.client.update_client_user_data()`
-
+        """
         Updates or creates the standard user data attributes of the Client
 
+        :param data: Data used for Initialisation
         """
         try:
-            # Initialising the Client-User object for storing the user data
-            self._client_user = await getType.a_user(data.get('user'), self.http)
+            raw_data = await self.http.request("/users/@me")
+            user_data = raw_data.get('data')
+            if user_data:
+                # Initialising the Client-User object for storing the user data
+                self._client_user = await user.User.from_dict(user_data, self.http)
+                self._users.append(self._client_user)
+            else:
+                raise errs.HTTPReceivedNoDataError()
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
-            for key in _relationships:
-                _rel_data = _relationships.get(key, {})
-                _rel = await getType.a_relationship(
-                    data=_rel_data,
-                    http=self.http)
+            for key, d in _relationships.items():
+                _rel = await relationship.Relationship.from_dict(
+                    data=d,
+                    http=self.http,
+                    users=self.users)
 
                 self._relationships.append(_rel)
 
             # Initialising the private rooms
             _private_rooms = data.get('private_rooms')
-            for private_room in _private_rooms:
-                t = int(private_room.get('type', 0))
-                if t == 1:
-                    room = await getType.a_private_room(private_room, self.http)
-                elif t == 2:
-                    room = await getType.a_private_group_room(private_room, self.http)
+            for d in _private_rooms:
+                type_ = utils.convert_value(int, d.get('type', 0))
+                if type_ == 1:
+                    r = await private_room.PrivateRoom.from_dict(d, self.http, client_user=self.user)
+                elif type_ == 2:
+                    r = await private_room.PrivateGroupRoom.from_dict(d,
+                                                                      self.http,
+                                                                      users=self.users,
+                                                                      client_user=self.user)
                 else:
-                    room = await getType.a_private_room(private_room, self.http)
-                self._private_rooms.append(room)
+                    r = await private_room.PrivateRoom.from_dict(d, self.http, self.users, client_user=self.user)
+
+                self._private_rooms.append(r)
 
             # Passing the amount of houses as variable
-            _house_memberships = data.get('house_memberships')
-            self._house_memberships = _house_memberships
+            self._house_memberships = data.get('house_memberships')
 
         except Exception as e:
             utils.log_traceback(msg="[CLIENT] Traceback: ",
-                                suffix="Failed to update client data; \n"
+                                suffix="Failed to initialise the Client User Data: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.FaultyInitialization(f"FAILED to update client data! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
+            raise errs.InitializationError(f"Failed to initialise the Client User Data: "
+                                            f"{sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
-        r"""
+        """
         Checks whether the meta data is complete and triggers on_ready
         """
         # boolean that will trigger the warning that the process is taking too long
@@ -124,14 +130,12 @@ class Client:
             await asyncio.sleep(0.05)
 
     async def edit(self, **kwargs) -> bool:
-        """`openhivenpy.types.Client.edit()`
+        """
+        Edits the Clients data on Hiven
 
-        Change the signed in user's/bot's data.
+        Available options: header, icon, bio, location, website, username
 
-        Available options: header, icon, bio, location, website
-
-        Returns `True` if successful
-
+        :return: True if the request was successful else False
         """
         try:
             for key in kwargs.keys():
@@ -142,15 +146,15 @@ class Client:
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
-                    raise NameError("The passed value does not exist in the user context!")
+                    raise NameError("The passed value does not exist in the Client!")
 
         except Exception as e:
             keys = "".join(str(key + " ") for key in kwargs.keys())
 
             utils.log_traceback(msg="[CLIENT] Traceback:",
-                                suffix=f"Failed change the values {keys}; \n"
+                                suffix=f"Failed change the values {keys}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     @property
@@ -190,7 +194,7 @@ class Client:
         return getattr(self.user, 'website', None)
 
     @property
-    def presence(self) -> getType.presence:
+    def presence(self) -> presence.Presence:
         return getattr(self.user, 'presence', None)
 
     @property
@@ -201,19 +205,19 @@ class Client:
             return None
 
     @property
-    def houses(self) -> int:
+    def houses(self) -> list:
         return getattr(self, '_houses', [])
 
     @property
-    def private_rooms(self) -> int:
+    def private_rooms(self) -> list:
         return getattr(self, '_private_rooms', [])
 
     @property
-    def users(self) -> int:
+    def users(self) -> list:
         return getattr(self, '_users', [])
 
     @property
-    def rooms(self) -> int:
+    def rooms(self) -> list:
         return getattr(self, '_rooms', [])
 
     @property

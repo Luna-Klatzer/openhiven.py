@@ -1,138 +1,163 @@
-import traceback
-from datetime import datetime
+import datetime
 import logging
 import sys
 import asyncio
+import typing
 
-from openhivenpy import utils
+from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 
-from ._get_type import getType
-import openhivenpy.exceptions as errs
-from openhivenpy.gateway.http import HTTP
+from . import HivenObject
+from . import user
+from . import mention
+from . import embed
+from .. import utils
+from .. import exception as errs
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['DeletedMessage', 'Message']
+__all__ = ['DeletedMessage', 'Message', 'MessageSchema', 'DeletedMessageSchema']
 
 
-class DeletedMessage:
-    """`openhivenpy.types.DeletedMessage`
-    
-    Data Class for a removed Hiven message
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    Returned with on_message_delete()
-    
-    Attributes
-    ~~~~~~~~~~
-    
-    house_id: `int` - ID of the House where the message was deleted
-    
-    message_id: `int` - ID of the message that was deleted
-    
-    room_id: `int` - ID of the Room where the message was deleted
-    
+class MessageSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    id = fields.Int(required=True)
+    author = fields.Raw(required=True)
+    attachment = fields.Raw(default=None, allow_none=True)
+    content = fields.Str(required=True)
+    timestamp = fields.Raw(required=True)
+    edited_at = fields.Raw(default=None, allow_none=True)
+    mentions = fields.List(fields.Field(), default=[], allow_none=True)
+    type = fields.Int(required=True, allow_none=True)
+    exploding = fields.Raw()
+    house_id = fields.Int(default=None, allow_none=True)
+    house = fields.Raw(default=None, allow_none=True)
+    room_id = fields.Int(required=True)
+    room = fields.Raw(required=True)
+    embed = fields.Raw(default=None, allow_none=True)
+    bucket = fields.Raw(default=None, allow_none=True)
+    author_id = fields.Int(required=True)
+    exploding_age = fields.Raw(allow_none=True)
+    device_id = fields.Int(required=True, allow_none=True)
+
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new Message Object
+        """
+        return Message(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_SCHEMA = MessageSchema()
+
+
+class DeletedMessageSchema(Schema):
+    # Validations to check for the datatype and that it's passed correctly =>
+    # will throw exception 'ValidationError' in case of an faulty data parsing
+
+    message_id = fields.Int(required=True)
+    house_id = fields.Int(required=True)
+    room_id = fields.Int(required=True)
+
+    @post_load
+    def make(self, data, **kwargs):
+        """
+        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+
+        :param data: Dictionary that will be passed to the initialisation
+        :param kwargs: Additional Data that can be passed
+        :return: A new DeletedMessage Object
+        """
+        return DeletedMessage(**data, **kwargs)
+
+
+# Creating a Global Schema for reuse-purposes
+GLOBAL_DELETED_SCHEMA = DeletedMessageSchema()
+
+
+class DeletedMessage(HivenObject):
     """
-    def __init__(self, data: dict):
-        self._message_id = int(data.get('message_id'))
-        self._house_id = int(data.get('house_id'))
-        self._room_id = int(data.get('room_id'))
+    Represents a Deleted Message
+    """
+    def __init__(self, **kwargs):
+        self._message_id = utils.convert_value(int, kwargs.get('message_id'))
+        self._house_id = utils.convert_value(int, kwargs.get('house_id'))
+        self._room_id = utils.convert_value(int, kwargs.get('room_id'))
 
     def __str__(self):
         return f"Deleted message in room {self.room_id}"
 
+    @classmethod
+    async def from_dict(cls, data: dict, **kwargs):
+        """
+        Creates an instance of the DeletedMessage Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed DeletedMessage Instance
+        """
+        try:
+            instance = GLOBAL_DELETED_SCHEMA.load(data, unknown=EXCLUDE)
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            raise errs.InvalidPassedDataError(data=data)
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            return instance
+
     @property
     def message_id(self):
-        return int(self._message_id)
+        return getattr(self, '_message_id')
 
     @property
     def house_id(self):
-        return int(self._house_id)
+        return getattr(self, '_house_id')
 
     @property
     def room_id(self):
-        return int(self._room_id)
+        return getattr(self, '_room_id')
     
 
-class Message:
-    """`openhivenpy.types.Message`
-    
-    Data Class for a standard Hiven message
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    
-    Returned with room message list and House.get_message()
- 
-    Attributes
-    ~~~~~~~~~~
-    
-    id: `int` - ID of the Message
-    
-    content: `str` - Simple string content of the message
-    
-    author: `openhivenpy.types.User` - Author Object
-    
-    author_id: `int` - ID of the Author that created the message
-    
-    room: `openhivenpy.types.Room` - Room where the message was sent
-    
-    room_id: `int` - ID of the Room where the message was deleted
-    
-    house: `openhivenpy.types.House` - House where the message was sent
-    
-    house_id: `int` - ID of the House where the message was deleted
-    
-    created_at: `datetime.datetime` - Creation timestamp
-    
-    edited_at: `datetime.datetime` - If edited returns a string timestamp else None
-    
-    attachment: `str` - In work
-    
-    mentions: `openhivenpy.types.Mention` - A list of Mention objects 
-    
-    exploding: `None` - In work
-    
+class Message(HivenObject):
     """
-    def __init__(self, data: dict, http: HTTP, house, room, author):
-        try:
-            self._id = int(data.get('id'))
-            self._author = author
-            self._attachment = data.get('attachment')
-            self._content = data.get('content')
-            
-            # Converting to seconds because it's in milliseconds
-            if data.get('timestamp') is not None:
-                self._timestamp = datetime.fromtimestamp(int(data.get('timestamp')) / 1000) 
-            else:
-                self._timestamp = None
-                
-            self._edited_at = data.get('edited_at')
-            self._mentions = []
-            for _data in data.get('mentions', []):
-                self._mentions.append(getType.mention(_data, self._timestamp, self._author, http))
-
-            self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
-            self._exploding = data.get('exploding')
-            
-            self._house_id = data.get('house_id')
-            self._house_id = int(data.get('house_id')) if data.get('house_id') is not None else None
-            self._house = house
-            self._room_id = int(data.get('room_id')) if data.get('room_id') is not None else None
-            self._room = room 
-            
-            self._embed = getType.embed(data.get('embed')) if data.get('embed') is not None else None
-
-            self._http = http
-        
-        except Exception as e:
-            utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to initialize the Message object; \n"
-                                       f"{sys.exc_info()[0].__name__}: {e} >> Data: {data}")
-            raise errs.FaultyInitialization(f"Failed to initialize Message object! Possibly faulty data! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
+    Data Class for a standard Hiven message
+    """
+    def __init__(self, **kwargs):
+        self._id = kwargs.get('id')
+        self._author = kwargs.get('author')
+        self._attachment = kwargs.get('attachment')
+        self._content = kwargs.get('content')
+        self._timestamp = kwargs.get('timestamp')
+        self._edited_at = kwargs.get('edited_at')
+        self._mentions = kwargs.get('mentions')
+        self._type = kwargs.get('type')  # I believe, 0 = normal message, 1 = system.
+        self._exploding = kwargs.get('exploding')
+        self._house_id = kwargs.get('house_id')
+        self._house = kwargs.get('house')
+        self._room_id = kwargs.get('room_id')
+        self._room = kwargs.get('room')
+        self._embed = kwargs.get('embed')
+        self._bucket = kwargs.get('bucket')
+        self._device_id = kwargs.get('device_id')
+        self._exploding_age = kwargs.get('exploding_age')
+        self._author_id = kwargs.get('author_id')
 
     def __str__(self) -> str:
-        return f"<Message: '{self.id}' from '{self.author.name}'>"
+        return f"<Message id='{self.id}' from '{self.author.name}'>"
 
     def __repr__(self) -> str:
         info = [
@@ -146,9 +171,87 @@ class Message:
         ]
         return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    @classmethod
+    async def from_dict(cls,
+                        data: dict,
+                        http,
+                        *,
+                        author: user.User = None,
+                        users: typing.List[user.User] = None,
+                        room_: typing.Any = None,
+                        rooms: typing.List[typing.Any] = None,
+                        houses: typing.List[typing.Any] = [],
+                        house_: typing.Any = None,
+                        **kwargs):
+        """
+        Creates an instance of the Message Class with the passed data
+
+        :param data: Dict for the data that should be passed
+        :param http: HTTP Client for API-interaction and requests
+        :param author: The Author of the Message that can be passed if it was already fetched
+        :param users: The cached users List to fetch the mentioned users from
+        :param room_: The room of the Message
+        :param rooms: The cached Room List to fetch the room from
+        :param houses: The cached House List to fetch the house from or add ones if passed
+        :param house_: The House of the Message that can be passed if it was already fetched
+        :param kwargs: Additional parameter or instances required for the initialisation
+        :return: The newly constructed Message Instance
+        """
+        try:
+            data['id'] = utils.convert_value(int, data.get('id'))
+            data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            data['room_id'] = utils.convert_value(int, data.get('room_id'))
+            data['house'] = house_ if house_ else utils.get(houses, id=utils.convert_value(int, data['house_id']))
+            data['room'] = room_ if room_ else utils.get(rooms, id=utils.convert_value(int, data['room_id']))
+            data['author'] = author if author else utils.get(data['house'].members if data['house'] else users,
+                                                             id=utils.convert_value(int, data.get('author_id')))
+            data['attachment'] = data.get('attachment')
+            data['content'] = data.get('content')
+            data['edited_at'] = data.get('edited_at')
+            data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
+            data['exploding'] = data.get('exploding')
+            data['embed'] = await embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') else None
+            data['bucket'] = utils.convert_value(int, data.get('bucket'))
+            data['device_id'] = utils.convert_value(int, data.get('device_id'))
+            data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
+            data['author_id'] = utils.convert_value(int, data.get('author_id'))
+
+            timestamp = data.get('timestamp')
+            # Converting to seconds because it's in milliseconds
+            if utils.convertible(int, timestamp):
+                data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp) / 1000)
+            else:
+                data['timestamp'] = timestamp
+
+            mentions_ = []
+            for d in data.get('mentions', []):
+                mentions_.append(await mention.Mention.from_dict({'timestamp': data['timestamp'],
+                                                                  'author': data['author'],
+                                                                  'user': d},
+                                                                 users=users))
+            data['mentions'] = mentions_
+
+            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+
+        except ValidationError as e:
+            utils.log_validation_traceback(cls, e)
+            raise errs.InvalidPassedDataError(data=data)
+
+        except Exception as e:
+            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
+                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                           f"{sys.exc_info()[0].__name__}: {e}!")
+        else:
+            # Adding the http attribute for API interaction
+            instance._http = http
+
+            return instance
+
     @property
-    def id(self):
-        return int(self._id)
+    def id(self) -> int:
+        return utils.convert_value(int, self._id)
 
     @property
     def author(self):
@@ -202,68 +305,70 @@ class Message:
     def embed(self):
         return self._embed
 
-    async def mark_as_read(self, delay: float) -> bool:
-        """`openhivenpy.types.Message.ack`
+    @property
+    def bucket(self):
+        return self._bucket
 
-        Marks the message as read. This doesn't need to be done for bot clients. 
+    @property
+    def device_id(self):
+        return self._device_id
+
+    @property
+    def exploding_age(self):
+        return self._exploding_age
+
+    @property
+    def author_id(self):
+        return self._author_id
+
+    async def mark_as_read(self, delay: float = None) -> bool:
+        """
+        Marks the message as read. This doesn't need to be done for bot clients.
         
-        Returns `True` if successful.
-        
-        Parameter
-        ~~~~~~~~~
-        
-        delay: `float` - Delay until marking the message as read (in seconds)
-        
+        :param delay: Delay until marking the message as read (in seconds)
+        :return: True if the request was successful else False
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
             resp = await self._http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
 
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse
+                raise errs.HTTPResponseError
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to mark message as read {repr(self)}; \n" 
+                                suffix=f"Failed to mark message as read {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
-    async def delete(self, delay: float) -> bool:
-        """`openhivenpy.types.Message.delete()`
-
-        Deletes the message. Raises Forbidden if not allowed. 
+    async def delete(self, delay: float = None) -> bool:
+        """
+        Deletes the message. Raises Forbidden if not allowed.
         
-        Returns a `DeletedMessage` Object if successful
-        
-        Parameter
-        ~~~~~~~~~
-        
-        delay: `float` - Delay until deleting the message as read (in seconds)
-        
+        :param delay: Delay until deleting the message as read (in seconds)
+        :return: A DeletedMessage object if successful
         """
         try:
-            await asyncio.sleep(delay=delay)
+            await asyncio.sleep(delay=delay) if delay is not None else None
             
             resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             
-            if resp.status < 300:
-                return True
+            if not resp.status < 300:
+                raise errs.HTTPForbiddenError()
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                return True
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to delete the message {repr(self)}; \n" 
+                                suffix=f"Failed to delete the message {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def edit(self, content: str) -> bool:
-        """`openhivenpy.types.House.edit()`
-
+        """
         Edits a message on Hiven
             
-        Returns 'True' if successful.
-
+        :return: True if the request was successful else False
         """
         try:
             resp = await self._http.patch(
@@ -273,10 +378,10 @@ class Message:
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPFaultyResponse("Unknown! See HTTP Logs!")
+                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
     
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to edit message {repr(self)}; \n" 
+                                suffix=f"Failed to edit message {repr(self)}: \n" 
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False

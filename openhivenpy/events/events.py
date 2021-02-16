@@ -1,4 +1,5 @@
 import logging
+import typing
 from functools import wraps
 
 from openhivenpy.utils import dispatch_func_if_exists
@@ -7,15 +8,10 @@ logger = logging.getLogger(__name__)
 
 
 class EventHandler:
-    """`openhivenpy.events.EventHandler` 
-    
-    Openhivenpy Event Handler
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+    """
     Event Handler for the HivenClient Class. Functions will be called from the
     websocket class and if the user registered an event response with the
     decorator @HivenClient.event, it will be called and executed.
-    
     """
     def __init__(self, call_obj: object = None):
         self._call_obj = call_obj
@@ -23,29 +19,25 @@ class EventHandler:
             logger.debug("[EVENT-HANDLER] Passed object where the events should be called from is None!")
             self._call_obj = self
 
-    def event(self, func=None):
-        """`openhivenpy.events.Events.event`
-        
+    def event(self, func: typing.Coroutine = None):
+        """
         Decorator used for registering Client Events
         
-        Parameter:
-        ----------
-        
-        func: `function` - Function that should be wrapped. Only usable if the wrapper is
-                            used in the function syntax: 'event(func)'!
+        :param func: Function that should be wrapped. Only usable if the wrapper is used in the function syntax: 'event(func)'!
         
         """
-        def decorator(func):
-            @wraps(func) 
+        def decorator(func_: typing.Coroutine):
+            @wraps(func_)
             async def wrapper(*args, **kwargs): 
-                return await func(*args, **kwargs)
+                return await func_(*args, **kwargs)
             
-            setattr(self, func.__name__, wrapper)  # Adding the function to the object
+            setattr(self, func_.__name__, wrapper)  # Adding the function to the object
 
-            logger.debug(f"[EVENT-HANDLER] >> Event {func.__name__} registered")
+            logger.debug(f"[EVENT-HANDLER] >> Event {func_.__name__} registered")
 
-            return func  # returning func means func can still be used normally
+            return func_  # func can still be used normally
 
+        # TODO! Needs to raise Exception if not async using 'inspect.iscoroutinefunction(func):'
         if func is None:
             return decorator
         else:
@@ -70,6 +62,22 @@ class EventHandler:
         await dispatch_func_if_exists(
             obj=self._call_obj,
             func_name='on_ready',
+            func_args=param
+        )
+
+    async def dispatch_on_user_update(self, old, new) -> None:
+        param = [old, new]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_user_update',
+            func_args=param
+        )
+
+    async def dispatch_on_house_update(self, old, new) -> None:
+        param = [old, new]
+        await dispatch_func_if_exists(
+            obj=self._call_obj,
+            func_name='on_house_update',
             func_args=param
         )
 
@@ -225,8 +233,8 @@ class EventHandler:
             func_args=param
         )
 
-    async def dispatch_on_house_entity_update(self, house, entity, data) -> None:
-        param = [house, entity, data]
+    async def dispatch_on_house_entity_update(self, house) -> None:
+        param = [house]
         await dispatch_func_if_exists(
             obj=self._call_obj,
             func_name='on_house_entity_update',

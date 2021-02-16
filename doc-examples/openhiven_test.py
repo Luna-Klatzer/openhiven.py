@@ -31,34 +31,6 @@ async def on_init(time):
 async def on_ready():
     print(f"Ready after {client.startup_time}")
 
-    house = await client.get_house(175036727902074248)
-
-    url = await client.fetch_invite("openhivenpy")
-
-    house = await client.create_house(name="test 2d")
-
-    await asyncio.sleep(.1)
-
-    house = openhivenpy.utils.get(client.houses, id=house.id)
-
-    await house.create_room(name="stuff")
-    
-    room = house.rooms[0]
-    
-    print(await room.send("test"))
-    
-    print(await house.delete())
-    
-    feed = await client.get_feed()
-    
-    mentions = await client.get_mentions()
-    
-    friend_request = await client.fetch_current_friend_requests()
-    
-    private_room = await client.get_private_room(175699760957616349)
-
-    print(friend_request)
-
 
 @client.event()
 async def on_message_create(message):

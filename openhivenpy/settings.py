@@ -5,7 +5,7 @@ import os
 def load_env():
     from dotenv import load_dotenv
 
-    path = '/openhivenpy.env'
+    path = 'openhivenpy.env'
     env_path = pkg_resources.resource_filename(__name__, path)
     # Fetching the paths origin and finding the openhivenpy.env file
     load_dotenv(env_path)

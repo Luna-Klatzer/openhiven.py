@@ -1,15 +1,12 @@
 """
-`openhivenpy.utils`
 
-Module utils 
-~~~~~~~~~~~~
+Module for utility extensions that are used throughout the library.
 
-Module for utils that are used throughout the library.
+---
 
-MIT License
-~~~~~~~~~~~
+Under MIT License
 
-Copyright (c) 2020 Frostbyte Development Team 
+Copyright © 2020 Frostbyte Development Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
