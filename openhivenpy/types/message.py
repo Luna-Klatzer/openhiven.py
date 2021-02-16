@@ -11,8 +11,7 @@ from . import user
 from . import mention
 from . import embed
 from .. import utils
-from .. import exception as errs
-
+from ..exception import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPForbiddenError
 logger = logging.getLogger(__name__)
 
 __all__ = ['DeletedMessage', 'Message', 'MessageSchema', 'DeletedMessageSchema']
@@ -108,14 +107,14 @@ class DeletedMessage(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             return instance
 
@@ -235,14 +234,14 @@ class Message(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -335,7 +334,7 @@ class Message(HivenObject):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPResponseError
+                raise HTTPResponseError
         
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
@@ -355,7 +354,7 @@ class Message(HivenObject):
             resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
             
             if not resp.status < 300:
-                raise errs.HTTPForbiddenError()
+                raise HTTPForbiddenError()
             else:
                 return True
         
@@ -378,7 +377,7 @@ class Message(HivenObject):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                raise HTTPResponseError("Unknown! See HTTP Logs!")
     
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",

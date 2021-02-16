@@ -8,8 +8,7 @@ from . import HivenObject
 from . import message
 from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
 from .. import utils
-from .. import exception as errs
-
+from ..exception import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPReceivedNoDataError
 logger = logging.getLogger(__name__)
 
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
@@ -136,14 +135,14 @@ class PrivateGroupRoom(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -207,7 +206,7 @@ class PrivateGroupRoom(HivenObject):
                         room_=self,
                         author=self.client_user)
             else:
-                raise errs.HTTPResponseError()
+                raise HTTPResponseError()
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -232,7 +231,7 @@ class PrivateGroupRoom(HivenObject):
                 # TODO! Needs implementation
                 return True
             else:
-                raise errs.HTTPResponseError()
+                raise HTTPResponseError()
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -287,14 +286,14 @@ class PrivateRoom(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -388,11 +387,11 @@ class PrivateRoom(HivenObject):
                             author=self.client_user)
                         return msg
                     else:
-                        raise errs.HTTPReceivedNoDataError()
+                        raise HTTPReceivedNoDataError()
                 else:
-                    raise errs.HTTPResponseError()
+                    raise HTTPResponseError()
             else:
-                raise errs.HTTPResponseError()
+                raise HTTPResponseError()
         
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",

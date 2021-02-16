@@ -39,9 +39,11 @@ async def dispatch_func_if_exists(obj: object,
                     return func(*func_args, **func_kwargs)
 
             except Exception as e:
-                log_traceback(level='error',
-                              msg=f'Function {func.__name__} encountered an exception:',
-                              suffix=f"{sys.exc_info()[0].__name__}: {e}")
+                log_traceback(
+                    level='error',
+                    msg=f'Function {func.__name__} encountered an exception:',
+                    suffix=f"{sys.exc_info()[0].__name__}: {e}"
+                )
 
         else:
             raise TypeError(f"{obj.__class__.__name__} is not callable!")

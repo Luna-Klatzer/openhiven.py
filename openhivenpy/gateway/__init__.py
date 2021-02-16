@@ -27,6 +27,100 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .ws import Websocket
-from .http import HTTP
-from .connection import Connection
+from .websocket import *
+from .http import *
+from .messagebroker import *
+from .. import load_env, utils
+from ..exception import RestartSessionError
+
+import sys
+import logging
+import os
+import typing
+import asyncio
+
+logger = logging.getLogger(__name__)
+
+load_env()
+DEFAULT_HOST = os.getenv("HIVEN_HOST")
+DEFAULT_API_VERSION = os.getenv("HIVEN_API_VERSION")
+DEFAULT_HEARTBEAT = int(os.getenv("WS_HEARTBEAT"))
+DEFAULT_CLOSE_TIMEOUT = int(os.getenv("WS_CLOSE_TIMEOUT"))
+
+
+class Connection:
+    """ Connection Class used for interaction with the Hiven API and WebSocket Swarm"""
+
+    def __init__(self,
+                 client,
+                 *,
+                 host: typing.Optional[str] = DEFAULT_HOST,
+                 api_version: typing.Optional[str] = DEFAULT_API_VERSION,
+                 heartbeat: typing.Optional[int] = DEFAULT_HEARTBEAT,
+                 close_timeout: typing.Optional[int] = DEFAULT_CLOSE_TIMEOUT,
+                 loop: typing.Optional[asyncio.AbstractEventLoop] = None):
+        self.client = client
+        self.http = None
+        self.host = host
+        self.api_version = api_version
+        self.loop = loop
+        self.heartbeat = heartbeat
+        self.close_timeout = close_timeout
+
+        self._connection_status = "CLOSED"
+        self._ws = None
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        info = [
+            ('open', self.open),
+            ('host', self.host),
+            ('api_version', self.api_version),
+            ('open', self.open),
+            ('startup_time', self.ws.startup_time),
+            ('connection_start', self.ws.connection_start),
+            ('heartbeat', self.heartbeat)
+        ]
+        return '<Connection {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @property
+    def open(self) -> bool:
+        return all((self.http.ready, self.ws.open))
+
+    @property
+    def connection_status(self) -> str:
+        return getattr(self, '_connection_status', None)
+
+    @property
+    def ws(self) -> HivenWebSocket:
+        return getattr(self, '_ws', None)
+
+    async def connect(self, restart: bool):
+        """ Establishes a connection to Hiven and runs the background processes """
+        self.http = HTTP(self.client.token, host=self.host, api_version=self.api_version, loop=self.loop)
+        await self.http.connect()
+        self._connection_status = "OPENING"
+        while self.connection_status not in ("CLOSED", "CLOSING"):
+            try:
+                coro = HivenWebSocket.create_from_client(
+                    self.client, close_timeout=self.close_timeout, heartbeat=self.heartbeat, loop=self.loop
+                )
+                ws = await asyncio.wait_for(coro, 30)
+                await ws.send_auth()
+                while True:
+                    await asyncio.gather(ws.listening_loop(), ws.keep_alive.run())
+
+            except RestartSessionError:
+                logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
+
+            except Exception as e:
+                utils.log_traceback(
+                    msg=f"[CONNECTION] Encountered an exception while running:",
+                    suffix=f"Failed to establish or keep the connection alive: \n {sys.exc_info()[0].__name__}: {e}!"
+                )
+                if restart is False:
+                    return
+
+            await asyncio.sleep(.05)

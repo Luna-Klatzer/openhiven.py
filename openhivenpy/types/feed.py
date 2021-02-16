@@ -3,8 +3,7 @@ from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
 from .. import utils
 
 from . import HivenObject
-from .. import exception as errs
-
+from ..exception import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['Feed']

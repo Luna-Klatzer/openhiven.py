@@ -27,22 +27,23 @@ SOFTWARE.
 """
 
 
-__all__ = (
+__all__ = [
     'HivenError', 'HivenConnectionError', 'HTTPForbiddenError',
 
     'HTTPForbiddenError', 'ClientTypeError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
-    'HivenGatewayError',
+    'HivenGatewayError', 'RestartSessionError',
 
     'WebSocketMessageError',
 
     'HTTPError', 'SessionCreateError', 'HTTPResponseError',
     'HTTPFailedRequestError', 'HTTPReceivedNoDataError',
 
-    'InitializationError', 'InvalidPassedDataError',
+    'InitializationError', 'InvalidPassedDataError', 'ExpectedAsyncFunction',
 
-    'CommandError')
+    'CommandError'
+]
 
 
 class HivenError(Exception):
@@ -105,6 +106,11 @@ class ClientTypeError(HivenError):
     exc_msg = "Invalid client type was passed resulting in a failed initialization!"
 
 
+class ExpectedAsyncFunction(HivenError):
+    """ The passed function of the decorator is not async and cannot be used """
+    exc_msg = "The passed function is not async"
+
+
 class InvalidTokenError(HivenError):
     """ Invalid Token was passed! """
     exc_msg = "Invalid Token was passed!"
@@ -113,6 +119,11 @@ class InvalidTokenError(HivenError):
 class HivenGatewayError(HivenConnectionError):
     """ General Exception in the Gateway and Connection to Hiven! """
     exc_msg = "Encountered and Exception in the Hiven Gateway!"
+
+
+class RestartSessionError(HivenGatewayError):
+    """ Exception used to trigger restarts in the gateway module """
+    exc_msg = "Restarting the Session and re-initialising the data!"
 
 
 class HTTPError(HivenGatewayError):

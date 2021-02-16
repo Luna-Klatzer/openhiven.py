@@ -13,8 +13,7 @@ from . import entity
 from . import member
 from . import room
 from .. import utils
-from .. import exception as errs
-
+from ..exception import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPReceivedNoDataError
 logger = logging.getLogger(__name__)
 
 __all__ = ['House', 'LazyHouse']
@@ -118,14 +117,15 @@ class LazyHouse(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            utils.log_traceback(
+                msg=f"Traceback in '{cls.__name__}' Validation:",
+                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -231,14 +231,16 @@ class House(LazyHouse):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
     
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            utils.log_traceback(
+                msg=f"Traceback in '{cls.__name__}' Validation:",
+                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -293,9 +295,10 @@ class House(LazyHouse):
             return None
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to get the member with id {member_id}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to get the member with id {member_id}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return False
 
     def get_room(self, room_id: int):
@@ -313,9 +316,10 @@ class House(LazyHouse):
 
             return None
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
     def get_entity(self, entity_id: int):
@@ -334,9 +338,9 @@ class House(LazyHouse):
             return None
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to get the member with id {entity_id}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to get the member with id {entity_id}: \n{sys.exc_info()[0].__name__}: {e}")
             return False
 
     async def create_room(self,
@@ -362,12 +366,13 @@ class House(LazyHouse):
 
                     return _room
                 else:
-                    raise errs.HTTPReceivedNoDataError()
+                    raise HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                raise HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
                                 suffix=f"Failed to create room '{name}' in house {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
@@ -397,11 +402,11 @@ class House(LazyHouse):
                             _entity = await entity.Entity.from_dict(d, self._http, house=self)
                             self._entities.append(_entity)
                             return _entity
-                    raise errs.InitializationError(f"Failed to initialise the Entity Instance! Data: {data}")
+                    raise InitializationError(f"Failed to initialise the Entity Instance! Data: {data}")
                 else:
-                    raise errs.HTTPReceivedNoDataError()
+                    raise HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                raise HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -421,7 +426,7 @@ class House(LazyHouse):
             if resp.status < 300:
                 return True
             else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                raise HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -445,7 +450,7 @@ class House(LazyHouse):
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                        raise HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the House!")
 
@@ -473,9 +478,9 @@ class House(LazyHouse):
                 if data:
                     return await invite.Invite.from_dict(data, self._http, house=self)
                 else:
-                    raise errs.HTTPReceivedNoDataError()
+                    raise HTTPReceivedNoDataError()
             else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                raise HTTPResponseError("Unknown! See HTTP Logs!")
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",

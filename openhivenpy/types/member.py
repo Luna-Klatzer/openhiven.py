@@ -7,11 +7,10 @@ from marshmallow import fields, post_load, ValidationError, EXCLUDE
 from . import HivenObject
 from . import user
 from .. import utils
-from .. import exception as errs
-
+from ..exception import InvalidPassedDataError, InitializationError, HTTPForbiddenError
 logger = logging.getLogger(__name__)
 
-__all__ = ('Member', 'MemberSchema')
+__all__ = ['Member', 'MemberSchema']
 
 
 class MemberSchema(user.UserSchema):
@@ -111,14 +110,14 @@ class Member(user.User, HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise InvalidPassedDataError(data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
+                                      f"{sys.exc_info()[0].__name__}: {e}!")
         else:
             # Adding the http attribute for API interaction
             instance._http = http
@@ -160,6 +159,6 @@ class Member(user.User, HivenObject):
         # TODO! Needs be changed with the HTTP Exceptions Update
         resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
-            raise errs.HTTPForbiddenError()
+            raise HTTPForbiddenError()
         else:
             return True

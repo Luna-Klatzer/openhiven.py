@@ -11,8 +11,7 @@ from . import relationship
 from . import private_room
 from . import presence
 from .. import utils
-from .. import exception as errs
-
+from ..exception import HTTPResponseError, InitializationError, HTTPReceivedNoDataError
 logger = logging.getLogger(__name__)
 
 __all__ = ['Client']
@@ -67,7 +66,7 @@ class Client(HivenObject):
                 self._client_user = await user.User.from_dict(user_data, self.http)
                 self._users.append(self._client_user)
             else:
-                raise errs.HTTPReceivedNoDataError()
+                raise HTTPReceivedNoDataError()
 
             # Initialising the client relationships
             _relationships = data.get('relationships')
@@ -99,11 +98,11 @@ class Client(HivenObject):
             self._house_memberships = data.get('house_memberships')
 
         except Exception as e:
-            utils.log_traceback(msg="[CLIENT] Traceback: ",
-                                suffix="Failed to initialise the Client User Data: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.InitializationError(f"Failed to initialise the Client User Data: "
-                                            f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[CLIENT] Traceback: ",
+                suffix=f"Failed to initialise the Client User Data: \n{sys.exc_info()[0].__name__}: {e}")
+            raise InitializationError(f"Failed to initialise the Client User Data: "
+                                      f"{sys.exc_info()[0].__name__}: {e}")
 
     async def __check_if_data_is_complete(self):
         """
@@ -146,16 +145,16 @@ class Client(HivenObject):
                     if resp.status < 300:
                         return True
                     else:
-                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                        raise HTTPResponseError("Unknown! See HTTP Logs!")
                 else:
                     raise NameError("The passed value does not exist in the Client!")
 
         except Exception as e:
             keys = "".join(str(key + " ") for key in kwargs.keys())
 
-            utils.log_traceback(msg="[CLIENT] Traceback:",
-                                suffix=f"Failed change the values {keys}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[CLIENT] Traceback:",
+                suffix=f"Failed change the values {keys}: \n{sys.exc_info()[0].__name__}: {e}")
 
     @property
     def user(self):
