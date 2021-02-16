@@ -259,7 +259,7 @@ class HivenClient(EventHandler):
         :return: True if successful else False
         """
         try:
-            if self.connection.closed:
+            if not self.connection.closed:
                 await self.connection.close(reason, close_exec_loop)
                 return True
             else:
