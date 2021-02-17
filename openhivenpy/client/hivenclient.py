@@ -77,6 +77,12 @@ class HivenClient:
                 suffix=f"Failed to establish or keep the connection alive: \n{sys.exc_info()[0].__name__}: {e}!"
             )
             raise SessionCreateError(f"Failed to establish HivenClient session! > {sys.exc_info()[0].__name__}: {e}")
+        finally:
+            self.connection._connection_status = "CLOSED"
+
+    async def close(self):
+        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
+        await self.connection.close()
 
     @property
     def open(self) -> bool:

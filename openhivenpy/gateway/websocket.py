@@ -19,12 +19,30 @@ DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
 
 
 class KeepAlive:
-    def __init__(self, websocket):
-        self.websocket = websocket
+    def __init__(self, ws):
+        self.ws = ws
+        self._heartbeat = ws.heartbeat
+        self._task = None
+        self._active = False
 
     async def run(self):
-        while self.websocket.open:
-            await asyncio.wait_for(self.websocket.send_heartbeat(), 30)
+        """ Runs the current KeepAlive process in a loop that can be cancelled using `KeepAlive.stop()` """
+        self._active = True
+        while self.ws.open and self._active:
+            try:
+                self._task = asyncio.create_task(asyncio.wait_for(self.ws.send_heartbeat(), 30))
+                await asyncio.sleep(self._heartbeat / 1000)
+            except asyncio.CancelledError:
+                return
+            except Exception:
+                raise
+
+    async def stop(self):
+        """ Stops the running KeepAlive loop """
+        if self._task.cancelled():
+            self._task.cancel()
+        self._active = False
+        self._task = None
 
 
 class HivenWebSocket:
@@ -32,6 +50,8 @@ class HivenWebSocket:
                  socket,
                  *,
                  loop: asyncio.AbstractEventLoop,
+                 heartbeat: int,
+                 close_timeout: int,
                  log_ws_output: bool = False):
         self.socket = socket
         self.loop = loop
@@ -47,6 +67,8 @@ class HivenWebSocket:
         self._connection_start = None
         self._connection_status = "CLOSED"
         self._token = None
+        self._heartbeat = heartbeat
+        self._close_timeout = close_timeout
 
         self.message_broker = MessageBroker()
         self.keep_alive = KeepAlive(self)
@@ -63,7 +85,7 @@ class HivenWebSocket:
         socket = await client.http.session.ws_connect(
             endpoint.human_repr(), timeout=close_timeout, heartbeat=heartbeat, max_msg_size=0
         )
-        ws = cls(socket, loop=loop, **kwargs)
+        ws = cls(socket, loop=loop, heartbeat=heartbeat, close_timeout=close_timeout, **kwargs)
         ws._connection_start = time.time()
         ws.client = client
         ws.parsers = client.parsers
@@ -97,6 +119,14 @@ class HivenWebSocket:
     @property
     def ready(self) -> bool:
         return getattr(self, '_ready', None)
+
+    @property
+    def heartbeat(self) -> bool:
+        return getattr(self, '_heartbeat', None)
+
+    @property
+    def close_timeout(self) -> bool:
+        return getattr(self, '_close_timeout', None)
 
     async def send_heartbeat(self):
         """ Sends a heartbeat with the additional op-code for keeping the connection alive"""

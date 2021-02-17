@@ -33,6 +33,7 @@ from .messagebroker import *
 from .. import load_env, utils
 from ..exception import RestartSessionError
 
+import aiohttp
 import sys
 import logging
 import os
@@ -68,7 +69,9 @@ class Connection:
         self.close_timeout = close_timeout
 
         self._connection_status = "CLOSED"
+        self._ready = False
         self._ws = None
+        self._coro = None
 
     def __str__(self) -> str:
         return repr(self)
@@ -87,40 +90,79 @@ class Connection:
 
     @property
     def open(self) -> bool:
-        return all((self.http.ready, self.ws.open))
+        return all((
+            getattr(self.http, 'ready', False),
+            getattr(self.ws, 'open', False)
+        ))
 
     @property
     def connection_status(self) -> str:
         return getattr(self, '_connection_status', None)
 
     @property
+    def ready(self) -> bool:
+        return getattr(self.http, 'ready', False)
+
+    @property
     def ws(self) -> HivenWebSocket:
         return getattr(self, '_ws', None)
 
+    @property
+    def coro(self):
+        return getattr(self, 'coro', None)
+
     async def connect(self, restart: bool):
         """ Establishes a connection to Hiven and runs the background processes """
-        self.http = HTTP(self.client.token, host=self.host, api_version=self.api_version, loop=self.loop)
-        await self.http.connect()
-        self._connection_status = "OPENING"
-        while self.connection_status not in ("CLOSED", "CLOSING"):
-            try:
-                coro = HivenWebSocket.create_from_client(
-                    self.client, close_timeout=self.close_timeout, heartbeat=self.heartbeat, loop=self.loop
-                )
-                ws = await asyncio.wait_for(coro, 30)
-                await ws.send_auth()
-                while True:
+        try:
+            self.http = HTTP(self.client.token, host=self.host, api_version=self.api_version, loop=self.loop)
+            await self.http.connect()
+
+            self._connection_status = "OPENING"
+            while self.connection_status not in ("CLOSED", "CLOSING"):
+                try:
+                    coro = HivenWebSocket.create_from_client(
+                        self.client, close_timeout=self.close_timeout, heartbeat=self.heartbeat, loop=self.loop
+                    )
+                    ws = await asyncio.wait_for(coro, 30)
+                    await ws.send_auth()
                     await asyncio.gather(ws.listening_loop(), ws.keep_alive.run())
 
-            except RestartSessionError:
-                logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
+                except RestartSessionError:
+                    logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
+                    continue
 
-            except Exception as e:
-                utils.log_traceback(
-                    msg=f"[CONNECTION] Encountered an exception while running:",
-                    suffix=f"Failed to establish or keep the connection alive: \n {sys.exc_info()[0].__name__}: {e}!"
-                )
-                if restart is False:
-                    return
+                except Exception as e:
+                    logger.error(
+                        f"[CONNECTION] Encountered an exception while running the live websocket: "
+                        f"\n{sys.exc_info()[0].__name__}: {e}"
+                    )
+                    if restart is False:
+                        raise
 
-            await asyncio.sleep(.05)
+                await asyncio.sleep(.05)
+
+            self._connection_status = "CLOSING"
+            await self.http.close()
+
+        except Exception as e:
+            utils.log_traceback(
+                level='critical',
+                msg="[CONNECTION] Traceback:",
+                suffix=f"Failed to keep alive current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise
+
+    async def close(self):
+        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
+        try:
+            await self.ws.keep_alive.stop()
+            await self.ws.socket.close()
+            self.ws._open = False
+
+        except Exception as e:
+            utils.log_traceback(
+                level='critical',
+                msg="[CONNECTION] Traceback:",
+                suffix=f"Failed to close current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise

@@ -22,6 +22,7 @@ client = openhivenpy.UserClient(
 @client.event() 
 async def on_ready():
     print(f"Ready after {client.startup_time}")
+    await client.close()
 
 if __name__ == '__main__':
     client.run()
