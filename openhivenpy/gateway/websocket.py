@@ -8,7 +8,7 @@ import aiohttp
 from enum import IntEnum
 from yarl import URL
 
-from ..exception import RestartSessionError, SessionCreateError
+from ..exception import RestartSessionError, SessionCreateError, WebSocketClosedError
 from .messagebroker import MessageBroker
 
 __all__ = ['HivenWebSocket']
@@ -86,9 +86,9 @@ class HivenWebSocket:
             endpoint.human_repr(), timeout=close_timeout, heartbeat=heartbeat, max_msg_size=0
         )
         ws = cls(socket, loop=loop, heartbeat=heartbeat, close_timeout=close_timeout, **kwargs)
-        ws._connection_start = time.time()
         ws.client = client
         ws.parsers = client.parsers
+        ws._connection_start = time.time()
         ws._token = client.token
         ws._open = True
 
@@ -175,15 +175,22 @@ class HivenWebSocket:
                 return
             return await self.received_message(msg) if handler is None else await handler(msg)
 
-        elif msg.type == aiohttp.WSMsgType.CLOSE or msg.type == aiohttp.WSMsgType.CLOSING:
-            logger.error("[WEBSOCKET] Encountered an Exception in the Websocket! WebSocket will force restart!")
+        elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
+            logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart!")
             raise RestartSessionError()
+
+        elif msg.type == aiohttp.WSMsgType.CLOSED:
+            self._open = False
+            logger.info("[WEBSOCKET] Closing the WebSocket Connection and stopping the processes!")
+            raise WebSocketClosedError()
 
         elif msg.type == aiohttp.WSMsgType.ERROR:
             logger.error(
                 f"[WEBSOCKET] Encountered an Exception in the Websocket! WebSocket will force restart! {msg.extra}"
             )
-            raise RestartSessionError()
+            raise RestartSessionError(
+                "[WEBSOCKET] Encountered an Exception in the Websocket! WebSocket will force restart!"
+            )
 
     async def received_init_event(self, msg) -> typing.Tuple:
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
@@ -205,8 +212,6 @@ class HivenWebSocket:
         house_memberships = msg['d'].get('house_memberships', 0)
 
         cached_houses = []  # Only for test purposes for now
-
-        # Additional events that were received during the initialisation and now need to be executed
         additional_events = []
         while len(house_memberships) != len(cached_houses):
             event, data, msg = await self.wait_for_event(handler=self.received_init_event)
@@ -218,8 +223,11 @@ class HivenWebSocket:
                 else:
                     additional_events.append(msg)
 
+        # Executing all Additional events that were received during the initialisation and were ignored
         for e in additional_events:
             await self.received_message(e)
+
+        self._startup_time = self._connection_start - time.time()
 
     async def received_message(self, msg):
         """
@@ -240,7 +248,7 @@ class HivenWebSocket:
                 logger.debug("[WEBSOCKET] Received Init Frame from the Hiven Swarm and initialised the Client Cache")
                 self._ready = True
             else:
-                pass
+                await self.client.close()
                 # Message Broker Handling and Rewrite (#54)
 
             return

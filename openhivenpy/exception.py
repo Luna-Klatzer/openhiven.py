@@ -33,7 +33,7 @@ __all__ = [
     'HTTPForbiddenError', 'ClientTypeError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
-    'HivenGatewayError', 'RestartSessionError',
+    'HivenGatewayError', 'WebSocketClosedError', 'RestartSessionError',
 
     'WebSocketMessageError',
 
@@ -119,6 +119,11 @@ class InvalidTokenError(HivenError):
 class HivenGatewayError(HivenConnectionError):
     """ General Exception in the Gateway and Connection to Hiven! """
     exc_msg = "Encountered and Exception in the Hiven Gateway!"
+
+
+class WebSocketClosedError(HivenError):
+    """ The Hiven WebSocket was closed and an exception is raised to stop the current processes """
+    exc_msg = "The Hiven WebSocket is closing!"
 
 
 class RestartSessionError(HivenGatewayError):

@@ -31,7 +31,7 @@ from .websocket import *
 from .http import *
 from .messagebroker import *
 from .. import load_env, utils
-from ..exception import RestartSessionError
+from ..exception import RestartSessionError, WebSocketClosedError
 
 import aiohttp
 import sys
@@ -118,17 +118,21 @@ class Connection:
             await self.http.connect()
 
             self._connection_status = "OPENING"
-            while self.connection_status not in ("CLOSED", "CLOSING"):
+            while self.connection_status not in ("CLOSING", "CLOSED"):
                 try:
                     coro = HivenWebSocket.create_from_client(
                         self.client, close_timeout=self.close_timeout, heartbeat=self.heartbeat, loop=self.loop
                     )
                     ws = await asyncio.wait_for(coro, 30)
+                    self._ws = ws
                     await ws.send_auth()
                     await asyncio.gather(ws.listening_loop(), ws.keep_alive.run())
 
                 except RestartSessionError:
                     logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
+                    continue
+
+                except WebSocketClosedError:
                     continue
 
                 except Exception as e:
@@ -141,7 +145,6 @@ class Connection:
 
                 await asyncio.sleep(.05)
 
-            self._connection_status = "CLOSING"
             await self.http.close()
 
         except Exception as e:
@@ -155,9 +158,10 @@ class Connection:
     async def close(self):
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
         try:
+            self._connection_status = "CLOSING"
             await self.ws.keep_alive.stop()
             await self.ws.socket.close()
-            self.ws._open = False
+            self._connection_status = "CLOSED"
 
         except Exception as e:
             utils.log_traceback(
