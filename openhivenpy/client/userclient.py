@@ -40,7 +40,7 @@ class UserClient(HivenClient):
         :param receive_timeout: Timeout for receiving a message from the Hiven Server. Defaults to
         :param log_ws_output: Will additionally to normal debug information also log the ws responses
         """
-        self._CLIENT_TYPE = "bot"
+        self._CLIENT_TYPE = "user"
         self._bot = True
         super().__init__(
             token=token,

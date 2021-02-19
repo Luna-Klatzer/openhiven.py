@@ -53,9 +53,9 @@ class HTTP:
     """
     HTTP-Client for requests and interaction with the Hiven API
     """
-    def __init__(self, token: str, *, host, api_version, loop):
+    def __init__(self, client, *, host, api_version, loop):
         """
-        :param token: Authorization Token for Hiven
+        :param client: The used HivenClient
         :param loop: Event loop that will be used to execute all async functions. Will use
                            'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no
                            one was created yet
@@ -63,14 +63,15 @@ class HTTP:
                      Defaults to the pre-set environment host (api.hiven.io)
         :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
         """
-        self._token = token
+        self.client = client
         self.host = host
         self.api_version = api_version
         self.api_url = URL(request_url_format.format(self.host, self.api_version))
         self.headers = {
-            "Authorization": self._token,
+            "Authorization": client.token,
             "Host": self.host
         }
+        self._token = client.token
         self._ready = False
         self._session = None  # Will be created during start of connection
         self._loop = loop
@@ -127,6 +128,7 @@ class HTTP:
             resp = await self.request("/users/@me", timeout=30)
             if resp:
                 logger.info("[HTTP] Session was successfully created!")
+                self.client.storage.update_client_user(resp['data'])
                 return self.session
             else:
                 # If the request failed it will return None and log a warning

@@ -114,7 +114,7 @@ class Connection:
     async def connect(self, restart: bool):
         """ Establishes a connection to Hiven and runs the background processes """
         try:
-            self.http = HTTP(self.client.token, host=self.host, api_version=self.api_version, loop=self.loop)
+            self.http = HTTP(self.client, host=self.host, api_version=self.api_version, loop=self.loop)
             await self.http.connect()
 
             self._connection_status = "OPENING"
@@ -129,10 +129,13 @@ class Connection:
                     await asyncio.gather(ws.listening_loop(), ws.keep_alive.run())
 
                 except RestartSessionError:
+                    # Encountered an exception inside the receive process of the WebSocket and
+                    # the system should restart to make sure the user can continue to use the Client
                     logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
                     continue
 
                 except WebSocketClosedError:
+                    # User closed the connection and the http session needs to be closed
                     continue
 
                 except Exception as e:
@@ -155,13 +158,19 @@ class Connection:
             )
             raise
 
-    async def close(self):
-        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
+    async def close(self, force: bool = False):
+        """
+        Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
+        :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
+                      code of event-listeners being stopped while performing actions.
+        """
         try:
             self._connection_status = "CLOSING"
             await self.ws.keep_alive.stop()
             await self.ws.socket.close()
             self._connection_status = "CLOSED"
+
+            # Additional closing for the workers will be added later
 
         except Exception as e:
             utils.log_traceback(

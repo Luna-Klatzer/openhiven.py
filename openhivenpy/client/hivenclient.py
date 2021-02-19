@@ -12,6 +12,7 @@ from .. import types
 from ..events import Parsers
 from ..gateway import Connection, HTTP
 from ..exception import SessionCreateError, ExpectedAsyncFunction
+from .client_cache import ClientCache
 
 __all__ = ['HivenClient']
 
@@ -29,13 +30,18 @@ class HivenClient:
         self._log_ws_output = log_ws_output
         # Creating an instance of the class that will call and trigger the event parsers
         self.parsers = Parsers(self)
+        self.storage = ClientCache(token, log_ws_output)
 
     def __str__(self) -> str:
         return getattr(self, "name")
 
     @property
     def token(self) -> str:
-        return getattr(self, '_token', None)
+        return self.storage.get('token', None)
+
+    @property
+    def log_ws_output(self) -> str:
+        return self.storage.get('log_ws_output', None)
 
     @property
     def http(self) -> HTTP:
