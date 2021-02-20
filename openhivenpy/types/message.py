@@ -40,7 +40,6 @@ class MessageSchema(Schema):
     exploding_age = fields.Raw(allow_none=True)
     device_id = fields.Int(required=True, allow_none=True)
 
-
     @post_load
     def make(self, data, **kwargs):
         """

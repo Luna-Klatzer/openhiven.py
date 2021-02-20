@@ -39,8 +39,9 @@ class KeepAlive:
 
     async def stop(self):
         """ Stops the running KeepAlive loop """
-        if self._task.cancelled():
-            self._task.cancel()
+        if self._task:
+            if self._task.cancelled():
+                self._task.cancel()
         self._active = False
         self._task = None
 
@@ -80,6 +81,7 @@ class HivenWebSocket:
                                  heartbeat: int,
                                  loop: asyncio.AbstractEventLoop = asyncio.get_event_loop(),
                                  **kwargs):
+        """ Creates a new WebSocket Instance and starts the Connection to Hiven """
         endpoint = URL(DEFAULT_ENDPOINT)
 
         socket = await client.http.session.ws_connect(
@@ -188,7 +190,10 @@ class HivenWebSocket:
                 await self.received_init(msg, self.client)
                 self._ready = True
             else:
-                await self.client.close()
+                # Calling for test purposes!
+                # Will require parser and EventConsumer implementation instead of direct calling
+                await self.client.dispatch(event.lower())
+
                 # Message Broker Handling and Rewrite (#54)
 
             return
@@ -200,6 +205,7 @@ class HivenWebSocket:
         """
         Receives the init message from the host and updates the client cache.
         Will shield the normal message handler from receiving events until the initialisation succeeded.
+
         :returns: A List of all other events that were received during initialisation that will now need to be called
         """
         data = msg['d']
@@ -229,14 +235,17 @@ class HivenWebSocket:
                     additional_events.append(msg)
 
         # Executing all Additional events that were received during the initialisation and were ignored
-        for e in additional_events:
-            await self.received_message(e)
+        for event in additional_events:
+            await self.received_message(event)
 
         self._startup_time = time.time() - self._connection_start
         logger.debug("[WEBSOCKET] Received Init Frame from the Hiven Swarm and initialised the Client Cache!")
         logger.info(f"[CLIENT] Ready after {self.startup_time}s")
 
-    async def received_init_event(self, msg) -> typing.Tuple:
+        # Delaying the usage of the HivenClient until all ready_state listeners were finished
+        await self.client.dispatch('ready')
+
+    async def received_init_event(self, msg) -> typing.Tuple[str, dict, dict]:
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
         _msg = msg.json()
         op, event, d = self._extract_event(_msg)
@@ -244,8 +253,8 @@ class HivenWebSocket:
         if op == self.OPCode.EVENT:
             return event, d, _msg
         else:
-            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {op}: {msg}")
-            return None, None, None
+            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message in: {op}: {msg}")
+            return event, d, _msg
 
     async def send_heartbeat(self):
         """ Sends a heartbeat with the additional op-code for keeping the connection alive"""
@@ -269,6 +278,11 @@ class HivenWebSocket:
         except Exception as e:
             raise SessionCreateError(f"Failed to send auth to the host due to exception: {e}")
 
-    def _extract_event(self, msg: dict) -> tuple:
-        """ Formats the incoming msg and returns it in tuple form """
+    def _extract_event(self, msg: dict) -> typing.Tuple[int, str, dict]:
+        """
+        Formats the incoming msg and returns it in tuple form
+
+        :param msg: The raw WebSocket Message
+        :return: The op-code, event-name and data in tuple form
+        """
         return msg.get('op'), msg.get('e'), msg.get('d')

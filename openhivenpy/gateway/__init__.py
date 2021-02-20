@@ -161,6 +161,7 @@ class Connection:
     async def close(self, force: bool = False):
         """
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
+
         :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
                       code of event-listeners being stopped while performing actions.
         """

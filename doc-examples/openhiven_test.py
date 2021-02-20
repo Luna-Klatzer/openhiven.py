@@ -22,7 +22,11 @@ client = openhivenpy.UserClient(
 @client.event() 
 async def on_ready():
     print(f"Ready after {client.startup_time}")
-    await client.close()
+
+
+@client.event()
+async def on_message_create():
+    print(f"Message was created")
 
 if __name__ == '__main__':
     client.run()

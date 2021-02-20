@@ -28,22 +28,23 @@ SOFTWARE.
 
 
 __all__ = [
-    'HivenError', 'HivenConnectionError', 'HTTPForbiddenError',
+    'HivenError', 'HivenConnectionError',
 
-    'HTTPForbiddenError', 'ClientTypeError',
+    'ClientTypeError', 'SessionCreateError', 'UnknownEventError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
-    'HivenGatewayError', 'WebSocketClosedError', 'RestartSessionError',
+    'HivenGatewayError', 'WebSocketMessageError', 'WebSocketClosedError', 'RestartSessionError',
 
-    'WebSocketMessageError',
-
-    'HTTPError', 'SessionCreateError', 'HTTPResponseError',
-    'HTTPFailedRequestError', 'HTTPReceivedNoDataError',
+    'HTTPError', 'HTTPFailedRequestError', 'HTTPForbiddenError', 'HTTPResponseError',
+    'HTTPReceivedNoDataError',
 
     'InitializationError', 'InvalidPassedDataError', 'ExpectedAsyncFunction',
 
     'CommandError'
 ]
+
+
+# -------- CORE --------
 
 
 class HivenError(Exception):
@@ -78,10 +79,100 @@ class HivenConnectionError(HivenError):
     exc_msg = "The connection to Hiven failed to be kept alive or started!"
 
 
-class HTTPForbiddenError(HivenError):
+class ClientTypeError(HivenError):
+    """ Invalid client type was passed resulting in a failed initialisation! """
+    exc_msg = "Invalid client type was passed resulting in a failed initialization!"
+
+
+class SessionCreateError(HivenConnectionError):
+    """ Failed to create Session! """
+    exc_msg = "Failed to create Session!"
+
+
+class UnknownEventError(HivenError):
+    """ The attempt to register an event failed due to the specified event_listener not being found! """
+    exc_msg = "Failed to find event of the registered EventListener"
+
+
+class InvalidTokenError(HivenError):
+    """ Invalid Token was passed! """
+    exc_msg = "Invalid Token was passed!"
+
+
+class ClosingError(HivenConnectionError):
+    """ The client is unable to close the connection to Hiven! """
+    exc_msg = "Failed to close Connection!"
+
+
+class NoneClientType(Warning):
+    """ A None Type was passed in the Initialization! """
+    exc_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
+               "while running!")
+
+
+# -------- GATEWAY --------
+
+
+class HivenGatewayError(HivenConnectionError):
+    """ General Exception in the Gateway and Connection to Hiven! """
+    exc_msg = "Encountered and Exception in the Hiven Gateway!"
+
+
+# -------- WEBSOCKET --------
+
+class WebSocketMessageError(HivenGatewayError):
+    """ An Exception occurred while handling a message/response from Hiven """
+    exc_msg = "Failed to handle WebSocket Message!"
+
+
+class WebSocketClosedError(HivenError):
+    """ The Hiven WebSocket was closed and an exception is raised to stop the current processes """
+    exc_msg = "The Hiven WebSocket is closing!"
+
+
+class RestartSessionError(HivenGatewayError):
+    """ Exception used to trigger restarts in the gateway module """
+    exc_msg = "Restarting the Session and re-initialising the data!"
+
+
+# -------- HTTP --------
+
+
+class HTTPError(HivenGatewayError):
+    """ Base Exception for exceptions in the HTTP and overall requesting """
+    exc_msg = "Failed to perform request! Code: {}! See HTTP logs!"
+
+    def __init__(self, *args, code="Unknown"):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = self.exc_msg.format(code)
+        super().__init__(arg)
+
+
+class HTTPFailedRequestError(HTTPError):
+    """ General Exception for errors while handling a request """
+
+
+class HTTPForbiddenError(HTTPFailedRequestError):
     """ The client was forbidden to perform a Request """
     exc_msg = "The client was forbidden to execute a certain task or function!"
 
+
+class HTTPResponseError(HTTPError):
+    """ Response was in wrong format or expected data was not received """
+    exc_msg = "Failed to handle Response and utilise data! Code: {}! See HTTP logs!"
+
+
+class HTTPReceivedNoDataError(HTTPError):
+    """
+    Received a response without the required data field or
+    received a 204(No Content) in a request that expected data.
+    """
+    exc_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
+
+
+# -------- DATA --------
 
 class InitializationError(HivenError):
     """ The object failed to initialise """
@@ -101,86 +192,12 @@ class InvalidPassedDataError(InitializationError):
         super().__init__(arg)
 
 
-class ClientTypeError(HivenError):
-    """ Invalid client type was passed resulting in a failed initialisation! """
-    exc_msg = "Invalid client type was passed resulting in a failed initialization!"
-
-
 class ExpectedAsyncFunction(HivenError):
     """ The passed function of the decorator is not async and cannot be used """
     exc_msg = "The passed function is not async"
 
 
-class InvalidTokenError(HivenError):
-    """ Invalid Token was passed! """
-    exc_msg = "Invalid Token was passed!"
-
-
-class HivenGatewayError(HivenConnectionError):
-    """ General Exception in the Gateway and Connection to Hiven! """
-    exc_msg = "Encountered and Exception in the Hiven Gateway!"
-
-
-class WebSocketClosedError(HivenError):
-    """ The Hiven WebSocket was closed and an exception is raised to stop the current processes """
-    exc_msg = "The Hiven WebSocket is closing!"
-
-
-class RestartSessionError(HivenGatewayError):
-    """ Exception used to trigger restarts in the gateway module """
-    exc_msg = "Restarting the Session and re-initialising the data!"
-
-
-class HTTPError(HivenGatewayError):
-    """ Base Exception for exceptions in the HTTP and overall requesting """
-    exc_msg = "Failed to perform request! Code: {}! See HTTP logs!"
-
-    def __init__(self, *args, code="Unknown"):
-        if args:
-            arg = "".join([str(arg) for arg in args])
-        else:
-            arg = self.exc_msg.format(code)
-        super().__init__(arg) 
-
-
-class HTTPFailedRequestError(HTTPError):
-    """ General Exception for errors while handling a request """
-
-
-class HTTPResponseError(HTTPError):
-    """ Response was in wrong format or expected data was not received """
-    exc_msg = "Failed to handle Response and utilise data! Code: {}! See HTTP logs!"
-
-
-class HTTPReceivedNoDataError(HTTPError):
-    """
-    Received a response without the required data field or
-    received a 204(No Content) in a request that expected data.
-    """
-    exc_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
-
-
-class SessionCreateError(HivenError):
-    """ Failed to create Session! """
-    exc_msg = "Failed to create Session!"
-
-
-class ClosingError(HivenGatewayError):
-    """ The client is unable to close the connection to Hiven! """
-    exc_msg = "Failed to close Connection!"
-
-
-class WebSocketMessageError(HivenGatewayError):
-    """ An Exception occurred while handling a message/response from Hiven """
-    exc_msg = "Failed to handle WebSocket Message!"
-
-
-class NoneClientType(Warning):
-    """ A None Type was passed in the Initialization! """
-    exc_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
-               "while running!")
-        
-# Command Exceptions #
+# -------- COMMAND --------
 
 
 class CommandError(HivenError):

@@ -4,15 +4,16 @@ import sys
 import os
 import logging
 import typing
+import inspect
 from functools import wraps
 
 from ..settings import load_env
 from .. import utils
 from .. import types
-from ..events import HivenParsers
+from ..events import HivenParsers, HivenEventHandler
 from ..gateway import Connection, HTTP
-from ..exception import SessionCreateError, ExpectedAsyncFunction, InvalidTokenError
-from .client_cache import ClientCache
+from ..exception import SessionCreateError, InvalidTokenError
+from .cache import ClientCache
 
 __all__ = ['HivenClient']
 
@@ -23,20 +24,13 @@ USER_TOKEN_LEN = utils.convert_value(int, os.getenv("USER_TOKEN_LEN"))
 BOT_TOKEN_LEN = utils.convert_value(int, os.getenv("BOT_TOKEN_LEN"))
 
 
-class Events:
-    """ Events class used to register the main event listeners """
-
-
-class HivenClient:
+class HivenClient(HivenEventHandler):
     """ Main Class for connecting to Hiven and interacting with the API. """
     def __init__(self, token: str, *, loop: asyncio.AbstractEventLoop = None, log_ws_output: bool = False):
         self._token = token
         self._connection = Connection(self)
         self._loop = loop
         self._log_ws_output = log_ws_output
-
-        # Creating an instance of the HivenParsers class that will call and trigger the parsers for event
-        self.parsers = HivenParsers(self)
         self.storage = ClientCache(token, log_ws_output)
 
         if token is None or token == "":
@@ -46,6 +40,9 @@ class HivenClient:
         elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
             logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
             raise InvalidTokenError("Invalid Token was passed!")
+
+        # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
+        super().__init__(HivenParsers(self))
 
     def __str__(self) -> str:
         return getattr(self, "name")
@@ -115,30 +112,3 @@ class HivenClient:
     @property
     def user(self):
         return getattr(self, '_user', None)
-
-    def event(self, func: typing.Union[typing.Callable, typing.Coroutine] = None):
-        """
-        Decorator used for registering Client Events
-
-        :param func: Function that should be wrapped.
-        """
-
-        def decorator(func_: typing.Union[typing.Callable, typing.Coroutine]):
-            if not inspect.iscoroutinefunction(func_):
-                raise ExpectedAsyncFunction("The decorated event_listener requires to be async!")
-
-            @wraps(func_)
-            async def wrapper(*args, **kwargs):
-                return await func_(*args, **kwargs)
-
-            setattr(self, func_.__name__, wrapper)  # Adding the function to the object
-
-            logger.debug(f"[EVENT-HANDLER] >> Event {func_.__name__} registered")
-
-            return func_  # func can still be used normally
-
-        if func is None:
-            return decorator
-        else:
-            return decorator(func)
-
