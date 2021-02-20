@@ -9,7 +9,6 @@ from ..types import HivenObject
 from ..types import user
 from ..types import relationship
 from ..types import private_room
-from ..types import presence
 from .. import utils
 from ..exception import HTTPResponseError, InitializationError, HTTPReceivedNoDataError
 
@@ -194,7 +193,7 @@ class Client(HivenObject):
         return getattr(self.user, 'website', None)
 
     @property
-    def presence(self) -> presence.Presence:
+    def presence(self) -> str:
         return getattr(self.user, 'presence', None)
 
     @property

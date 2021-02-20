@@ -37,7 +37,6 @@ from .context import *
 from .member import *
 from .usertyping import *
 from .attatchment import *
-from .presence import *
 from .feed import *
 from .entity import *
 from .invite import *

@@ -159,7 +159,7 @@ class User(LazyUser):
         super().__init__(**kwargs)
         self._location = kwargs.get('location')
         self._website = kwargs.get('website')
-        self._presence = kwargs.get('presence')  # ToDo: Replace with classic presence string
+        self._presence = kwargs.get('presence')
         self._email = kwargs.get('email')
         self._mfa_enabled = kwargs.get('mfa_enabled')
 
@@ -174,12 +174,8 @@ class User(LazyUser):
         ]
         return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
 
-
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        **kwargs):
+    async def from_dict(cls, data: dict, http, **kwargs):
         """
         Creates an instance of the User Class with the passed data
 
@@ -218,7 +214,6 @@ class User(LazyUser):
     def website(self) -> str:
         return self._website
 
-    # Still needs to be worked out
     @property
     def presence(self):
         return self._presence
