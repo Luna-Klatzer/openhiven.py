@@ -202,12 +202,25 @@ class HivenWebSocket:
         Will shield the normal message handler from receiving events until the initialisation succeeded.
         :returns: A List of all other events that were received during initialisation that will now need to be called
         """
-        house_memberships = msg['d'].get('house_memberships', 0)
+        data = msg['d']
+        house_memberships = data.get('house_memberships', {})
+        self.client.storage['house_memberships'] = data.get('house_memberships', {})
+        self.client.storage['house_ids'] = data.get('house_ids', [])
+        self.client.storage['settings'] = data.get('settings', {})
+        self.client.storage['read_state'] = data.get('read_state', {})
+
+        for r in data.get('private_rooms', []):
+            if int(r['type']) == 1:
+                r['type'] = 'single'
+                self.client.storage['scope']['rooms']['private']['single'][r['id']] = r
+
+            elif int(r['type']) == 2:
+                r['type'] = 'single'
+                self.client.storage['scope']['rooms']['private']['multi'][r['id']] = r
 
         additional_events = []
         while len(house_memberships) != len(self.client.storage['scope']['houses']):
             event, data, msg = await self.wait_for_event(handler=self.received_init_event)
-
             if msg:
                 if event == "HOUSE_JOIN":
                     self.client.storage.add_house(data)

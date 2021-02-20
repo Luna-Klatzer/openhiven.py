@@ -131,14 +131,16 @@ def log_validation_traceback(cls: typing.Any, e: ValidationError):
                          f"  Correct Data: {e.valid_data}")
 
 
-def convert_value(dtype: typing.Any, value: typing.Any, default: typing.Any = None) -> typing.Union[typing.Any, None]:
+def convert_value(dtype: typing.Any,
+                  value: typing.Any,
+                  default: typing.Any = 'raise_exc') -> typing.Union[typing.Any, None]:
     """
     Return the passed value in the specified value if it is not None and does not raise an Exception
     while converting. Returns the passed default if the conversion failed
 
     :param dtype: The datatype the value should be returned
     :param value: The value that should be converted
-    :param default: The default Value that should be returned if the conversion failed
+    :param default: The default value that should be returned if the conversion failed, else it will raise an exception.
     :return: The converted value or the default passed value
     """
     try:
@@ -147,7 +149,10 @@ def convert_value(dtype: typing.Any, value: typing.Any, default: typing.Any = No
         return dtype(value)
 
     except Exception:
-        return default
+        if default == 'raise_exc':
+            raise
+        else:
+            return default
 
 
 def convertible(dtype: typing.Any, value: typing.Any) -> bool:

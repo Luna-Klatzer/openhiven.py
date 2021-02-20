@@ -35,7 +35,6 @@ from .user import *
 from .message import *
 from .context import *
 from .member import *
-from .hiven_client import *
 from .usertyping import *
 from .attatchment import *
 from .presence import *

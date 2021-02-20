@@ -25,7 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Parsers:
+class HivenParsers:
     """ Event Parsers for Hiven Events that validate and update the cached data """
     def __init__(self, client):
         self.client = client

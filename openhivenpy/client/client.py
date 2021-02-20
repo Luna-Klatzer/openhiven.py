@@ -5,21 +5,22 @@ import asyncio
 import time
 import typing
 
-from . import HivenObject
-from . import user
-from . import relationship
-from . import private_room
-from . import presence
+from ..types import HivenObject
+from ..types import user
+from ..types import relationship
+from ..types import private_room
+from ..types import presence
 from .. import utils
 from ..exception import HTTPResponseError, InitializationError, HTTPReceivedNoDataError
-logger = logging.getLogger(__name__)
 
 __all__ = ['Client']
+
+logger = logging.getLogger(__name__)
 
 
 class Client(HivenObject):
     """
-    Data Class that stores the data of the connected Client
+    Data Class that stores the data and functions for interaction of the connected Client
     """
     def __init__(self, *, http=None, **kwargs):
         self._http = http if http is not None else self._http

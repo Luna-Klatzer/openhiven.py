@@ -25,10 +25,14 @@ class ClientCache(dict):
                     'single': {},
                     'multi': {}
                 },
+                'house': {}
             },
             'relationships': {},
             'house_memberships': {}
         }
+        self['house_ids'] = []
+        self['settings'] = {}
+        self['read_state'] = {}
         self['client_user'] = self.update_client_user({})
 
     def update_client_user(self, data: dict):
@@ -57,7 +61,7 @@ class ClientCache(dict):
         try:
             self['scope']['houses'][data['id']] = data
             for room in data['rooms']:
-                self['scope']['rooms'][room['id']] = room
+                self['scope']['rooms']['house'][room['id']] = room
 
             for member in data['members']:
                 if self['scope']['users'].get(member['user']['id']) is None:

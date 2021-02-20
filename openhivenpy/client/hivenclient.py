@@ -9,28 +9,43 @@ from functools import wraps
 from ..settings import load_env
 from .. import utils
 from .. import types
-from ..events import Parsers
+from ..events import HivenParsers
 from ..gateway import Connection, HTTP
-from ..exception import SessionCreateError, ExpectedAsyncFunction
+from ..exception import SessionCreateError, ExpectedAsyncFunction, InvalidTokenError
 from .client_cache import ClientCache
 
 __all__ = ['HivenClient']
 
 logger = logging.getLogger(__name__)
 
+load_env()
+USER_TOKEN_LEN = utils.convert_value(int, os.getenv("USER_TOKEN_LEN"))
+BOT_TOKEN_LEN = utils.convert_value(int, os.getenv("BOT_TOKEN_LEN"))
+
+
+class Events:
+    """ Events class used to register the main event listeners """
+
 
 class HivenClient:
-    """
-    Main Class for connecting to Hiven and interacting with the API.
-    """
+    """ Main Class for connecting to Hiven and interacting with the API. """
     def __init__(self, token: str, *, loop: asyncio.AbstractEventLoop = None, log_ws_output: bool = False):
         self._token = token
         self._connection = Connection(self)
         self._loop = loop
         self._log_ws_output = log_ws_output
-        # Creating an instance of the class that will call and trigger the event parsers
-        self.parsers = Parsers(self)
+
+        # Creating an instance of the HivenParsers class that will call and trigger the parsers for event
+        self.parsers = HivenParsers(self)
         self.storage = ClientCache(token, log_ws_output)
+
+        if token is None or token == "":
+            logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
+            raise InvalidTokenError("Empty Token was passed!")
+
+        elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
+            logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
+            raise InvalidTokenError("Invalid Token was passed!")
 
     def __str__(self) -> str:
         return getattr(self, "name")
