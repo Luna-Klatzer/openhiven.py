@@ -47,6 +47,14 @@ class HivenClient(HivenEventHandler):
     def __str__(self) -> str:
         return getattr(self, "name")
 
+    def __repr__(self) -> str:
+        info = [
+            ('open', self.open),
+            ('name', getattr(self.user, 'name', None)),
+            ('id', getattr(self.user, 'id', None))
+        ]
+        return '<HivenClient {}>'.format(' '.join('%s=%s' % t for t in info))
+
     @property
     def token(self) -> str:
         return self.storage.get('token', None)

@@ -192,7 +192,7 @@ class HivenWebSocket:
             else:
                 # Calling for test purposes!
                 # Will require parser and EventConsumer implementation instead of direct calling
-                await self.client.dispatch(event.lower())
+                await self.client.dispatch(event.lower(), data)
 
                 # Message Broker Handling and Rewrite (#54)
 
