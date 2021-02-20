@@ -97,9 +97,7 @@ class SingleDispatchEventListener:
 
 
 class MultiDispatchEventListener:
-    """
-    EventListener Class that is used primarily for EventListeners that will be called when assigned event was received
-    """
+    """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
     def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
         self.coro = coro
         self.event_name = event_name
@@ -258,6 +256,7 @@ class HivenEventHandler:
 
         :param event_name: The key/name of the event the EventListener should be listening to
         :param coro: Coroutine that should be called when the EventListener was dispatched
+        :returns: The newly created EventListener
         """
         if self.active_listeners.get(event_name) is None:
             self.active_listeners[event_name] = []
