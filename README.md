@@ -8,6 +8,8 @@
 ![Lines of Code](https://img.shields.io/tokei/lines/github/FrostbyteSpace/openhiven.py)
 [![License](https://img.shields.io/github/license/FrostbyteSpace/openhiven.py)](https://github.com/FrostbyteSpace/openhiven.py/blob/main/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/openhivenpy/badge/?version=latest)](https://readthedocs.org/projects/openhivenpy/)
+![Coverage](./pytest/coverage.svg)
+
 
 ## Dependencies
 

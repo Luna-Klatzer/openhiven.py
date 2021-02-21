@@ -31,18 +31,19 @@ from .websocket import *
 from .http import *
 from .messagebroker import *
 from .. import load_env, utils
-from ..exception import RestartSessionError, WebSocketClosedError
+from ..exception import RestartSessionError, WebSocketClosedError, WebSocketFailedError
 
-import aiohttp
 import sys
 import logging
 import os
 import typing
 import asyncio
+from yarl import URL
 
 logger = logging.getLogger(__name__)
 
 load_env()
+DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
 DEFAULT_HOST = os.getenv("HIVEN_HOST")
 DEFAULT_API_VERSION = os.getenv("HIVEN_API_VERSION")
 DEFAULT_HEARTBEAT = int(os.getenv("WS_HEARTBEAT"))
@@ -65,23 +66,22 @@ class Connection:
         self.host = host
         self.api_version = api_version
         self.loop = loop
-        self.heartbeat = heartbeat
-        self.close_timeout = close_timeout
+        self._heartbeat = heartbeat
+        self._close_timeout = close_timeout
+        self._endpoint = URL(DEFAULT_ENDPOINT)
 
         self._connection_status = "CLOSED"
         self._ready = False
         self._ws = None
-        self._coro = None
 
     def __str__(self) -> str:
         return repr(self)
 
     def __repr__(self) -> str:
         info = [
-            ('open', self.open),
+            ('ready', self.ready),
             ('host', self.host),
-            ('api_version', self.api_version),
-            ('open', self.open),
+            ('endpoint', self.endpoint.human_repr()),
             ('startup_time', self.ws.startup_time),
             ('connection_start', self.ws.connection_start),
             ('heartbeat', self.heartbeat)
@@ -89,10 +89,10 @@ class Connection:
         return '<Connection {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def open(self) -> bool:
+    def ready(self) -> bool:
         return all((
             getattr(self.http, 'ready', False),
-            getattr(self.ws, 'open', False)
+            getattr(self.ws, 'ready', False)
         ))
 
     @property
@@ -100,16 +100,24 @@ class Connection:
         return getattr(self, '_connection_status', None)
 
     @property
-    def ready(self) -> bool:
-        return getattr(self.http, 'ready', False)
+    def endpoint(self) -> URL:
+        return getattr(self, '_endpoint', None)
+
+    @property
+    def startup_time(self) -> int:
+        return getattr(self.ws, '_startup_time', None)
 
     @property
     def ws(self) -> HivenWebSocket:
         return getattr(self, '_ws', None)
 
     @property
-    def coro(self):
-        return getattr(self, 'coro', None)
+    def heartbeat(self) -> int:
+        return getattr(self, '_heartbeat', None)
+
+    @property
+    def close_timeout(self) -> int:
+        return getattr(self, '_close_timeout', None)
 
     async def connect(self, restart: bool):
         """ Establishes a connection to Hiven and runs the background processes """
@@ -121,7 +129,8 @@ class Connection:
             while self.connection_status not in ("CLOSING", "CLOSED"):
                 try:
                     coro = HivenWebSocket.create_from_client(
-                        self.client, close_timeout=self.close_timeout, heartbeat=self.heartbeat, loop=self.loop
+                        self.client, endpoint=self.endpoint, close_timeout=self.close_timeout, heartbeat=self.heartbeat,
+                        loop=self.loop
                     )
                     ws = await asyncio.wait_for(coro, 30)
                     self._ws = ws
@@ -135,10 +144,12 @@ class Connection:
                     continue
 
                 except WebSocketClosedError:
-                    # User closed the connection and the http session needs to be closed
+                    # Received close frame which can means the connection suddenly stopped/failed or the user
+                    # used close to close the connection. If that's the case using continue will make the loop
+                    # stop since the connection_status is CLOSING
                     continue
 
-                except Exception as e:
+                except (Exception, WebSocketFailedError) as e:
                     logger.error(
                         f"[CONNECTION] Encountered an exception while running the live websocket: "
                         f"\n{sys.exc_info()[0].__name__}: {e}"

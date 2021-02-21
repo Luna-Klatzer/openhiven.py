@@ -58,10 +58,15 @@ class UserClient(HivenClient):
         info = [
             ('type', getattr(self, '_CLIENT_TYPE', None)),
             ('open', getattr(self, 'open', False)),
+            ('bot', getattr(self, 'bot', False)),
             ('name', getattr(self.user, 'name', None)),
             ('id', getattr(self.user, 'id', None))
         ]
         return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @property
+    def client_type(self) -> str:
+        return getattr(self, '_CLIENT_TYPE', None)
 
     async def cancel_friend_request(self, user: typing.Union[int, types.User] = None) -> bool:
         """

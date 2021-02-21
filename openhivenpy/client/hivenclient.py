@@ -114,8 +114,12 @@ class HivenClient(HivenEventHandler):
         return getattr(self.connection, 'open', False)
 
     @property
+    def connection_status(self) -> int:
+        return getattr(self.connection, 'connection_status', None)
+
+    @property
     def startup_time(self) -> int:
-        return getattr(self.connection.ws, 'startup_time', None)
+        return getattr(self.connection, 'startup_time', None)
 
     @property
     def user(self):

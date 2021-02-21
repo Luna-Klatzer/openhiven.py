@@ -33,7 +33,8 @@ __all__ = [
     'ClientTypeError', 'SessionCreateError', 'UnknownEventError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
-    'HivenGatewayError', 'WebSocketMessageError', 'WebSocketClosedError', 'RestartSessionError',
+    'HivenGatewayError', 'WebSocketMessageError', 'WebSocketFailedError',
+    'WebSocketClosedError', 'RestartSessionError',
 
     'HTTPError', 'HTTPFailedRequestError', 'HTTPForbiddenError', 'HTTPResponseError',
     'HTTPReceivedNoDataError',
@@ -123,6 +124,11 @@ class HivenGatewayError(HivenConnectionError):
 class WebSocketMessageError(HivenGatewayError):
     """ An Exception occurred while handling a message/response from Hiven """
     exc_msg = "Failed to handle WebSocket Message!"
+
+
+class WebSocketFailedError(HivenGatewayError):
+    """ Received an exception call  """
+    exc_msg = "Received Error frame from the aiohttp Websocket which resulted in the crashing of the WebSocket!"
 
 
 class WebSocketClosedError(HivenError):

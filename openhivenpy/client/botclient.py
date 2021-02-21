@@ -52,9 +52,14 @@ class BotClient(HivenClient):
 
     def __repr__(self) -> str:
         info = [
-            ('type', self._CLIENT_TYPE),
+            ('type',  getattr(self, '_CLIENT_TYPE', None)),
             ('open', getattr(self, 'open')),
+            ('bot', getattr(self, 'bot', True)),
             ('name', getattr(self.user, 'name')),
             ('id', getattr(self.user, 'id'))
         ]
         return '<BotClient {}>'.format(' '.join('%s=%s' % t for t in info))
+
+    @property
+    def client_type(self) -> str:
+        return getattr(self, '_CLIENT_TYPE', None)

@@ -57,21 +57,35 @@ class ClientCache(dict):
         return self['client_user']
 
     def add_house(self, data: dict):
-        """ Adds a new house to the cache and updates the storage appropriately"""
+        """ Adds a new house to the cache and updates the storage appropriately """
         try:
             self['scope']['houses'][data['id']] = data
             for room in data['rooms']:
                 self['scope']['rooms']['house'][room['id']] = room
 
             for member in data['members']:
-                if self['scope']['users'].get(member['user']['id']) is None:
-                    self['scope']['users'][member['user']['id']] = member['user']
+                self.add_user(member['user'])
 
             return
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in 'add_house()': ",
+                msg="[CLIENTCACHE] Traceback in add_house: ",
+                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise
+
+    def add_user(self, data: dict):
+        """ Adds a new user to the cache and updates the storage appropriately """
+        try:
+            if self['scope']['users'].get(data['id']) is None:
+                self['scope']['users'][data['id']] = data
+
+            return
+
+        except Exception as e:
+            utils.log_traceback(
+                msg="[CLIENTCACHE] Traceback in add_user: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
             )
             raise

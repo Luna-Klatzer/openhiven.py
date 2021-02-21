@@ -15,8 +15,6 @@ __all__ = ['HivenWebSocket']
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
-
 
 class KeepAlive:
     def __init__(self, ws):
@@ -47,17 +45,12 @@ class KeepAlive:
 
 
 class HivenWebSocket:
-    def __init__(self,
-                 socket,
-                 *,
-                 loop: asyncio.AbstractEventLoop,
-                 heartbeat: int,
-                 close_timeout: int,
-                 log_ws_output: bool = False):
+    def __init__(self, socket, *, loop: asyncio.AbstractEventLoop, log_ws_output: bool = False):
         self.socket = socket
         self.loop = loop
         self.parsers = None
         self.client = None
+        self.endpoint = None
         self._open = False
         self._ready = False
         self.log_ws_output = log_ws_output
@@ -68,29 +61,31 @@ class HivenWebSocket:
         self._connection_start = None
         self._connection_status = "CLOSED"
         self._token = None
-        self._heartbeat = heartbeat
-        self._close_timeout = close_timeout
-
-        self.message_broker = MessageBroker()
-        self.keep_alive = KeepAlive(self)
+        self._heartbeat = None
+        self._close_timeout = None
 
     @classmethod
     async def create_from_client(cls,
                                  client,
+                                 endpoint: URL,
                                  close_timeout: int,
                                  heartbeat: int,
                                  loop: asyncio.AbstractEventLoop = asyncio.get_event_loop(),
                                  **kwargs):
         """ Creates a new WebSocket Instance and starts the Connection to Hiven """
-        endpoint = URL(DEFAULT_ENDPOINT)
-
         socket = await client.http.session.ws_connect(
             endpoint.human_repr(), timeout=close_timeout, heartbeat=heartbeat, max_msg_size=0
         )
-        ws = cls(socket, loop=loop, heartbeat=heartbeat, close_timeout=close_timeout, **kwargs)
+        ws = cls(socket, loop=loop, **kwargs)
+        ws.endpoint = endpoint
         ws.client = client
         ws.parsers = client.parsers
         ws._token = client.token
+        ws._heartbeat = heartbeat
+        ws._close_timeout = close_timeout
+
+        ws.message_broker = MessageBroker()
+        ws.keep_alive = KeepAlive(ws)
 
         return ws
 
@@ -121,11 +116,11 @@ class HivenWebSocket:
         return getattr(self, '_ready', None)
 
     @property
-    def heartbeat(self) -> bool:
+    def heartbeat(self) -> int:
         return getattr(self, '_heartbeat', None)
 
     @property
-    def close_timeout(self) -> bool:
+    def close_timeout(self) -> int:
         return getattr(self, '_close_timeout', None)
 
     async def listening_loop(self):
@@ -164,10 +159,10 @@ class HivenWebSocket:
 
         elif msg.type == aiohttp.WSMsgType.ERROR:
             logger.error(
-                f"[WEBSOCKET] Encountered an Exception in the Websocket! WebSocket will force restart! {msg.extra}"
+                f"[WEBSOCKET] Encountered an Exception in the Websocket! {msg.extra}"
             )
-            raise RestartSessionError(
-                "[WEBSOCKET] Encountered an Exception in the Websocket! WebSocket will force restart!"
+            raise WebSocketClosedError(
+                "[WEBSOCKET] Encountered an Exception in the Websocket!"
             )
 
     async def received_message(self, msg):
