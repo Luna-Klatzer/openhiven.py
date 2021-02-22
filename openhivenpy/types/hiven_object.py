@@ -2,7 +2,7 @@ class HivenObject:
     """
     Base Class for all Hiven Objects
     """
-    _http = None
+    _client = None
 
     def __str__(self) -> str:
         return repr(self)

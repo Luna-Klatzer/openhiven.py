@@ -1,36 +1,33 @@
 import logging
 import sys
 import types
+
 import fastjsonschema
 
-from .. import utils
 from . import HivenObject
+from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
+
 logger = logging.getLogger(__name__)
 
-__all__ = ['Embed']
+__all__ = ['Attachment']
 
 
-class Embed(HivenObject):
+class Attachment(HivenObject):
     """
-    Represents an embed message object
+    Represents a Hiven Attachment
     """
     schema = {
         'type': 'object',
         'properties': {
-            'url': {'type': 'string', 'default': None},
-            'type': {'type': 'integer'},
-            'title': {'type': 'string'},
-            'image': {'type': 'string', 'default': None},
-            'description': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            }
+            'filename': {'type': 'string'},
+            'media_url': {'type': 'string'},
+            'raw': {
+                'type': 'object',
+                'default': {}
+            },
         },
-        'required': ['type', 'title']
+        'required': ['filename', 'media_url']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
@@ -46,11 +43,9 @@ class Embed(HivenObject):
         """
         :param kwargs: Additional Parameter of the class that will be initialised with it
         """
-        self._url = kwargs.get('url')
-        self._type = kwargs.get('type')
-        self._title = kwargs.get('title')
-        self._image = kwargs.get('image')
-        self._description = kwargs.get('description')
+        self._filename = kwargs.get('filename')
+        self._media_url = kwargs.get('media_url')
+        self._raw = kwargs.get('raw')
 
     @classmethod
     def form_object(cls, data: dict) -> dict:
@@ -65,12 +60,13 @@ class Embed(HivenObject):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
+        data['raw'] = {**data, **data.get('raw', {})}
         return cls.validate(data)
 
     @classmethod
     async def from_dict(cls, data: dict, client):
         """
-        Creates an instance of the Embed Class with the passed data
+        Creates an instance of the Attachment Class with the passed data
 
         ---
 
@@ -79,7 +75,7 @@ class Embed(HivenObject):
 
         :param data: Dict for the data that should be passed
         :param client: Client used for accessing the cache
-        :return: The newly constructed Embed Instance
+        :return: The newly constructed Attachment Instance
         """
         try:
             instance = cls(**data)
@@ -98,21 +94,14 @@ class Embed(HivenObject):
             return instance
 
     @property
-    def url(self):
-        return getattr(self, '_url', None)
-    
-    @property
-    def type(self):
-        return getattr(self, '_type', None)
-    
-    @property 
-    def title(self):
-        return getattr(self, '_title', None)
+    def filename(self):
+        return getattr(self, '_filename', None)
 
-    @property 
-    def image(self):
-        return getattr(self, '_image', None)
+    @property
+    def media_url(self):
+        return getattr(self, '_media_url', None)
     
     @property
-    def description(self):
-        return getattr(self, '_description', None)
+    def raw(self):
+        # Different files have different attribs
+        return getattr(self, '_raw', None)

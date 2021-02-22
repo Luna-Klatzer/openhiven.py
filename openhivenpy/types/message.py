@@ -2,88 +2,50 @@ import datetime
 import logging
 import sys
 import asyncio
+import types
 import typing
 
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+import fastjsonschema
 
 from . import HivenObject
 from . import user
 from . import mention
 from . import embed
 from .. import utils
-from ..exception import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPForbiddenError
+from ..exceptions import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPForbiddenError
+
 logger = logging.getLogger(__name__)
 
-__all__ = ['DeletedMessage', 'Message', 'MessageSchema', 'DeletedMessageSchema']
-
-
-class MessageSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    id = fields.Int(required=True)
-    author = fields.Raw(required=True)
-    attachment = fields.Raw(default=None, allow_none=True)
-    content = fields.Str(required=True)
-    timestamp = fields.Raw(required=True)
-    edited_at = fields.Raw(default=None, allow_none=True)
-    mentions = fields.List(fields.Field(), default=[], allow_none=True)
-    type = fields.Int(required=True, allow_none=True)
-    exploding = fields.Raw()
-    house_id = fields.Int(default=None, allow_none=True)
-    house = fields.Raw(default=None, allow_none=True)
-    room_id = fields.Int(required=True)
-    room = fields.Raw(required=True)
-    embed = fields.Raw(default=None, allow_none=True)
-    bucket = fields.Raw(default=None, allow_none=True)
-    author_id = fields.Int(required=True)
-    exploding_age = fields.Raw(allow_none=True)
-    device_id = fields.Int(required=True, allow_none=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Message Object
-        """
-        return Message(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = MessageSchema()
-
-
-class DeletedMessageSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    message_id = fields.Int(required=True)
-    house_id = fields.Int(required=True)
-    room_id = fields.Int(required=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new DeletedMessage Object
-        """
-        return DeletedMessage(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_DELETED_SCHEMA = DeletedMessageSchema()
+__all__ = ['DeletedMessage', 'Message']
 
 
 class DeletedMessage(HivenObject):
-    """
-    Represents a Deleted Message
-    """
+    """ Represents a Deleted Message """
+    schema = {
+        'type': 'object',
+        'properties': {
+            'message_id': {'type': 'string'},
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'room_id': {'type': 'string'}
+        },
+        'required': ['message_id', 'room_id']
+    }
+    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return cls.json_validator(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
+
     def __init__(self, **kwargs):
         self._message_id = utils.convert_value(int, kwargs.get('message_id'))
         self._house_id = utils.convert_value(int, kwargs.get('house_id'))
@@ -93,28 +55,50 @@ class DeletedMessage(HivenObject):
         return f"Deleted message in room {self.room_id}"
 
     @classmethod
-    async def from_dict(cls, data: dict, **kwargs):
+    def form_object(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Dict for the data that should be passed
+        :return: The modified dictionary
+        """
+        data = cls.validate(data)
+        data['message_id'] = int(data['id'])
+        data['house_id'] = utils.convert_value(int, data['house_id'])
+        data['room_id'] = int(data['room_id'])
+        return data
+
+    @classmethod
+    async def from_dict(cls, data: dict, client):
         """
         Creates an instance of the DeletedMessage Class with the passed data
 
+        ---
+
+        Does not update the cache and only read from it!
+        Only intended to be used to create a instance to interact with Hiven!
+
         :param data: Dict for the data that should be passed
-        :param kwargs: Additional parameter or instances required for the initialisation
+        :param client: Client used for accessing the cache
         :return: The newly constructed DeletedMessage Instance
         """
         try:
-            instance = GLOBAL_DELETED_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            instance = cls(**data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
+            instance._client = client
             return instance
 
     @property
@@ -128,15 +112,99 @@ class DeletedMessage(HivenObject):
     @property
     def room_id(self):
         return getattr(self, '_room_id')
-    
+
 
 class Message(HivenObject):
     """
     Data Class for a standard Hiven message
     """
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
+            'author': {'type': 'object'},
+            'author_id': {'type': 'string'},
+            'attachment': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ],
+                'default': {},
+            },
+            'content': {'type': 'string'},
+            'timestamp': {'type': 'string'},
+            'edited_at': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'mentions': {
+                'type': 'array',
+                'default': []
+            },
+            'type': {'type': 'integer'},
+            'exploding': {
+                'anyOf': [
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'room_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'embed': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'bucket': {
+                'anyOf': [
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'device_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'exploding_age': {'default': None}
+        },
+        'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
+    }
+    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return cls.json_validator(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
+
     def __init__(self, **kwargs):
         self._id = kwargs.get('id')
         self._author = kwargs.get('author')
+        self._author_id = kwargs.get('author_id')
         self._attachment = kwargs.get('attachment')
         self._content = kwargs.get('content')
         self._timestamp = kwargs.get('timestamp')
@@ -152,7 +220,6 @@ class Message(HivenObject):
         self._bucket = kwargs.get('bucket')
         self._device_id = kwargs.get('device_id')
         self._exploding_age = kwargs.get('exploding_age')
-        self._author_id = kwargs.get('author_id')
 
     def __str__(self) -> str:
         return f"<Message id='{self.id}' from '{self.author.name}'>"
@@ -170,154 +237,157 @@ class Message(HivenObject):
         return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        *,
-                        author: user.User = None,
-                        users: typing.List[user.User] = None,
-                        room_: typing.Any = None,
-                        rooms: typing.List[typing.Any] = None,
-                        houses: typing.List[typing.Any] = [],
-                        house_: typing.Any = None,
-                        **kwargs):
+    def form_object(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Dict for the data that should be passed
+        :return: The modified dictionary
+        """
+        data['house'] = data['house']['id']
+        data['room'] = data['room']['id']
+        data['author'] = data['author']['id']
+        data['attachment'] = data.get('attachment')
+        data['content'] = data.get('content')
+        data['edited_at'] = data.get('edited_at')
+        data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
+        data['exploding'] = data.get('exploding')
+        data['bucket'] = utils.convert_value(int, data.get('bucket'))
+        data['device_id'] = utils.convert_value(int, data.get('device_id'))
+        data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
+        data['author_id'] = utils.convert_value(int, data.get('author_id'))
+
+        timestamp = data.get('timestamp')
+        # Converting to seconds because it's in milliseconds
+        if utils.convertible(int, timestamp):
+            data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp) / 1000)
+        else:
+            data['timestamp'] = timestamp
+
+        data = cls.validate(data)
+        data['id'] = utils.convert_value(int, data.get('id'))
+        data['house_id'] = utils.convert_value(int, data.get('house_id'))
+        data['room_id'] = utils.convert_value(int, data.get('room_id'))
+        data['house'] = utils.convert_value(int, data['house']['id'])
+        data['room'] = utils.convert_value(int, data['room']['id'])
+        data['author'] = utils.convert_value(int, data['author']['id'])
+        return data
+
+    @classmethod
+    async def from_dict(cls, data: dict, client):
         """
         Creates an instance of the Message Class with the passed data
 
         :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param author: The Author of the Message that can be passed if it was already fetched
-        :param users: The cached users List to fetch the mentioned users from
-        :param room_: The room of the Message
-        :param rooms: The cached Room List to fetch the room from
-        :param houses: The cached House List to fetch the house from or add ones if passed
-        :param house_: The House of the Message that can be passed if it was already fetched
-        :param kwargs: Additional parameter or instances required for the initialisation
+        :param client: Client used for accessing the cache
         :return: The newly constructed Message Instance
         """
         try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['house_id'] = utils.convert_value(int, data.get('house_id'))
-            data['room_id'] = utils.convert_value(int, data.get('room_id'))
-            data['house'] = house_ if house_ else utils.get(houses, id=utils.convert_value(int, data['house_id']))
-            data['room'] = room_ if room_ else utils.get(rooms, id=utils.convert_value(int, data['room_id']))
-            data['author'] = author if author else utils.get(data['house'].members if data['house'] else users,
-                                                             id=utils.convert_value(int, data.get('author_id')))
-            data['attachment'] = data.get('attachment')
-            data['content'] = data.get('content')
-            data['edited_at'] = data.get('edited_at')
-            data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
-            data['exploding'] = data.get('exploding')
-            data['embed'] = await embed.Embed.from_dict(data.get('embed'), http) if data.get('embed') else None
-            data['bucket'] = utils.convert_value(int, data.get('bucket'))
-            data['device_id'] = utils.convert_value(int, data.get('device_id'))
-            data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
-            data['author_id'] = utils.convert_value(int, data.get('author_id'))
-
-            timestamp = data.get('timestamp')
-            # Converting to seconds because it's in milliseconds
-            if utils.convertible(int, timestamp):
-                data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp) / 1000)
-            else:
-                data['timestamp'] = timestamp
-
+            data['house'] = client.storage['houses'][data['house_id']]
+            data['room'] = client.storage['rooms'][data['room_id']]
+            data['author'] = client.storage['houses'][data['house_id']]['members']['']
+            data['embed'] = await embed.Embed.from_dict(data.get('embed'), client) if data.get('embed') else None
             mentions_ = []
             for d in data.get('mentions', []):
-                mentions_.append(await mention.Mention.from_dict({'timestamp': data['timestamp'],
-                                                                  'author': data['author'],
-                                                                  'user': d},
-                                                                 users=users))
+                mentions_.append(
+                    await mention.Mention.from_dict(
+                        {
+                            'timestamp': data['timestamp'],
+                            'author': data['author'],
+                            'user': d
+                        }, client)
+                )
             data['mentions'] = mentions_
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            instance = cls(**data)
 
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            utils.log_traceback(
+                msg=f"Traceback in '{cls.__name__}' Validation:",
+                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
+            instance._client = client
             return instance
 
     @property
     def id(self) -> int:
-        return utils.convert_value(int, self._id)
+        return getattr(self, '_id', None)
+
+    @property
+    def author_id(self) -> int:
+        return getattr(self, '_author_id', None)
 
     @property
     def author(self):
-        return self._author
+        return getattr(self, '_author', None)
 
     @property
     def created_at(self):
-        return self._timestamp
+        return getattr(self, '_created_at', None)
 
     @property
     def type(self):
-        return self._type
+        return getattr(self, '_type', None)
 
     @property
     def exploding(self):
-        return self._exploding
+        return getattr(self, '_exploding', None)
 
     @property
     def edited_at(self):
-        return self._edited_at
+        return getattr(self, '_edited_at', None)
 
     @property
     def room(self):
-        return self._room
+        return getattr(self, '_room', None)
 
     @property
     def house(self):
-        return self._house
+        return getattr(self, '_house', None)
 
     @property
     def attachment(self):
-        return self._attachment
+        return getattr(self, '_attachment', None)
 
     @property
     def content(self):
-        return self._content
+        return getattr(self, '_content', None)
 
     @property
     def mentions(self):
-        return self._mentions
+        return getattr(self, '_mentions', None)
 
     @property
     def room_id(self):
-        return self._room_id
+        return getattr(self, '_room_id', None)
 
     @property
     def house_id(self):
-        return self._house_id
+        return getattr(self, '_house_id', None)
 
-    @property 
+    @property
     def embed(self):
-        return self._embed
+        return getattr(self, '_embed', None)
 
     @property
     def bucket(self):
-        return self._bucket
+        return getattr(self, '_bucket', None)
 
     @property
     def device_id(self):
-        return self._device_id
+        return getattr(self, '_device_id', None)
 
     @property
     def exploding_age(self):
-        return self._exploding_age
-
-    @property
-    def author_id(self):
-        return self._author_id
+        return getattr(self, '_exploding_age', None)
 
     async def mark_as_read(self, delay: float = None) -> bool:
         """
@@ -328,16 +398,16 @@ class Message(HivenObject):
         """
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            resp = await self._client.http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
 
             if resp.status < 300:
                 return True
             else:
                 raise HTTPResponseError
-        
+
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to mark message as read {repr(self)}: \n" 
+                                suffix=f"Failed to mark message as read {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def delete(self, delay: float = None) -> bool:
@@ -349,17 +419,17 @@ class Message(HivenObject):
         """
         try:
             await asyncio.sleep(delay=delay) if delay is not None else None
-            
-            resp = await self._http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
-            
+
+            resp = await self._client.http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+
             if not resp.status < 300:
                 raise HTTPForbiddenError()
             else:
                 return True
-        
+
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to delete the message {repr(self)}: \n" 
+                                suffix=f"Failed to delete the message {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
 
     async def edit(self, content: str) -> bool:
@@ -369,17 +439,17 @@ class Message(HivenObject):
         :return: True if the request was successful else False
         """
         try:
-            resp = await self._http.patch(
-                endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
-                json={'content': content})
+            resp = await self._client.http.patch(
+                endpoint=f"/rooms/{self.room_id}/messages/{self.id}", json={'content': content}
+            )
 
             if resp.status < 300:
                 return True
             else:
                 raise HTTPResponseError("Unknown! See HTTP Logs!")
-    
+
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to edit message {repr(self)}: \n" 
+                                suffix=f"Failed to edit message {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False

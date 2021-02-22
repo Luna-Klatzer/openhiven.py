@@ -1,44 +1,45 @@
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+import types
+import fastjsonschema
 
 from .. import utils
 from . import HivenObject
-from ..exception import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
-__all__ = ['Context', 'ContextSchema']
-
-
-class ContextSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    room = fields.Raw(required=True)
-    author = fields.Raw(required=True)
-    created_at = fields.Str(required=True)
-    house = fields.Raw(default=None)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Context Object
-        """
-        return Context(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = ContextSchema()
+__all__ = ['Context']
 
 
 class Context(HivenObject):
     """
     Represents a Command Context for a triggered command in the CommandListener
     """
+    schema = {
+        'type': 'object',
+        'properties': {
+            'room': {'type': 'object'},
+            'author': {'type': 'object'},
+            'created_at': {'type': 'string'},
+            'house': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ]
+            },
+        },
+        'required': ['room', 'author', 'created_at']
+    }
+    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return cls.json_validator(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
+
     def __init__(self, **kwargs):
         """
         :param kwargs: Additional Parameter of the class that will be initialised with it
@@ -49,21 +50,52 @@ class Context(HivenObject):
         self._created_at = kwargs.get('created_at')
 
     @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
+    def form_object(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Dict for the data that should be passed
+        :return: The modified dictionary
+        """
+        data = cls.validate(data)
+        room = data['room']
+        if room:
+            if type(room) is dict:
+                room = room.get('id')
+            elif isinstance(room, HivenObject):
+                room = getattr(room, 'id')
+            data['room'] = int(room)
+
+        house = data['house']
+        if house:
+            if type(house) is dict:
+                house = house.get('id')
+            elif isinstance(house, HivenObject):
+                house = getattr(house, 'id')
+            data['house'] = int(house)
+        return data
+
+    @classmethod
+    async def from_dict(cls, data: dict, client):
         """
         Creates an instance of the Context Class with the passed data
 
+        ---
+
+        Does not update the cache and only read from it!
+        Only intended to be used to create a instance to interact with Hiven!
+
         :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param kwargs: Additional parameter or instances required for the initialisation
+        :param client: Client used for accessing the cache
         :return: The newly constructed Context Instance
         """
         try:
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            instance = cls(**data)
 
         except Exception as e:
             utils.log_traceback(
@@ -71,26 +103,25 @@ class Context(HivenObject):
                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                        f"{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
+            instance._client = client
             return instance
 
     @property
     def house(self):
-        return self._house
+        return getattr(self, '_house', None)
 
     @property
     def author(self):
-        return self._author
+        return getattr(self, '_author', None)
 
     @property
     def room(self):
-        return self._room
+        return getattr(self, '_room', None)
 
     @property
     def created_at(self):
-        return self._created_at
+        return getattr(self, '_created_at', None)

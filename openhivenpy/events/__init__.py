@@ -29,10 +29,10 @@ import logging
 import typing
 from functools import wraps
 
-from ..exception import UnknownEventError, ExpectedAsyncFunction
+from ..exceptions import UnknownEventError, ExpectedAsyncFunction
 from .. import utils
 
-__all__ = ['SingleDispatchEventListener', 'HivenEventHandler']
+__all__ = ['SingleDispatchEventListener', 'HivenEventHandler', 'HivenParsers']
 
 logger = logging.getLogger(__name__)
 

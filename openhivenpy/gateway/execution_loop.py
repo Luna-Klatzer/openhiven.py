@@ -8,7 +8,7 @@ __all__ = ['StartupTasks', 'BackgroundTasks', 'ExecutionLoop']
 from functools import wraps
 
 from .. import utils
-from ..exception import ClosingError
+from ..exceptions import ClosingError
 
 logger = logging.getLogger(__name__)
 

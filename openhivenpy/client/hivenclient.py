@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import inspect
 import sys
 import os
@@ -12,7 +13,7 @@ from .. import utils
 from .. import types
 from ..events import HivenParsers, HivenEventHandler
 from ..gateway import Connection, HTTP
-from ..exception import SessionCreateError, InvalidTokenError
+from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError
 from .cache import ClientCache
 
 __all__ = ['HivenClient']
@@ -40,6 +41,8 @@ class HivenClient(HivenEventHandler):
         elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
             logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
             raise InvalidTokenError("Invalid Token was passed!")
+
+        self._user = None
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
         super().__init__(HivenParsers(self))
@@ -121,6 +124,78 @@ class HivenClient(HivenEventHandler):
     def startup_time(self) -> int:
         return getattr(self.connection, 'startup_time', None)
 
+    async def edit(self, **kwargs) -> bool:
+        """
+        Edits the Clients data on Hiven
+
+        ---
+
+        Available options: header, icon, bio, location, website, username
+
+        :return: True if the request was successful else False
+        """
+        try:
+            for key in kwargs.keys():
+                # Available keys
+                if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
+                    resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
+
+                    if resp.status < 300:
+                        return True
+                    else:
+                        raise HTTPResponseError("Unknown! See HTTP Logs!")
+                else:
+                    raise NameError("The passed value does not exist in the Client!")
+
+        except Exception as e:
+            keys = "".join(str(key + " ") for key in kwargs.keys())
+
+            utils.log_traceback(
+                msg="[CLIENT] Traceback:",
+                suffix=f"Failed change the values {keys}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
+            raise
+
     @property
     def user(self):
         return getattr(self, '_user', None)
+
+    @property
+    def username(self) -> str:
+        return getattr(self.user, 'username', None)
+
+    @property
+    def name(self) -> str:
+        return getattr(self.user, 'name', None)
+
+    @property
+    def id(self) -> int:
+        return getattr(self.user, 'id', None)
+
+    @property
+    def icon(self) -> str:
+        return getattr(self.user, 'icon', None)
+
+    @property
+    def header(self) -> str:
+        return getattr(self.user, 'header', None)
+
+    @property
+    def bot(self) -> bool:
+        return getattr(self.user, 'bot', None)
+
+    @property
+    def location(self) -> str:
+        return getattr(self.user, 'location', None)
+
+    @property
+    def website(self) -> str:
+        return getattr(self.user, 'website', None)
+
+    @property
+    def presence(self) -> str:
+        return getattr(self.user, 'presence', None)
+
+    @property
+    def joined_at(self) -> typing.Union[datetime.datetime, None]:
+        return getattr(self.user, 'joined_at', None)

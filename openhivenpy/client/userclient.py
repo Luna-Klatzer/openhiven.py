@@ -7,7 +7,7 @@ import typing
 from .hivenclient import HivenClient
 from .. import types
 from .. import utils
-from ..exception import HTTPFailedRequestError
+from ..exceptions import HTTPFailedRequestError
 
 __all__ = ['UserClient']
 

@@ -116,19 +116,18 @@ def get(iterable, **attrs) -> typing.Any:
     return None
 
 
-def log_validation_traceback(cls: typing.Any, e: ValidationError):
+def log_validation_traceback(cls: typing.Any, data: dict, e: Exception):
     """
     Logger for a Validation Error in the module types
 
     :param cls: The class that failed to be created with the passed data
-    :param e: The ValidationError Instance
+    :param data: Data that failed to be validated
+    :param e: The Exception Instance
     """
-    # Formatting all errors regarding the data
-    msg = "\n".join("    {}: {}".format(key, ",\n".join(item_e for item_e in err))
-                    for key, err in e.messages.items())
-    log_traceback(msg=f"Traceback of Initialisation of 'types.{cls.__name__}'",
-                  suffix=f"ValidationError: Encountered errors while validating following data: \n{msg}\n\n"
-                         f"  Correct Data: {e.valid_data}")
+    log_traceback(
+        msg=f"Traceback of Initialisation of 'types.{cls.__name__}'",
+        suffix=f" {e.__class__.__name__}: Encountered errors while validating data: \n{e}\n\nData: {data}"
+    )
 
 
 def convert_value(dtype: typing.Any,

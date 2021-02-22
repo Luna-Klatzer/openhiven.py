@@ -1,20 +1,16 @@
 import logging
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+import fastjsonschema
 from .. import utils
 
 from . import HivenObject
-from ..exception import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['Feed']
 
 
 class Feed(HivenObject):
-    """
-    Represents the feed that is displayed on Hiven
-
-    Deprecated and will likely get removed in future releases
-    """
+    """ Represents the feed that is displayed on Hiven """
     def __init__(self, **kwargs):
         pass
 

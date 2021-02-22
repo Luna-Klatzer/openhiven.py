@@ -1,50 +1,76 @@
 import logging
 import sys
+import types
 import typing
-from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE
+import fastjsonschema
 
 from . import HivenObject
 from .. import utils
-from ..exception import InvalidPassedDataError, InitializationError
+from . import house
+from ..exceptions import InitializationError
 logger = logging.getLogger(__name__)
 
-__all__ = ['Invite', 'InviteSchema']
-
-
-class InviteSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    type = fields.Int(required=True)
-    house = fields.Raw(required=True)
-    created_at = fields.Str(default=None, allow_none=True)
-    url = fields.Str(required=True)
-    house_id = fields.Int(required=True)
-    max_age = fields.Raw(required=True, default=None, allow_none=True)
-    code = fields.Str(required=True, allow_none=True)
-    max_uses = fields.Raw(required=True, allow_none=True)
-    house_members = fields.Int(required=True, default=None, allow_none=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Invite Object
-        """
-        return Invite(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = InviteSchema()
+__all__ = ['Invite']
 
 
 class Invite(HivenObject):
-    """
-    Represents an Invite to a Hiven House
-    """
+    """ Represents an Invite to a Hiven House """
+    schema = {
+        'type': 'object',
+        'properties': {
+            'code': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+            },
+            'url': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+            },
+            'created_at': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'blocked': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'mfa_enabled': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+        },
+        'required': []
+    }
+    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return cls.json_validator(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
+
     def __init__(self, **kwargs):
         self._code = kwargs.get('code')
         self._url = kwargs.get('url')
@@ -69,93 +95,98 @@ class Invite(HivenObject):
         return '<Invite {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        *,
-                        houses: typing.Optional[typing.List] = None,
-                        house: typing.Optional[typing.Any] = None,
-                        **kwargs):
+    def form_object(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Dict for the data that should be passed
+        :return: The modified dictionary
+        """
+        if data.get('invite') is not None:
+            invite = data.get('invite')
+        else:
+            invite = data
+        data['code'] = invite.get('code')
+        data['url'] = "https://hiven.house/{}".format(data['code'])
+        data['created_at'] = invite.get('created_at')
+        data['house_id'] = invite.get('house_id')
+        data['max_age'] = invite.get('max_age')
+        data['max_uses'] = invite.get('max_uses')
+        data['type'] = invite.get('type')
+        data['house_members'] = data.get('counts', {}).get('house_members')
+
+        data = cls.validate(data)
+        data['house_id'] = int(data['house_id'])
+        data['type'] = int(data['type'])
+        return data
+
+    @classmethod
+    async def from_dict(cls, data: dict, client):
         """
         Creates an instance of the Invite Class with the passed data
 
+        ---
+
+        Does not update the cache and only read from it!
+        Only intended to be used to create a instance to interact with Hiven!
+
         :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param houses: The cached list of Houses to automatically fetch the corresponding House from
-        :param house: House passed for the Invite. Requires direct specification to work with the Invite
+        :param client: Client used for accessing the cache
         :return: The newly constructed Invite Instance
         """
         try:
-            if data.get('invite') is not None:
-                invite = data.get('invite')
-            else:
-                invite = data
-            data['code'] = invite.get('code')
-            data['url'] = "https://hiven.house/{}".format(data['code'])
-            data['created_at'] = invite.get('created_at')
-            data['house_id'] = invite.get('house_id')
-            data['max_age'] = invite.get('max_age')
-            data['max_uses'] = invite.get('max_uses')
-            data['type'] = invite.get('type')
-            data['house_members'] = data.get('counts', {}).get('house_members')
+            data['house'] = house.House.from_dict(client.storage['houses'][data['house_id']], client)
 
-            if house is not None:
-                data['house'] = house
-            elif houses is not None:
-                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
-            else:
-                raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
-
-            instance = GLOBAL_SCHEMA.load(data, unknown=INCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            instance = cls(**data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
+            instance._client = client
             return instance
 
     @property
     def code(self) -> int:
-        return self._code
-    
+        return getattr(self, '_code', None)
+
     @property
     def url(self) -> str:
-        return self._url
+        return getattr(self, '_url', None)
     
     @property
     def house_id(self):
-        return self._house_id
+        return getattr(self, '_house_id', None)
     
     @property
     def max_age(self):
-        return self._max_age
-    
+        return getattr(self, '_max_age', None)
+
     @property
     def max_uses(self):
-        return self._max_uses
+        return getattr(self, '_max_uses', None)
     
     @property
     def type(self):
-        return self._type
+        return getattr(self, '_type', None)
         
     @property
     def house(self):
-        return self._house
+        return getattr(self, '_house', None)
     
     @property
     def house_members(self):
-        return self._house_members
+        return getattr(self, '_house_members', None)
 
     @property
     def created_at(self):
-        return self._created_at
+        return getattr(self, '_created_at', None)

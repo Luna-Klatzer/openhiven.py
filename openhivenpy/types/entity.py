@@ -1,50 +1,44 @@
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+import types
+import fastjsonschema
 
 from . import HivenObject
 from .. import utils
-from ..exception import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
-__all__ = ['Entity', 'EntitySchema']
-
-
-class EntitySchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    id = fields.Int(required=True)
-    name = fields.Str(required=True)
-    type = fields.Int(required=True)
-    resource_pointers = fields.List(fields.Field(), required=True)
-    house_id = fields.Str(default=None)
-    position = fields.Int(default=0)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Entity Object
-        """
-        return Entity(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = EntitySchema()
+__all__ = ['Entity']
 
 
 class Entity(HivenObject):
     """
     Represents a Hiven Entity
     """
-    _http = None
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
+            'name': {'type': 'string'},
+            'type': {'type': 'integer', 'default': 1},
+            'resource_pointers': {'type': 'array', 'default': []},
+            'house_id': {'type': 'string'},
+            'position': {'type': 'integer'}
+        },
+        'required': ['id', 'name', 'house_id', 'position', 'resource_pointers']
+    }
+    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return cls.json_validator(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
 
     def __init__(self, **kwargs):
-        self._type = kwargs.get('type', 1)
+        self._type = kwargs.get('type')
         self._position = kwargs.get('position')
         self._resource_pointers = kwargs.get('resource_pointers')
         self._name = kwargs.get('name')
@@ -62,25 +56,49 @@ class Entity(HivenObject):
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls, data: dict, http, house, **kwargs):
+    def form_object(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Dict for the data that should be passed
+        :return: The modified dictionary
+        """
+        if data.get('house_id') is None and data.get('house'):
+            house = data['house']
+            if type(house) is dict:
+                house = house.get('id')
+            elif isinstance(house, HivenObject):
+                house = getattr(house, 'id')
+            data['house_id'] = house
+
+        data = cls.validate(data)
+        data['id'] = int(data['id'])
+        data['house_id'] = int(data['house_id'])
+        return data
+
+    @classmethod
+    async def from_dict(cls, data: dict, client):
         """
         Creates an instance of the Entity Class with the passed data
 
+        ---
+
+        Does not update the cache and only read from it!
+        Only intended to be used to create a instance to interact with Hiven!
+
         :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param house: House of the Entity
-        :param kwargs: Additional parameter or instances required for the initialisation
+        :param client: Client used for accessing the cache
         :return: The newly constructed Embed Instance
         """
         try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['house'] = house
-
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            from . import House
+            data['house'] = House.from_dict(client.storage['house'][data['house_id']])
+            instance = cls(**data)
 
         except Exception as e:
             utils.log_traceback(
@@ -88,38 +106,37 @@ class Entity(HivenObject):
                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                        f"{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
+            instance._client = client
             return instance
 
     @property
     def type(self) -> int:
-        return self._type
+        return getattr(self, '_type', None)
 
     @property
     def resource_pointers(self) -> list:
-        return self._resource_pointers
+        return getattr(self, '_resource_pointers', None)
 
     @property
     def name(self) -> list:
-        return self._name
+        return getattr(self, '_name', None)
 
     @property
     def id(self) -> list:
-        return self._id
+        return getattr(self, '_id', None)
 
     @property
     def house_id(self) -> list:
-        return self._house_id
+        return getattr(self, '_house_id', None)
 
     @property
     def position(self) -> int:
-        return self._position
+        return getattr(self, '_position', None)
 
     @property
     def house(self) -> int:
-        return self._house
+        return getattr(self, '_house', None)

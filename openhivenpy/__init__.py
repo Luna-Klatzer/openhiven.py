@@ -40,7 +40,7 @@ from openhivenpy.settings import load_env
 # Loading the environment
 load_env()
 
-from . import exception
+from . import exceptions
 from . import utils
 from . import types
 from . import events

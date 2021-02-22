@@ -31,7 +31,7 @@ from .websocket import *
 from .http import *
 from .messagebroker import *
 from .. import load_env, utils
-from ..exception import RestartSessionError, WebSocketClosedError, WebSocketFailedError
+from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError
 
 import sys
 import logging

@@ -11,7 +11,7 @@ import typing
 __all__ = ['HTTP']
 
 from .. import utils
-from ..exception import HTTPError, SessionCreateError
+from ..exceptions import HTTPError, SessionCreateError
 
 logger = logging.getLogger(__name__)
 

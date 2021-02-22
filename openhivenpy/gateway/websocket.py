@@ -8,7 +8,7 @@ import aiohttp
 from enum import IntEnum
 from yarl import URL
 
-from ..exception import RestartSessionError, SessionCreateError, WebSocketClosedError
+from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError
 from .messagebroker import MessageBroker
 
 __all__ = ['HivenWebSocket']
@@ -213,18 +213,18 @@ class HivenWebSocket:
         for r in data.get('private_rooms', []):
             if int(r['type']) == 1:
                 r['type'] = 'single'
-                self.client.storage['scope']['rooms']['private']['single'][r['id']] = r
+                self.client.storage['rooms']['private']['single'][r['id']] = r
 
             elif int(r['type']) == 2:
                 r['type'] = 'single'
-                self.client.storage['scope']['rooms']['private']['multi'][r['id']] = r
+                self.client.storage['rooms']['private']['multi'][r['id']] = r
 
         additional_events = []
-        while len(house_memberships) != len(self.client.storage['scope']['houses']):
+        while len(house_memberships) != len(self.client.storage['houses']):
             event, data, msg = await self.wait_for_event(handler=self.received_init_event)
             if msg:
                 if event == "HOUSE_JOIN":
-                    self.client.storage.add_house(data)
+                    self.client.storage.add_or_update_house(data)
 
                 else:
                     additional_events.append(msg)

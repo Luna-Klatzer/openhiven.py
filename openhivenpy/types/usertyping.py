@@ -1,48 +1,21 @@
 import datetime
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+import types
+import typing
+
+import fastjsonschema
 
 from . import HivenObject
 from .. import utils
-from ..exception import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['UserTyping']
 
 
-class UserTypingSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    author = fields.Raw(required=True)
-    room = fields.Raw(required=True)
-    house = fields.Raw(allow_none=True)
-    author_id = fields.Int(required=True)
-    house_id = fields.Int(allow_none=True)
-    room_id = fields.Int(required=True)
-    timestamp = fields.Raw(required=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new UserTyping Object
-        """
-        return UserTyping(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = UserTypingSchema()
-
-
 class UserTyping(HivenObject):
-    """
-    Represents a Hiven User Typing in a room
-    """
+    """ Represents a Hiven User Typing in a room """
     def __init__(self, **kwargs):
         self._author = kwargs.get('author')
         self._room = kwargs.get('room')
@@ -62,20 +35,19 @@ class UserTyping(HivenObject):
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        user,
-                        room,
-                        house):
+    async def from_dict(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
         """
         Creates an instance of the Relationship Class with the passed data
 
+        ---
+
+        Represent typing event and therefore needs its attribute passed to be used
+
         :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param user: The user typing
+        :param client: Client used for accessing the cache
+        :param user: The user that is typing
         :param room: The room where the user is typing
-        :param house: The house if the room is a house-room else private_room
+        :param house: The house where the user is typing [Optional]
         :return: The newly constructed Relationship Instance
         """
         try:
@@ -93,48 +65,43 @@ class UserTyping(HivenObject):
             else:
                 data['timestamp'] = timestamp
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise InvalidPassedDataError(data=data)
+            instance = cls(**data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
                                 suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                      f"{sys.exc_info()[0].__name__}: {e}!")
+            raise InitializationError(
+                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
+            instance._client = client
             return instance
 
     @property
     def timestamp(self) -> datetime.datetime:
-        return self._timestamp
+        return getattr(self, '_timestamp', None)
 
     @property
     def author(self):
-        return self._author
+        return getattr(self, '_author', None)
 
     @property
     def house(self):
-        return self._house
+        return getattr(self, '_house', None)
 
     @property
     def room(self):
-        return self._room
+        return getattr(self, '_room', None)
 
     @property
     def author_id(self):
-        return self._author_id
+        return getattr(self, '_author_id', None)
 
     @property
     def house_id(self):
-        return self._house_id
+        return getattr(self, '_house_id', None)
 
     @property
     def room_id(self):
-        return self._room_id
+        return getattr(self, '_room_id', None)
