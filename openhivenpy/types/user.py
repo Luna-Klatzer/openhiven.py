@@ -22,7 +22,12 @@ class LazyUser(HivenObject):
         'properties': {
             'username': {'type': 'string'},
             'name': {'type': 'string'},
-            'id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
             'user_flags': {
                 'anyOf': [
                     {'type': 'string'},
@@ -221,6 +226,7 @@ class User(LazyUser):
                 'default': None
             },
         },
+        'additionalProperties': False,
         'required': [*LazyUser.schema['required']]
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

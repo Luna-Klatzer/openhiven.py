@@ -28,6 +28,7 @@ class Context(HivenObject):
                 ]
             },
         },
+        'additionalProperties': False,
         'required': ['room', 'author', 'created_at']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

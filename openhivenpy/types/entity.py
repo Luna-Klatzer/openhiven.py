@@ -18,14 +18,32 @@ class Entity(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'name': {'type': 'string'},
             'type': {'type': 'integer', 'default': 1},
-            'resource_pointers': {'type': 'array', 'default': []},
-            'house_id': {'type': 'string'},
+            'resource_pointers': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'array'},
+                    {'type': 'null'},
+                ],
+                'default': []
+            },
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'position': {'type': 'integer'}
         },
-        'required': ['id', 'name', 'house_id', 'position', 'resource_pointers']
+        'additionalProperties': False,
+        'required': ['id', 'name', 'position', 'resource_pointers']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
@@ -69,7 +87,7 @@ class Entity(HivenObject):
         :return: The modified dictionary
         """
         if data.get('house_id') is None and data.get('house'):
-            house = data['house']
+            house = data.pop('house')
             if type(house) is dict:
                 house = house.get('id')
             elif isinstance(house, HivenObject):

@@ -33,6 +33,7 @@ class Mention(HivenObject):
                 ],
             },
         },
+        'additionalProperties': False,
         'required': ['timestamp', 'user', 'author']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

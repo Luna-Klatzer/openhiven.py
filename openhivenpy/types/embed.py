@@ -30,6 +30,7 @@ class Embed(HivenObject):
                 'default': None
             }
         },
+        'additionalProperties': False,
         'required': ['type', 'title']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

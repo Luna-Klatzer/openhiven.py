@@ -22,17 +22,30 @@ class PrivateGroupRoom(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {'type': 'string'},
-            'last_message_id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                ]
+            },
+            'last_message_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'},
+                ],
+                'default': None
+            },
             'recipients': {
                 'anyOf': [
                     {'type': 'object'},
+                    {'type': 'array'},
                     {'type': 'null'}
                 ],
                 'default': {},
             },
-            'name': {'type': 'string'},
-            'description': {'type': 'string'},
+            'name': {'default': None},
+            'description': {'default': None},
             'emoji': {
                 'anyOf': [
                     {'type': 'object'},
@@ -40,8 +53,28 @@ class PrivateGroupRoom(HivenObject):
                 ],
                 'default': None
             },
-            'type': {'type': 'string'},
+            'type': {'type': 'integer'},
+            'permission_overrides': {'default': None},
+            'default_permission_override': {'default': None},
+            'position': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'owner_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'house_id': {'default': None}
         },
+        'additionalProperties': False,
         'required': ['id', 'recipients', 'type']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
@@ -90,7 +123,10 @@ class PrivateGroupRoom(HivenObject):
         data['id'] = int(data['id'])
         data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
         data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
-        data['name'] = f"Private chat with {data['recipient']['name']}"
+        data['name'] = f"Private chat with {data['recipients'][0]['name']}"
+        if type(data.get('recipients')) is list:
+            data['recipients'] = [i['id'] for i in data['recipients']]
+
         return data
 
     @classmethod
@@ -109,9 +145,9 @@ class PrivateGroupRoom(HivenObject):
         """
         try:
             _recipients = []
-            for _ in data.get("recipients"):
+            for id_ in data.get("recipients"):
                 _recipients.append(await module_user.User.from_dict(
-                    client.storage['users'][_['id']], client
+                    client.storage['users'][id_], client
                 ))
 
             data['recipients'] = _recipients
@@ -220,37 +256,10 @@ class PrivateGroupRoom(HivenObject):
 
 class PrivateRoom(HivenObject):
     """ Represents a private chat room with a user """
-    schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'last_message_id': {'type': 'string'},
-            'recipients': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': {},
-            },
-            'name': {'type': 'string'},
-            'description': {'type': 'string'},
-            'emoji': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'type': {'type': 'string'},
-        },
-        'required': ['id', 'recipients', 'type']
-    }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
-
     @classmethod
     def validate(cls, data, *args, **kwargs):
         try:
-            return cls.json_validator(data, *args, **kwargs)
+            return PrivateGroupRoom.json_validator(data, *args, **kwargs)
         except Exception as e:
             utils.log_validation_traceback(cls, data, e)
             raise
@@ -289,9 +298,9 @@ class PrivateRoom(HivenObject):
         """
         data = cls.validate(data)
         data['id'] = int(data['id'])
-        data['recipient'] = data.pop('recipients')[0]
+        data['name'] = f"Private chat with {data['recipients'][0]['name']}"
+        data['recipient'] = data.pop('recipients')[0]['id']
         data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
-        data['name'] = f"Private chat with {data['recipient']['name']}"
         return data
 
     @classmethod

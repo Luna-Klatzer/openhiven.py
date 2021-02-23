@@ -28,7 +28,12 @@ class LazyHouse(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'name': {'type': 'string'},
             'icon': {
                 'anyOf': [
@@ -36,10 +41,17 @@ class LazyHouse(HivenObject):
                     {'type': 'null'}
                 ],
             },
-            'owner_id': {'type': 'string'},
+            'owner_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
+            'owner': {'default': None},
             'rooms': {
                 'anyOf': [
                     {'type': 'object'},
+                    {'type': 'array'},
                     {'type': 'null'}
                 ],
                 'default': {}
@@ -50,8 +62,16 @@ class LazyHouse(HivenObject):
                     {'type': 'null'}
                 ],
             },
+            'client_member': {
+                'anyOf': [
+                    {'type': 'integer'},
+                    {'type': 'string'},
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ],
+            },
         },
-        'required': ['id', 'name', 'owner_id', 'id', 'type']
+        'required': ['id', 'name', 'owner_id']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
@@ -74,6 +94,13 @@ class LazyHouse(HivenObject):
     def __str__(self):
         return self.name
 
+    @property
+    def raw(self) -> typing.Union[dict, None]:
+        if getattr(self, '_client') is not None:
+            return self._client.storage['houses'][self.id]
+        else:
+            return None
+
     @classmethod
     def form_object(cls, data: dict) -> dict:
         """
@@ -83,6 +110,7 @@ class LazyHouse(HivenObject):
         ---
 
         Does NOT contain other objects and only their ids!
+        Only excluded for member objects which are unique in every house
 
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
@@ -90,6 +118,17 @@ class LazyHouse(HivenObject):
         data = cls.validate(data)
         data['id'] = int(data['id'])
         data['owner_id'] = int(data['id'])
+        if type(data.get('members')) is list:
+            data['members'] = {m['user_id'] if m.get('user_id') else m.get('user').get('id'):
+                               utils.update_and_return(m, {
+                                   'user': m['user_id'] if m.get('user_id') else m.get('user').get('id')
+                               })
+                               for m in data['members']}
+        if type(data.get('rooms')) is list:
+            data['rooms'] = [i['id'] for i in data['rooms']]
+        if type(data.get('entities')) is list:
+            data['entities'] = [i['id'] for i in data['entities']]
+
         return data
 
     @classmethod
@@ -154,17 +193,23 @@ class House(LazyHouse):
             'entities': {
                 'anyOf': [
                     {'type': 'object'},
+                    {'type': 'array'},
                     {'type': 'null'}
                 ],
                 'default': {}
             },
             'members': {
-                'type': 'object',
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'array'},
+                    {'type': 'null'}
+                ],
                 'default': {}
             },
             'roles': {
                 'anyOf': [
                     {'type': 'object'},
+                    {'type': 'array'},
                     {'type': 'null'}
                 ],
                 'default': {},
@@ -184,6 +229,7 @@ class House(LazyHouse):
                 'default': None,
             }
         },
+        'additionalProperties': False,
         'required': [*LazyHouse.schema['required'], 'entities', 'members', 'roles']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
@@ -215,13 +261,6 @@ class House(LazyHouse):
         ]
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    @property
-    def raw(self) -> typing.Union[dict, None]:
-        if getattr(self, '_client') is not None:
-            return self._client.storage['houses'][self.id]
-        else:
-            return None
-
     @classmethod
     def form_object(cls, data: dict) -> dict:
         """
@@ -235,9 +274,9 @@ class House(LazyHouse):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data = LazyHouse.validate(data)
-        data['client_member'] = None
-        data['owner'] = None
+        data = cls.validate(data)
+        data = LazyHouse.form_object(data)
+        data['owner'] = utils.convert_value(int, data.get('owner_id'))
         data['default_permissions'] = data.get('default_permissions')
         return data
 

@@ -32,11 +32,21 @@ class Room(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {'type': 'string'},
-            'name': {'type': 'object'},
-            'house_id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
+            'name': {'type': 'string'},
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
             'position': {'type': 'integer'},
-            'type': {'type': 'string'},
+            'type': {'type': 'integer'},
             'emoji': {
                 'anyOf': [
                     {'type': 'object'},
@@ -54,6 +64,7 @@ class Room(HivenObject):
             'last_message_id': {
                 'anyOf': [
                     {'type': 'string'},
+                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -61,10 +72,23 @@ class Room(HivenObject):
             'house': {
                 'anyOf': [
                     {'type': 'string'},
+                    {'type': 'object'},
                     {'type': 'null'}
                 ],
-            }
+            },
+            'permission_overrides': {'default': None},
+            'default_permission_override': {'default': None},
+            'recipients': {'default': None},
+            'owner_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
         },
+        'additionalProperties': False,
         'required': ['id', 'name', 'house_id', 'type']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
@@ -276,8 +300,6 @@ class Room(HivenObject):
                     if raw_data:
                         author_data = raw_data.get('data')
                         if author_data:
-                            author = utils.get(self.house.members,
-                                               id=utils.convert_value(int, author_data.get('room_id')))
                             msg = await d.Message.from_dict(d, self._client)
                             messages_.append(msg)
                         else:

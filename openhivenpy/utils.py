@@ -144,7 +144,10 @@ def convert_value(dtype: typing.Any,
     """
     try:
         if value is None:
-            return default
+            if default != 'raise_exc':
+                return default
+            else:
+                return None
         return dtype(value)
 
     except Exception:
@@ -168,3 +171,15 @@ def convertible(dtype: typing.Any, value: typing.Any) -> bool:
         return False
     else:
         return True
+
+def update_and_return(dictionary: dict, data: dict) -> dict:
+    """
+    Utilises the standard dictionary .update function but instead of
+    returning None it will return the updated dictionary.
+
+    :param dictionary: The dictionary that should be updated
+    :param data: The data in dict format that should be used for the update
+    :return: The updated dictionary
+    """
+    dictionary.update(data)
+    return dictionary

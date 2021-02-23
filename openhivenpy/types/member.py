@@ -21,17 +21,29 @@ class Member(user.User):
         'type': 'object',
         'properties': {
             **user.User.schema['properties'],
-            'user_id': {'type': 'string'},
-            'house_id': {'type': 'string'},
+            'user_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
+            'house_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'joined_at': {'type': 'string'},
             'roles': {
                 'anyOf': [
                     {'type': 'object'},
+                    {'type': 'array'},
                     {'type': 'null'}
                 ],
                 'default': {},
             }
         },
+        'additionalProperties': False,
         'required': [*user.User.schema['required'], 'user_id', 'house_id', 'joined_at']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

@@ -40,6 +40,7 @@ class Invite(HivenObject):
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
+                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -59,6 +60,7 @@ class Invite(HivenObject):
                 'default': None
             },
         },
+        'additionalProperties': False,
         'required': []
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

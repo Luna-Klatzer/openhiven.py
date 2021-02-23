@@ -36,13 +36,18 @@ class Relationship(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'user_id': {'type': 'string'},
+            'user_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
             'user': {'type': 'object'},
-            'id': {'type': 'string'},
             'type': {'type': 'integer'},
             'last_updated_at': {'type': 'string'}
         },
-        'required': ['user', 'id', 'type']
+        'additionalProperties': False,
+        'required': ['user_id', 'type']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
@@ -58,7 +63,6 @@ class Relationship(HivenObject):
         self._user_id = kwargs.get('user_id')
         self._user = kwargs.get('user')
         self._type = kwargs.get('type')
-        self._id = kwargs.get('id')
         self._last_updated_at = kwargs.get('last_updated_at')
 
     def __repr__(self) -> str:
@@ -85,9 +89,8 @@ class Relationship(HivenObject):
         """
         data = cls.validate(data)
         data['type'] = utils.convert_value(int, data.get('type'))
-        data['id'] = utils.convert_value(int, data.get('id'))
-        data['recipient_id'] = utils.convert_value(int, data.get('recipient_id'))
-        data['user'] = utils.convert_value(int, data['user']['id'])
+        data['user_id'] = utils.convert_value(int, data.get('user_id'))
+        data['user'] = utils.convert_value(int, data.pop('user')['id'])
         return data
 
     @classmethod

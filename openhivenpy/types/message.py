@@ -24,7 +24,12 @@ class DeletedMessage(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'message_id': {'type': 'string'},
+            'message_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
@@ -32,8 +37,14 @@ class DeletedMessage(HivenObject):
                 ],
                 'default': None
             },
-            'room_id': {'type': 'string'}
+            'room_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
         },
+        'additionalProperties': False,
         'required': ['message_id', 'room_id']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
@@ -121,9 +132,19 @@ class Message(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {'type': 'string'},
+            'id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'author': {'type': 'object'},
-            'author_id': {'type': 'string'},
+            'author_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ]
+            },
             'attachment': {
                 'anyOf': [
                     {'type': 'object'},
@@ -155,6 +176,7 @@ class Message(HivenObject):
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
+                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -162,9 +184,8 @@ class Message(HivenObject):
             'room_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
+                    {'type': 'integer'},
+                ]
             },
             'embed': {
                 'anyOf': [
@@ -183,12 +204,14 @@ class Message(HivenObject):
             'device_id': {
                 'anyOf': [
                     {'type': 'string'},
+                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
             },
             'exploding_age': {'default': None}
         },
+        'additionalProperties': False,
         'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)

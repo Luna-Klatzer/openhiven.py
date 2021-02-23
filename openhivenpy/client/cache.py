@@ -14,12 +14,12 @@ class ClientCache(dict):
     Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
     functions to interact with the Client cache more easily and use functions for better readability.
     """
-
     def __init__(self, token: str, log_ws_output: bool, *args, **kwargs):
         super(ClientCache, self).__init__(*args, **kwargs)
         self.update({
             'token': token,
             'log_ws_output': log_ws_output,
+            'client_user': dict(),
             'houses': dict(),
             'users': dict(),
             'rooms': {
@@ -29,46 +29,84 @@ class ClientCache(dict):
                 },
                 'house': dict()
             },
+            'entities': dict(),
             'relationships': dict(),
             'house_memberships': dict(),
             'house_ids': list(),
             'settings': dict(),
             'read_state': dict()
         })
-        self['client_user'] = self.update_client_user({})
+
+    def ready(self):
+        if self['client_user']:
+            return True
+        else:
+            raise ValueError("Data Updates require a initialised Hiven Client!")
+
+    def update_all(self, data: dict) -> dict:
+        """
+        Updates based on the data the main cache for the Client
+        :return: The updated cache itself
+        """
+        self['house_memberships'] = data.get('house_memberships', {})
+        self['house_ids'] = data.get('house_ids', [])
+        self['settings'] = data.get('settings', {})
+        self['read_state'] = data.get('read_state', {})
+
+        for r in data.get('private_rooms', []):
+            self.add_or_update_private_room(r)
+
+        for key, data in data.get('relationships', []).items():
+            self.add_or_update_relationship(data)
+
+        return self
 
     def update_client_user(self, data: dict):
-        """ Updating the Client Cache Data from the passed data dict """
-        self['client_user'] = {
-            "id": data.get('id', None),
-            "name": data.get('name', None),
-            "username": data.get('username', None),
-            "icon": data.get('icon', None),
-            "header": data.get('header', None),
-            "user_flags": data.get('user_flags', None),
-            "bot": data.get('bot', None),
-            "location": data.get('location', None),
-            "website": data.get('website', None),
-            "bio": data.get('bio', None),
-            "email": data.get('email', None),
-            "email_verified": data.get('email_verified', None),
-            "mfa_enabled": data.get('mfa_enabled', None)
-        }
-        if self['client_user'].get('id') is not None:
-            self['users'][data['id']] = self['client_user']
-        return self['client_user']
+        """
+        Updating the Client Cache Data from the passed data dict
+        :return: The validated data using `form_object` of the User class
+        """
+        client_user = types.User.form_object(data)
+        self['client_user'].update(client_user)
+        if self['users'].get(str(data['id'])) is not None:
+            self['users'][str(data['id'])].update(client_user)
+        else:
+            self['users'][str(data['id'])] = client_user
+
+        return client_user
 
     def add_or_update_house(self, data: dict):
-        """ Adds a new house to the cache and updates the storage appropriately """
+        """
+        Adds or Updates a house to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the House class
+        """
+        self.ready()
         try:
-            self['houses'][data['id']] = data
+            id_ = data['id']
             for room in data['rooms']:
-                self['rooms']['house'][room['id']] = room
+                room['house_id'] = id_
+                room = types.Room.form_object(room)
+                self.add_or_update_room(room)
 
             for member in data['members']:
-                self.add_or_update_user(member['user'])
+                member['house_id'] = id_
+                user = types.User.form_object(member['user'])
 
-            return
+                self.add_or_update_user(user)
+
+            for entity in data['entities']:
+                entity['house_id'] = id_
+                entity = types.Entity.form_object(entity)
+                self.add_or_update_entity(entity)
+
+            data = types.House.form_object(data)
+            data['client_member'] = data['members'][self['client_user']['id']]
+            if self['houses'].get(id_) is None:
+                self['houses'][id_] = data
+            else:
+                self['houses'][id_].update(data)
+
+            return data
 
         except Exception as e:
             utils.log_traceback(
@@ -78,7 +116,11 @@ class ClientCache(dict):
             raise
 
     def add_or_update_user(self, data: dict):
-        """ Adds a new user to the cache and updates the storage appropriately """
+        """
+        Adds or Updates a user to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the User class
+        """
+        self.ready()
         try:
             id_ = data['id']
             data = types.User.form_object(data)
@@ -86,7 +128,7 @@ class ClientCache(dict):
                 self['users'][id_] = data
             else:
                 self['users'][id_].update(data)
-            return
+            return data
 
         except Exception as e:
             utils.log_traceback(
@@ -96,7 +138,11 @@ class ClientCache(dict):
             raise
 
     def add_or_update_room(self, data: dict):
-        """ Adds a new room to the cache and updates the storage appropriately """
+        """
+        Adds or Updates a room to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the Room class
+        """
+        self.ready()
         try:
             id_ = data['id']
             data = types.Room.form_object(data)
@@ -104,7 +150,29 @@ class ClientCache(dict):
                 self['rooms']['house'][id_] = data
             else:
                 self['rooms']['house'][id_].update(data)
-            return
+            return data
+
+        except Exception as e:
+            utils.log_traceback(
+                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
+                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise
+
+    def add_or_update_entity(self, data: dict):
+        """
+        Adds or Updates a entity to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the Entity class
+        """
+        self.ready()
+        try:
+            id_ = data['id']
+            data = types.Entity.form_object(data)
+            if self['entities'].get(id_) is None:
+                self['entities'][id_] = data
+            else:
+                self['entities'][id_].update(data)
+            return data
 
         except Exception as e:
             utils.log_traceback(
@@ -114,7 +182,11 @@ class ClientCache(dict):
             raise
 
     def add_or_update_private_room(self, data: dict):
-        """ Adds a new private room to the cache and updates the storage appropriately """
+        """
+        Adds or Updates a private room to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the Private_*Room class
+        """
+        self.ready()
         try:
             id_ = data['id']
             if int(data['type']) == 1:
@@ -132,6 +204,29 @@ class ClientCache(dict):
                     self['rooms']['private']['multi'][id_] = data
                 else:
                     self['rooms']['private']['multi'][id_].update(data)
+
+            return
+
+        except Exception as e:
+            utils.log_traceback(
+                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
+                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise
+
+    def add_or_update_relationship(self, data: dict):
+        """
+        Adds or Updates a client relationship to the cache and updates the storage appropriately
+        :return: The validated data using `form_object` of the Relationship class
+        """
+        self.ready()
+        try:
+            id_ = data['user_id']
+            data = types.Relationship.form_object(data)
+            if self['relationships'].get(id_) is None:
+                self['relationships'][id_] = data
+            else:
+                self['relationships'][id_].update(data)
 
             return
 

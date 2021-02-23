@@ -27,6 +27,7 @@ class Attachment(HivenObject):
                 'default': {}
             },
         },
+        'additionalProperties': False,
         'required': ['filename', 'media_url']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
@@ -60,7 +61,7 @@ class Attachment(HivenObject):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data['raw'] = {**data, **data.get('raw', {})}
+        data['raw'] = {**data.pop('raw', {}), **data}
         return cls.validate(data)
 
     @classmethod

@@ -205,19 +205,7 @@ class HivenWebSocket:
         """
         data = msg['d']
         house_memberships = data.get('house_memberships', {})
-        self.client.storage['house_memberships'] = data.get('house_memberships', {})
-        self.client.storage['house_ids'] = data.get('house_ids', [])
-        self.client.storage['settings'] = data.get('settings', {})
-        self.client.storage['read_state'] = data.get('read_state', {})
-
-        for r in data.get('private_rooms', []):
-            if int(r['type']) == 1:
-                r['type'] = 'single'
-                self.client.storage['rooms']['private']['single'][r['id']] = r
-
-            elif int(r['type']) == 2:
-                r['type'] = 'single'
-                self.client.storage['rooms']['private']['multi'][r['id']] = r
+        self.client.storage.update_all(data)
 
         additional_events = []
         while len(house_memberships) != len(self.client.storage['houses']):
