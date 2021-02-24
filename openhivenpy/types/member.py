@@ -48,14 +48,6 @@ class Member(user.User):
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
-
     def __init__(self, **kwargs):
         self._user_id = kwargs.get('user_id')
         self._house_id = kwargs.get('house_id')

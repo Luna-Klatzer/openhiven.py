@@ -27,7 +27,53 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .hiven_object import HivenObject
+from .. import utils
+
+
+__all__ = [
+    'Room',
+    'LazyHouse', 'House',
+    'PrivateRoom', 'PrivateGroupRoom',
+    'LazyUser', 'User',
+    'Message', 'DeletedMessage',
+    'Context',
+    'Member',
+    'UserTyping',
+    'Attachment',
+    'Feed',
+    'Entity',
+    'Invite',
+    'Mention',
+    'Embed',
+    'Relationship'
+]
+
+
+class HivenObject:
+    """ Base Class for all Hiven Objects """
+    _client = None
+
+    @classmethod
+    def validate(cls, data, *args, **kwargs):
+        try:
+            return getattr(cls, 'json_validator')(data, *args, **kwargs)
+        except Exception as e:
+            utils.log_validation_traceback(cls, data, e)
+            raise
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        # Automatically creating a list of tuples for all values
+        info = [
+            (attribute.replace('_', ''), value) if attribute != '_client' else None
+            for attribute, value in self.__dict__.items()
+        ]
+
+        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t if t is not None else '' for t in info))
+
+
 from .room import *
 from .house import *
 from .private_room import *
@@ -42,5 +88,4 @@ from .entity import *
 from .invite import *
 from .mention import *
 from .embed import *
-from .usertyping import *
 from .relationship import *

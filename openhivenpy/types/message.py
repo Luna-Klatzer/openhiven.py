@@ -49,14 +49,6 @@ class DeletedMessage(HivenObject):
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
-
     def __init__(self, **kwargs):
         self._message_id = utils.convert_value(int, kwargs.get('message_id'))
         self._house_id = utils.convert_value(int, kwargs.get('house_id'))
@@ -215,14 +207,6 @@ class Message(HivenObject):
         'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
-
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
 
     def __init__(self, **kwargs):
         self._id = kwargs.get('id')

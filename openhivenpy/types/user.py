@@ -63,14 +63,6 @@ class LazyUser(HivenObject):
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
-
     def __init__(self, **kwargs):
         self._username = kwargs.get('username')
         self._name = kwargs.get('name')
@@ -230,14 +222,6 @@ class User(LazyUser):
         'required': [*LazyUser.schema['required']]
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
-
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

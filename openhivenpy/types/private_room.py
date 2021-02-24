@@ -79,14 +79,6 @@ class PrivateGroupRoom(HivenObject):
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        try:
-            return cls.json_validator(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
-            raise
-
     def __init__(self, **kwargs):
         self._id = kwargs.get('id')
         self._last_message_id = kwargs.get('last_message_id')
