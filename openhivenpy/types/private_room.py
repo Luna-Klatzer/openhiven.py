@@ -22,16 +22,10 @@ class PrivateGroupRoom(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'},
-                ]
-            },
+            'id': {'type': 'string'},
             'last_message_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'},
                 ],
                 'default': None
@@ -67,7 +61,6 @@ class PrivateGroupRoom(HivenObject):
             'owner_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -112,9 +105,6 @@ class PrivateGroupRoom(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['id'] = int(data['id'])
-        data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
-        data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
         data['name'] = f"Private chat with {data['recipients'][0]['name']}"
         if type(data.get('recipients')) is list:
             data['recipients'] = [i['id'] for i in data['recipients']]
@@ -168,11 +158,11 @@ class PrivateGroupRoom(HivenObject):
         return getattr(self, '_recipients', None)
     
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
-    def last_message_id(self) -> int:
+    def last_message_id(self) -> str:
         return getattr(self, '_last_message_id', None)
         
     @property
@@ -289,10 +279,8 @@ class PrivateRoom(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['id'] = int(data['id'])
         data['name'] = f"Private chat with {data['recipients'][0]['name']}"
         data['recipient'] = data.pop('recipients')[0]['id']
-        data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
         return data
 
     @classmethod
@@ -332,7 +320,7 @@ class PrivateRoom(HivenObject):
         return getattr(self, '_recipient', None)
     
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
@@ -344,7 +332,7 @@ class PrivateRoom(HivenObject):
         return getattr(self, '_emoji', None)
 
     @property
-    def last_message_id(self) -> int:
+    def last_message_id(self) -> str:
         return getattr(self, '_last_message_id', None)
         
     @property

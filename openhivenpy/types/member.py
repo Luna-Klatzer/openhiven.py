@@ -21,18 +21,8 @@ class Member(user.User):
         'type': 'object',
         'properties': {
             **user.User.schema['properties'],
-            'user_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'user_id': {'type': 'string'},
+            'house_id': {'type': 'string'},
             'joined_at': {'type': 'string'},
             'roles': {
                 'anyOf': [
@@ -83,13 +73,11 @@ class Member(user.User):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['id'] = int(data['id'])
-        data['house_id'] = int(data['house_id'])
 
-        if utils.convertible(int, data.get('house_id')):
-            data['house_id'] = int(data.get('house_id'))
+        if type(data.get('house_id')):
+            data['house_id'] = data.get('house_id')
         else:
-            data['house_id'] = data['house'].id
+            data['house_id'] = getattr(data['house'], 'id')
         return data
 
     @classmethod
@@ -122,11 +110,11 @@ class Member(user.User):
             return instance
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_user_id', None)
 
     @property
-    def user_id(self) -> int:
+    def user_id(self) -> str:
         return getattr(self, '_user_id', None)
 
     @property
@@ -134,7 +122,7 @@ class Member(user.User):
         return getattr(self, '_joined_at', None)
 
     @property
-    def house_id(self) -> int:
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
 
     @property

@@ -7,7 +7,7 @@ import fastjsonschema
 
 from . import HivenObject
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['LazyUser', 'User']
@@ -22,12 +22,7 @@ class LazyUser(HivenObject):
         'properties': {
             'username': {'type': 'string'},
             'name': {'type': 'string'},
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ],
-            },
+            'id': {'type': 'string'},
             'user_flags': {
                 'anyOf': [
                     {'type': 'string'},
@@ -100,8 +95,6 @@ class LazyUser(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['id'] = int(data['id'])
-        data['owner_id'] = int(data['id'])
         return data
 
     @classmethod
@@ -141,7 +134,7 @@ class LazyUser(HivenObject):
         return getattr(self, '_name', None)
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
@@ -256,7 +249,11 @@ class User(LazyUser):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data = LazyUser.validate(data)
+        if type(data.get('bot')) is not bool:
+            pass
+        if type(data.get('user_flags')) is not int:
+            pass
+        data = LazyUser.form_object(data)
         return data
 
     @classmethod
@@ -269,8 +266,6 @@ class User(LazyUser):
         :return: The newly constructed User Instance
         """
         try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-
             instance = cls(**data)
 
         except Exception as e:

@@ -210,8 +210,9 @@ class UserClient(HivenClient):
             else:
                 raise TypeError(f"Expected User or int! Not {type(user)}")
 
-            resp = await self.http.post(endpoint=f"/relationships/@me/friend-requests",
-                                        json={'user_id': f'{user_id}'})
+            resp = await self.http.post(
+                endpoint=f"/relationships/@me/friend-requests", json={'user_id': f'{user_id}'}
+            )
 
             if resp.status < 300:
                 return True

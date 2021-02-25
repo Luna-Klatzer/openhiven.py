@@ -18,12 +18,7 @@ class Entity(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'id': {'type': 'string'},
             'name': {'type': 'string'},
             'type': {'type': 'integer', 'default': 1},
             'resource_pointers': {
@@ -34,12 +29,7 @@ class Entity(HivenObject):
                 ],
                 'default': []
             },
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'house_id': {'type': 'string'},
             'position': {'type': 'integer'}
         },
         'additionalProperties': False,
@@ -81,14 +71,14 @@ class Entity(HivenObject):
         if data.get('house_id') is None and data.get('house'):
             house = data.pop('house')
             if type(house) is dict:
-                house = house.get('id')
+                house_id = house.get('id')
             elif isinstance(house, HivenObject):
-                house = getattr(house, 'id')
-            data['house_id'] = house
+                house_id = getattr(house, 'id')
+            else:
+                raise InvalidPassedDataError("Missing house_id field in data", data)
+            data['house_id'] = house_id
 
         data = cls.validate(data)
-        data['id'] = int(data['id'])
-        data['house_id'] = int(data['house_id'])
         return data
 
     @classmethod

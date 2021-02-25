@@ -28,12 +28,7 @@ class LazyHouse(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'id': {'type': 'string'},
             'name': {'type': 'string'},
             'icon': {
                 'anyOf': [
@@ -41,12 +36,7 @@ class LazyHouse(HivenObject):
                     {'type': 'null'}
                 ],
             },
-            'owner_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'owner_id': {'type': 'string'},
             'owner': {'default': None},
             'rooms': {
                 'anyOf': [
@@ -108,8 +98,6 @@ class LazyHouse(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['id'] = int(data['id'])
-        data['owner_id'] = int(data['id'])
         if type(data.get('members')) is list:
             data['members'] = {m['user_id'] if m.get('user_id') else m.get('user').get('id'):
                                utils.update_and_return(m, {
@@ -153,12 +141,16 @@ class LazyHouse(HivenObject):
             return instance
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
     def name(self) -> str:
         return getattr(self, '_name', None)
+
+    @property
+    def type(self) -> int:
+        return getattr(self, '_type', None)
 
     @property
     def icon(self) -> typing.Union[str, None]:
@@ -168,7 +160,7 @@ class LazyHouse(HivenObject):
             return None
 
     @property
-    def owner_id(self) -> int:
+    def owner_id(self) -> str:
         return getattr(self, '_owner_id', None)
 
     @property
@@ -539,7 +531,7 @@ class House(LazyHouse):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return None
 
-    async def delete(self) -> typing.Union[int, None]:
+    async def delete(self) -> typing.Union[str, None]:
         """
         Deletes the house if permissions are sufficient!
         

@@ -36,13 +36,14 @@ class Relationship(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'user_id': {
+            'user_id': {'type': 'string'},
+            'user': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'}
+                    {'type': 'object'},
+                    {'type': 'null'}
                 ],
             },
-            'user': {'type': 'object'},
             'type': {'type': 'integer'},
             'last_updated_at': {'type': 'string'}
         },
@@ -80,9 +81,9 @@ class Relationship(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['type'] = utils.convert_value(int, data.get('type'))
-        data['user_id'] = utils.convert_value(int, data.get('user_id'))
-        data['user'] = utils.convert_value(int, data.pop('user')['id'])
+        data['type'] = data.get('type')
+        data['user_id'] = data.get('user_id')
+        data['user'] = data.pop('user')['id']
         return data
 
     @classmethod
@@ -127,9 +128,9 @@ class Relationship(HivenObject):
         return getattr(self, '_type', None)
 
     @property
-    def user_id(self) -> int:
+    def user_id(self) -> str:
         return getattr(self, '_user_id', None)
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)

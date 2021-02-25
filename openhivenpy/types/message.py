@@ -24,12 +24,7 @@ class DeletedMessage(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'message_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'message_id': {'type': 'string'},
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
@@ -37,12 +32,7 @@ class DeletedMessage(HivenObject):
                 ],
                 'default': None
             },
-            'room_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'room_id': {'type': 'string'}
         },
         'additionalProperties': False,
         'required': ['message_id', 'room_id']
@@ -71,9 +61,7 @@ class DeletedMessage(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['message_id'] = int(data['id'])
-        data['house_id'] = utils.convert_value(int, data['house_id'])
-        data['room_id'] = int(data['room_id'])
+        data['message_id'] = data['id']
         return data
 
     @classmethod
@@ -124,19 +112,9 @@ class Message(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'id': {'type': 'string'},
             'author': {'type': 'object'},
-            'author_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ]
-            },
+            'author_id': {'type': 'string'},
             'attachment': {
                 'anyOf': [
                     {'type': 'object'},
@@ -168,17 +146,11 @@ class Message(HivenObject):
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
             },
-            'room_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'},
-                ]
-            },
+            'room_id': {'type': 'string'},
             'embed': {
                 'anyOf': [
                     {'type': 'object'},
@@ -259,15 +231,11 @@ class Message(HivenObject):
         data['house'] = data['house']['id']
         data['room'] = data['room']['id']
         data['author'] = data['author']['id']
-        data['attachment'] = data.get('attachment')
-        data['content'] = data.get('content')
-        data['edited_at'] = data.get('edited_at')
         data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
         data['exploding'] = data.get('exploding')
         data['bucket'] = utils.convert_value(int, data.get('bucket'))
         data['device_id'] = utils.convert_value(int, data.get('device_id'))
         data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
-        data['author_id'] = utils.convert_value(int, data.get('author_id'))
 
         timestamp = data.get('timestamp')
         # Converting to seconds because it's in milliseconds
@@ -325,11 +293,11 @@ class Message(HivenObject):
             return instance
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
-    def author_id(self) -> int:
+    def author_id(self) -> str:
         return getattr(self, '_author_id', None)
 
     @property

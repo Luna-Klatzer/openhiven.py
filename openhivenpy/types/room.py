@@ -32,19 +32,9 @@ class Room(HivenObject):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ],
-            },
+            'id': {'type': 'string'},
             'name': {'type': 'string'},
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ],
-            },
+            'house_id': {'type': 'string'},
             'position': {'type': 'integer'},
             'type': {'type': 'integer'},
             'emoji': {
@@ -64,7 +54,6 @@ class Room(HivenObject):
             'last_message_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -82,7 +71,6 @@ class Room(HivenObject):
             'owner_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -130,10 +118,6 @@ class Room(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data['type'] = utils.convert_value(int, data.get('type'))
-        data['id'] = utils.convert_value(int, data.get('id'))
-        data['house_id'] = utils.convert_value(int, data.get('house_id'))
-        data['last_message_id'] = utils.convert_value(int, data['last_message_id'])
         return data
 
     @classmethod
@@ -167,7 +151,7 @@ class Room(HivenObject):
             return instance
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
@@ -175,7 +159,7 @@ class Room(HivenObject):
         return getattr(self, '_name', None)
 
     @property
-    def house_id(self) -> int:
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
 
     @property

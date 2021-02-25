@@ -40,7 +40,6 @@ class Invite(HivenObject):
             'house_id': {
                 'anyOf': [
                     {'type': 'string'},
-                    {'type': 'integer'},
                     {'type': 'null'}
                 ],
                 'default': None
