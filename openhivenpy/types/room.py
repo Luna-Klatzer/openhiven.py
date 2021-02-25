@@ -5,7 +5,7 @@ import types
 import typing
 import fastjsonschema
 
-from . import HivenObject
+from . import HivenObject, check_valid
 from . import message
 from . import house
 from .. import utils
@@ -105,6 +105,7 @@ class Room(HivenObject):
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

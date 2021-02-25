@@ -27,10 +27,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import typing
+import inspect
+from functools import wraps
+
+from ..exceptions import InitializationError
 from .. import utils
 
-
 __all__ = [
+    'check_valid',
     'Room',
     'LazyHouse', 'House',
     'PrivateRoom', 'PrivateGroupRoom',
@@ -47,6 +52,31 @@ __all__ = [
     'Embed',
     'Relationship'
 ]
+
+
+def check_valid(func_: typing.Callable = None):
+    """
+    Adds an additional try-except clause for logging and exception handling
+
+    :param func_: Function that should be wrapped
+    """
+
+    def decorator(func_: typing.Callable):
+        @wraps(func_)
+        def wrapper(*args, **kwargs):
+            if inspect.iscoroutinefunction(func_):
+                raise ValueError("Target of decorator must not be asynchronous!")
+            try:
+                return func_(*args, **kwargs)
+            except Exception as e:
+                raise InitializationError(f"Failed to initialise object due to {e.__class__.__name__}: {e}")
+
+        return wrapper  # func can still be used normally outside the event listening process
+
+    if func_ is None:
+        return decorator
+    else:
+        return decorator(func_)
 
 
 class HivenObject:

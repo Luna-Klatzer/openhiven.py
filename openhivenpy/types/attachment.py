@@ -4,7 +4,7 @@ import types
 
 import fastjsonschema
 
-from . import HivenObject
+from . import HivenObject, check_valid
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
@@ -41,6 +41,7 @@ class Attachment(HivenObject):
         self._raw = kwargs.get('raw')
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

@@ -4,7 +4,7 @@ import types
 import typing
 import fastjsonschema
 
-from . import HivenObject
+from . import HivenObject, check_valid
 from . import user
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
@@ -60,6 +60,7 @@ class Member(user.User):
         return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

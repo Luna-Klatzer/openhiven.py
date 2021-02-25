@@ -7,7 +7,7 @@ import typing
 
 import fastjsonschema
 
-from . import HivenObject
+from . import HivenObject, check_valid
 from . import user
 from . import mention
 from . import embed
@@ -48,6 +48,7 @@ class DeletedMessage(HivenObject):
         return f"Deleted message in room {self.room_id}"
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -216,6 +217,7 @@ class Message(HivenObject):
         return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

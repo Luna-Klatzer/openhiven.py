@@ -6,7 +6,7 @@ import typing
 import fastjsonschema
 
 from .. import utils
-from . import HivenObject
+from . import HivenObject, check_valid
 from . import user
 from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)

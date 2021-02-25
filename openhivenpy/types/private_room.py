@@ -5,7 +5,7 @@ import types
 import typing
 import fastjsonschema
 
-from . import HivenObject
+from . import HivenObject, check_valid
 from . import message
 from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
 from .. import utils
@@ -92,6 +92,7 @@ class PrivateGroupRoom(HivenObject):
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -266,6 +267,7 @@ class PrivateRoom(HivenObject):
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

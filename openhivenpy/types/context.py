@@ -4,7 +4,7 @@ import types
 import fastjsonschema
 
 from .. import utils
-from . import HivenObject
+from . import HivenObject, check_valid
 from ..exceptions import InvalidPassedDataError, InitializationError
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,7 @@ class Context(HivenObject):
         self._created_at = kwargs.get('created_at')
 
     @classmethod
+    @check_valid()
     def form_object(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

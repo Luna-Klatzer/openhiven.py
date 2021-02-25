@@ -27,7 +27,6 @@ import sys
 import inspect
 import logging
 import typing
-from functools import wraps
 
 from ..exceptions import UnknownEventError, ExpectedAsyncFunction
 from .. import utils
@@ -128,6 +127,9 @@ class SingleDispatchEventListener:
                 self._args = args
                 self._kwargs = kwargs
                 await self.coro(*args, **kwargs)
+            else:
+                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous!")
+
         except Exception as e:
             utils.log_traceback(
                 msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",
@@ -179,6 +181,8 @@ class MultiDispatchEventListener:
         try:
             if inspect.iscoroutinefunction(self.coro):
                 await self.coro(*args, **kwargs)
+            else:
+                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous!")
         except Exception as e:
             utils.log_traceback(
                 msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",
@@ -195,6 +199,7 @@ class HivenEventHandler:
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
         self._active_listeners = {}
+
         # List of available callable events that have parsers defined
         self._events = [
             'connection_start', 'init', 'ready', 'user_update',
@@ -213,7 +218,6 @@ class HivenEventHandler:
         # Regular functions will NOT be registered and only if they are async! This will avoid that errors are thrown
         # when trying to call the functions using 'await'
         for listener in inspect.getmembers(self, predicate=inspect.iscoroutinefunction):
-            # listener[0] => name
             func_name = listener[0].replace('on_', '')
             coro = listener[1]
             if func_name in self._events:
@@ -267,14 +271,10 @@ class HivenEventHandler:
         """
         def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
             if not inspect.iscoroutinefunction(coro):
-                raise ExpectedAsyncFunction("The decorated event_listener requires to be async!")
+                raise ExpectedAsyncFunction("Callable of the decorator target must be asynchronous!")
 
             if coro.__name__.replace('on_', '') not in self._events:
                 raise UnknownEventError("The passed event_listener was not found in the available events!")
-
-            @wraps(coro)
-            async def wrapper(*args, **kwargs):
-                return await coro(*args, **kwargs)
 
             func_name = coro.__name__.replace('on_', '')
             self.add_new_multi_event_listener(func_name, coro)

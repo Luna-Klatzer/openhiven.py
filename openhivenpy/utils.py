@@ -172,6 +172,7 @@ def convertible(dtype: typing.Any, value: typing.Any) -> bool:
     else:
         return True
 
+
 def update_and_return(dictionary: dict, data: dict) -> dict:
     """
     Utilises the standard dictionary .update function but instead of
