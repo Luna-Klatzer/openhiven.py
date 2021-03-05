@@ -50,7 +50,7 @@ class MessageBroker:
         :return: The fetched or newly created buffer instance
         """
         buffer = self.event_queues.get(event)
-        if buffer:
+        if buffer is not None:
             return buffer
         else:
             return self.create_buffer(event)

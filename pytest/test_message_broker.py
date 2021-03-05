@@ -40,8 +40,12 @@ class TestDynamicEventBuffer:
 
 
 class TestMessageBroker:
+    async def call(self, *args, **kwargs):
+        pass
+
     async def run(self):
         client = openhivenpy.HivenClient(token_)
+        client.add_new_multi_event_listener("ready", self.call)  # <== only for testing
         message_broker = openhivenpy.gateway.MessageBroker(client)
         buffer = message_broker.get_buffer("ready")
         buffer.add({})
@@ -61,7 +65,9 @@ class TestMessageBroker:
         message_broker = openhivenpy.gateway.MessageBroker(client)
         assert message_broker.running is False
 
-        dynamic_buffer = message_broker.create_buffer("ready")
+        dynamic_buffer = message_broker.get_buffer("ready")
+        fetched_buffer = message_broker.get_buffer("ready")
+        assert dynamic_buffer == fetched_buffer
         assert isinstance(dynamic_buffer, openhivenpy.gateway.DynamicEventBuffer)
         assert dynamic_buffer == message_broker.get_buffer("ready")
 
