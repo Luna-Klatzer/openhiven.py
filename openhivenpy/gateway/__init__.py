@@ -135,7 +135,7 @@ class Connection:
                     ws = await asyncio.wait_for(coro, 30)
                     self._ws = ws
                     await ws.send_auth()
-                    await asyncio.gather(ws.listening_loop(), ws.keep_alive.run())
+                    await asyncio.gather(ws.listening_loop(), ws.keep_alive.run(), ws.message_broker.run())
 
                 except RestartSessionError:
                     # Encountered an exception inside the receive process of the WebSocket and
@@ -174,15 +174,23 @@ class Connection:
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 
         :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
-                      code of event-listeners being stopped while performing actions.
+                      code of event-listeners being stopped while performing actions. If False the stopping will wait
+                      for all running event_listeners to finish
         """
         try:
             self._connection_status = "CLOSING"
             await self.ws.keep_alive.stop()
             await self.ws.socket.close()
-            self._connection_status = "CLOSED"
+            if force:
+                if self.ws.message_broker.running_loop:
+                    if self.ws.message_broker.running_loop.cancelled():
+                        self.ws.message_broker.running_loop.cancel()
 
-            # Additional closing for the workers will be added later
+            # Waiting until the message_broker is closed
+            while self.ws.message_broker.running:
+                await asyncio.sleep(.05)
+
+            self._connection_status = "CLOSED"
 
         except Exception as e:
             utils.log_traceback(

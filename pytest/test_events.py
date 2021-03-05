@@ -148,7 +148,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.dispatch('on_ready')
+            await client.dispatch('ready')
 
         async def run():
             await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))

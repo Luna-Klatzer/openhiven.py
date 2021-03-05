@@ -19,10 +19,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
 from .parsers import HivenParsers
 
 import asyncio
+from functools import wraps
 import sys
 import inspect
 import logging
@@ -198,10 +198,8 @@ class HivenEventHandler:
     """
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
-        self._active_listeners = {}
-
-        # List of available callable events that have parsers defined
-        self._events = [
+        self.active_listeners = {}
+        self.available_events = [
             'connection_start', 'init', 'ready', 'user_update',
             'house_join', 'house_remove', 'house_update', 'house_delete', 'house_delete', 'house_downtime',
             'room_create', 'room_update', 'room_delete',
@@ -220,13 +218,9 @@ class HivenEventHandler:
         for listener in inspect.getmembers(self, predicate=inspect.iscoroutinefunction):
             func_name = listener[0].replace('on_', '')
             coro = listener[1]
-            if func_name in self._events:
+            if func_name in self.available_events:
                 self.add_new_multi_event_listener(func_name, coro)
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
-
-    @property
-    def active_listeners(self) -> dict:
-        return getattr(self, '_active_listeners', {})
 
     async def dispatch(self, event_name: str, event_data: dict = {}, *args, **kwargs):
         """
@@ -234,14 +228,14 @@ class HivenEventHandler:
 
         ---
 
-        Will run all tasks before returning! Will be used in the
+        Will run all tasks before returning! Only supposed to be called in cases of special events!
 
         :param event_name: The name of the event that should be triggered
         :param event_data: The data of the received event
         :param args: Args that will be passed to the coroutines
         :param kwargs: Kwargs that will be passed to the coroutines
         """
-        events = self.active_listeners.get(event_name.replace('on_', ''))
+        events = self.active_listeners.get(event_name.lower().replace('on_', ''))
         if events:
             tasks = [e(event_data, *args, **kwargs) for e in events]
             await asyncio.gather(*tasks)
@@ -273,7 +267,7 @@ class HivenEventHandler:
             if not inspect.iscoroutinefunction(coro):
                 raise ExpectedAsyncFunction("Callable of the decorator target must be asynchronous!")
 
-            if coro.__name__.replace('on_', '') not in self._events:
+            if coro.__name__.replace('on_', '') not in self.available_events:
                 raise UnknownEventError("The passed event_listener was not found in the available events!")
 
             func_name = coro.__name__.replace('on_', '')
@@ -302,8 +296,7 @@ class HivenEventHandler:
         if self.active_listeners.get(event_name) is None:
             self.active_listeners[event_name] = []
 
-        listener = MultiDispatchEventListener(self, event_name, coro)
-        return listener
+        return MultiDispatchEventListener(self, event_name, coro)
 
     def add_new_single_event_listener(self,
                                       event_name: str,
@@ -320,5 +313,4 @@ class HivenEventHandler:
         if self.active_listeners.get(event_name) is None:
             self.active_listeners[event_name] = []
 
-        listener = SingleDispatchEventListener(self, event_name, coro)
-        return listener
+        return SingleDispatchEventListener(self, event_name, coro)

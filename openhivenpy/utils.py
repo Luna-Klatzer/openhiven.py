@@ -61,13 +61,11 @@ def log_traceback(level: typing.Union[str, None] = 'error',
     :param msg: Message for the logging. Only gets printed out if logging level was correctly set
     :param level: Logger level for the exception. If '' or None it will not use the logger module
     :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
-    :return: None
     """
     tb = traceback.format_tb(sys.exc_info()[2])
     if level is not None and level != '':
         log_level = getattr(logger, level)
         if callable(log_level):
-            # Creating the string that will be printed out
             tb_str = "".join(frame for frame in tb)
             # Fetches and prints the current traceback with the passed message
             log_level(f"{msg}\n{tb_str} {suffix if suffix else ''}\n")

@@ -50,9 +50,7 @@ class HTTPTraceback:
 
 
 class HTTP:
-    """
-    HTTP-Client for requests and interaction with the Hiven API
-    """
+    """ HTTP-Client for requests and interaction with the Hiven API """
     def __init__(self, client, *, host, api_version, loop):
         """
         :param client: The used HivenClient
@@ -205,9 +203,9 @@ class HTTP:
                     # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
                     # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
                     _timeout = aiohttp.ClientTimeout(total=None)
-
                     _headers = self.headers if _headers is None else _headers
                     url = f"{self.api_url.human_repr()}{_endpoint}"
+
                     async with self.session.request(
                         method=_method, url=url, headers=_headers, timeout=_timeout, json=_json, **_kwargs
                     ) as _resp:

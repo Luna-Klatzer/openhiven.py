@@ -27,11 +27,17 @@ BOT_TOKEN_LEN = utils.convert_value(int, os.getenv("BOT_TOKEN_LEN"))
 
 class HivenClient(HivenEventHandler):
     """ Main Class for connecting to Hiven and interacting with the API. """
-    def __init__(self, token: str, *, loop: asyncio.AbstractEventLoop = None, log_ws_output: bool = False):
+    def __init__(self,
+                 token: str,
+                 *,
+                 loop: asyncio.AbstractEventLoop = None,
+                 log_ws_output: bool = False,
+                 queuing: bool = False):
         self._token = token
         self._connection = Connection(self)
         self._loop = loop
         self._log_ws_output = log_ws_output
+        self._queuing = queuing
         self.storage = ClientCache(token, log_ws_output)
 
         if token is None or token == "":
@@ -73,6 +79,10 @@ class HivenClient(HivenEventHandler):
     @property
     def connection(self) -> Connection:
         return getattr(self, '_connection', None)
+
+    @property
+    def queuing(self) -> asyncio.AbstractEventLoop:
+        return getattr(self, '_queuing', None)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
@@ -123,6 +133,14 @@ class HivenClient(HivenEventHandler):
     @property
     def startup_time(self) -> int:
         return getattr(self.connection, 'startup_time', None)
+
+    @property
+    def message_broker(self):
+        return getattr(self.connection.ws, 'message_broker', None)
+
+    @property
+    def initialised(self):
+        return getattr(self.connection.ws, '_open', False)
 
     async def edit(self, **kwargs) -> bool:
         """

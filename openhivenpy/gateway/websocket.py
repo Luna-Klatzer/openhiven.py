@@ -51,18 +51,20 @@ class HivenWebSocket:
         self.parsers = None
         self.client = None
         self.endpoint = None
+        self.keep_alive = None
+        self.message_broker = None
+        self.log_ws_output = log_ws_output
         self._open = False
         self._ready = False
-        self.log_ws_output = log_ws_output
-
-        # Close code used to represent the status of the aiohttp websocket after it closed
-        self._close_code = None
         self._startup_time = None
         self._connection_start = None
         self._connection_status = "CLOSED"
         self._token = None
         self._heartbeat = None
         self._close_timeout = None
+
+        # Close code used to represent the status of the aiohttp websocket after it closed
+        self._close_code = None
 
     @classmethod
     async def create_from_client(cls,
@@ -84,7 +86,7 @@ class HivenWebSocket:
         ws._heartbeat = heartbeat
         ws._close_timeout = close_timeout
 
-        ws.message_broker = MessageBroker()
+        ws.message_broker = MessageBroker(client)
         ws.keep_alive = KeepAlive(ws)
 
         return ws
@@ -171,7 +173,7 @@ class HivenWebSocket:
         Will raise an exception if a close frame was received
         """
         msg = msg.json()
-        op, event, data = self._extract_event(msg)
+        op, event, data = self.extract_event(msg)
 
         if op == self.OPCode.CONNECTION_START:
             self._connection_start = time.time()
@@ -185,11 +187,7 @@ class HivenWebSocket:
                 await self.received_init(msg, self.client)
                 self._ready = True
             else:
-                # Calling for test purposes!
-                # Will require parser and EventConsumer implementation instead of direct calling
-                await self.client.dispatch(event.lower(), data)
-
-                # Message Broker Handling and Rewrite (#54)
+                await self.parsers.dispatch(event, data)
 
             return
 
@@ -225,13 +223,13 @@ class HivenWebSocket:
         logger.debug("[WEBSOCKET] Received Init Frame from the Hiven Swarm and initialised the Client Cache!")
         logger.info(f"[CLIENT] Ready after {self.startup_time}s")
 
-        # Delaying the usage of the HivenClient until all ready_state listeners were finished
+        # Delaying the usage of the HivenClient until all ready-state listeners were finished
         await self.client.dispatch('ready')
 
     async def received_init_event(self, msg) -> typing.Tuple[str, dict, dict]:
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
         _msg = msg.json()
-        op, event, d = self._extract_event(_msg)
+        op, event, d = self.extract_event(_msg)
 
         if op == self.OPCode.EVENT:
             return event, d, _msg
@@ -261,7 +259,7 @@ class HivenWebSocket:
         except Exception as e:
             raise SessionCreateError(f"Failed to send auth to the host due to exception: {e}")
 
-    def _extract_event(self, msg: dict) -> typing.Tuple[int, str, dict]:
+    def extract_event(self, msg: dict) -> typing.Tuple[int, str, dict]:
         """
         Formats the incoming msg and returns it in tuple form
 

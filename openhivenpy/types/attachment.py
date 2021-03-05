@@ -82,7 +82,7 @@ class Attachment(HivenObject):
             )
             raise InitializationError(
                 f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
+            ) from e
         else:
             instance._client = client
             return instance
