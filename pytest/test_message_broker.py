@@ -86,7 +86,7 @@ class TestWorker:
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client
         assert worker.queuing == client.queuing
-        assert worker.event_buffer == message_broker.event_queues['ready']
+        assert worker.event_buffer == message_broker.event_buffers['ready']
 
     def test_exec(self):
         pass

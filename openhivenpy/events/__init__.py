@@ -199,9 +199,9 @@ class HivenEventHandler:
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
         self.active_listeners = {}
-        self.available_events = [
-            'connection_start', 'init', 'ready', 'user_update',
-            'house_join', 'house_remove', 'house_update', 'house_delete', 'house_delete', 'house_downtime',
+        self._available_events = [
+            'init', 'ready', 'user_update',
+            'house_join', 'house_remove', 'house_update', 'house_delete', 'house_downtime',
             'room_create', 'room_update', 'room_delete',
             'house_member_join', 'house_member_leave', 'house_member_enter', 'house_member_exit', 'member_update',
             'house_member_chunk', 'batch_house_member_update',
@@ -218,11 +218,11 @@ class HivenEventHandler:
         for listener in inspect.getmembers(self, predicate=inspect.iscoroutinefunction):
             func_name = listener[0].replace('on_', '')
             coro = listener[1]
-            if func_name in self.available_events:
+            if func_name in self._available_events:
                 self.add_new_multi_event_listener(func_name, coro)
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
 
-    async def dispatch(self, event_name: str, event_data: dict = {}, *args, **kwargs):
+    async def call_listeners(self, event_name: str, event_data: dict = {}, *args, **kwargs):
         """
         Dispatches all active EventListeners for the specified event.
 
@@ -267,7 +267,7 @@ class HivenEventHandler:
             if not inspect.iscoroutinefunction(coro):
                 raise ExpectedAsyncFunction("Callable of the decorator target must be asynchronous!")
 
-            if coro.__name__.replace('on_', '') not in self.available_events:
+            if coro.__name__.replace('on_', '') not in self._available_events:
                 raise UnknownEventError("The passed event_listener was not found in the available events!")
 
             func_name = coro.__name__.replace('on_', '')

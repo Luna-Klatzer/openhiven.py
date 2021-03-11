@@ -148,7 +148,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.dispatch('ready')
+            await client.call_listeners('ready')
 
         async def run():
             await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
@@ -162,7 +162,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.dispatch('ready')
+            await client.call_listeners('ready')
 
         async def run():
             await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
@@ -176,7 +176,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.dispatch('ready')
+            await client.call_listeners('ready')
 
         async def run():
             assert len(client.active_listeners['ready']) == 0

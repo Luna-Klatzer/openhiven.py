@@ -183,37 +183,36 @@ class HivenWebSocket:
             logger.debug(f"[WEBSOCKET] Received Websocket Event: {event}")
 
             if event == 'INIT_STATE':
-                # Using a separate function to fetch all initialisation events
-                await self.received_init(msg, self.client)
-                self._ready = True
+                await self.received_init(msg)
             else:
                 await self.parsers.dispatch(event, data)
-
             return
 
         else:
             logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {op}: {msg}")
 
-    async def received_init(self, msg: dict, client):
+    async def received_init(self, msg: dict):
         """
         Receives the init message from the host and updates the client cache.
         Will shield the normal message handler from receiving events until the initialisation succeeded.
 
         :returns: A List of all other events that were received during initialisation that will now need to be called
         """
+        await self.client.call_listeners('init')
+
         data = msg['d']
         house_memberships = data.get('house_memberships', {})
         self.client.storage.update_all(data)
 
         additional_events = []
         while len(house_memberships) != len(self.client.storage['houses']):
-            event, data, msg = await self.wait_for_event(handler=self.received_init_event)
+            ws_event = await self.wait_for_event(handler=self.received_init_event)
             if msg:
+                op, event, d = self.extract_event(ws_event.json())
                 if event == "HOUSE_JOIN":
-                    self.client.storage.add_or_update_house(data)
-
+                    self.client.storage.add_or_update_house(d)
                 else:
-                    additional_events.append(msg)
+                    additional_events.append(ws_event)
 
         # Executing all Additional events that were received during the initialisation and were ignored
         for event in additional_events:
@@ -223,19 +222,20 @@ class HivenWebSocket:
         logger.debug("[WEBSOCKET] Received Init Frame from the Hiven Swarm and initialised the Client Cache!")
         logger.info(f"[CLIENT] Ready after {self.startup_time}s")
 
-        # Delaying the usage of the HivenClient until all ready-state listeners were finished
-        await self.client.dispatch('ready')
+        # Delaying the receiving process until all ready-state listeners were called
+        await self.client.call_listeners('ready')
+        self._ready = True
 
-    async def received_init_event(self, msg) -> typing.Tuple[str, dict, dict]:
+    async def received_init_event(self, msg):
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
         _msg = msg.json()
-        op, event, d = self.extract_event(_msg)
+        op = _msg.get('op')
 
         if op == self.OPCode.EVENT:
-            return event, d, _msg
+            return msg
         else:
-            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message in: {op}: {msg}")
-            return event, d, _msg
+            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {op}: {msg}")
+            return msg
 
     async def send_heartbeat(self):
         """ Sends a heartbeat with the additional op-code for keeping the connection alive"""

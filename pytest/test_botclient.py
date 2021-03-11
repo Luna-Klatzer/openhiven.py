@@ -18,6 +18,10 @@ class TestBotClient:
         assert client.connection.close_timeout == 60
 
         @client.event()
+        async def on_init():
+            print("\non_init was called!")
+
+        @client.event()
         async def on_ready():
             print("\non_ready was called!")
             await client.close()

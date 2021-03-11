@@ -100,9 +100,10 @@ class Member(user.User):
             instance = cls(**data)
 
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            utils.log_traceback(
+                msg=f"Traceback in function '{cls.__name__}' Validation:",
+                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
             raise InitializationError(
                 f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
             ) from e
