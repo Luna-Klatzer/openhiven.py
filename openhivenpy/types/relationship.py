@@ -67,6 +67,10 @@ class Relationship(HivenObject):
         ]
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['relationships'][self.user_id]
+
     @classmethod
     @check_valid()
     def form_object(cls, data: dict) -> dict:
@@ -88,7 +92,7 @@ class Relationship(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Relationship Class with the passed data
 
@@ -103,7 +107,7 @@ class Relationship(HivenObject):
         """
         try:
             data['user_id'] = utils.convert_value(int, data.get('user_id'))
-            data['user'] = await user.User.from_dict(
+            data['user'] = await user.User.create_from_dict(
                     client.storage['users'][data['user_id']], client
                 )
 

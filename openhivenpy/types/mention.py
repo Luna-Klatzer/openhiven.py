@@ -44,7 +44,7 @@ class Mention(HivenObject):
         self._author = kwargs.get('author')
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Mention Class with the passed data
 
@@ -58,7 +58,7 @@ class Mention(HivenObject):
         :return: The newly constructed Mention Instance
         """
         try:
-            data['user'] = user.User.from_dict(client.storage['users'][data['user']['id']], client)
+            data['user'] = user.User.create_from_dict(client.storage['users'][data['user']['id']], client)
             instance = cls(**data)
 
         except Exception as e:

@@ -35,7 +35,7 @@ class UserTyping(HivenObject):
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
+    async def create_from_dict(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
         """
         Creates an instance of the Relationship Class with the passed data
 

@@ -3,6 +3,8 @@ import logging
 
 __all__ = ['DynamicEventBuffer', 'MessageBroker']
 
+from .. import utils
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,6 +79,7 @@ class Worker:
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 
+    @utils.wrap_with_logging
     async def run_one_sequence(self):
         """ Fetches an event from the buffer and runs all current Event Listeners """
         if self.event_buffer:
@@ -91,7 +94,7 @@ class Worker:
                 kwargs = event['kwargs']
 
                 # Creating a new future for every active listener
-                tasks = [e(data, *args, **kwargs) for e in listeners]
+                tasks = [utils.wrap_with_logging(e)(data, *args, **kwargs) for e in listeners]
 
                 # if queuing is active running a sequence will not return until all event_listeners were dispatched
                 # without queuing all tasks will be assigned to the asyncio event_loop and the function will return

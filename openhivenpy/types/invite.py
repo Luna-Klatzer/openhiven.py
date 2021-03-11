@@ -120,7 +120,7 @@ class Invite(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Invite Class with the passed data
 
@@ -134,7 +134,7 @@ class Invite(HivenObject):
         :return: The newly constructed Invite Instance
         """
         try:
-            data['house'] = house.House.from_dict(client.storage['houses'][data['house_id']], client)
+            data['house'] = house.House.create_from_dict(client.storage['houses'][data['house_id']], client)
 
             instance = cls(**data)
 

@@ -75,7 +75,7 @@ class Context(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Context Class with the passed data
 

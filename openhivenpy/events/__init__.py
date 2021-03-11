@@ -265,7 +265,7 @@ class HivenEventHandler:
         """
         def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
             if not inspect.iscoroutinefunction(coro):
-                raise ExpectedAsyncFunction("Callable of the decorator target must be asynchronous!")
+                raise ExpectedAsyncFunction("Callable target of the decorator must be asynchronous!")
 
             if coro.__name__.replace('on_', '') not in self._available_events:
                 raise UnknownEventError("The passed event_listener was not found in the available events!")

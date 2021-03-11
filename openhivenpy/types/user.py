@@ -80,10 +80,7 @@ class LazyUser(HivenObject):
 
     @property
     def raw(self) -> typing.Union[dict, None]:
-        if getattr(self, '_client') is not None:
-            return self._client.storage['users'][self.id]
-        else:
-            return None
+        return self._client.storage['users'][self.id]
 
     @classmethod
     @check_valid()
@@ -99,7 +96,7 @@ class LazyUser(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the LazyUser Class with the passed data
 
@@ -252,15 +249,15 @@ class User(LazyUser):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        if type(data.get('bot')) is not bool:
-            pass
-        if type(data.get('user_flags')) is not int:
-            pass
         data = LazyUser.form_object(data)
         return data
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['users'][self.id]
+
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the User Class with the passed data
 

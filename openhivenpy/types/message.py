@@ -66,7 +66,7 @@ class DeletedMessage(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the DeletedMessage Class with the passed data
 
@@ -257,7 +257,7 @@ class Message(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Message Class with the passed data
 
@@ -269,11 +269,11 @@ class Message(HivenObject):
             data['house'] = client.storage['houses'][data['house_id']]
             data['room'] = client.storage['rooms'][data['room_id']]
             data['author'] = client.storage['houses'][data['house_id']]['members']['']
-            data['embed'] = await embed.Embed.from_dict(data.get('embed'), client) if data.get('embed') else None
+            data['embed'] = await embed.Embed.create_from_dict(data.get('embed'), client) if data.get('embed') else None
             mentions_ = []
             for d in data.get('mentions', []):
                 mentions_.append(
-                    await mention.Mention.from_dict(
+                    await mention.Mention.create_from_dict(
                         {
                             'timestamp': data['timestamp'],
                             'author': data['author'],

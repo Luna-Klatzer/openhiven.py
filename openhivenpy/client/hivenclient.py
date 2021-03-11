@@ -154,7 +154,6 @@ class HivenClient(HivenEventHandler):
         """
         try:
             for key in kwargs.keys():
-                # Available keys
                 if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
                     resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
@@ -217,3 +216,248 @@ class HivenClient(HivenEventHandler):
     @property
     def joined_at(self) -> typing.Union[datetime.datetime, None]:
         return getattr(self.user, 'joined_at', None)
+
+    async def get_user(self, user_id: str) -> typing.Union[types.User, None]:
+        """
+        Fetches a User instance from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param user_id: id of the User
+        :return: The User instance if it was found else None
+        """
+        raw_data = self.find_user(user_id)
+        if raw_data:
+            return await types.User.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_user(self, user_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param user_id: id of the User
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['relationship'].get(user_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_house(self, house_id: str) -> typing.Union[types.House, None]:
+        """
+        Fetches a House from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param house_id: id of the House
+        :return: The house instance if it was found else None
+        """
+        raw_data = self.find_house(house_id)
+        if raw_data:
+            return await types.House.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_house(self, house_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param house_id: id of the House
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['houses'].get(house_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_entity(self, user_id: str) -> typing.Union[types.Entity, None]:
+        """
+        Fetches a Entity instance from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param user_id: id of the Entity
+        :return: The Entity instance if it was found else None
+        """
+        raw_data = self.find_entity(user_id)
+        if raw_data:
+            return await types.Entity.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_entity(self, user_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param user_id: id of the User
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['relationship'].get(user_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_room(self, room_id: str) -> typing.Union[types.Room, None]:
+        """
+        Fetches a Room from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param room_id: id of the Room
+        :return: The Room instance if it was found else None
+        """
+        raw_data = self.find_room(room_id)
+        if raw_data:
+            return await types.Room.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_room(self, room_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param room_id: id of the Room
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['rooms']['house'].get(room_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_private_room(self, room_id: str) -> typing.Union[types.PrivateRoom, None]:
+        """
+        Fetches a single PrivateRoom from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param room_id: id of the PrivateRoom
+        :return: The PrivateRoom instance if it was found else None
+        """
+        raw_data = self.find_private_room(room_id)
+        if raw_data:
+            return await types.PrivateRoom.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_private_room(self, room_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param room_id: id of the house
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['rooms']['private']['group'].get(room_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_private_group_room(self, room_id: str) -> typing.Union[types.PrivateGroupRoom, None]:
+        """
+        Fetches a multi PrivateGroupRoom from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param room_id: id of the PrivateGroupRoom
+        :return: The PrivateGroupRoom instance if it was found else None
+        """
+        raw_data = self.find_private_group_room(room_id)
+        if raw_data:
+            return await types.PrivateGroupRoom.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_private_group_room(self, room_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param room_id: id of the PrivateGroupRoom
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['rooms']['private']['group'].get(room_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None
+
+    async def get_relationship(self, user_id: str) -> typing.Union[types.Relationship, None]:
+        """
+        Fetches a Relationship instance from the cache based on the passed id
+
+        ---
+
+        The returned data of the instance is only a copy from the cache and if changes are made while
+        the instance exists the data will not be updated!
+
+        :param user_id: id of the Relationship
+        :return: The Relationship instance if it was found else None
+        """
+        raw_data = self.find_relationship(user_id)
+        if raw_data:
+            return await types.Relationship.create_from_dict(raw_data, self)
+        else:
+            return None
+
+    def find_relationship(self, user_id: str) -> typing.Union[dict, None]:
+        """
+        Fetches a dictionary from the cache based on the passed id
+
+        ---
+
+        The returned dict is only a copy from the cache
+
+        :param user_id: id of the Relationship
+        :return: The cached dict if it exists in the cache else None
+        """
+        raw_data = self.storage['relationship'].get(user_id)
+        if raw_data:
+            return dict(raw_data)
+        else:
+            return None

@@ -104,6 +104,10 @@ class Room(HivenObject):
         ]
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['rooms']['house'][self.id]
+
     @classmethod
     @check_valid()
     def form_object(cls, data: dict) -> dict:
@@ -122,7 +126,7 @@ class Room(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Room Class with the passed data
 
@@ -136,7 +140,7 @@ class Room(HivenObject):
         :return: The newly constructed Room Instance
         """
         try:
-            data['house'] = house.House.from_dict(
+            data['house'] = house.House.create_from_dict(
                 client.storage['houses'][data['house_id']], client
             )
             instance = cls(**data)
@@ -201,7 +205,7 @@ class Room(HivenObject):
                 # Raw_data not in correct format => needs to access data field
                 data = raw_data.get('data')
                 if data:
-                    return await message.Message.from_dict(data, self._client)
+                    return await message.Message.create_from_dict(data, self._client)
                 else:
                     raise errs.HTTPResponseError()
             else:
@@ -278,7 +282,7 @@ class Room(HivenObject):
                     if raw_data:
                         author_data = raw_data.get('data')
                         if author_data:
-                            msg = await d.Message.from_dict(d, self._client)
+                            msg = await d.Message.create_from_dict(d, self._client)
                             messages_.append(msg)
                         else:
                             raise errs.HTTPReceivedNoDataError()

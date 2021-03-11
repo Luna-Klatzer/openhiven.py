@@ -1,13 +1,13 @@
+import functools
 import logging
 import sys
 import traceback
 from operator import attrgetter
-from functools import lru_cache
+from functools import cache
 import inspect
 import typing
 
-# This is a surprise tool that will help us later
-from marshmallow import ValidationError
+from openhivenpy.exceptions import ExpectedAsyncFunction, UnknownEventError
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ def log_traceback(level: typing.Union[str, None] = 'error',
     Logs the traceback of the current exception
 
     :param msg: Message for the logging. Only gets printed out if logging level was correctly set
-    :param level: Logger level for the exception. If '' or None it will not use the logger module
+    :param level: Logger level for the exception. If '' or None it will not log any additional message
     :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
     """
     tb = traceback.format_tb(sys.exc_info()[2])
@@ -182,3 +182,28 @@ def update_and_return(dictionary: dict, data: dict) -> dict:
     """
     dictionary.update(data)
     return dictionary
+
+
+@cache
+def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = None) -> typing.Callable:
+    """
+    Wraps a Event Listener Task and adds traceback logging and simple caching to it
+
+    :param coro: Function that should be wrapped
+    """
+    def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
+        @functools.wraps(coro)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await coro(*args, **kwargs)
+            except Exception as e:
+                log_traceback(
+                    msg=f"Traceback in function {coro.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
+                )
+
+        return wrapper  # func can still be used normally outside the event listening process
+
+    if coro is None:
+        return decorator
+    else:
+        return decorator(coro)

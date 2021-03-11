@@ -82,7 +82,7 @@ class Member(user.User):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Member Class with the passed data
 

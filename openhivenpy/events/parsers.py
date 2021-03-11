@@ -21,13 +21,6 @@ class HivenParsers:
 
     # Implementation of parsers that return args and kwargs for the event listeners
 
-    async def on_message(self, data):
-        buffer = self.client.message_broker.get_buffer('message')
-        # Parsing that is required in the future
-        args = []
-        kwargs = {}
-        buffer.add(data, *args, **kwargs)
-
     async def on_user_update(self, data):
         buffer = self.client.message_broker.get_buffer('user_update')
         # Parsing that is required in the future

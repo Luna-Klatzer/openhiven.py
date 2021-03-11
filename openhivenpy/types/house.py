@@ -76,12 +76,9 @@ class LazyHouse(HivenObject):
     def __str__(self):
         return self.name
 
-    @property
-    def raw(self) -> typing.Union[dict, None]:
-        if getattr(self, '_client') is not None:
-            return self._client.storage['houses'][self.id]
-        else:
-            return None
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['houses'][self.id]
 
     @classmethod
     @check_valid()
@@ -113,7 +110,7 @@ class LazyHouse(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the LazyHouse Class with the passed data
 
@@ -259,7 +256,7 @@ class House(LazyHouse):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the House Class with the passed data
 
@@ -274,7 +271,7 @@ class House(LazyHouse):
         """
         try:
             instance = cls(**data)
-            instance._client_member = member.Member.from_dict(
+            instance._client_member = member.Member.create_from_dict(
                 cls.raw['members'][client.id], client
             )
             instance._owner = utils.get(instance.members, id=instance.owner_id)
@@ -406,7 +403,7 @@ class House(LazyHouse):
             if resp.status < 300:
                 data = (await resp.json()).get('data')
                 if data:
-                    _room = await room.Room.from_dict(data, self._client)
+                    _room = await room.Room.create_from_dict(data, self._client)
 
                     return _room
                 else:
@@ -443,7 +440,7 @@ class House(LazyHouse):
                         id_ = utils.convert_value(int, d.get('id'))
                         # Returning the new entity
                         if id_ not in existing_entity_ids:
-                            _entity = await entity.Entity.from_dict(d, self._client)
+                            _entity = await entity.Entity.create_from_dict(d, self._client)
                             self._entities.append(_entity)
                             return _entity
                     raise InitializationError(f"Failed to initialise the Entity Instance! Data: {data}")
@@ -520,7 +517,7 @@ class House(LazyHouse):
                 data = raw_data.get('data', {})
 
                 if data:
-                    return await invite.Invite.from_dict(data, self._client)
+                    return await invite.Invite.create_from_dict(data, self._client)
                 else:
                     raise HTTPReceivedNoDataError()
             else:

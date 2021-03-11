@@ -1,6 +1,8 @@
 import logging
 import sys
 import types
+import typing
+
 import fastjsonschema
 
 from . import HivenObject, check_valid
@@ -55,6 +57,10 @@ class Entity(HivenObject):
         ]
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['entities'][self.id]
+
     @classmethod
     @check_valid()
     def form_object(cls, data: dict) -> dict:
@@ -83,7 +89,7 @@ class Entity(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Entity Class with the passed data
 
@@ -98,7 +104,7 @@ class Entity(HivenObject):
         """
         try:
             from . import House
-            data['house'] = House.from_dict(client.storage['house'][data['house_id']])
+            data['house'] = House.create_from_dict(client.storage['house'][data['house_id']])
             instance = cls(**data)
 
         except Exception as e:

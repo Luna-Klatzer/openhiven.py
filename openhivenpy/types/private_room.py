@@ -91,6 +91,10 @@ class PrivateGroupRoom(HivenObject):
         ]
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['rooms']['private']['multi'][self.id]
+
     @classmethod
     @check_valid()
     def form_object(cls, data: dict) -> dict:
@@ -113,7 +117,7 @@ class PrivateGroupRoom(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the PrivateGroupRoom Class with the passed data
 
@@ -129,7 +133,7 @@ class PrivateGroupRoom(HivenObject):
         try:
             _recipients = []
             for id_ in data.get("recipients"):
-                _recipients.append(await module_user.User.from_dict(
+                _recipients.append(await module_user.User.create_from_dict(
                     client.storage['users'][id_], client
                 ))
 
@@ -202,7 +206,7 @@ class PrivateGroupRoom(HivenObject):
                 # Raw_data not in correct format => needs to access data field
                 data = raw_data.get('data')
                 if data:
-                    return await message.Message.from_dict(data, self._client)
+                    return await message.Message.create_from_dict(data, self._client)
             else:
                 raise HTTPResponseError()
         
@@ -267,6 +271,10 @@ class PrivateRoom(HivenObject):
         ]
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> typing.Union[dict, None]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['rooms']['private']['single'][self.id]
+
     @classmethod
     @check_valid()
     def form_object(cls, data: dict) -> dict:
@@ -287,7 +295,7 @@ class PrivateRoom(HivenObject):
         return data
 
     @classmethod
-    async def from_dict(cls, data: dict, client):
+    async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the PrivateRoom Class with the passed data
 
@@ -296,7 +304,7 @@ class PrivateRoom(HivenObject):
         :return: The newly constructed PrivateRoom Instance
         """
         try:
-            data['recipient'] = await module_user.User.from_dict(
+            data['recipient'] = await module_user.User.create_from_dict(
                 client.storage['users'][data['recipient']['id']], client
             )
             data['client_user'] = client.user
@@ -304,9 +312,10 @@ class PrivateRoom(HivenObject):
             instance = cls(**data)
 
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in function '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
+            utils.log_traceback(
+                msg=f"Traceback in function '{cls.__name__}' Validation:",
+                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+            )
             raise InitializationError(
                 f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
             )
@@ -395,7 +404,7 @@ class PrivateRoom(HivenObject):
                     raw_data = await self._client.http.request(f"/users/@me")
                     author_data = raw_data.get('data')
                     if author_data:
-                        msg = await message.Message.from_dict(data, self._client)
+                        msg = await message.Message.create_from_dict(data, self._client)
                         return msg
                     else:
                         raise HTTPReceivedNoDataError()
