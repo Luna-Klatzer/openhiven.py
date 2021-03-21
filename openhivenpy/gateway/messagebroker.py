@@ -75,23 +75,35 @@ class Worker:
     def event_buffer(self):
         return self.message_broker.event_buffers.get(self.event)
 
-    async def exec(self, tasks):
+    async def gather_tasks(self, tasks):
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 
+    async def run_forever(self):
+        """
+        Runs a loop where the worker will wait for the next event that is received.
+        Does not return until the client received the close call!
+        """
+        # Unless the closing signal is received inside the client it will run forever
+        while self.client.connection_status not in ("CLOSING", "CLOSED"):
+            # If the event_buffer is not empty => not False
+            if self.event_buffer:
+                await self.run_one_sequence()
+            await asyncio.sleep(.075)
+
     @utils.wrap_with_logging
     async def run_one_sequence(self):
-        """ Fetches an event from the buffer and runs all current Event Listeners """
+        """ Fetches an event from the buffer and runs all assigned Event Listeners """
         if self.event_buffer:
             # Fetching the even data for the next event
             event = self.event_buffer.get_next_event()
 
-            listeners = self.client.active_listeners[self.event]
+            listeners = self.client.active_listeners.get(self.event)
             # If listeners are present they will be called
             if listeners:
-                data = event['data']
-                args = event['args']
-                kwargs = event['kwargs']
+                data = event['data']  # raw received websocket data
+                args = event['args']  # args to pass to the coro
+                kwargs = event['kwargs']  # kwargs to pass to the coro
 
                 # Creating a new future for every active listener
                 tasks = [utils.wrap_with_logging(e)(data, *args, **kwargs) for e in listeners]
@@ -99,11 +111,9 @@ class Worker:
                 # if queuing is active running a sequence will not return until all event_listeners were dispatched
                 # without queuing all tasks will be assigned to the asyncio event_loop and the function will return
                 if self.queuing:
-                    await self.exec(tasks)
+                    await self.gather_tasks(tasks)
                 else:
-                    asyncio.create_task(self.exec(tasks))
-        else:
-            return
+                    asyncio.create_task(self.gather_tasks(tasks))
 
 
 class EventConsumer:
@@ -113,21 +123,17 @@ class EventConsumer:
         self.message_broker = message_broker
         self.client = message_broker.client
 
-    def create_worker(self, event):
+    def get_worker(self, event) -> Worker:
         """ Creates a new worker that can execute event_listeners """
-        worker = Worker(event, self.message_broker)
-        self.workers[event] = worker
+        worker = self.workers.get(event)
+        if not worker:
+            worker = Worker(event, self.message_broker)
+            self.workers[event] = worker
         return worker
 
     async def process_loop(self):
-        while self.client.connection_status not in ("CLOSING", "CLOSED"):
-            # Running the worker for every event_buffer
-            for event, data in self.message_broker.event_buffers.items():
-                # Avoiding empty queues
-                if data:
-                    worker = self.workers.get(event)
-                    if not worker:
-                        worker = self.create_worker(event)
-                    # Adding the coroutine to the asyncio event_loop
-                    asyncio.create_task(worker.run_one_sequence())
-            await asyncio.sleep(0.05)
+        # Creating an worker for every available event that can be received
+        workers = [
+             asyncio.create_task(self.get_worker(_).run_forever()) for _ in self.client.available_events
+        ]
+        await asyncio.gather(*workers)

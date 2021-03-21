@@ -222,6 +222,10 @@ class HivenEventHandler:
                 self.add_new_multi_event_listener(func_name, coro)
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
 
+    @property
+    def available_events(self):
+        return getattr(self, '_available_events')
+
     async def call_listeners(self, event_name: str, event_data: dict = {}, *args, **kwargs):
         """
         Dispatches all active EventListeners for the specified event.

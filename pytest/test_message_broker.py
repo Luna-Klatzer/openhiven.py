@@ -81,7 +81,7 @@ class TestWorker:
         message_broker = openhivenpy.gateway.MessageBroker(client)
         message_broker.get_buffer("ready")
 
-        worker = message_broker.event_consumer.create_worker("ready")
+        worker = message_broker.event_consumer.get_worker("ready")
         assert worker.event == "ready"
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client

@@ -214,7 +214,7 @@ class HivenWebSocket:
                 else:
                     additional_events.append(ws_event)
 
-        # Executing all Additional events that were received during the initialisation and were ignored
+        # Executing all additional events that were received during the initialisation and were ignored
         for event in additional_events:
             await self.received_message(event)
 
