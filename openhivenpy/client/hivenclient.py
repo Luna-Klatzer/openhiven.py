@@ -13,7 +13,8 @@ from .. import utils
 from .. import types
 from ..events import HivenParsers, HivenEventHandler
 from ..gateway import Connection, HTTP
-from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError, WebSocketFailedError
+from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError, WebSocketFailedError, \
+    HivenConnectionError
 from .cache import ClientCache
 
 __all__ = ['HivenClient']
@@ -121,6 +122,16 @@ class HivenClient(HivenEventHandler):
 
         except SessionCreateError:
             raise
+
+        except Exception as e:
+            utils.log_traceback(
+                level='critical',
+                msg="[HIVENCLIENT] Traceback:",
+                suffix=f"Failed to keep alive connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise HivenConnectionError(
+                f"Failed to keep alive connection to Hiven: {sys.exc_info()[0].__name__}: {e}"
+            )
 
     async def close(self):
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
