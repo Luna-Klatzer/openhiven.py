@@ -20,7 +20,6 @@ class UserClient(HivenClient):
     """
     def __init__(
                 self,
-                token: str,
                 *,
                 heartbeat: typing.Optional[int] = None,
                 loop: typing.Optional[asyncio.AbstractEventLoop] = None,
@@ -29,7 +28,6 @@ class UserClient(HivenClient):
                 log_ws_output: typing.Optional[bool] = False,
                 **kwargs):
         """
-        :param token: Authorization Token for Hiven
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
         :param loop: Event loop that will be used to execute all async functions.
@@ -43,7 +41,6 @@ class UserClient(HivenClient):
         self._CLIENT_TYPE = "user"
         self._bot = True
         super().__init__(
-            token=token,
             loop=loop,
             log_ws_output=log_ws_output
         )

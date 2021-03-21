@@ -128,7 +128,7 @@ class SingleDispatchEventListener:
                 self._kwargs = kwargs
                 await self.coro(*args, **kwargs)
             else:
-                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous!")
+                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous")
 
         except Exception as e:
             utils.log_traceback(
@@ -182,7 +182,7 @@ class MultiDispatchEventListener:
             if inspect.iscoroutinefunction(self.coro):
                 await self.coro(*args, **kwargs)
             else:
-                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous!")
+                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous")
         except Exception as e:
             utils.log_traceback(
                 msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",

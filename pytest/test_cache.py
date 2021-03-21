@@ -73,8 +73,8 @@ class TestCache:
     }
 
     def test_init(self):
-        cache = openhivenpy.client.ClientCache("", False)
-        assert cache['token'] == ""
+        cache = openhivenpy.client.ClientCache(False)
+        assert cache['token'] == "undefined"
         assert cache['log_ws_output'] is False
         assert cache['houses'] == {}
         assert cache['house_ids'] == []
@@ -83,7 +83,7 @@ class TestCache:
 
     def test_update_client_user(self):
         data = self.test_house_args['members'][0]['user']
-        cache = openhivenpy.client.ClientCache("", False)
+        cache = openhivenpy.client.ClientCache(False)
         cache.update_client_user(data)
         return_data = cache.update_client_user(data)
 
@@ -99,7 +99,7 @@ class TestCache:
 
     def test_add_house(self):
         data = dict(self.test_house_args)
-        cache = openhivenpy.client.ClientCache("", False)
+        cache = openhivenpy.client.ClientCache(False)
         client_user = cache.update_client_user(dict(data['members'][0]['user']))
         return_data = cache.add_or_update_house(dict(data))
 

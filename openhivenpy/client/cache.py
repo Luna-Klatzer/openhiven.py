@@ -14,10 +14,10 @@ class ClientCache(dict):
     Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
     functions to interact with the Client cache more easily and use functions for better readability.
     """
-    def __init__(self, token: str, log_ws_output: bool, *args, **kwargs):
+    def __init__(self, log_ws_output: bool, *args, **kwargs):
         super(ClientCache, self).__init__(*args, **kwargs)
         self.update({
-            'token': token,
+            'token': 'undefined',
             'log_ws_output': log_ws_output,
             'client_user': dict(),
             'houses': dict(),
@@ -111,7 +111,7 @@ class ClientCache(dict):
         except Exception as e:
             utils.log_traceback(
                 msg="[CLIENTCACHE] Traceback in add_or_update_house: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
             )
             raise
 
@@ -155,7 +155,7 @@ class ClientCache(dict):
         except Exception as e:
             utils.log_traceback(
                 msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
             )
             raise
 

@@ -15,8 +15,7 @@ class BotClient(HivenClient):
     Class for the specific use of a bot Application on Hiven
     """
     def __init__(
-                self, 
-                token: str, 
+                self,
                 *,
                 heartbeat: typing.Optional[int] = None,
                 loop: typing.Optional[asyncio.AbstractEventLoop] = None,
@@ -25,7 +24,6 @@ class BotClient(HivenClient):
                 log_ws_output: typing.Optional[bool] = False,
                 **kwargs):
         """
-        :param token: Authorization Token for Hiven
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
         :param loop: Event loop that will be used to execute all async functions.
@@ -39,7 +37,6 @@ class BotClient(HivenClient):
         self._CLIENT_TYPE = "bot"
         self._bot = True
         super().__init__(
-            token=token,
             loop=loop,
             log_ws_output=log_ws_output
         )

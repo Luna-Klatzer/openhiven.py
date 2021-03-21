@@ -49,13 +49,13 @@ For full documentation visit the documentation our readthedocs-page
 
 import openhivenpy as hiven
 
-client = hiven.UserClient("Insert token")
+client = hiven.UserClient()
 
 @client.event()
 async def on_ready():
     print("Bot is ready")
 
-client.run()
+client.run("Insert token")
 
 ```
 
@@ -65,7 +65,7 @@ client.run()
 
 import openhivenpy as hiven
 
-client = hiven.UserClient("Insert token")
+client = hiven.UserClient()
 
 @client.event()
 async def on_ready():
@@ -77,7 +77,7 @@ async def on_message_create(msg):
         if msg.content == "-ping":
             return await msg.room.send("pong")
 
-client.run()
+client.run("Insert token")
  
 ```
 
@@ -88,20 +88,14 @@ client.run()
 import openhivenpy as hiven
 
 class Bot(hiven.UserClient):
-    def __init__(self, token, *args, **kwargs):
-        self._token = token
-        super().__init__(token, *args, **kwargs)
-
-    # Not directly needed but protects the token from being changed while runtime!
-    @property
-    def token(self):
-        return self._token
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     async def on_ready(self):
         print("Bot is ready!")
 
 if __name__ == '__main__':
-    client = Bot(token="")
-    client.run()
+    client = Bot()
+    client.run("Insert token")
 
 ```

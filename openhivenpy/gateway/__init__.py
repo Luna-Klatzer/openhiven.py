@@ -31,7 +31,7 @@ from .websocket import *
 from .http import *
 from .messagebroker import *
 from .. import load_env, utils
-from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError
+from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
 
 import sys
 import logging
@@ -119,11 +119,11 @@ class Connection:
     def close_timeout(self) -> int:
         return getattr(self, '_close_timeout', None)
 
-    async def connect(self, restart: bool):
+    async def connect(self, token: str, restart: bool):
         """ Establishes a connection to Hiven and runs the background processes """
         try:
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version, loop=self.loop)
-            await self.http.connect()
+            await self.http.connect(token)
 
             self._connection_status = "OPENING"
             while self.connection_status not in ("CLOSING", "CLOSED"):
@@ -132,10 +132,11 @@ class Connection:
                         self.client, endpoint=self.endpoint, close_timeout=self.close_timeout, heartbeat=self.heartbeat,
                         loop=self.loop
                     )
-                    ws = await asyncio.wait_for(coro, 30)
-                    self._ws = ws
-                    await ws.send_auth()
-                    await asyncio.gather(ws.listening_loop(), ws.keep_alive.run(), ws.message_broker.run())
+                    self._ws = await asyncio.wait_for(coro, 30)
+                    await self.ws.send_auth()
+                    await asyncio.gather(
+                        self.ws.listening_loop(), self.ws.keep_alive.run(), self.ws.message_broker.run()
+                    )
 
                 except RestartSessionError:
                     # Encountered an exception inside the receive process of the WebSocket and
@@ -159,7 +160,10 @@ class Connection:
 
                 await asyncio.sleep(.05)
 
+        except KeyboardInterrupt:
             await self.http.close()
+            await self.close(force=True)
+            return
 
         except Exception as e:
             utils.log_traceback(
@@ -167,7 +171,9 @@ class Connection:
                 msg="[CONNECTION] Traceback:",
                 suffix=f"Failed to keep alive current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise
+            raise SessionCreateError(f"Failed to establish HivenClient session! > {sys.exc_info()[0].__name__}: {e}")
+        else:
+            await self.http.close()
 
     async def close(self, force: bool = False):
         """

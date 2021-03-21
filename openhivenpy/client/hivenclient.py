@@ -13,7 +13,7 @@ from .. import utils
 from .. import types
 from ..events import HivenParsers, HivenEventHandler
 from ..gateway import Connection, HTTP
-from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError
+from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError, WebSocketFailedError
 from .cache import ClientCache
 
 __all__ = ['HivenClient']
@@ -28,27 +28,21 @@ BOT_TOKEN_LEN = utils.convert_value(int, os.getenv("BOT_TOKEN_LEN"))
 class HivenClient(HivenEventHandler):
     """ Main Class for connecting to Hiven and interacting with the API. """
     def __init__(self,
-                 token: str,
                  *,
                  loop: asyncio.AbstractEventLoop = None,
                  log_ws_output: bool = False,
                  queuing: bool = False):
-        self._token = token
+        """
+
+        :rtype: object
+        """
+        self._token = ""
         self._connection = Connection(self)
         self._loop = loop
         self._log_ws_output = log_ws_output
         self._queuing = queuing
-        self.storage = ClientCache(token, log_ws_output)
-
-        if token is None or token == "":
-            logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
-            raise InvalidTokenError("Empty Token was passed!")
-
-        elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
-            logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
-            raise InvalidTokenError("Invalid Token was passed!")
-
         self._user = None
+        self.storage = ClientCache(log_ws_output)
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
         super().__init__(HivenParsers(self))
@@ -89,12 +83,14 @@ class HivenClient(HivenEventHandler):
         return getattr(self, '_loop', None)
 
     def run(self,
+            token: str,
             *,
             loop: typing.Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
             restart: bool = False) -> None:
         """
         Standard function for establishing a connection to Hiven
 
+        :param token: Token that should be used to connect to Hiven
         :param loop: Event loop that will be used to execute all async functions. Will use
                            'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one was
                            created yet
@@ -102,20 +98,29 @@ class HivenClient(HivenEventHandler):
         """
         try:
             # Overwriting the until now None Event Loop
+            self._token = token
+            self.storage['token'] = token
+
+            if token is None or token == "":
+                logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
+                raise InvalidTokenError("Empty Token was passed!")
+
+            elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
+                logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
+                raise InvalidTokenError("Invalid Token was passed!")
+
             self._loop = loop
             self.connection._loop = self._loop
-            self.loop.run_until_complete(self.connection.connect(restart))
+            self.loop.run_until_complete(self.connection.connect(token, restart=restart))
 
         except KeyboardInterrupt:
             pass
 
-        except Exception as e:
-            utils.log_traceback(
-                level='critical',
-                msg="[HIVENCLIENT] Traceback:",
-                suffix=f"Failed to establish or keep the connection alive: \n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise SessionCreateError(f"Failed to establish HivenClient session! > {sys.exc_info()[0].__name__}: {e}")
+        except (InvalidTokenError, WebSocketFailedError):
+            raise
+
+        except SessionCreateError:
+            raise
 
     async def close(self):
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """

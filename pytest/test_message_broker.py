@@ -3,15 +3,11 @@ import asyncio
 import openhivenpy
 
 token_ = ""
-client = openhivenpy.HivenClient
 
 
 def test_start(token):
     global token_
     token_ = token
-
-    global client
-    client = openhivenpy.UserClient(token_)
 
 
 class TestDynamicEventBuffer:
@@ -44,7 +40,7 @@ class TestMessageBroker:
         pass
 
     async def run(self):
-        client = openhivenpy.HivenClient(token_)
+        client = openhivenpy.HivenClient()
         client.add_new_multi_event_listener("ready", self.call)  # <== only for testing
         message_broker = openhivenpy.gateway.MessageBroker(client)
         buffer = message_broker.get_buffer("ready")
@@ -61,7 +57,7 @@ class TestMessageBroker:
         assert message_broker.event_consumer.workers['ready'].event == "ready"
 
     def test_init(self):
-        client = openhivenpy.HivenClient(token_)
+        client = openhivenpy.HivenClient()
         message_broker = openhivenpy.gateway.MessageBroker(client)
         assert message_broker.running is False
 
@@ -77,7 +73,7 @@ class TestMessageBroker:
 
 class TestWorker:
     def test_init(self):
-        client = openhivenpy.HivenClient(token_)
+        client = openhivenpy.HivenClient()
         message_broker = openhivenpy.gateway.MessageBroker(client)
         message_broker.get_buffer("ready")
 
@@ -85,7 +81,6 @@ class TestWorker:
         assert worker.event == "ready"
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client
-        assert worker.queuing == client.queuing
         assert worker.event_buffer == message_broker.event_buffers['ready']
 
     def test_exec(self):

@@ -11,14 +11,14 @@ def test_start(token):
 
 class TestBotClient:
     def test_init(self):
-        client = openhivenpy.BotClient(token_)
-        assert client.token == token_
+        client = openhivenpy.BotClient()
         assert client.client_type == 'bot'
         assert client.connection.heartbeat == 30000
         assert client.connection.close_timeout == 60
 
         @client.event()
         async def on_init():
+            assert client.token == token_
             print("\non_init was called!")
 
         @client.event()
@@ -26,4 +26,4 @@ class TestBotClient:
             print("\non_ready was called!")
             await client.close()
 
-        client.run()
+        client.run(token_)

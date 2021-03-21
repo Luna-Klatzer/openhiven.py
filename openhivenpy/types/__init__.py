@@ -65,7 +65,7 @@ def check_valid(func_: typing.Callable = None):
         @wraps(func_)
         def wrapper(*args, **kwargs):
             if inspect.iscoroutinefunction(func_):
-                raise ValueError("Target of decorator must not be asynchronous!")
+                raise ValueError("Target of decorator must not be asynchronous")
             try:
                 return func_(*args, **kwargs)
             except Exception as e:

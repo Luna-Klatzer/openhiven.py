@@ -69,7 +69,7 @@ class HTTP:
             "Authorization": client.token,
             "Host": self.host
         }
-        self._token = client.token
+        self._token = None
         self._ready = False
         self._session = None  # Will be created during start of connection
         self._loop = loop
@@ -105,10 +105,11 @@ class HTTP:
     def loop(self):
         return getattr(self, '_loop', None)
 
-    async def connect(self) -> typing.Union[aiohttp.ClientSession, None]:
+    async def connect(self, token: str) -> typing.Union[aiohttp.ClientSession, None]:
         """
         Establishes for the HTTP a connection to Hiven
 
+        :param token: Token required for connecting to Hiven
         :return: The created aiohttp.ClientSession
         """
         try:
@@ -120,6 +121,7 @@ class HTTP:
             trace_config.on_connection_queued_start.append(HTTPTraceback.on_connection_queued_start)
             trace_config.on_response_chunk_received.append(HTTPTraceback.on_response_chunk_received)
 
+            self._token = token
             self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
 
@@ -218,7 +220,7 @@ class HTTP:
 
                             if _success:
                                 logger.debug(
-                                    f"[HTTP] {http_resp_code} - Request was successful and received expected data!")
+                                    f"[HTTP] {http_resp_code} - Request was successful and received expected data")
                             else:
                                 # If an error occurred the response body will contain an error field
                                 _error = _json_data.get('error')

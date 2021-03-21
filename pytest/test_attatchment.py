@@ -101,7 +101,7 @@ class TestAttachment:
             }
         }
 
-        client = openhivenpy.UserClient(token_)
+        client = openhivenpy.UserClient()
         obj = asyncio.run(Attachment.create_from_dict(data, client))
         assert obj.filename == input['filename']
         assert obj.media_url == input['media_url']

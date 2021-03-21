@@ -13,4 +13,4 @@ def load_env():
     test_var = os.getenv("HIVEN_HOST")
 
     if test_var is None:
-        print(f"[OPENHIVENPY] Failed to load .env file! Expected {env_path} to exist!")
+        print(f"[OPENHIVENPY] Failed to load .env file! Expected {env_path} to exist")

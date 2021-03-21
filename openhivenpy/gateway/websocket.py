@@ -151,7 +151,7 @@ class HivenWebSocket:
             return await self.received_message(msg) if handler is None else await handler(msg)
 
         elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
-            logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart!")
+            logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart")
             raise RestartSessionError()
 
         elif msg.type == aiohttp.WSMsgType.CLOSED:

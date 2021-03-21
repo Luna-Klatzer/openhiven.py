@@ -1,6 +1,7 @@
 import openhivenpy as hiven
 import logging
 
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
@@ -10,14 +11,8 @@ logger.addHandler(handler)
 
 
 class Bot(hiven.UserClient):
-    def __init__(self, token, *args, **kwargs):
-        self._token = token
-        super().__init__(token, *args, **kwargs)
-
-    # Not directly needed but protects the token from ever being changed!
-    @property
-    def token(self):
-        return self._token
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     async def on_ready(self):
         print(f"Bot is ready after {self.startup_time}s")
@@ -45,5 +40,5 @@ class Bot(hiven.UserClient):
 
 
 if __name__ == '__main__':
-    client = Bot("")
-    client.run(restart=True)
+    client = Bot()
+    client.run("Insert token", restart=True)

@@ -69,7 +69,6 @@ class Worker:
         self.event = event
         self.message_broker = message_broker
         self.client = message_broker.client
-        self.queuing = self.client.queuing
 
     @property
     def event_buffer(self):
@@ -105,14 +104,14 @@ class Worker:
                 args = event['args']  # args to pass to the coro
                 kwargs = event['kwargs']  # kwargs to pass to the coro
 
-                # Creating a new future for every active listener
+                # Creating a new task for every active listener
                 tasks = [utils.wrap_with_logging(e)(data, *args, **kwargs) for e in listeners]
 
                 # if queuing is active running a sequence will not return until all event_listeners were dispatched
-                # without queuing all tasks will be assigned to the asyncio event_loop and the function will return
-                if self.queuing:
+                if self.client.queuing:
                     await self.gather_tasks(tasks)
                 else:
+                    # without queuing all tasks will be assigned to the asyncio event_loop and the function will return
                     asyncio.create_task(self.gather_tasks(tasks))
 
 

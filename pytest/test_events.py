@@ -3,15 +3,12 @@ import asyncio
 import inspect
 
 token_ = ""
-client = openhivenpy.HivenClient
+client = openhivenpy.HivenClient()
 
 
 def test_start(token):
     global token_
     token_ = token
-
-    global client
-    client = openhivenpy.UserClient(token_)
 
 
 class TestSingleDispatchEventListener:
@@ -83,7 +80,7 @@ class TestMultiDispatchEventListener:
 
     def test_dispatch_without_coro(self):
         # Creating a new Client to avoid possible different results by using older ones
-        client = openhivenpy.UserClient(token_)
+        client = openhivenpy.UserClient()
 
         listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', None)
 
@@ -130,7 +127,7 @@ class TestMultiDispatchEventListener:
 class TestHivenEventHandler:
     def test_init(self):
         # Creating a new Client to avoid possible different results by using older ones
-        client = openhivenpy.UserClient(token_)
+        client = openhivenpy.UserClient()
 
         @client.event()
         async def on_ready():
@@ -139,7 +136,7 @@ class TestHivenEventHandler:
 
         assert len(client.active_listeners['ready']) == 1
 
-        client.run()
+        client.run(token_)
 
     def test_wait_for(self):
         async def on_ready():
