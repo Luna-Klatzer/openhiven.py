@@ -219,7 +219,7 @@ class HivenEventHandler:
             func_name = listener[0].replace('on_', '')
             coro = listener[1]
             if func_name in self._available_events:
-                self.add_new_multi_event_listener(func_name, coro)
+                self.add_multi_listener(func_name, coro)
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
 
     @property
@@ -255,7 +255,7 @@ class HivenEventHandler:
         :return: A tuple of the args and kwargs => [0] = args and [1] = kwargs
         """
         event_name = event_name.replace('on_', '')
-        listener = self.add_new_single_event_listener(event_name, coro)
+        listener = self.add_single_listener(event_name, coro)
         while not listener.dispatched:
             await asyncio.sleep(.05)
 
@@ -275,7 +275,7 @@ class HivenEventHandler:
                 raise UnknownEventError("The passed event_listener was not found in the available events!")
 
             func_name = coro.__name__.replace('on_', '')
-            self.add_new_multi_event_listener(func_name, coro)
+            self.add_multi_listener(func_name, coro)
             logger.debug(f"[EVENTS] Event {func_name} registered")
 
             return coro  # func can still be used normally outside the event listening process
@@ -285,9 +285,9 @@ class HivenEventHandler:
         else:
             return decorator(coro)
 
-    def add_new_multi_event_listener(self,
-                                     event_name: str,
-                                     coro: typing.Union[typing.Callable,
+    def add_multi_listener(self,
+                           event_name: str,
+                           coro: typing.Union[typing.Callable,
                                                         typing.Coroutine]) -> MultiDispatchEventListener:
         """
         Adds a new event listener to the list of active listeners
@@ -302,9 +302,9 @@ class HivenEventHandler:
 
         return MultiDispatchEventListener(self, event_name, coro)
 
-    def add_new_single_event_listener(self,
-                                      event_name: str,
-                                      coro: typing.Union[typing.Callable,
+    def add_single_listener(self,
+                            event_name: str,
+                            coro: typing.Union[typing.Callable,
                                                          typing.Coroutine]) -> SingleDispatchEventListener:
         """
         Adds a new single dispatch event listener to the list of active listeners

@@ -41,7 +41,7 @@ class TestMessageBroker:
 
     async def run(self):
         client = openhivenpy.HivenClient()
-        client.add_new_multi_event_listener("ready", self.call)  # <== only for testing
+        client.add_multi_listener("ready", self.call)  # <== only for testing
         message_broker = openhivenpy.gateway.MessageBroker(client)
         buffer = message_broker.get_buffer("ready")
         buffer.add({})

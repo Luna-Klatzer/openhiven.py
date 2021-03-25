@@ -178,7 +178,7 @@ class TestHivenEventHandler:
         async def run():
             assert len(client.active_listeners['ready']) == 0
 
-            client.add_new_single_event_listener(event_name='ready', coro=on_ready)
+            client.add_single_listener(event_name='ready', coro=on_ready)
             # Checking if the listener was added correctly
             assert len(client.active_listeners['ready']) == 1
 
