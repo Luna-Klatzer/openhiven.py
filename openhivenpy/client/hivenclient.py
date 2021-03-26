@@ -303,7 +303,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    async def get_entity(self, user_id: str) -> typing.Union[types.Entity, None]:
+    async def get_entity(self, entity_id: str) -> typing.Union[types.Entity, None]:
         """
         Fetches a Entity instance from the cache based on the passed id
 
@@ -312,16 +312,16 @@ class HivenClient(HivenEventHandler):
         The returned data of the instance is only a copy from the cache and if changes are made while
         the instance exists the data will not be updated!
 
-        :param user_id: id of the Entity
+        :param entity_id: id of the Entity
         :return: The Entity instance if it was found else None
         """
-        raw_data = self.find_entity(user_id)
+        raw_data = self.find_entity(entity_id)
         if raw_data:
             return await types.Entity.create_from_dict(raw_data, self)
         else:
             return None
 
-    def find_entity(self, user_id: str) -> typing.Union[dict, None]:
+    def find_entity(self, entity_id: str) -> typing.Union[dict, None]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -329,10 +329,10 @@ class HivenClient(HivenEventHandler):
 
         The returned dict is only a copy from the cache
 
-        :param user_id: id of the User
+        :param entity_id: id of the Entity
         :return: The cached dict if it exists in the cache else None
         """
-        raw_data = self.storage['relationship'].get(user_id)
+        raw_data = self.storage['relationship'].get(entity_id)
         if raw_data:
             return dict(raw_data)
         else:
@@ -399,7 +399,7 @@ class HivenClient(HivenEventHandler):
 
         The returned dict is only a copy from the cache
 
-        :param room_id: id of the house
+        :param room_id: id of the PrivateRoom
         :return: The cached dict if it exists in the cache else None
         """
         raw_data = self.storage['rooms']['private']['group'].get(room_id)
@@ -452,7 +452,7 @@ class HivenClient(HivenEventHandler):
         The returned data of the instance is only a copy from the cache and if changes are made while
         the instance exists the data will not be updated!
 
-        :param user_id: id of the Relationship
+        :param user_id: user-id of the Relationship
         :return: The Relationship instance if it was found else None
         """
         raw_data = self.find_relationship(user_id)
@@ -469,7 +469,7 @@ class HivenClient(HivenEventHandler):
 
         The returned dict is only a copy from the cache
 
-        :param user_id: id of the Relationship
+        :param user_id: user-id of the Relationship
         :return: The cached dict if it exists in the cache else None
         """
         raw_data = self.storage['relationship'].get(user_id)
