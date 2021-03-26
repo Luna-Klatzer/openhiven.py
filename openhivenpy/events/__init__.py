@@ -255,6 +255,9 @@ class HivenEventHandler:
         :return: A tuple of the args and kwargs => [0] = args and [1] = kwargs
         """
         event_name = event_name.replace('on_', '')
+        if event_name not in self.available_events:
+            raise UnknownEventError("The passed event type is invalid/does not exist")
+
         listener = self.add_single_listener(event_name, coro)
         while not listener.dispatched:
             await asyncio.sleep(.05)
@@ -269,10 +272,10 @@ class HivenEventHandler:
         """
         def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
             if not inspect.iscoroutinefunction(coro):
-                raise ExpectedAsyncFunction("Callable target of the decorator must be asynchronous!")
+                raise ExpectedAsyncFunction("Target of the decorator must be asynchronous!")
 
             if coro.__name__.replace('on_', '') not in self._available_events:
-                raise UnknownEventError("The passed event_listener was not found in the available events!")
+                raise UnknownEventError("The passed event type is invalid/does not exist")
 
             func_name = coro.__name__.replace('on_', '')
             self.add_multi_listener(func_name, coro)
@@ -297,6 +300,9 @@ class HivenEventHandler:
         :returns: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
+        if event_name not in self.available_events:
+            raise UnknownEventError("The passed event type is invalid/does not exist")
+
         if self.active_listeners.get(event_name) is None:
             self.active_listeners[event_name] = []
 
@@ -314,6 +320,9 @@ class HivenEventHandler:
         :returns: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
+        if event_name not in self.available_events:
+            raise UnknownEventError("The passed event type is invalid/does not exist")
+
         if self.active_listeners.get(event_name) is None:
             self.active_listeners[event_name] = []
 
