@@ -69,7 +69,7 @@ def check_valid(func_: typing.Callable = None):
             try:
                 return func_(*args, **kwargs)
             except Exception as e:
-                raise InitializationError(f"Failed to initialise object due to {e.__class__.__name__}: {e}")
+                raise
 
         return wrapper  # func can still be used normally outside the event listening process
 

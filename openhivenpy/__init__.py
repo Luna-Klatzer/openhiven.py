@@ -31,13 +31,14 @@ SOFTWARE.
 __title__ = "openhiven.py"
 __author__ = "Nicolas Klatzer"
 __license__ = "MIT"
-__version__ = "0.2.dev1"
+__version__ = "0.2.alpha1"
 __copyright__ = "FrostbyteSpace"
 
 import logging
 
+# Loading the environment variables which contain basic configuration for the base-lib variables
+# (heartbeat, timeout etc.)
 from openhivenpy.settings import load_env
-# Loading the environment
 load_env()
 
 from . import exceptions

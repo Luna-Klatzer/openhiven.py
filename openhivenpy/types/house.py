@@ -90,20 +90,30 @@ class LazyHouse(HivenObject):
         ---
 
         Does NOT contain other objects and only their ids!
-        Only excluded for member objects which are unique in every house
+        Only exceptions are member objects which are unique in every house
 
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
         data = cls.validate(data)
         if type(data.get('members')) is list:
-            data['members'] = {m['user_id'] if m.get('user_id') else m.get('user').get('id'):
-                               utils.update_and_return(m, {
-                                   'user': m['user_id'] if m.get('user_id') else m.get('user').get('id')
-                               })
-                               for m in data['members']}
+            members = data['members']
+            data['members'] = {}
+            for member_ in members:
+                id_ = member_['user_id'] if member_.get('user_id') else member_.get('user').get('id')
+
+                data['members'][id_] = utils.update_and_return(member_, {'user': id_})
+
+        if type(data.get('roles')) is list:
+            roles = data['roles']
+            data['roles'] = {}
+            for role in roles:
+                id_ = role.get('id')
+                data['roles'][id_] = role
+
         if type(data.get('rooms')) is list:
             data['rooms'] = [i['id'] for i in data['rooms']]
+
         if type(data.get('entities')) is list:
             data['entities'] = [i['id'] for i in data['entities']]
 
@@ -251,8 +261,15 @@ class House(LazyHouse):
         """
         data = cls.validate(data)
         data = LazyHouse.form_object(data)
-        data['owner'] = utils.convert_value(int, data.get('owner_id'))
-        data['default_permissions'] = data.get('default_permissions')
+        if data.get('owner_id') is not None:
+            data['owner'] = data.get('owner_id')
+        elif data['owner'].get('id') is not None:
+            data['owner'] = data['owner']['id']
+        else:
+            raise InvalidPassedDataError(
+                "The passed data does not contain a valid owner_id property or owner property containing the id value",
+                data=data
+            )
         return data
 
     @classmethod
@@ -271,8 +288,9 @@ class House(LazyHouse):
         """
         try:
             instance = cls(**data)
+            instance._client = client
             instance._client_member = member.Member.create_from_dict(
-                cls.raw['members'][client.id], client
+                instance.get_cached_data()['members'][client.id], client
             )
             instance._owner = utils.get(instance.members, id=instance.owner_id)
     
@@ -285,7 +303,6 @@ class House(LazyHouse):
                 f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
             ) from e
         else:
-            instance._client = client
             return instance
 
     @property

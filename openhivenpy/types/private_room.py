@@ -111,6 +111,7 @@ class PrivateGroupRoom(HivenObject):
         """
         data = cls.validate(data)
         data['name'] = f"Private chat with {data['recipients'][0]['name']}"
+
         if type(data.get('recipients')) is list:
             data['recipients'] = [i['id'] for i in data['recipients']]
 
@@ -336,7 +337,7 @@ class PrivateRoom(HivenObject):
         return getattr(self, '_id', None)
 
     @property
-    def description(self) -> int:
+    def description(self) -> str:
         return getattr(self, '_description', None)
 
     @property

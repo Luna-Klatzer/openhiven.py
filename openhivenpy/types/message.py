@@ -3,11 +3,10 @@ import logging
 import sys
 import asyncio
 import types
-import typing
 
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenObject, check_valid, house, room
 from . import user
 from . import mention
 from . import embed
@@ -53,10 +52,6 @@ class DeletedMessage(HivenObject):
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
-
-        ---
-
-        Does NOT contain other objects and only their ids!
 
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
@@ -140,7 +135,7 @@ class Message(HivenObject):
             'type': {'type': 'integer'},
             'exploding': {
                 'anyOf': [
-                    {'type': 'integer'},
+                    {'type': 'boolean'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -231,11 +226,7 @@ class Message(HivenObject):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data['house'] = data['house']['id']
-        data['room'] = data['room']['id']
-        data['author'] = data['author']['id']
         data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
-        data['exploding'] = data.get('exploding')
         data['bucket'] = utils.convert_value(int, data.get('bucket'))
         data['device_id'] = utils.convert_value(int, data.get('device_id'))
         data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
@@ -248,12 +239,43 @@ class Message(HivenObject):
             data['timestamp'] = timestamp
 
         data = cls.validate(data)
-        data['id'] = utils.convert_value(int, data.get('id'))
-        data['house_id'] = utils.convert_value(int, data.get('house_id'))
-        data['room_id'] = utils.convert_value(int, data.get('room_id'))
-        data['house'] = utils.convert_value(int, data['house']['id'])
-        data['room'] = utils.convert_value(int, data['room']['id'])
-        data['author'] = utils.convert_value(int, data['author']['id'])
+
+        room_ = data.get('room')
+        if room_:
+            if type(room_) is dict:
+                room_ = room_.get('id', None)
+            elif isinstance(room_, HivenObject):
+                room_ = getattr(room_, 'id', None)
+
+            if room_ is None:
+                raise InvalidPassedDataError("The passed room is not in the correct format!", data=data)
+            else:
+                data['room'] = room_
+
+        house_ = data.get('house')
+        if house_:
+            if type(house_) is dict:
+                house_ = house_.get('id', None)
+            elif isinstance(house_, HivenObject):
+                house_ = getattr(house_, 'id', None)
+
+            if house_ is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house'] = house_
+
+        author = data.get('author')
+        if author:
+            if type(author) is dict:
+                author = author.get('id', None)
+            elif isinstance(author, HivenObject):
+                author = getattr(author, 'id', None)
+
+            if author is None:
+                raise InvalidPassedDataError("The passed author is not in the correct format!", data=data)
+            else:
+                data['author'] = author
+
         return data
 
     @classmethod
@@ -266,20 +288,27 @@ class Message(HivenObject):
         :return: The newly constructed Message Instance
         """
         try:
-            data['house'] = client.storage['houses'][data['house_id']]
-            data['room'] = client.storage['rooms'][data['room_id']]
-            data['author'] = client.storage['houses'][data['house_id']]['members']['']
-            data['embed'] = await embed.Embed.create_from_dict(data.get('embed'), client) if data.get('embed') else None
+            data['house'] = await house.House.create_from_dict(
+                client.storage['houses'][data['house_id']], client
+            )
+            data['room'] = await room.Room.create_from_dict(
+                client.storage['rooms'][data['room_id']], client
+            )
+            data['author'] = await user.User.create_from_dict(
+                client.storage['houses'][data['house_id']]['members'][data['author']['id']], client
+            )
+            data['embed'] = await embed.Embed.create_from_dict(
+                data.get('embed'), client
+            ) if data.get('embed') is not None else None
+
             mentions_ = []
             for d in data.get('mentions', []):
-                mentions_.append(
-                    await mention.Mention.create_from_dict(
-                        {
-                            'timestamp': data['timestamp'],
-                            'author': data['author'],
-                            'user': d
-                        }, client)
-                )
+                dict_ = {
+                    'timestamp': data['timestamp'],
+                    'author': data['author'],
+                    'user': d
+                }
+                mentions_.append(await mention.Mention.create_from_dict(dict_, client))
             data['mentions'] = mentions_
 
             instance = cls(**data)

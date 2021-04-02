@@ -80,10 +80,14 @@ class Entity(HivenObject):
             if type(house) is dict:
                 house_id = house.get('id')
             elif isinstance(house, HivenObject):
-                house_id = getattr(house, 'id')
+                house_id = getattr(house, 'id', None)
             else:
-                raise InvalidPassedDataError("Missing house_id field in data", data)
-            data['house_id'] = house_id
+                house_id = None
+
+            if house_id is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house_id'] = house_id
 
         data = cls.validate(data)
         return data

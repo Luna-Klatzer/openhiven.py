@@ -115,7 +115,6 @@ class Invite(HivenObject):
         data['house_members'] = data.get('counts', {}).get('house_members')
 
         data = cls.validate(data)
-        data['house_id'] = int(data['house_id'])
         data['type'] = int(data['type'])
         return data
 

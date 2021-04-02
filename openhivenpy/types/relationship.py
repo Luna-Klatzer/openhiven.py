@@ -106,10 +106,10 @@ class Relationship(HivenObject):
         :return: The newly constructed Relationship Instance
         """
         try:
-            data['user_id'] = utils.convert_value(int, data.get('user_id'))
+            data['user_id'] = data.get('user_id')
             data['user'] = await user.User.create_from_dict(
-                    client.storage['users'][data['user_id']], client
-                )
+                client.storage['users'][data['user_id']], client
+            )
 
             instance = cls(**data)
 

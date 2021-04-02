@@ -5,16 +5,14 @@ import fastjsonschema
 
 from .. import utils
 from . import HivenObject, check_valid
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['Embed']
 
 
 class Embed(HivenObject):
-    """
-    Represents an embed message object
-    """
+    """ Represents an embed message object """
     schema = {
         'type': 'object',
         'properties': {
@@ -24,7 +22,7 @@ class Embed(HivenObject):
             'image': {'type': 'string', 'default': None},
             'description': {
                 'anyOf': [
-                    {'type': 'object'},
+                    {'type': 'string'},
                     {'type': 'null'}
                 ],
                 'default': None
@@ -51,10 +49,6 @@ class Embed(HivenObject):
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
-
-        ---
-
-        Does NOT contain other objects and only their ids!
 
         :param data: Dict for the data that should be passed
         :return: The modified dictionary

@@ -4,13 +4,6 @@ import fastjsonschema
 import openhivenpy
 from openhivenpy.types import Attachment
 
-token_ = ""
-
-
-def test_start(token):
-    global token_
-    token_ = token
-
 
 class TestAttachment:
     def test_simple_init(self):
@@ -20,7 +13,8 @@ class TestAttachment:
             'raw': {}
         }
         data = Attachment.validate(data)
-        obj = Attachment(**data)
+        client = openhivenpy.UserClient()
+        obj = asyncio.run(Attachment.create_from_dict(data, client))
 
         assert obj.filename == data['filename']
         assert obj.media_url == data['media_url']
@@ -79,7 +73,7 @@ class TestAttachment:
         # Additional data will be ignored while validating since it won't be inherited at the class instance creation
 
         try:
-            data = Attachment.validate(data)
+            Attachment.validate(data)
         except fastjsonschema.exceptions.JsonSchemaValueException:
             pass
         else:

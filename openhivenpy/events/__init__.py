@@ -31,9 +31,22 @@ import typing
 from ..exceptions import UnknownEventError, ExpectedAsyncFunction
 from .. import utils
 
-__all__ = ['SingleDispatchEventListener', 'HivenEventHandler', 'HivenParsers']
+__all__ = ['SingleDispatchEventListener', 'HivenEventHandler', 'HivenParsers', 'EVENTS']
 
 logger = logging.getLogger(__name__)
+
+EVENTS = [
+    'init', 'ready', 'user_update',
+    'house_join', 'house_remove', 'house_update', 'house_delete', 'house_downtime',
+    'room_create', 'room_update', 'room_delete',
+    'house_member_join', 'house_member_leave', 'house_member_enter', 'house_member_exit', 'house_member_update',
+    'house_member_chunk', 'batch_house_member_update',
+    'house_entity_update'
+    'relationship_update',
+    'presence_update',
+    'message_create', 'message_update', 'message_delete',
+    'typing_start'
+]
 
 
 def add_listener(client, listener):
@@ -64,6 +77,7 @@ def remove_listener(client, listener):
 
 class SingleDispatchEventListener:
     """ EventListener Class that will be called only once and will store the events data, args and kwargs """
+
     def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
         self.coro = coro
         self.event_name = event_name
@@ -142,6 +156,7 @@ class SingleDispatchEventListener:
 
 class MultiDispatchEventListener:
     """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
+
     def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
         self.coro = coro
         self.event_name = event_name
@@ -196,21 +211,11 @@ class HivenEventHandler:
     Events class used to register the main event listeners.
     Is inherited by the HivenClient for easier access.
     """
+
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
         self.active_listeners = {}
-        self._available_events = [
-            'init', 'ready', 'user_update',
-            'house_join', 'house_remove', 'house_update', 'house_delete', 'house_downtime',
-            'room_create', 'room_update', 'room_delete',
-            'house_member_join', 'house_member_leave', 'house_member_enter', 'house_member_exit', 'member_update',
-            'house_member_chunk', 'batch_house_member_update',
-            'house_entity_update'
-            'relationship_update',
-            'presence_update',
-            'message_create', 'message_update', 'message_delete',
-            'typing_start'
-        ]
+        self._available_events = EVENTS
 
         # Searching through the HivenClient to find all async functions that were registered for event_listening
         # Regular functions will NOT be registered and only if they are async! This will avoid that errors are thrown
@@ -226,7 +231,7 @@ class HivenEventHandler:
     def available_events(self):
         return getattr(self, '_available_events')
 
-    async def call_listeners(self, event_name: str, event_data: dict = {}, *args, **kwargs):
+    async def call_listeners(self, event_name: str, event_data: dict = None, *args, **kwargs):
         """
         Dispatches all active EventListeners for the specified event.
 
@@ -239,6 +244,8 @@ class HivenEventHandler:
         :param args: Args that will be passed to the coroutines
         :param kwargs: Kwargs that will be passed to the coroutines
         """
+        if event_data is None:
+            event_data = {}
         events = self.active_listeners.get(event_name.lower().replace('on_', ''))
         if events:
             tasks = [e(event_data, *args, **kwargs) for e in events]
@@ -270,6 +277,7 @@ class HivenEventHandler:
 
         :param coro: Function that should be wrapped and registered
         """
+
         def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
             if not inspect.iscoroutinefunction(coro):
                 raise ExpectedAsyncFunction("Target of the decorator must be asynchronous!")
@@ -291,7 +299,7 @@ class HivenEventHandler:
     def add_multi_listener(self,
                            event_name: str,
                            coro: typing.Union[typing.Callable,
-                                                        typing.Coroutine]) -> MultiDispatchEventListener:
+                                              typing.Coroutine]) -> MultiDispatchEventListener:
         """
         Adds a new event listener to the list of active listeners
 
@@ -311,7 +319,7 @@ class HivenEventHandler:
     def add_single_listener(self,
                             event_name: str,
                             coro: typing.Union[typing.Callable,
-                                                         typing.Coroutine]) -> SingleDispatchEventListener:
+                                               typing.Coroutine]) -> SingleDispatchEventListener:
         """
         Adds a new single dispatch event listener to the list of active listeners
 

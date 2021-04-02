@@ -13,13 +13,25 @@ class DynamicEventBuffer(list):
         self.event = event
         super().__init__(*args, **kwargs)
 
-    def add(self, data: dict, *args, **kwargs):
+    def add(self, data: dict, args: tuple = None, kwargs: dict = None):
+        """
+        Adds a new event to the Buffer which will trigger the listeners assigned to the event
+
+        :param data: The raw WebSocket data containing the information of the event
+        :param args: Args of the Event that should be passed to the event listeners
+        :param kwargs:
+        """
+        if kwargs is None:
+            kwargs = {}
+        if args is None:
+            args = ()
         self.append(
             {
                 'data': data,
                 'args': args,
                 'kwargs': kwargs
-            })
+            }
+        )
 
     def get_next_event(self) -> dict:
         """ Fetches the event at index 0. Raises an exception if the buffer is empty! """
@@ -41,21 +53,38 @@ class MessageBroker:
         else:
             return False
 
-    def create_buffer(self, event: str) -> DynamicEventBuffer:
-        new_buffer = DynamicEventBuffer(event)
+    def create_buffer(self, event: str, args, kwargs) -> DynamicEventBuffer:
+        """
+        Creates a new EventBuffer which stores events that will trigger event_listener
+
+        :param event: The event name
+        :param args: Args that should be passed for the creation of the buffer
+        :param kwargs: Kwargs that should be passed for the creation of the buffer
+        :return: The newly created Buffer
+        """
+        new_buffer = DynamicEventBuffer(event, *args, **kwargs)
         self.event_buffers[event] = new_buffer
         return new_buffer
 
-    def get_buffer(self, event: str) -> DynamicEventBuffer:
-        """ Tries to fetch a buffer from the cache. If the buffer is not found a new one will be created
+    def get_buffer(self, event: str, args: tuple = None, kwargs: dict = None) -> DynamicEventBuffer:
+        """
+        Tries to fetch a buffer from the cache. If the buffer is not found a new one will be created
 
+        :param event: The event name
+        :param args: Args that should be passed for the creation of the buffer if it's not found
+        :param kwargs: Kwargs that should be passed for the creation of the buffer if it's not found
         :return: The fetched or newly created buffer instance
         """
+        if kwargs is None:
+            kwargs = {}
+        if args is None:
+            args = ()
+
         buffer = self.event_buffers.get(event)
         if buffer is not None:
             return buffer
         else:
-            return self.create_buffer(event)
+            return self.create_buffer(event, args, kwargs)
 
     async def run(self):
         """ Runs the Event Consumer instance which stores the workers for all event_listeners """

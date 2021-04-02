@@ -31,6 +31,20 @@ class LazyUser(HivenObject):
                 ],
                 'default': None
             },
+            'bio': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'email_verified': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
             'header': {
                 'anyOf': [
                     {'type': 'string'},
@@ -242,14 +256,11 @@ class User(LazyUser):
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        ---
-
-        Does NOT contain other objects and only their ids!
-
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
         data = LazyUser.form_object(data)
+        data = cls.validate(data)
         return data
 
     def get_cached_data(self) -> typing.Union[dict, None]:

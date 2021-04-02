@@ -16,6 +16,16 @@ __all__ = ['HivenWebSocket']
 logger = logging.getLogger(__name__)
 
 
+def extract_event(msg: dict) -> typing.Tuple[int, str, dict]:
+    """
+    Formats the incoming msg and returns it in tuple form
+
+    :param msg: The raw WebSocket Message
+    :return: The op-code, event-name and data in tuple form
+    """
+    return msg.get('op'), msg.get('e'), msg.get('d')
+
+
 class KeepAlive:
     def __init__(self, ws):
         self.ws = ws
@@ -173,13 +183,13 @@ class HivenWebSocket:
         Will raise an exception if a close frame was received
         """
         msg = msg.json()
-        op, event, data = self.extract_event(msg)
+        opcode, event, data = extract_event(msg)
 
-        if op == self.OPCode.CONNECTION_START:
+        if opcode == self.OPCode.CONNECTION_START:
             self._connection_start = time.time()
             self._open = True
 
-        elif op == self.OPCode.EVENT:
+        elif opcode == self.OPCode.EVENT:
             logger.debug(f"[WEBSOCKET] Received Websocket Event: {event}")
 
             if event == 'INIT_STATE':
@@ -189,7 +199,7 @@ class HivenWebSocket:
             return
 
         else:
-            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {op}: {msg}")
+            logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {opcode}: {msg}")
 
     async def received_init(self, msg: dict):
         """
@@ -208,7 +218,7 @@ class HivenWebSocket:
         while len(house_memberships) != len(self.client.storage['houses']):
             ws_event = await self.wait_for_event(handler=self.received_init_event)
             if msg:
-                op, event, d = self.extract_event(ws_event.json())
+                op, event, d = extract_event(ws_event.json())
                 if event == "HOUSE_JOIN":
                     self.client.storage.add_or_update_house(d)
                 else:
@@ -249,21 +259,13 @@ class HivenWebSocket:
     async def send_auth(self):
         """ Sends the authentication header to the Hiven Endpoint"""
         try:
-            auth = str(json.dumps({
-                "op": self.OPCode.AUTH,
-                "d": {
-                    "token": self.token
-                }
-            }))
-            await self.socket.send_str(auth)
+            await self.socket.send_str(
+                json.dumps({
+                    "op": self.OPCode.AUTH,
+                    "d": {
+                        "token": self.token
+                    }
+                })
+            )
         except Exception as e:
             raise SessionCreateError(f"Failed to send auth to the host due to exception: {e}")
-
-    def extract_event(self, msg: dict) -> typing.Tuple[int, str, dict]:
-        """
-        Formats the incoming msg and returns it in tuple form
-
-        :param msg: The raw WebSocket Message
-        :return: The op-code, event-name and data in tuple form
-        """
-        return msg.get('op'), msg.get('e'), msg.get('d')

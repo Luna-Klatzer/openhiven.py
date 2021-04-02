@@ -6,7 +6,7 @@ import fastjsonschema
 
 from . import HivenObject, check_valid
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InitializationError
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,6 @@ class Attachment(HivenObject):
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
-
-        ---
-
-        Does NOT contain other objects and only their ids!
 
         :param data: Dict for the data that should be passed
         :return: The modified dictionary

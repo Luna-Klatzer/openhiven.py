@@ -57,21 +57,30 @@ class Context(HivenObject):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        room = data['room']
+
+        room = data.get('room')
         if room:
             if type(room) is dict:
-                room = room.get('id')
+                room = room.get('id', None)
             elif isinstance(room, HivenObject):
-                room = getattr(room, 'id')
-            data['room'] = int(room)
+                room = getattr(room, 'id', None)
 
-        house = data['house']
+            if room is None:
+                raise InvalidPassedDataError("The passed room is not in the correct format!", data=data)
+            else:
+                data['room'] = room
+
+        house = data.get('house')
         if house:
             if type(house) is dict:
-                house = house.get('id')
+                house = house.get('id', None)
             elif isinstance(house, HivenObject):
-                house = getattr(house, 'id')
-            data['house'] = int(house)
+                house = getattr(house, 'id', None)
+
+            if house is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house'] = house
         return data
 
     @classmethod
