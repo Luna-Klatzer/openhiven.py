@@ -14,9 +14,7 @@ __all__ = ['LazyUser', 'User']
 
 
 class LazyUser(HivenObject):
-    """
-    Represents the standard Hiven User
-    """
+    """ Represents the standard Hiven User """
     schema = {
         'type': 'object',
         'properties': {
@@ -75,7 +73,9 @@ class LazyUser(HivenObject):
     def __init__(self, **kwargs):
         self._username = kwargs.get('username')
         self._name = kwargs.get('name')
+        self._bio = kwargs.get('bio')
         self._id = kwargs.get('id')
+        self._email_verified = kwargs.get('email_verified')
         self._user_flags = kwargs.get('user_flags')  # ToDo: Discord.py-esque way of user flags
         self._icon = kwargs.get('icon')
         self._header = kwargs.get('header')
@@ -149,6 +149,14 @@ class LazyUser(HivenObject):
     @property
     def id(self) -> str:
         return getattr(self, '_id', None)
+
+    @property
+    def bio(self) -> str:
+        return getattr(self, '_bio', None)
+
+    @property
+    def email_verified(self) -> str:
+        return getattr(self, '_email_verified', None)
 
     @property
     def user_flags(self) -> typing.Union[int, str]:

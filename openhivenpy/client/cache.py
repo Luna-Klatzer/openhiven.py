@@ -37,8 +37,8 @@ class ClientCache(dict):
             'read_state': dict()
         })
 
-    def ready(self):
-        if self['client_user']:
+    def check_if_initialised(self):
+        if self.get('client_user', None) is not None:
             return True
         else:
             raise ValueError("Data Updates require a initialised Hiven Client!")
@@ -46,6 +46,7 @@ class ClientCache(dict):
     def update_all(self, data: dict) -> dict:
         """
         Updates based on the data the main cache for the Client
+
         :return: The updated cache itself
         """
         self['house_memberships'] = data.get('house_memberships', {})
@@ -64,6 +65,7 @@ class ClientCache(dict):
     def update_client_user(self, data: dict):
         """
         Updating the Client Cache Data from the passed data dict
+
         :return: The validated data using `form_object` of the User class
         """
         client_user = types.User.form_object(data)
@@ -78,9 +80,10 @@ class ClientCache(dict):
     def add_or_update_house(self, data: dict):
         """
         Adds or Updates a house to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the House class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['id']
             for room in data['rooms']:
@@ -91,7 +94,6 @@ class ClientCache(dict):
             for member in data['members']:
                 member['house_id'] = id_
                 user = types.User.form_object(member['user'])
-
                 self.add_or_update_user(user)
 
             for entity in data['entities']:
@@ -118,9 +120,10 @@ class ClientCache(dict):
     def add_or_update_user(self, data: dict):
         """
         Adds or Updates a user to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the User class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['id']
             data = types.User.form_object(data)
@@ -140,9 +143,10 @@ class ClientCache(dict):
     def add_or_update_room(self, data: dict):
         """
         Adds or Updates a room to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the Room class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['id']
             data = types.Room.form_object(data)
@@ -162,9 +166,10 @@ class ClientCache(dict):
     def add_or_update_entity(self, data: dict):
         """
         Adds or Updates a entity to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the Entity class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['id']
             data = types.Entity.form_object(data)
@@ -184,9 +189,10 @@ class ClientCache(dict):
     def add_or_update_private_room(self, data: dict):
         """
         Adds or Updates a private room to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the Private_*Room class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['id']
             if int(data['type']) == 1:
@@ -217,9 +223,10 @@ class ClientCache(dict):
     def add_or_update_relationship(self, data: dict):
         """
         Adds or Updates a client relationship to the cache and updates the storage appropriately
+
         :return: The validated data using `form_object` of the Relationship class
         """
-        self.ready()
+        self.check_if_initialised()
         try:
             id_ = data['user_id']
             data = types.Relationship.form_object(data)
