@@ -54,9 +54,6 @@ class UserTyping(HivenObject):
             data['author'] = user
             data['house'] = house
             data['room'] = room
-            data['author_id'] = utils.convert_value(int, data.get('author_id'))
-            data['house_id'] = utils.convert_value(int, data.get('house_id'))
-            data['room_id'] = utils.convert_value(int, data.get('room_id'))
 
             timestamp = data.get('timestamp')
             # Converting to seconds because it's in milliseconds
