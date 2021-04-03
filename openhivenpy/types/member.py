@@ -7,7 +7,8 @@ import fastjsonschema
 from . import HivenObject, check_valid
 from . import user
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
+from ..exceptions import InitializationError, HTTPForbiddenError
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Member']
@@ -61,7 +62,7 @@ class Member(user.User):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -85,6 +86,7 @@ class Member(user.User):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Member Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -128,7 +130,7 @@ class Member(user.User):
         return getattr(self, '_house_id', None)
 
     @property
-    def roles(self) -> list:
+    def roles(self) -> typing.List[HivenObject]:
         return getattr(self, '_roles', None)
 
     @property
@@ -143,7 +145,6 @@ class Member(user.User):
             
         :return: True if the request was successful else HivenException.Forbidden()
         """
-        # TODO! Needs be changed with the HTTP Exceptions Update
         resp = await self._client.http.delete(f"/{self._house_id}/members/{self._user_id}")
         if not resp.status < 300:
             raise HTTPForbiddenError()

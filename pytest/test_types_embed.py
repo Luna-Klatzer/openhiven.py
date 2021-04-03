@@ -85,7 +85,7 @@ class TestEmbed:
         else:
             assert False
 
-    def test_form_object(self):
+    def test_format_obj_data(self):
         input = {
             'url': "https://link-image/stuff",
             'type': 2,
@@ -93,7 +93,7 @@ class TestEmbed:
             'description': "Description",
             'title': "Test"
         }
-        data = Embed.form_object(input)
+        data = Embed.format_obj_data(input)
         assert data['url'] == input['url']
         assert data['type'] == input['type']
         assert data['image'] == input['image']

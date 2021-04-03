@@ -79,13 +79,13 @@ class TestAttachment:
         else:
             assert False
 
-    def test_form_object(self):
+    def test_format_obj_data(self):
         input = {
             'filename': 'test',
             'media_url': 'test',
             'raw': {},
         }
-        data = Attachment.form_object(input)
+        data = Attachment.format_obj_data(input)
         assert data['raw'].get('raw', None) is None
         assert data == {
             **input,

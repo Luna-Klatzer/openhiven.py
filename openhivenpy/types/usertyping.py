@@ -1,14 +1,11 @@
 import datetime
 import logging
 import sys
-import types
 import typing
 
-import fastjsonschema
-
-from . import HivenObject, check_valid
+from . import HivenObject, House, Room, User
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InitializationError
 logger = logging.getLogger(__name__)
 
 __all__ = ['UserTyping']
@@ -58,7 +55,7 @@ class UserTyping(HivenObject):
             timestamp = data.get('timestamp')
             # Converting to seconds because it's in milliseconds
             if utils.convertible(int, timestamp):
-                data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp))
+                data['timestamp'] = datetime.datetime.fromtimestamp(utils.safe_convert(int, timestamp))
             else:
                 data['timestamp'] = timestamp
 
@@ -81,25 +78,25 @@ class UserTyping(HivenObject):
         return getattr(self, '_timestamp', None)
 
     @property
-    def author(self):
+    def author(self) -> User:
         return getattr(self, '_author', None)
 
     @property
-    def house(self):
+    def house(self) -> House:
         return getattr(self, '_house', None)
 
     @property
-    def room(self):
+    def room(self) -> Room:
         return getattr(self, '_room', None)
 
     @property
-    def author_id(self):
+    def author_id(self) -> str:
         return getattr(self, '_author_id', None)
 
     @property
-    def house_id(self):
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
 
     @property
-    def room_id(self):
+    def room_id(self) -> str:
         return getattr(self, '_room_id', None)

@@ -1,22 +1,28 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-import types
 import typing
-
 import fastjsonschema
+from types import FunctionType
 
 from . import HivenObject, check_valid
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from . import House
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Entity']
 
 
 class Entity(HivenObject):
-    """
-    Represents a Hiven Entity
-    """
+    """  Represents a Hiven Entity """
     schema = {
         'type': 'object',
         'properties': {
@@ -37,7 +43,7 @@ class Entity(HivenObject):
         'additionalProperties': False,
         'required': ['id', 'name', 'position', 'resource_pointers']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator: FunctionType = fastjsonschema.compile(schema)
 
     def __init__(self, **kwargs):
         self._type = kwargs.get('type')
@@ -63,7 +69,7 @@ class Entity(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -96,6 +102,7 @@ class Entity(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Entity Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -108,7 +115,9 @@ class Entity(HivenObject):
         """
         try:
             from . import House
-            data['house'] = House.create_from_dict(client.storage['house'][data['house_id']])
+            data['house'] = await House.create_from_dict(
+                data=client.storage['house'][data['house_id']], client=client
+            )
             instance = cls(**data)
 
         except Exception as e:
@@ -132,15 +141,15 @@ class Entity(HivenObject):
         return getattr(self, '_resource_pointers', None)
 
     @property
-    def name(self) -> list:
+    def name(self) -> str:
         return getattr(self, '_name', None)
 
     @property
-    def id(self) -> list:
+    def id(self) -> str:
         return getattr(self, '_id', None)
 
     @property
-    def house_id(self) -> list:
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
 
     @property
@@ -148,5 +157,5 @@ class Entity(HivenObject):
         return getattr(self, '_position', None)
 
     @property
-    def house(self) -> int:
+    def house(self) -> House:
         return getattr(self, '_house', None)

@@ -1,4 +1,6 @@
-"""House Module for Hiven House Objects"""
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
 import types
@@ -6,12 +8,14 @@ import typing
 import fastjsonschema
 
 from . import HivenObject, check_valid
-from . import invite
-from . import entity
-from . import member
-from . import room
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPReceivedNoDataError
+from ..exceptions import InvalidPassedDataError, InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from . import Member, Room, Entity, Invite
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['House', 'LazyHouse']
@@ -82,7 +86,7 @@ class LazyHouse(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -123,6 +127,7 @@ class LazyHouse(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the LazyHouse Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -247,7 +252,7 @@ class House(LazyHouse):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -260,7 +265,7 @@ class House(LazyHouse):
         :return: The modified dictionary
         """
         data = cls.validate(data)
-        data = LazyHouse.form_object(data)
+        data = LazyHouse.format_obj_data(data)
         if data.get('owner_id') is not None:
             data['owner'] = data.get('owner_id')
         elif data['owner'].get('id') is not None:
@@ -276,6 +281,7 @@ class House(LazyHouse):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the House Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -287,11 +293,12 @@ class House(LazyHouse):
         :return: The newly constructed House Instance
         """
         try:
+            from . import Member
             instance = cls(**data)
             instance._client = client
-            instance._client_member = member.Member.create_from_dict(
-                instance.get_cached_data()['members'][client.id], client
-            )
+
+            client_data = instance.get_cached_data()['members'][client.id]
+            instance._client_member = await Member.create_from_dict(client_data, client)
             instance._owner = utils.get(instance.members, id=instance.owner_id)
     
         except Exception as e:
@@ -306,15 +313,15 @@ class House(LazyHouse):
             return instance
 
     @property
-    def owner(self) -> member.Member:
+    def owner(self) -> Member:
         return getattr(self, '_owner', None)
 
     @property
-    def client_member(self) -> member.Member:
+    def client_member(self) -> Member:
         return getattr(self, '_client_member', None)
 
     @property
-    def banner(self) -> list:
+    def banner(self) -> str:
         return getattr(self, '_banner', None)
 
     @property
@@ -322,28 +329,30 @@ class House(LazyHouse):
         return getattr(self, '_roles', None)
 
     @property
-    def entities(self) -> list:
+    def entities(self) -> typing.List[Entity]:
         return getattr(self, '_entities', None)
 
     @property
-    def users(self) -> list:
+    def users(self) -> typing.List[Member]:
         return getattr(self, '_members', None)
 
     @property
-    def members(self) -> list:
+    def members(self) -> typing.List[Member]:
         return getattr(self, '_members', None)
 
     @property
     def default_permissions(self) -> int:
         return self._default_permissions
 
-    def get_member(self, member_id: int):
+    def get_member(self, member_id: int) -> typing.Union[Room, None]:
         """
         Fetches a member from the cache based on the id
 
         :returns: The Member Instance if it exists else returns None
         """
         try:
+            from . import Member
+            # TODO! Create new class when fetched
             cached_member = utils.get(self.members, id=member_id)
             if cached_member:
                 return cached_member
@@ -357,15 +366,17 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the member with id {member_id}: \n{sys.exc_info()[0].__name__}: {e}"
             )
-            return False
+            return None
 
-    def get_room(self, room_id: int):
+    def get_room(self, room_id: int) -> typing.Union[Room, None]:
         """
         Fetches a room from the cache based on the id
 
         :returns: The Room Instance if it exists else returns None
         """
         try:
+            from . import Room
+            # TODO! Create new class when fetched
             cached_room = utils.get(self.rooms, id=room_id)
             if cached_room:
                 return cached_room
@@ -378,15 +389,17 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
                        f"{sys.exc_info()[0].__name__}: {e}")
-            return False
+            return None
 
-    def get_entity(self, entity_id: int):
+    def get_entity(self, entity_id: int) -> typing.Union[Entity, None]:
         """
         Fetches a entity from the cache based on the id
 
         :returns: The Entity Instance if it exists else returns None
         """
         try:
+            from . import Entity
+            # TODO! Create new class when fetched
             cached_member = utils.get(self.members, id=entity_id)
             if cached_member:
                 return cached_member
@@ -399,15 +412,16 @@ class House(LazyHouse):
             utils.log_traceback(
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the member with id {entity_id}: \n{sys.exc_info()[0].__name__}: {e}")
-            return False
+            return None
 
-    async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None):
+    async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None) -> typing.Union[Room, None]:
         """
         Creates a Room in the house with the specified name. 
         
         :return: A Room Instance for the Hiven Room that was created if successful else None
         """
         try:
+            from . import Room
             default_entity = utils.get(self.entities, name="Rooms")
             json = {
                 'name': name,
@@ -416,17 +430,10 @@ class House(LazyHouse):
 
             # Creating the room using the api
             resp = await self._client.http.post(f"/houses/{self._id}/rooms", json=json)
+            raw_data = await resp.json()
 
-            if resp.status < 300:
-                data = (await resp.json()).get('data')
-                if data:
-                    _room = await room.Room.create_from_dict(data, self._client)
-
-                    return _room
-                else:
-                    raise HTTPReceivedNoDataError()
-            else:
-                raise HTTPResponseError("Unknown! See HTTP Logs!")
+            data = Room.format_obj_data(raw_data.get('data'))
+            return await Room.create_from_dict(data, self._client)
 
         except Exception as e:
             utils.log_traceback(
@@ -435,9 +442,7 @@ class House(LazyHouse):
             )
             return None
 
-    # TODO! Delete Room!
-
-    async def create_entity(self, name: str) -> typing.Union[entity.Entity, None]:
+    async def create_entity(self, name: str) -> typing.Union[Entity, None]:
         """
         Creates a entity in the house with the specified name.
 
@@ -445,31 +450,29 @@ class House(LazyHouse):
         :returns: The newly created Entity Instance
         """
         try:
-            json = {'name': name, 'type': 1}
-            resp = await self._client.http.post(endpoint=f"/houses/{self.id}/entities", json=json)
+            resp = await self._client.http.post(
+                endpoint=f"/houses/{self.id}/entities",
+                json={'name': name, 'type': 1}
+            )
+            raw_data = await resp.json()
 
-            if resp.status < 300:
-                data = (await resp.json()).get('data')
-                if data:
-                    # Fetching all existing ids
-                    existing_entity_ids = [e.id for e in self.entities]
-                    for d in data:
-                        id_ = utils.convert_value(int, d.get('id'))
-                        # Returning the new entity
-                        if id_ not in existing_entity_ids:
-                            _entity = await entity.Entity.create_from_dict(d, self._client)
-                            self._entities.append(_entity)
-                            return _entity
-                    raise InitializationError(f"Failed to initialise the Entity Instance! Data: {data}")
-                else:
-                    raise HTTPReceivedNoDataError()
-            else:
-                raise HTTPResponseError("Unknown! See HTTP Logs!")
+            data = raw_data.get('data')
+
+            # Fetching all existing ids
+            existing_entity_ids = [e.id for e in self.entities]
+            for d in data:
+                id_ = d.get('id')
+                if id_ not in existing_entity_ids:
+                    d = Entity.format_obj_data(d)
+                    _entity = await Entity.create_from_dict(d, self._client)
+                    self._entities.append(_entity)
+                    return _entity
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create category '{name}' in house {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to create category '{name}' in house {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None
 
     async def leave(self) -> bool:
@@ -479,12 +482,8 @@ class House(LazyHouse):
         :returns: True if it was successful else False
         """
         try:
-            resp = await self._client.http.delete(endpoint=f"/users/@me/houses/{self.id}")
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPResponseError("Unknown! See HTTP Logs!")
+            await self._client.http.delete(endpoint=f"/users/@me/houses/{self.id}")
+            return True
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -503,12 +502,8 @@ class House(LazyHouse):
         try:
             for key, data in kwargs.items():
                 if key in ['name']:
-                    resp = await self._client.http.patch(endpoint=f"/houses/{self.id}", json={key: data})
-
-                    if resp.status < 300:
-                        return True
-                    else:
-                        raise HTTPResponseError("Unknown! See HTTP Logs!")
+                    await self._client.http.patch(endpoint=f"/houses/{self.id}", json={key: data})
+                    return True
                 else:
                     raise NameError("The passed value does not exist in the House!")
 
@@ -519,7 +514,7 @@ class House(LazyHouse):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
-    async def create_invite(self, max_uses: int) -> typing.Union[invite.Invite, None]:
+    async def create_invite(self, max_uses: int) -> typing.Union[Invite, None]:
         """
         Creates an invite for the current house. 
 
@@ -527,18 +522,13 @@ class House(LazyHouse):
         :return: The invite url if successful.
         """
         try:
+            from . import Invite
             resp = await self._client.http.post(endpoint=f"/houses/{self.id}/invites", json={"max_uses": max_uses})
+            raw_data = await resp.json()
 
-            if resp.status < 300:
-                raw_data = await resp.json()
-                data = raw_data.get('data', {})
-
-                if data:
-                    return await invite.Invite.create_from_dict(data, self._client)
-                else:
-                    raise HTTPReceivedNoDataError()
-            else:
-                raise HTTPResponseError("Unknown! See HTTP Logs!")
+            data = raw_data.get('data', {})
+            data = Invite.format_obj_data(data)
+            return await Invite.create_from_dict(data, self._client)
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
@@ -553,15 +543,12 @@ class House(LazyHouse):
         :return: The house ID if successful else None
         """
         try:
-            resp = await self._client.http.delete(f"/houses/{self.id}")
-
-            if resp.status < 300:
-                return self.id
-            else:
-                return None
+            await self._client.http.delete(f"/houses/{self.id}")
+            return self.id
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to delete House {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to delete House {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None

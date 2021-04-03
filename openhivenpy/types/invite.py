@@ -1,13 +1,13 @@
 import logging
 import sys
 import types
-import typing
 import fastjsonschema
 
 from . import HivenObject, check_valid
+from . import House
 from .. import utils
-from . import house
 from ..exceptions import InitializationError
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Invite']
@@ -51,6 +51,20 @@ class Invite(HivenObject):
                 ],
                 'default': None
             },
+            'max_age': {
+                'anyOf': [
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'max_uses': {
+                'anyOf': [
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
             'mfa_enabled': {
                 'anyOf': [
                     {'type': 'boolean'},
@@ -58,9 +72,17 @@ class Invite(HivenObject):
                 ],
                 'default': None
             },
+            'type': {
+                'type': 'integer',
+                'default': None
+            },
+            'house_members': {
+                'type': 'integer',
+                'default': None
+            }
         },
         'additionalProperties': False,
-        'required': []
+        'required': ['code']
     }
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
@@ -89,7 +111,7 @@ class Invite(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -122,6 +144,8 @@ class Invite(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Invite Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
+
 
         ---
 
@@ -133,7 +157,8 @@ class Invite(HivenObject):
         :return: The newly constructed Invite Instance
         """
         try:
-            data['house'] = house.House.create_from_dict(client.storage['houses'][data['house_id']], client)
+            house_data = client.storage['houses'][data['house_id']]
+            data['house'] = await House.create_from_dict(house_data, client)
 
             instance = cls(**data)
 
@@ -158,29 +183,29 @@ class Invite(HivenObject):
         return getattr(self, '_url', None)
     
     @property
-    def house_id(self):
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
     
     @property
-    def max_age(self):
+    def max_age(self) -> int:
         return getattr(self, '_max_age', None)
 
     @property
-    def max_uses(self):
+    def max_uses(self) -> int:
         return getattr(self, '_max_uses', None)
     
     @property
-    def type(self):
+    def type(self) -> int:
         return getattr(self, '_type', None)
         
     @property
-    def house(self):
+    def house(self) -> House:
         return getattr(self, '_house', None)
     
     @property
-    def house_members(self):
+    def house_members(self) -> int:
         return getattr(self, '_house_members', None)
 
     @property
-    def created_at(self):
+    def created_at(self) -> str:
         return getattr(self, '_created_at', None)

@@ -36,12 +36,13 @@ __copyright__ = "FrostbyteSpace"
 
 import logging
 
+from . import exceptions
+
 # Loading the environment variables which contain basic configuration for the base-lib variables
 # (heartbeat, timeout etc.)
-from openhivenpy.settings import load_env
-load_env()
+from openhivenpy.settings import load_env_vars
+load_env_vars()
 
-from . import exceptions
 from . import utils
 from . import types
 from . import events

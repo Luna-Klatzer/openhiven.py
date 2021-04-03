@@ -1,49 +1,39 @@
 import asyncio
 import datetime
-import inspect
 import sys
 import os
 import logging
 import typing
-import inspect
-from functools import wraps
+from asyncio import AbstractEventLoop
 
-from ..settings import load_env
+from ..settings import load_env_vars
 from .. import utils
 from .. import types
 from ..events import HivenParsers, HivenEventHandler
-from ..gateway import Connection, HTTP
-from ..exceptions import SessionCreateError, InvalidTokenError, HTTPResponseError, WebSocketFailedError, \
-    HivenConnectionError
+from ..gateway import Connection, HTTP, MessageBroker
+from ..exceptions import (SessionCreateError, InvalidTokenError, WebSocketFailedError, HivenConnectionError)
 from .cache import ClientCache
 
 __all__ = ['HivenClient']
 
 logger = logging.getLogger(__name__)
 
-load_env()
-USER_TOKEN_LEN = utils.convert_value(int, os.getenv("USER_TOKEN_LEN"))
-BOT_TOKEN_LEN = utils.convert_value(int, os.getenv("BOT_TOKEN_LEN"))
+load_env_vars()
+USER_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("USER_TOKEN_LEN"))
+BOT_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("BOT_TOKEN_LEN"))
 
 
 class HivenClient(HivenEventHandler):
     """ Main Class for connecting to Hiven and interacting with the API. """
-    def __init__(self,
-                 *,
-                 loop: asyncio.AbstractEventLoop = None,
-                 log_ws_output: bool = False,
-                 queuing: bool = False):
-        """
 
-        :rtype: object
-        """
+    def __init__(self, *, loop: AbstractEventLoop = None, log_ws_output: bool = False, queue_events: bool = False):
         self._token = ""
         self._connection = Connection(self)
         self._loop = loop
         self._log_ws_output = log_ws_output
-        self._queuing = queuing
-        self._user = None
-        self.storage = ClientCache(log_ws_output)
+        self._queue_events = queue_events
+        self._user = types.User()  # Empty User which will return for every value None
+        self._storage = ClientCache(log_ws_output)
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
         super().__init__(HivenParsers(self))
@@ -60,8 +50,16 @@ class HivenClient(HivenEventHandler):
         return '<HivenClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
+    def storage(self) -> ClientCache:
+        return getattr(self, '_storage', None)
+
+    @property
     def token(self) -> str:
         return self.storage.get('token', None)
+
+    @property
+    def client_type(self) -> bool:
+        return getattr(self, '_CLIENT_TYPE', False)
 
     @property
     def log_ws_output(self) -> str:
@@ -76,8 +74,8 @@ class HivenClient(HivenEventHandler):
         return getattr(self, '_connection', None)
 
     @property
-    def queuing(self) -> asyncio.AbstractEventLoop:
-        return getattr(self, '_queuing', None)
+    def queue_events(self) -> bool:
+        return getattr(self, '_queue_events', None)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
@@ -133,7 +131,7 @@ class HivenClient(HivenEventHandler):
                 f"Failed to keep alive connection to Hiven: {sys.exc_info()[0].__name__}: {e}"
             )
 
-    async def close(self):
+    async def close(self) -> None:
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
         await self.connection.close()
         logger.debug("[HIVENCLIENT] Closing the connection! The WebSocket will stop shortly!")
@@ -151,11 +149,11 @@ class HivenClient(HivenEventHandler):
         return getattr(self.connection, 'startup_time', None)
 
     @property
-    def message_broker(self):
+    def message_broker(self) -> MessageBroker:
         return getattr(self.connection.ws, 'message_broker', None)
 
     @property
-    def initialised(self):
+    def initialised(self) -> bool:
         return getattr(self.connection.ws, '_open', False)
 
     async def edit(self, **kwargs) -> bool:
@@ -171,12 +169,10 @@ class HivenClient(HivenEventHandler):
         try:
             for key in kwargs.keys():
                 if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
-                    resp = await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
+                    await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
 
-                    if resp.status < 300:
-                        return True
-                    else:
-                        raise HTTPResponseError("Unknown! See HTTP Logs!")
+                    return True
+
                 else:
                     raise NameError("The passed value does not exist in the Client!")
 
@@ -190,7 +186,7 @@ class HivenClient(HivenEventHandler):
             raise
 
     @property
-    def user(self):
+    def user(self) -> types.User:
         return getattr(self, '_user', None)
 
     @property
@@ -202,7 +198,7 @@ class HivenClient(HivenEventHandler):
         return getattr(self.user, 'name', None)
 
     @property
-    def id(self) -> int:
+    def id(self) -> str:
         return getattr(self.user, 'id', None)
 
     @property

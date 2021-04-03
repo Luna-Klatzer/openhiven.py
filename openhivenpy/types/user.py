@@ -8,6 +8,7 @@ import fastjsonschema
 from . import HivenObject, check_valid
 from .. import utils
 from ..exceptions import InitializationError
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['LazyUser', 'User']
@@ -98,7 +99,7 @@ class LazyUser(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -113,6 +114,7 @@ class LazyUser(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the LazyUser Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -155,7 +157,7 @@ class LazyUser(HivenObject):
         return getattr(self, '_bio', None)
 
     @property
-    def email_verified(self) -> str:
+    def email_verified(self) -> bool:
         return getattr(self, '_email_verified', None)
 
     @property
@@ -259,7 +261,7 @@ class User(LazyUser):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -267,7 +269,7 @@ class User(LazyUser):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data = LazyUser.form_object(data)
+        data = LazyUser.format_obj_data(data)
         data = cls.validate(data)
         return data
 
@@ -279,6 +281,7 @@ class User(LazyUser):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the User Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         :param data: Dict for the data that should be passed
         :param client: Client used for accessing the cache
@@ -307,17 +310,17 @@ class User(LazyUser):
         return getattr(self, '_website', None)
 
     @property
-    def presence(self):
+    def presence(self) -> str:
         return getattr(self, '_presence', None)
 
     @property
-    def email(self):
+    def email(self) -> str:
         return getattr(self, '_email', None)
 
     @property
-    def blocked(self):
+    def blocked(self) -> bool:
         return getattr(self, '_blocked', None)
 
     @property
-    def mfa_enabled(self):
+    def mfa_enabled(self) -> bool:
         return getattr(self, '_mfa_enabled', None)

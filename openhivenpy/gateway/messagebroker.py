@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-__all__ = ['DynamicEventBuffer', 'MessageBroker']
-
 from .. import utils
+
+__all__ = ['DynamicEventBuffer', 'MessageBroker']
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +136,11 @@ class Worker:
                 # Creating a new task for every active listener
                 tasks = [utils.wrap_with_logging(e)(data, *args, **kwargs) for e in listeners]
 
-                # if queuing is active running a sequence will not return until all event_listeners were dispatched
-                if self.client.queuing:
+                # if queue_events is active running a sequence will not return until all event_listeners were dispatched
+                if self.client.queue_events:
                     await self.gather_tasks(tasks)
                 else:
-                    # without queuing all tasks will be assigned to the asyncio event_loop and the function will return
+                    # without queue_events all tasks will be assigned to the asyncio event_loop and the function will return
                     asyncio.create_task(self.gather_tasks(tasks))
 
 

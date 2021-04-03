@@ -1,3 +1,6 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
 import asyncio
@@ -7,9 +10,14 @@ import fastjsonschema
 
 from . import HivenObject, check_valid
 from . import message
-from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
 from .. import utils
-from ..exceptions import InitializationError, HTTPResponseError, HTTPReceivedNoDataError
+from ..exceptions import InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from . import User
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
@@ -97,7 +105,7 @@ class PrivateGroupRoom(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -121,6 +129,7 @@ class PrivateGroupRoom(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the PrivateGroupRoom Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -132,11 +141,11 @@ class PrivateGroupRoom(HivenObject):
         :return: The newly constructed PrivateGroupRoom Instance
         """
         try:
+            from . import User
             _recipients = []
             for id_ in data.get("recipients"):
-                _recipients.append(await module_user.User.create_from_dict(
-                    client.storage['users'][id_], client
-                ))
+                user_data = client.storage['users'][id_]
+                _recipients.append(await User.create_from_dict(user_data, client))
 
             data['recipients'] = _recipients
             data['name'] = f"Private Group chat with: {(', '.join(r.name for r in _recipients))}"
@@ -157,11 +166,11 @@ class PrivateGroupRoom(HivenObject):
             return instance
 
     @property
-    def client_user(self) -> module_user.User:
+    def client_user(self) -> User:
         return getattr(self, '_client_user', None)
 
     @property
-    def recipients(self) -> typing.List[module_user.User]:
+    def recipients(self) -> typing.List[User]:
         return getattr(self, '_recipients', None)
     
     @property
@@ -197,24 +206,26 @@ class PrivateGroupRoom(HivenObject):
         :return: A Message instance if successful else None
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
             resp = await self._client.http.post(
-                endpoint=f"/rooms/{self.id}/messages",
-                json={"content": content})
+                endpoint=f"/rooms/{self.id}/messages", json={"content": content}
+            )
 
             raw_data = await resp.json()
-            if raw_data:
-                # Raw_data not in correct format => needs to access data field
-                data = raw_data.get('data')
-                if data:
-                    return await message.Message.create_from_dict(data, self._client)
-            else:
-                raise HTTPResponseError()
+
+            # Raw_data not in correct format => needs to access data field
+            data = raw_data.get('data')
+
+            data = message.Message.format_obj_data(data)
+            msg = await message.Message.create_from_dict(data, self._client)
+            return msg
         
         except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[PRIVATE_GROUP_ROOM] Traceback:",
+                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -226,15 +237,10 @@ class PrivateGroupRoom(HivenObject):
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._client.http.post(f"/rooms/{self.id}/call")
-
-            data = await resp.json()
-            if data.get('data'):
-                # TODO! Needs implementation
-                return True
-            else:
-                raise HTTPResponseError()
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
+            await self._client.http.post(f"/rooms/{self.id}/call")
+            return True
             
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
@@ -278,7 +284,7 @@ class PrivateRoom(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -305,9 +311,9 @@ class PrivateRoom(HivenObject):
         :return: The newly constructed PrivateRoom Instance
         """
         try:
-            data['recipient'] = await module_user.User.create_from_dict(
-                client.storage['users'][data['recipient']['id']], client
-            )
+            from . import User
+            user_data = client.storage['users'][data['recipient']['id']]
+            data['recipient'] = await User.create_from_dict(user_data, client)
             data['client_user'] = client.user
 
             instance = cls(**data)
@@ -325,11 +331,11 @@ class PrivateRoom(HivenObject):
             return instance
 
     @property
-    def client_user(self) -> module_user.User:
+    def client_user(self) -> User:
         return getattr(self, '_client_user', None)
 
     @property
-    def recipient(self) -> module_user.User:
+    def recipient(self) -> User:
         return getattr(self, '_recipient', None)
     
     @property
@@ -365,7 +371,8 @@ class PrivateRoom(HivenObject):
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
 
             resp = await self._client.http.post(f"/rooms/{self.id}/call")
 
@@ -390,32 +397,26 @@ class PrivateRoom(HivenObject):
         :param delay: Delay until sending the message (in seconds)
         :return: Returns a Message Instance if successful.
         """
+        # TODO! Requires functionality check!
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
             resp = await self._client.http.post(
                 endpoint=f"/rooms/{self.id}/messages", json={"content": content}
             )
 
             raw_data = await resp.json()
-            if raw_data:
-                # Raw_data not in correct format => needs to access data field
-                data = raw_data.get('data')
-                if data:
-                    # Getting the author / self
-                    raw_data = await self._client.http.request(f"/users/@me")
-                    author_data = raw_data.get('data')
-                    if author_data:
-                        msg = await message.Message.create_from_dict(data, self._client)
-                        return msg
-                    else:
-                        raise HTTPReceivedNoDataError()
-                else:
-                    raise HTTPResponseError()
-            else:
-                raise HTTPResponseError()
+
+            # Raw_data not in correct format => needs to access data field
+            data = raw_data.get('data')
+
+            data = message.Message.format_obj_data(data)
+            msg = await message.Message.create_from_dict(data, self._client)
+            return msg
         
         except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[PRIVATE_ROOM] Traceback:",
+                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None

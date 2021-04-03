@@ -28,7 +28,7 @@ SOFTWARE.
 
 
 __all__ = [
-    'HivenError', 'HivenConnectionError',
+    'HivenError', 'HivenConnectionError', 'HivenENVError',
 
     'ClientTypeError', 'SessionCreateError', 'UnknownEventError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
@@ -36,8 +36,8 @@ __all__ = [
     'HivenGatewayError', 'WebSocketMessageError', 'WebSocketFailedError',
     'WebSocketClosedError', 'RestartSessionError',
 
-    'HTTPError', 'HTTPFailedRequestError', 'HTTPForbiddenError', 'HTTPResponseError',
-    'HTTPReceivedNoDataError',
+    'HTTPError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError', 'HTTPForbiddenError',
+    'HTTPResponseError', 'HTTPReceivedNoDataError',
 
     'InitializationError', 'InvalidPassedDataError', 'ExpectedAsyncFunction',
 
@@ -54,22 +54,22 @@ class HivenError(Exception):
     
     All other exceptions inherit from this base class
     """
-    exc_msg = None
+    error_msg = None
 
     def __init__(self, *args):
-        if self.exc_msg is None or args:
+        if self.error_msg is None or args:
             if args:
-                self.exc_msg = ", ".join([str(arg) for arg in args])
+                self.error_msg = ", ".join([str(arg) for arg in args])
             else:
-                self.exc_msg = f"Exception occurred in the package openhivenpy"
+                self.error_msg = f"Exception occurred in the package openhivenpy"
 
-        super().__init__(self.exc_msg)
+        super().__init__(self.error_msg)
         
     def __str__(self):
-        return self.exc_msg
+        return self.error_msg
 
     def __repr__(self):
-        return "<{} exc_msg={}>".format(self.__class__.__name__, self.exc_msg)
+        return "<{} error_msg={}>".format(self.__class__.__name__, self.error_msg)
 
     def __call__(self):
         return str(self)
@@ -77,37 +77,42 @@ class HivenError(Exception):
 
 class HivenConnectionError(HivenError):
     """ The connection to Hiven failed to be kept alive or started! """
-    exc_msg = "The connection to Hiven failed to be kept alive or started!"
+    error_msg = "The connection to Hiven failed to be kept alive or started!"
+
+
+class HivenENVError(HivenError):
+    """ The connection to Hiven failed to be kept alive or started! """
+    error_msg = "Failed to load .env file of the module!"
 
 
 class ClientTypeError(HivenError):
     """ Invalid client type was passed resulting in a failed initialisation! """
-    exc_msg = "Invalid client type was passed resulting in a failed initialization!"
+    error_msg = "Invalid client type was passed resulting in a failed initialization!"
 
 
 class SessionCreateError(HivenConnectionError):
     """ Failed to create Session! """
-    exc_msg = "Failed to create Session!"
+    error_msg = "Failed to create Session!"
 
 
 class UnknownEventError(HivenError):
     """ The attempt to register an event failed due to the specified event_listener not being found! """
-    exc_msg = "Failed to find event of the registered EventListener"
+    error_msg = "Failed to find event of the registered EventListener"
 
 
 class InvalidTokenError(HivenError):
     """ Invalid Token was passed! """
-    exc_msg = "Invalid Token was passed!"
+    error_msg = "Invalid Token was passed!"
 
 
 class ClosingError(HivenConnectionError):
     """ The client is unable to close the connection to Hiven! """
-    exc_msg = "Failed to close Connection!"
+    error_msg = "Failed to close Connection!"
 
 
 class NoneClientType(Warning):
     """ A None Type was passed in the Initialization! """
-    exc_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
+    error_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
                "while running!")
 
 
@@ -116,29 +121,29 @@ class NoneClientType(Warning):
 
 class HivenGatewayError(HivenConnectionError):
     """ General Exception in the Gateway and Connection to Hiven! """
-    exc_msg = "Encountered and Exception in the Hiven Gateway!"
+    error_msg = "Encountered and Exception in the Hiven Gateway!"
 
 
 # -------- WEBSOCKET --------
 
 class WebSocketMessageError(HivenGatewayError):
     """ An Exception occurred while handling a message/response from Hiven """
-    exc_msg = "Failed to handle WebSocket Message!"
+    error_msg = "Failed to handle WebSocket Message!"
 
 
 class WebSocketFailedError(HivenGatewayError):
     """ Received an exception call  """
-    exc_msg = "Received Error frame from the aiohttp Websocket which resulted in the crashing of the WebSocket!"
+    error_msg = "Received Error frame from the aiohttp Websocket which resulted in the crashing of the WebSocket!"
 
 
 class WebSocketClosedError(HivenError):
     """ The Hiven WebSocket was closed and an exception is raised to stop the current processes """
-    exc_msg = "The Hiven WebSocket is closing!"
+    error_msg = "The Hiven WebSocket is closing!"
 
 
 class RestartSessionError(HivenGatewayError):
     """ Exception used to trigger restarts in the gateway module """
-    exc_msg = "Restarting the Session and re-initialising the data!"
+    error_msg = "Restarting the Session and re-initialising the data!"
 
 
 # -------- HTTP --------
@@ -146,13 +151,25 @@ class RestartSessionError(HivenGatewayError):
 
 class HTTPError(HivenGatewayError):
     """ Base Exception for exceptions in the HTTP and overall requesting """
-    exc_msg = "Failed to perform request! Code: {}! See HTTP logs!"
+    error_msg = "Failed to perform request! Code: {}! See HTTP logs!"
 
     def __init__(self, *args, code="Unknown"):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = self.exc_msg.format(code)
+            arg = self.error_msg.format(code)
+        super().__init__(arg)
+
+
+class HTTPRequestTimeoutError(HTTPError):
+    """ The sent request did not finish in time and raised a timeout exception """
+    error_msg = "Failed to perform request in time!"
+
+    def __init__(self, *args):
+        if args:
+            arg = "".join([str(arg) for arg in args])
+        else:
+            arg = self.error_msg
         super().__init__(arg)
 
 
@@ -162,12 +179,12 @@ class HTTPFailedRequestError(HTTPError):
 
 class HTTPForbiddenError(HTTPFailedRequestError):
     """ The client was forbidden to perform a Request """
-    exc_msg = "The client was forbidden to execute a certain task or function!"
+    error_msg = "The client was forbidden to execute a certain task or function!"
 
 
 class HTTPResponseError(HTTPError):
     """ Response was in wrong format or expected data was not received """
-    exc_msg = "Failed to handle Response and utilise data! Code: {}! See HTTP logs!"
+    error_msg = "Failed to handle Response and utilise data! Code: {}! See HTTP logs!"
 
 
 class HTTPReceivedNoDataError(HTTPError):
@@ -175,14 +192,14 @@ class HTTPReceivedNoDataError(HTTPError):
     Received a response without the required data field or
     received a 204(No Content) in a request that expected data.
     """
-    exc_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
+    error_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
 
 
 # -------- DATA --------
 
 class InitializationError(HivenError):
     """ The object failed to initialise """
-    exc_msg = "The object failed to initialise"
+    error_msg = "The object failed to initialise"
 
 
 class InvalidPassedDataError(InitializationError):
@@ -200,7 +217,7 @@ class InvalidPassedDataError(InitializationError):
 
 class ExpectedAsyncFunction(HivenError):
     """ The passed function of the decorator is not async and cannot be used """
-    exc_msg = "The passed function is not async"
+    error_msg = "The passed function is not async"
 
 
 # -------- COMMAND --------
@@ -208,4 +225,4 @@ class ExpectedAsyncFunction(HivenError):
 
 class CommandError(HivenError):
     """ General Exception while executing a command function on Hiven! """
-    exc_msg = "An Exception occurred while executing a command on Hiven!"
+    error_msg = "An Exception occurred while executing a command on Hiven!"

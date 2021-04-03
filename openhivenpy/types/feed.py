@@ -1,9 +1,7 @@
 import logging
-import fastjsonschema
-from .. import utils
 
-from . import HivenObject, check_valid
-from ..exceptions import InvalidPassedDataError, InitializationError
+from . import HivenObject
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Feed']

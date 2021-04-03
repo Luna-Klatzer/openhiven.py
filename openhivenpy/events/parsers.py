@@ -1,10 +1,10 @@
 import logging
 import typing
 
-__all__ = ['HivenParsers']
-
 from openhivenpy.gateway import DynamicEventBuffer
 from openhivenpy import types
+
+__all__ = ['HivenParsers']
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +38,10 @@ class HivenParsers:
     async def on_user_update(self, data):
         buffer: DynamicEventBuffer = self.client.message_broker.get_buffer('user_update')
 
-        user_data = types.User.form_object(self.storage['users'][data['id']])
+        user_data = types.User.format_obj_data(self.storage['users'][data['id']])
         user = await types.User.create_from_dict(user_data, self.client)
 
-        user_data = types.User.form_object(data)
+        user_data = types.User.format_obj_data(data)
         new_user = await types.User.create_from_dict(user_data, self.client)
 
         self.storage['users'][data['id']].update(data)

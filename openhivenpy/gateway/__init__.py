@@ -30,7 +30,7 @@ SOFTWARE.
 from .websocket import *
 from .http import *
 from .messagebroker import *
-from .. import load_env, utils
+from .. import load_env_vars, utils
 from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
 
 import sys
@@ -42,7 +42,7 @@ from yarl import URL
 
 logger = logging.getLogger(__name__)
 
-load_env()
+load_env_vars()
 DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
 DEFAULT_HOST = os.getenv("HIVEN_HOST")
 DEFAULT_API_VERSION = os.getenv("HIVEN_API_VERSION")

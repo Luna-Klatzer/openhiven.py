@@ -62,13 +62,13 @@ class ClientCache(dict):
 
         return self
 
-    def update_client_user(self, data: dict):
+    def update_client_user(self, data: dict) -> dict:
         """
         Updating the Client Cache Data from the passed data dict
 
-        :return: The validated data using `form_object` of the User class
+        :return: The validated data using `format_obj_data` of the User class
         """
-        client_user = types.User.form_object(data)
+        client_user = types.User.format_obj_data(data)
         self['client_user'].update(client_user)
         if self['users'].get(str(data['id'])) is not None:
             self['users'][str(data['id'])].update(client_user)
@@ -77,31 +77,31 @@ class ClientCache(dict):
 
         return client_user
 
-    def add_or_update_house(self, data: dict):
+    def add_or_update_house(self, data: dict) -> dict:
         """
         Adds or Updates a house to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the House class
+        :return: The validated data using `format_obj_data` of the House class
         """
         self.check_if_initialised()
         try:
             id_ = data['id']
             for room in data['rooms']:
                 room['house_id'] = id_
-                room = types.Room.form_object(room)
+                room = types.Room.format_obj_data(room)
                 self.add_or_update_room(room)
 
             for member in data['members']:
                 member['house_id'] = id_
-                user = types.User.form_object(member['user'])
+                user = types.User.format_obj_data(member['user'])
                 self.add_or_update_user(user)
 
             for entity in data['entities']:
                 entity['house_id'] = id_
-                entity = types.Entity.form_object(entity)
+                entity = types.Entity.format_obj_data(entity)
                 self.add_or_update_entity(entity)
 
-            data = types.House.form_object(data)
+            data = types.House.format_obj_data(data)
             data['client_member'] = data['members'][self['client_user']['id']]
             if self['houses'].get(id_) is None:
                 self['houses'][id_] = data
@@ -117,16 +117,16 @@ class ClientCache(dict):
             )
             raise
 
-    def add_or_update_user(self, data: dict):
+    def add_or_update_user(self, data: dict) -> dict:
         """
         Adds or Updates a user to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the User class
+        :return: The validated data using `format_obj_data` of the User class
         """
         self.check_if_initialised()
         try:
             id_ = data['id']
-            data = types.User.form_object(data)
+            data = types.User.format_obj_data(data)
             if self['users'].get(id_) is None:
                 self['users'][id_] = data
             else:
@@ -140,16 +140,16 @@ class ClientCache(dict):
             )
             raise
 
-    def add_or_update_room(self, data: dict):
+    def add_or_update_room(self, data: dict) -> dict:
         """
         Adds or Updates a room to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the Room class
+        :return: The validated data using `format_obj_data` of the Room class
         """
         self.check_if_initialised()
         try:
             id_ = data['id']
-            data = types.Room.form_object(data)
+            data = types.Room.format_obj_data(data)
             if self['rooms']['house'].get(id_) is None:
                 self['rooms']['house'][id_] = data
             else:
@@ -163,16 +163,16 @@ class ClientCache(dict):
             )
             raise
 
-    def add_or_update_entity(self, data: dict):
+    def add_or_update_entity(self, data: dict) -> dict:
         """
         Adds or Updates a entity to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the Entity class
+        :return: The validated data using `format_obj_data` of the Entity class
         """
         self.check_if_initialised()
         try:
             id_ = data['id']
-            data = types.Entity.form_object(data)
+            data = types.Entity.format_obj_data(data)
             if self['entities'].get(id_) is None:
                 self['entities'][id_] = data
             else:
@@ -186,17 +186,17 @@ class ClientCache(dict):
             )
             raise
 
-    def add_or_update_private_room(self, data: dict):
+    def add_or_update_private_room(self, data: dict) -> dict:
         """
         Adds or Updates a private room to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the Private_*Room class
+        :return: The validated data using `format_obj_data` of the Private_*Room class
         """
         self.check_if_initialised()
         try:
             id_ = data['id']
             if int(data['type']) == 1:
-                data = types.PrivateRoom.form_object(data)
+                data = types.PrivateRoom.format_obj_data(data)
                 if self['rooms']['private']['single'].get(id_) is None:
                     data['type'] = 'single'
                     self['rooms']['private']['single'][id_] = data
@@ -204,7 +204,7 @@ class ClientCache(dict):
                     self['rooms']['private']['single'][id_].update(data)
 
             elif int(data['type']) == 2:
-                data = types.PrivateGroupRoom.form_object(data)
+                data = types.PrivateGroupRoom.format_obj_data(data)
                 if self['rooms']['private']['multi'].get(id_) is None:
                     data['type'] = 'single'
                     self['rooms']['private']['multi'][id_] = data
@@ -220,16 +220,16 @@ class ClientCache(dict):
             )
             raise
 
-    def add_or_update_relationship(self, data: dict):
+    def add_or_update_relationship(self, data: dict) -> dict:
         """
         Adds or Updates a client relationship to the cache and updates the storage appropriately
 
-        :return: The validated data using `form_object` of the Relationship class
+        :return: The validated data using `format_obj_data` of the Relationship class
         """
         self.check_if_initialised()
         try:
             id_ = data['user_id']
-            data = types.Relationship.form_object(data)
+            data = types.Relationship.format_obj_data(data)
             if self['relationships'].get(id_) is None:
                 self['relationships'][id_] = data
             else:

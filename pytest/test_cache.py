@@ -87,7 +87,7 @@ class TestCache:
         cache.update_client_user(data)
         return_data = cache.update_client_user(data)
 
-        validated_data = openhivenpy.types.User.form_object(data)
+        validated_data = openhivenpy.types.User.format_obj_data(data)
         assert return_data == validated_data
         assert cache['client_user'] == validated_data
         assert cache['users'][data['id']] == validated_data
@@ -103,10 +103,10 @@ class TestCache:
         client_user = cache.update_client_user(dict(data['members'][0]['user']))
         return_data = cache.add_or_update_house(dict(data))
 
-        # Regular form_object won't add the client_user property!
+        # Regular format_obj_data won't add the client_user property!
         client_member = return_data.pop('client_member')
         assert return_data['members'][client_user['id']] == client_member
 
-        validated_data = openhivenpy.types.House.form_object(data)
+        validated_data = openhivenpy.types.House.format_obj_data(data)
         assert return_data == validated_data
         assert cache['houses'][self.test_house_args['id']] == return_data

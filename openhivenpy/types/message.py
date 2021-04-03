@@ -1,17 +1,28 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import datetime
 import logging
 import sys
 import asyncio
 import types
+import typing
 
 import fastjsonschema
 
-from . import HivenObject, check_valid, house, room
-from . import user
-from . import mention
-from . import embed
+from . import HivenObject, check_valid
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError, HTTPResponseError, HTTPForbiddenError
+from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .embed import Embed
+    from .room import Room
+    from .user import User
+    from .house import House
+    from .mention import Mention
+    from .attachment import Attachment
 
 logger = logging.getLogger(__name__)
 
@@ -39,16 +50,16 @@ class DeletedMessage(HivenObject):
     json_validator: types.FunctionType = fastjsonschema.compile(schema)
 
     def __init__(self, **kwargs):
-        self._message_id = utils.convert_value(int, kwargs.get('message_id'))
-        self._house_id = utils.convert_value(int, kwargs.get('house_id'))
-        self._room_id = utils.convert_value(int, kwargs.get('room_id'))
+        self._message_id = utils.safe_convert(int, kwargs.get('message_id'))
+        self._house_id = utils.safe_convert(int, kwargs.get('house_id'))
+        self._room_id = utils.safe_convert(int, kwargs.get('room_id'))
 
     def __str__(self):
         return f"Deleted message in room {self.room_id}"
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -64,6 +75,7 @@ class DeletedMessage(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the DeletedMessage Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -214,7 +226,7 @@ class Message(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -226,15 +238,14 @@ class Message(HivenObject):
         :param data: Dict for the data that should be passed
         :return: The modified dictionary
         """
-        data['type'] = utils.convert_value(int, data.get('type'))  # I believe, 0 = normal message, 1 = system.
-        data['bucket'] = utils.convert_value(int, data.get('bucket'))
-        data['device_id'] = utils.convert_value(int, data.get('device_id'))
-        data['exploding_age'] = utils.convert_value(int, data.get('exploding_age'))
+        data['type'] = utils.safe_convert(int, data.get('type'), None)  # I believe, 0 = normal message, 1 = system.
+        data['bucket'] = utils.safe_convert(int, data.get('bucket'), None)
+        data['exploding_age'] = utils.safe_convert(int, data.get('exploding_age'), None)
 
         timestamp = data.get('timestamp')
         # Converting to seconds because it's in milliseconds
         if utils.convertible(int, timestamp):
-            data['timestamp'] = datetime.datetime.fromtimestamp(utils.convert_value(int, timestamp) / 1000)
+            data['timestamp'] = datetime.datetime.fromtimestamp(utils.safe_convert(int, timestamp) / 1000)
         else:
             data['timestamp'] = timestamp
 
@@ -276,30 +287,43 @@ class Message(HivenObject):
             else:
                 data['author'] = author
 
+        data['device_id'] = utils.safe_convert(str, data.get('device_id'), None)
+        if data.get('attachment'):
+            from .attachment import Attachment
+            data['attachment'] = Attachment.format_obj_data(data.get('attachment'))
         return data
 
     @classmethod
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Message Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         :param data: Dict for the data that should be passed
         :param client: Client used for accessing the cache
         :return: The newly constructed Message Instance
         """
         try:
-            data['house'] = await house.House.create_from_dict(
-                client.storage['houses'][data['house_id']], client
-            )
-            data['room'] = await room.Room.create_from_dict(
-                client.storage['rooms'][data['room_id']], client
-            )
-            data['author'] = await user.User.create_from_dict(
-                client.storage['houses'][data['house_id']]['members'][data['author']['id']], client
-            )
-            data['embed'] = await embed.Embed.create_from_dict(
-                data.get('embed'), client
-            ) if data.get('embed') is not None else None
+            from .embed import Embed
+            from .room import Room
+            from .user import User
+            from .house import House
+            from .mention import Mention
+            from .attachment import Attachment
+
+            # TODO! Data needs to be added correctly
+            if data.get('house'):
+                house_data = client.storage['houses'][data['house_id']]
+                data['house'] = await House.create_from_dict(house_data, client=client)
+
+            room_data = client.storage['rooms'][data['room_id']]
+            data['room'] = await Room.create_from_dict(room_data, client=client)
+
+            author_data = client.storage['houses'][data['house_id']]['members'][data['author']['id']]
+            data['author'] = await User.create_from_dict(author_data, client=client)
+
+            if data.get('embed'):
+                data['embed'] = await Embed.create_from_dict(data.get('embed'), client)
 
             mentions_ = []
             for d in data.get('mentions', []):
@@ -308,8 +332,13 @@ class Message(HivenObject):
                     'author': data['author'],
                     'user': d
                 }
-                mentions_.append(await mention.Mention.create_from_dict(dict_, client))
+                mention_data = Mention.format_obj_data(dict_)
+                mentions_.append(await Mention.create_from_dict(mention_data, client=client))
             data['mentions'] = mentions_
+
+            if data.get('attachment'):
+                attachment_data = data.get('attachment')
+                data['attachment'] = await Attachment.create_from_dict(attachment_data, client=client)
 
             instance = cls(**data)
 
@@ -334,67 +363,67 @@ class Message(HivenObject):
         return getattr(self, '_author_id', None)
 
     @property
-    def author(self):
+    def author(self) -> User:
         return getattr(self, '_author', None)
 
     @property
-    def created_at(self):
+    def created_at(self) -> str:
         return getattr(self, '_created_at', None)
 
     @property
-    def type(self):
+    def type(self) -> int:
         return getattr(self, '_type', None)
 
     @property
-    def exploding(self):
+    def exploding(self) -> bool:
         return getattr(self, '_exploding', None)
 
     @property
-    def edited_at(self):
+    def edited_at(self) -> str:
         return getattr(self, '_edited_at', None)
 
     @property
-    def room(self):
+    def room(self) -> Room:
         return getattr(self, '_room', None)
 
     @property
-    def house(self):
+    def house(self) -> House:
         return getattr(self, '_house', None)
 
     @property
-    def attachment(self):
+    def attachment(self) -> Attachment:
         return getattr(self, '_attachment', None)
 
     @property
-    def content(self):
+    def content(self) -> str:
         return getattr(self, '_content', None)
 
     @property
-    def mentions(self):
+    def mentions(self) -> typing.List[Mention]:
         return getattr(self, '_mentions', None)
 
     @property
-    def room_id(self):
+    def room_id(self) -> str:
         return getattr(self, '_room_id', None)
 
     @property
-    def house_id(self):
+    def house_id(self) -> str:
         return getattr(self, '_house_id', None)
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
         return getattr(self, '_embed', None)
 
     @property
-    def bucket(self):
+    def bucket(self) -> int:
         return getattr(self, '_bucket', None)
 
     @property
-    def device_id(self):
+    def device_id(self) -> str:
         return getattr(self, '_device_id', None)
 
     @property
-    def exploding_age(self):
+    def exploding_age(self) -> int:
         return getattr(self, '_exploding_age', None)
 
     async def mark_as_read(self, delay: float = None) -> bool:
@@ -405,13 +434,10 @@ class Message(HivenObject):
         :return: True if the request was successful else False
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._client.http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPResponseError
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
+            await self._client.http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            return True
 
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",
@@ -426,7 +452,8 @@ class Message(HivenObject):
         :return: A DeletedMessage object if successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
 
             resp = await self._client.http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
 
@@ -447,14 +474,10 @@ class Message(HivenObject):
         :return: True if the request was successful else False
         """
         try:
-            resp = await self._client.http.patch(
+            await self._client.http.patch(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}", json={'content': content}
             )
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPResponseError("Unknown! See HTTP Logs!")
+            return True
 
         except Exception as e:
             utils.log_traceback(msg="[MESSAGE] Traceback:",

@@ -6,6 +6,7 @@ import fastjsonschema
 from .. import utils
 from . import HivenObject, check_valid
 from ..exceptions import InitializationError
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Embed']
@@ -45,7 +46,7 @@ class Embed(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -59,6 +60,7 @@ class Embed(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Embed Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -85,21 +87,21 @@ class Embed(HivenObject):
             return instance
 
     @property
-    def url(self):
+    def url(self) -> str:
         return getattr(self, '_url', None)
     
     @property
-    def type(self):
+    def type(self) -> int:
         return getattr(self, '_type', None)
     
     @property 
-    def title(self):
+    def title(self) -> str:
         return getattr(self, '_title', None)
 
     @property 
-    def image(self):
+    def image(self) -> str:
         return getattr(self, '_image', None)
     
     @property
-    def description(self):
+    def description(self) -> str:
         return getattr(self, '_description', None)

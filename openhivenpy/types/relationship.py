@@ -5,9 +5,10 @@ import typing
 import fastjsonschema
 
 from . import HivenObject, check_valid
-from . import user
+from . import User
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InitializationError
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Relationship']
@@ -73,7 +74,7 @@ class Relationship(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -95,6 +96,7 @@ class Relationship(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Relationship Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -107,9 +109,8 @@ class Relationship(HivenObject):
         """
         try:
             data['user_id'] = data.get('user_id')
-            data['user'] = await user.User.create_from_dict(
-                client.storage['users'][data['user_id']], client
-            )
+            user_data = client.storage['users'][data['user_id']]
+            data['user'] = await User.create_from_dict(user_data, client)
 
             instance = cls(**data)
 
@@ -126,7 +127,7 @@ class Relationship(HivenObject):
             return instance
 
     @property
-    def user(self) -> user.User:
+    def user(self) -> User:
         return getattr(self, '_user', None)
 
     @property

@@ -1,7 +1,6 @@
 import logging
 import sys
 import types
-
 import fastjsonschema
 
 from . import HivenObject, check_valid
@@ -42,7 +41,7 @@ class Attachment(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -57,6 +56,7 @@ class Attachment(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Attachment Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -83,14 +83,14 @@ class Attachment(HivenObject):
             return instance
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         return getattr(self, '_filename', None)
 
     @property
-    def media_url(self):
+    def media_url(self) -> str:
         return getattr(self, '_media_url', None)
     
     @property
-    def raw(self):
+    def raw(self) -> dict:
         # Different files have different attribs
         return getattr(self, '_raw', None)

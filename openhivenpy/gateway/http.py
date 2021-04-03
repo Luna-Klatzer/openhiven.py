@@ -1,9 +1,11 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import aiohttp
 import asyncio
 import logging
 import sys
 import time
-import os
 import json as json_decoder
 from yarl import URL
 import typing
@@ -11,7 +13,13 @@ import typing
 __all__ = ['HTTP']
 
 from .. import utils
-from ..exceptions import HTTPError, SessionCreateError
+from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
+                          HTTPReceivedNoDataError)
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +59,7 @@ class HTTPTraceback:
 
 class HTTP:
     """ HTTP-Client for requests and interaction with the Hiven API """
-    def __init__(self, client, *, host, api_version, loop):
+    def __init__(self, client: HivenClient, *, host: str, api_version: str, loop: asyncio.AbstractEventLoop):
         """
         :param client: The used HivenClient
         :param loop: Event loop that will be used to execute all async functions. Will use
@@ -98,11 +106,11 @@ class HTTP:
         return getattr(self, '_ready', False)
 
     @property
-    def session(self):
+    def session(self) -> aiohttp.ClientSession:
         return getattr(self, '_session', None)
 
     @property
-    def loop(self):
+    def loop(self) -> asyncio.AbstractEventLoop:
         return getattr(self, '_loop', None)
 
     async def connect(self, token: str) -> typing.Union[aiohttp.ClientSession, None]:
@@ -125,20 +133,18 @@ class HTTP:
             self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
 
-            resp = await self.request("/users/@me", timeout=30)
-            if resp:
-                logger.info("[HTTP] Session was successfully created!")
-                self.client.storage.update_client_user(resp['data'])
-                return self.session
-            else:
-                # If the request failed it will return None and log a warning
-                logger.warning("[HTTP] Test Request for HTTP Initialisation failed! ")
-                return None
+            resp = await self.get("/users/@me", timeout=30)
+            resp = await resp.json()
+
+            logger.info("[HTTP] Session was successfully created!")
+            self.client.storage.update_client_user(resp['data'])
+            return self.session
 
         except Exception as e:
             utils.log_traceback(
                 msg="[HTTP] Traceback:",
-                suffix=f"Failed to create HTTP-Session: \n> {sys.exc_info()[0].__name__}: {e}")
+                suffix=f"Failed to create HTTP-Session: \n> {sys.exc_info()[0].__name__}: {e}"
+            )
             self._ready = False
             await self.session.close()
             raise SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
@@ -200,55 +206,57 @@ class HTTP:
             :param _kwargs: Additional Parameter for the aiohttp HTTP Request
             :return: Returns the aiohttp.ClientResponse object
             """
-            if self._ready:
-                try:
-                    # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
-                    # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
-                    _timeout = aiohttp.ClientTimeout(total=None)
-                    _headers = self.headers if _headers is None else _headers
-                    url = f"{self.api_url.human_repr()}{_endpoint}"
-
-                    async with self.session.request(
-                        method=_method, url=url, headers=_headers, timeout=_timeout, json=_json, **_kwargs
-                    ) as _resp:
-                        http_resp_code = _resp.status
-                        data = await _resp.read()  # Raw response data
-
-                        if data:
-                            _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
-                            _success = _json_data.get('success')  # Fetching the success item <== bool
-
-                            if _success:
-                                logger.debug(
-                                    f"[HTTP] {http_resp_code} - Request was successful and received expected data")
-                            else:
-                                # If an error occurred the response body will contain an error field
-                                _error = _json_data.get('error')
-                                if _error:
-                                    err_code = _error.get('code')
-                                    err_msg = _error.get('message')
-                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
-                                                 f"'{err_code}': '{err_msg}'")
-                                else:
-                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
-                                                 f"Response: None")
-                        else:
-                            if http_resp_code != 204:
-                                logger.error("[HTTP] Received empty response!")
-
-                        return _resp
-
-                except Exception as _e:
-                    utils.log_traceback(
-                        msg="[HTTP] Traceback:",
-                        suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}: \n"
-                               f"{sys.exc_info()[0].__name__}, {_e}"
-                    )
-
-            else:
-                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
-                             f"HTTP {_method}! The session is either not initialised or closed!")
+            if not self._ready:
+                logger.error(
+                    "[HTTP] << The HTTPClient was not ready when trying to perform request with "
+                    f"HTTP {_method}! The session is either not initialised or closed!"
+                )
                 return None
+
+            # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
+            # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
+            _timeout = aiohttp.ClientTimeout(total=None)
+
+            _headers = self.headers if _headers is None else _headers
+            url = f"{self.api_url.human_repr()}{_endpoint}"
+
+            async with self.session.request(
+                method=_method,
+                url=url,
+                headers=_headers,
+                timeout=_timeout,
+                json=_json,
+                **_kwargs
+            ) as _resp:
+                http_resp_code = _resp.status
+                data = await _resp.read()  # Raw response data
+
+                if not data:
+                    if http_resp_code != 204:
+                        raise HTTPReceivedNoDataError("Received empty response from the Hiven Servers")
+
+                _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
+                _success = _json_data.get('success')  # Fetching the success item <== bool
+
+                if _success:
+                    logger.debug(
+                        f"[HTTP] {http_resp_code} - Request was successful and received expected data"
+                    )
+                    return _resp
+                else:
+                    # If an error occurred the response body will contain an error field
+                    _error = _json_data.get('error')
+                    if _error:
+                        err_code = _error.get('code')
+                        err_msg = _error.get('message')
+
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> '{err_code}': '{err_msg}'"
+                        )
+                    else:
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> Response: None "
+                        )
 
         self._request = asyncio.create_task(http_request(endpoint, method, json, headers, **kwargs))
         try:
@@ -259,8 +267,10 @@ class HTTP:
             return
 
         except asyncio.TimeoutError:
-            logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint} timeout after {timeout}s!")
-            http_client_response = None
+            raise HTTPRequestTimeoutError()
+
+        except HTTPError:
+            raise
 
         except Exception as e:
             utils.log_traceback(
@@ -268,41 +278,13 @@ class HTTP:
                 suffix=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: \n"
                        f"{sys.exc_info()[0].__name__}: {e}"
             )
-            raise HTTPError(f"HTTP '{method.upper()}' failed with endpoint: "
-                            f"{self.host}{endpoint}: {sys.exc_info()[0].__name__}: {e}")
+            raise HTTPError(
+                f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: "
+                f"{sys.exc_info()[0].__name__}: {e}"
+            )
 
         # Returning the response instance
         return http_client_response
-
-    async def request(self,
-                      endpoint: str,
-                      *,
-                      json: typing.Optional[dict] = None,
-                      timeout: typing.Optional[int] = 15,
-                      headers: typing.Optional[dict] = None,
-                      **kwargs) -> typing.Union[dict, None]:
-        """
-        Wrapped HTTP 'GET' request for a specified endpoint, which returns only the response data!
-        
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
-        :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: A python dictionary containing the response data if successful and else returns `None`
-        """
-        resp = await self.raw_request(endpoint, method="GET", timeout=timeout, json=json, headers=headers, **kwargs)
-        if resp is not None and resp.status < 300:
-            if resp.status < 300 and resp.status != 204:
-                # Returning the data in json format (dict)
-                return await resp.json()
-            else:
-                return None
-        else:
-            return None
 
     async def get(self,
                   endpoint: str,
@@ -326,11 +308,12 @@ class HTTP:
         """
         return await self.raw_request(
             endpoint,
-            method="POST",
+            method="GET",
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
     async def post(self,
                    endpoint: str,
@@ -367,7 +350,8 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
     async def delete(self,
                      endpoint: str,
@@ -395,7 +379,8 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,
-            **kwargs)
+            **kwargs
+        )
 
     async def put(self,
                   endpoint: str,
@@ -434,7 +419,8 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,  # Passing the new header for the request
-            **kwargs)
+            **kwargs
+        )
 
     async def patch(self,
                     endpoint: str,
@@ -471,7 +457,8 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
     async def options(self,
                       endpoint: str,
@@ -501,4 +488,5 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )

@@ -128,9 +128,9 @@ def log_validation_traceback(cls: typing.Any, data: dict, e: Exception):
     )
 
 
-def convert_value(dtype: typing.Any,
-                  value: typing.Any,
-                  default: typing.Any = 'raise_exc') -> typing.Union[typing.Any, None]:
+def safe_convert(dtype: typing.Any,
+                 value: typing.Any,
+                 default: typing.Any = 'raise_exc') -> typing.Union[typing.Any, None]:
     """
     Return the passed value in the specified value if it is not None and does not raise an Exception
     while converting. Returns the passed default if the conversion failed

@@ -1,3 +1,6 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
 import types
@@ -6,6 +9,12 @@ import fastjsonschema
 from .. import utils
 from . import HivenObject, check_valid
 from ..exceptions import InvalidPassedDataError, InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from . import House, User, Room
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Context']
@@ -44,7 +53,7 @@ class Context(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -87,6 +96,7 @@ class Context(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Context Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -113,17 +123,17 @@ class Context(HivenObject):
             return instance
 
     @property
-    def house(self):
+    def house(self) -> House:
         return getattr(self, '_house', None)
 
     @property
-    def author(self):
+    def author(self) -> User:
         return getattr(self, '_author', None)
 
     @property
-    def room(self):
+    def room(self) -> Room:
         return getattr(self, '_room', None)
 
     @property
-    def created_at(self):
+    def created_at(self) -> str:
         return getattr(self, '_created_at', None)

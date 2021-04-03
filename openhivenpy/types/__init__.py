@@ -26,13 +26,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
 
 import typing
 import inspect
 from functools import wraps
 
-from ..exceptions import InitializationError
 from .. import utils
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 __all__ = [
     'check_valid',
@@ -54,37 +60,37 @@ __all__ = [
 ]
 
 
-def check_valid(func_: typing.Callable = None):
+def check_valid(func: typing.Callable = None) -> typing.Callable:
     """
     Adds an additional try-except clause for logging and exception handling
 
-    :param func_: Function that should be wrapped
+    :param func: Function that should be wrapped
     """
 
-    def decorator(func_: typing.Callable):
+    def decorator(func_: typing.Callable) -> typing.Any:
         @wraps(func_)
         def wrapper(*args, **kwargs):
             if inspect.iscoroutinefunction(func_):
                 raise ValueError("Target of decorator must not be asynchronous")
             try:
                 return func_(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 raise
 
         return wrapper  # func can still be used normally outside the event listening process
 
-    if func_ is None:
+    if func is None:
         return decorator
     else:
-        return decorator(func_)
+        return decorator(func)
 
 
 class HivenObject:
     """ Base Class for all Hiven Objects """
-    _client = None
+    _client: HivenClient = None
 
     @classmethod
-    def validate(cls, data, *args, **kwargs):
+    def validate(cls, data, *args, **kwargs) -> dict:
         try:
             return getattr(cls, 'json_validator')(data, *args, **kwargs)
         except Exception as e:

@@ -25,8 +25,7 @@ class UserClient(HivenClient):
                 loop: typing.Optional[asyncio.AbstractEventLoop] = None,
                 close_timeout: typing.Optional[int] = None,
                 receive_timeout: typing.Optional[int] = None,
-                log_ws_output: typing.Optional[bool] = False,
-                **kwargs):
+                log_ws_output: typing.Optional[bool] = False):
         """
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
@@ -61,10 +60,6 @@ class UserClient(HivenClient):
         ]
         return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    @property
-    def client_type(self) -> str:
-        return getattr(self, '_CLIENT_TYPE', None)
-
     async def cancel_friend_request(self, user: typing.Union[int, types.User] = None) -> bool:
         """
         Cancels an open friend request if it exists
@@ -78,14 +73,10 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))
             else:
-                raise TypeError(f"Expected User or int! Not {type(user)}")
+                raise TypeError(f"Expected openhivenpy.types.User or int! Not {type(user)}")
 
             resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPFailedRequestError()
+            return True
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -103,29 +94,27 @@ class UserClient(HivenClient):
         :return: Returns a dict with all active friend requests if successful else it will raise an exception
         """
         try:
-            resp = await self.http.request(endpoint=f"/relationships/@me/friend-requests")
+            resp = await self.http.get(endpoint=f"/relationships/@me/friend-requests")
+            resp = await resp.json()
 
-            if resp.get('success', False):
-                data = resp.get('data')
+            data = resp.get('data')
 
-                incoming_ = data.get('incoming')
-                if incoming_:
-                    data['incoming'] = []
-                    for d in incoming_:
-                        data['incoming'].append(await types.LazyUser.create_from_dict(d, self.http))
+            incoming_ = data.get('incoming')
+            if incoming_:
+                data['incoming'] = []
+                for d in incoming_:
+                    data['incoming'].append(await types.LazyUser.create_from_dict(d, self.http))
 
-                outgoing_ = data.get('outgoing')
-                if outgoing_:
-                    data['outgoing'] = []
-                    for d in outgoing_:
-                        data['outgoing'].append(await types.LazyUser.create_from_dict(d, self.http))
+            outgoing_ = data.get('outgoing')
+            if outgoing_:
+                data['outgoing'] = []
+                for d in outgoing_:
+                    data['outgoing'].append(await types.LazyUser.create_from_dict(d, self.http))
 
-                return {
-                    'incoming': data['incoming'],
-                    'outgoing': data['outgoing']
-                }
-            else:
-                return None
+            return {
+                'incoming': data['incoming'],
+                'outgoing': data['outgoing']
+            }
 
         except Exception as e:
             utils.log_traceback(
@@ -151,10 +140,7 @@ class UserClient(HivenClient):
 
             resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
 
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPFailedRequestError()
+            return True
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -179,11 +165,7 @@ class UserClient(HivenClient):
                 raise TypeError(f"Expected User or int! Not {type(user)}")
 
             resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPFailedRequestError()
+            return True
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -220,5 +202,6 @@ class UserClient(HivenClient):
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(
                 msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to send a friend request a user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}")
+                suffix=f"Failed to send a friend request a user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             raise

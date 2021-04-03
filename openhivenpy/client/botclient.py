@@ -21,8 +21,7 @@ class BotClient(HivenClient):
                 loop: typing.Optional[asyncio.AbstractEventLoop] = None,
                 close_timeout: typing.Optional[int] = None,
                 receive_timeout: typing.Optional[int] = None,
-                log_ws_output: typing.Optional[bool] = False,
-                **kwargs):
+                log_ws_output: typing.Optional[bool] = False):
         """
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
@@ -56,7 +55,3 @@ class BotClient(HivenClient):
             ('id', getattr(self.user, 'id', None))
         ]
         return '<BotClient {}>'.format(' '.join('%s=%s' % t for t in info))
-
-    @property
-    def client_type(self) -> str:
-        return getattr(self, '_CLIENT_TYPE', None)

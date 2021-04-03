@@ -6,8 +6,8 @@ import typing
 import fastjsonschema
 
 from . import HivenObject, check_valid
-from . import message
-from . import house
+from .message import Message
+from .house import House
 from .. import utils
 from .. import exceptions as errs
 
@@ -110,7 +110,7 @@ class Room(HivenObject):
 
     @classmethod
     @check_valid()
-    def form_object(cls, data: dict) -> dict:
+    def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
@@ -125,6 +125,7 @@ class Room(HivenObject):
     async def create_from_dict(cls, data: dict, client):
         """
         Creates an instance of the Room Class with the passed data
+        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
 
         ---
 
@@ -136,7 +137,7 @@ class Room(HivenObject):
         :return: The newly constructed Room Instance
         """
         try:
-            data['house'] = house.House.create_from_dict(
+            data['house'] = House.create_from_dict(
                 client.storage['houses'][data['house_id']], client
             )
             instance = cls(**data)
@@ -165,7 +166,7 @@ class Room(HivenObject):
         return getattr(self, '_house_id', None)
 
     @property
-    def house(self):
+    def house(self) -> House:
         return getattr(self, '_house', None)
 
     @property
@@ -177,14 +178,14 @@ class Room(HivenObject):
         return getattr(self, '_type', None)
 
     @property
-    def emoji(self):
+    def emoji(self) -> str:
         return getattr(self, '_emoji', None)
 
     @property
     def description(self) -> typing.Union[str, None]:
         return getattr(self, '_description', None)
 
-    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
+    async def send(self, content: str, delay: float = None) -> typing.Union[Message, None]:
         """
         Sends a message in the current room.
         
@@ -193,19 +194,15 @@ class Room(HivenObject):
         :return: A new message object if the request was successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
             resp = await self._client.http.post(f"/rooms/{self.id}/messages", json={"content": content})
-
             raw_data = await resp.json()
-            if raw_data:
-                # Raw_data not in correct format => needs to access data field
-                data = raw_data.get('data')
-                if data:
-                    return await message.Message.create_from_dict(data, self._client)
-                else:
-                    raise errs.HTTPResponseError()
-            else:
-                raise errs.HTTPResponseError()
+
+            # Raw_data not in correct format => needs to access data field
+            data = raw_data.get('data')
+            data = Message.format_obj_data(data)
+            return await Message.create_from_dict(data, self._client)
 
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
@@ -224,12 +221,9 @@ class Room(HivenObject):
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    resp = await self._client.http.patch(f"/rooms/{self.id}", json={key: kwargs.get(key)})
+                    await self._client.http.patch(f"/rooms/{self.id}", json={key: kwargs.get(key)})
 
-                    if resp.status < 300:
-                        return True
-                    else:
-                        raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+                    return True
                 else:
                     raise NameError("The passed value does not exist in the Room!")
 
@@ -248,12 +242,9 @@ class Room(HivenObject):
         :return: True if the request was successful else False
         """
         try:
-            resp = await self._client.http.post(f"/rooms/{self.id}/typing")
+            await self._client.http.post(f"/rooms/{self.id}/typing")
 
-            if resp.status < 300:
-                return True
-            else:
-                raise errs.HTTPResponseError("Unknown! See HTTP Logs!")
+            return True
 
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
@@ -261,34 +252,24 @@ class Room(HivenObject):
                                        f"{sys.exc_info()[0].__name__}: {e}")
             return False
 
-    async def get_recent_messages(self) -> typing.Union[list, message.Message, None]:
+    async def get_recent_messages(self) -> typing.Union[list, Message, None]:
         """
         Gets the recent messages from the current room
             
         :return: A list of all messages in form of Message instances if successful.
         """
         try:
-            raw_data = await self._client.http.request(f"/rooms/{self.id}/messages")
+            raw_data = await self._client.http.get(f"/rooms/{self.id}/messages")
+            raw_data = await raw_data.json()
+
             data = raw_data.get('data')
 
-            if data:
-                messages_ = []
-                for d in data:
-                    raw_data = await self._client.http.request(f"/users/{d.get('author_id')}")
-                    if raw_data:
-                        author_data = raw_data.get('data')
-                        if author_data:
-                            msg = await d.Message.create_from_dict(d, self._client)
-                            messages_.append(msg)
-                        else:
-                            raise errs.HTTPReceivedNoDataError()
-                    else:
-                        raise errs.HTTPReceivedNoDataError()
+            messages_ = []
+            for d in data:
+                msg = await d.Message.create_from_dict(d, self._client)
+                messages_.append(msg)
 
-                return messages_
-
-            else:
-                raise errs.HTTPReceivedNoDataError()
+            return messages_
 
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
