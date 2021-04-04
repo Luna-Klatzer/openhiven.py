@@ -146,15 +146,15 @@ class HivenWebSocket:
         return getattr(self, '_parsers', None)
 
     @property
-    def message_broker(self) -> str:
+    def message_broker(self) -> MessageBroker:
         return getattr(self, '_message_broker', None)
 
     @property
-    def keep_alive(self) -> str:
+    def keep_alive(self) -> KeepAlive:
         return getattr(self, '_keep_alive', None)
 
     @property
-    def loop(self) -> str:
+    def loop(self) -> asyncio.AbstractEventLoop:
         return getattr(self, '_loop', None)
 
     @property
