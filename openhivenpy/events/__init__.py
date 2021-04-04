@@ -271,14 +271,14 @@ class HivenEventHandler:
 
         return listener.args, listener.kwargs
 
-    def event(self, coro: typing.Union[typing.Callable, typing.Coroutine] = None):
+    def event(self, coro: typing.Union[typing.Callable, typing.Coroutine] = None) -> typing.Callable:
         """
         Decorator used for registering Client Events
 
         :param coro: Function that should be wrapped and registered
         """
 
-        def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
+        def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
             if not inspect.iscoroutinefunction(coro):
                 raise ExpectedAsyncFunction("Target of the decorator must be asynchronous!")
 

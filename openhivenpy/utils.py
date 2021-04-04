@@ -3,11 +3,8 @@ import logging
 import sys
 import traceback
 from operator import attrgetter
-from functools import cache
 import inspect
 import typing
-
-from openhivenpy.exceptions import ExpectedAsyncFunction, UnknownEventError
 
 logger = logging.getLogger(__name__)
 
@@ -184,14 +181,14 @@ def update_and_return(dictionary: dict, data: dict) -> dict:
     return dictionary
 
 
-@cache
+@functools.lru_cache(maxsize=128)
 def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = None) -> typing.Callable:
     """
     Wraps a Event Listener Task and adds traceback logging and simple caching to it
 
     :param coro: Function that should be wrapped
     """
-    def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]):
+    def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
         @functools.wraps(coro)
         async def wrapper(*args, **kwargs):
             try:

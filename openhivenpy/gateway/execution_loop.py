@@ -178,7 +178,7 @@ class ExecutionLoop:
 
         :param coro: Function that should be wrapped and then executed in the Execution Loop
         """
-        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]):
+        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]) -> typing.Callable:
             @wraps(coro)
             async def wrapper():
                 # Sleeping to avoid too many executions at once
@@ -208,7 +208,7 @@ class ExecutionLoop:
 
         :param coro: Function that should be wrapped and then executed at startup in the Execution Loop
         """
-        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]):
+        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]) -> typing.Callable:
             @wraps(coro)
             async def wrapper():
                 return await coro
