@@ -37,3 +37,11 @@ Creating a coverage badge for the testing can be easily done using:
 ```bash
 coverage-badge -o coverage.svg
 ```
+
+### Viewing the Report in HTML
+
+Inside the test directory:
+
+```bash
+coverage html
+```
