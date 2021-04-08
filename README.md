@@ -1,21 +1,21 @@
 # ![OpenHiven.py](https://images.nxybi.me/da4e88d64f12.png) <br> OpenHiven.py
 ## The OpenSource Python API Wrapper for Hiven!
 
-[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3-purple?logo=python)](https://github.com/FrostbyteSpace/openhiven.py)
+[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3-purple?logo=python)](https://github.com/Nicolas-Klatzer/openhiven.py)
 [![Python Version](https://img.shields.io/badge/python->=3.7-blue?logo=python)](https://python.org)
-![Build](https://img.shields.io/github/workflow/status/FrostbyteSpace/openhiven.py/CodeQL?logo=github)
-[![Latest Commit](https://img.shields.io/github/last-commit/FrostbyteSpace/openhiven.py?logo=github&color=violet)](https://github.com/FrostbyteSpace/openhiven.py/commits/mainy)
-![Lines of Code](https://img.shields.io/tokei/lines/github/FrostbyteSpace/openhiven.py)
-[![License](https://img.shields.io/github/license/FrostbyteSpace/openhiven.py)](https://github.com/FrostbyteSpace/openhiven.py/blob/main/LICENSE)
+![Build](https://img.shields.io/github/workflow/status/Nicolas-Klatzer/openhiven.py/CodeQL?logo=github)
+[![Latest Commit](https://img.shields.io/github/last-commit/Nicolas-Klatzer/openhiven.py?logo=github&color=violet)](https://github.com/Nicolas-Klatzer/openhiven.py/commits/mainy)
+![Lines of Code](https://img.shields.io/tokei/lines/github/Nicolas-Klatzer/openhiven.py)
+[![License](https://img.shields.io/github/license/Nicolas-Klatzer/openhiven.py)](https://github.com/Nicolas-Klatzer/openhiven.py/blob/main/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/openhivenpy/badge/?version=latest)](https://readthedocs.org/projects/openhivenpy/)
 ![Coverage](./pytest/coverage.svg)
 
 
 ## Dependencies
 
-[![aiohttp](https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/aiohttp/main)](https://docs.aiohttp.org/en/stable/)
-[![asyncio](https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/asyncio/main)](https://docs.python.org/3/library/asyncio.html)
-[![typing](https://img.shields.io/github/pipenv/locked/dependency-version/FrostbyteSpace/openhiven.py/typing/main)](https://docs.python.org/3/library/typing.html)
+[![aiohttp](https://img.shields.io/github/pipenv/locked/dependency-version/Nicolas-Klatzer/openhiven.py/aiohttp/main)](https://docs.aiohttp.org/en/stable/)
+[![asyncio](https://img.shields.io/github/pipenv/locked/dependency-version/Nicolas-Klatzer/openhiven.py/asyncio/main)](https://docs.python.org/3/library/asyncio.html)
+[![typing](https://img.shields.io/github/pipenv/locked/dependency-version/Nicolas-Klatzer/openhiven.py/typing/main)](https://docs.python.org/3/library/typing.html)
 
 ## Installation
 ### Install (PyPi Release)
@@ -32,13 +32,13 @@ python3 -m pip install -U openhivenpy==version
 
 ### Install (Github Build)
 ```bash
-python3 -m pip install -U https://github.com/FrostbyteSpace/openhiven.py/archive/main.zip
+python3 -m pip install -U https://github.com/Nicolas-Klatzer/openhiven.py/archive/main.zip
 ```
 
 ## Documentation
 For full documentation visit the documentation our readthedocs-page
 [here](https://openhivenpy.readthedocs.io/en/latest/) or go to the github pages build 
-[here](https://frostbytespace.github.io/docs_openhiven.py/build/)
+[here](https://nicolas-klatzer.github.io/docs_openhiven.py/build/)
 
 
 ### Usage Example

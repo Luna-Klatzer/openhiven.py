@@ -5,7 +5,7 @@ Exceptions used specifically for the module OpenHiven.py
 
 Under MIT License
 
-Copyright © 2020 Frostbyte Development Team
+Copyright © 2020 - 2021 Nicolas Klatzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

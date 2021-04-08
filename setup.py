@@ -15,11 +15,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="MIT",
-    url="https://github.com/FrostbyteSpace/openhiven.py",
+    url="https://github.com/Nicolas-Klatzer/openhiven.py",
     project_urls={
         "Docs": "https://openhivenpy.readthedocs.io/",
         "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/latest/api_reference/",
-        "Issue-Page": "https://github.com/FrostbyteSpace/openhiven.py/issues/",
+        "Issue-Page": "https://github.com/Nicolas-Klatzer/openhiven.py/issues/",
         "Changelog": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/changelog.html"
     },
     packages=setuptools.find_packages(),
