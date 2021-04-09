@@ -125,7 +125,7 @@ class ExecutionLoop:
                             # Fetching the startup_task from the object that stores them
                             async_task = getattr(self._startup_tasks_handler, task_name)
                             # Creating a callable task and appending it to the methods to call
-                            _tasks.append(asyncio.create_task(async_task(), name=task_name))
+                            _tasks.append(asyncio.create_task(async_task()))
 
                         # Passing all tasks as args to the event loop
                         await asyncio.gather(*_tasks)
@@ -155,7 +155,7 @@ class ExecutionLoop:
                             # Fetching the startup_task from the object that stores them
                             async_task = getattr(self._background_tasks_handler, task_name)
                             # Creating a callable task
-                            _tasks.append(asyncio.create_task(async_task(), name=task_name))
+                            _tasks.append(asyncio.create_task(async_task()))
 
                         # Passing all tasks as args to the event loop
                         await asyncio.gather(*_tasks)

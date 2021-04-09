@@ -232,7 +232,7 @@ class Websocket(types.Client):
                 return
 
         # Creating a task that wraps the coroutine
-        self._connection_task = asyncio.create_task(ws_connection(), name="openhivenpy-ws-connection")
+        self._connection_task = asyncio.create_task(ws_connection())
 
         # Running the task in the background
         try:

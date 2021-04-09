@@ -108,7 +108,7 @@ class DeletedMessage(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'",data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
@@ -235,7 +235,7 @@ class Message(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'",data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",

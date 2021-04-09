@@ -18,7 +18,7 @@ class EntitySchema(Schema):
     id = fields.Int(required=True)
     name = fields.Str(required=True)
     type = fields.Int(required=True)
-    resource_pointers = fields.List(fields.Field(), required=True)
+    resource_pointers = fields.List(fields.Field(), allow_none=True, required=True)
     house_id = fields.Str(default=None)
     position = fields.Int(default=0)
 
@@ -81,7 +81,7 @@ class Entity(HivenObject):
 
         except ValidationError as e:
             utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(data=data)
+            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'",data=data)
 
         except Exception as e:
             utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",

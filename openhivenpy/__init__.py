@@ -31,8 +31,8 @@ SOFTWARE.
 __title__ = "openhiven.py"
 __author__ = "Nicolas Klatzer"
 __license__ = "MIT"
-__version__ = "0.1.3.dev2"
-__copyright__ = "FrostbyteSpace"
+__version__ = "0.1.3.1"
+__copyright__ = "Nicolas Klatzer"
 
 import logging
 
