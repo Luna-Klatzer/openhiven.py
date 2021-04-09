@@ -9,7 +9,6 @@ from . import HivenObject
 from . import user
 from . import relationship
 from . import private_room
-from . import presence
 from .. import utils
 from .. import exception as errs
 
@@ -194,7 +193,7 @@ class Client(HivenObject):
         return getattr(self.user, 'website', None)
 
     @property
-    def presence(self) -> presence.Presence:
+    def presence(self) -> str:
         return getattr(self.user, 'presence', None)
 
     @property

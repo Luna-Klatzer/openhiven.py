@@ -35,6 +35,7 @@ class HivenClient(EventHandler):
     """
     Main Class for connecting to Hiven and interacting with the API.
     """
+
     def __init__(
             self,
             token: str,
@@ -183,8 +184,7 @@ class HivenClient(EventHandler):
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
                                 suffix=f"Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.SessionCreateError("Failed to establish HivenClient session! >"
-                                              f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.SessionCreateError("Failed to establish HivenClient session!") from e
 
     def run(self,
             *,
@@ -222,8 +222,7 @@ class HivenClient(EventHandler):
                                 msg="[HIVENCLIENT] Traceback:",
                                 suffix="Failed to establish or keep the connection alive: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.SessionCreateError("Failed to establish HivenClient session! >"
-                                              f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.SessionCreateError("Failed to establish HivenClient session!") from e
 
     async def destroy(self, reason: str = "", *, exec_loop=True) -> bool:
         """
@@ -248,7 +247,7 @@ class HivenClient(EventHandler):
                                 suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.ClosingError(f"Failed to close client session and websocket to Hiven! > "
-                                     f"{sys.exc_info()[0].__name__}: {e}")
+                                    f"{sys.exc_info()[0].__name__}: {e}")
 
     async def close(self, reason: str = "", *, close_exec_loop=True) -> bool:
         """
@@ -274,8 +273,7 @@ class HivenClient(EventHandler):
             utils.log_traceback(msg="[HIVENCLIENT] Traceback:",
                                 suffix=f"Failed to close client session and websocket to Hiven: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.ClosingError(f"Failed to close client session and websocket to Hiven! > "
-                                     f"{sys.exc_info()[0].__name__}: {e}")
+            raise errs.ClosingError(f"Failed to close client session and websocket to Hiven") from e
 
     @property
     def client_type(self) -> str:
