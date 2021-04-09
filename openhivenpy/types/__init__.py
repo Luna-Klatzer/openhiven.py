@@ -6,7 +6,7 @@ Module for all data classes that represent Hiven Objects.
 
 Under MIT License
 
-Copyright © 2020 Frostbyte Development Team
+Copyright © 2020 - 2021 Nicolas Klatzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ from .member import *
 from .hiven_client import *
 from .usertyping import *
 from .attatchment import *
-from .presence import *
 from .feed import *
 from .entity import *
 from .invite import *

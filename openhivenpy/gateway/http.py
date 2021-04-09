@@ -135,7 +135,7 @@ class HTTP:
                                        f"> {sys.exc_info()[0].__name__}: {e}")
             self._ready = False
             await self.session.close()
-            raise errs.SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
+            raise errs.SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}") from e
 
     async def close(self) -> bool:
         """
@@ -246,7 +246,7 @@ class HTTP:
                 except Exception as _e:
                     utils.log_traceback(msg="[HTTP] Traceback:",
                                         suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}: \n"
-                                               f"{sys.exc_info()[0].__name__}, {str(_e)}")
+                                               f"{sys.exc_info()[0].__name__}, {_e}")
 
             else:
                 logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "

@@ -6,7 +6,7 @@ OpenHiven.py - The OpenSource Python API Wrapper for Hiven
 
 Under MIT License
 
-Copyright © 2020 Frostbyte Development Team
+Copyright © 2020 - 2021 Nicolas Klatzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,9 @@ SOFTWARE.
 __title__ = "openhiven.py"
 __author__ = "Nicolas Klatzer"
 __license__ = "MIT"
-__version__ = "0.1.3"
-__copyright__ = "FrostbyteSpace"
+__version__ = "0.2.dev1"
+__copyright__ = "Nicolas Klatzer"
+
 
 import logging
 

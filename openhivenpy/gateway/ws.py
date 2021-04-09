@@ -221,9 +221,11 @@ class Websocket(types.Client):
                 # Closing
                 close = getattr(self, "close", None)
                 if callable(close):
-                    await close(close_exec_loop=True,
-                                reason="WebSocket encountered an error!",
-                                block_restart=not self._restart)
+                    await close(
+                        close_exec_loop=True,
+                        reason="WebSocket encountered an error!",
+                        block_restart=not self._restart
+                    )
 
                 return
 
@@ -232,7 +234,7 @@ class Websocket(types.Client):
                 return
 
         # Creating a task that wraps the coroutine
-        self._connection_task = asyncio.create_task(ws_connection(), name="openhivenpy-ws-connection")
+        self._connection_task = asyncio.create_task(ws_connection())
 
         # Running the task in the background
         try:
@@ -781,9 +783,7 @@ class Websocket(types.Client):
         """
         try:
             user = await types.User.from_dict(data, self.http)
-            presence = types.Presence(data, user, self.http)
-
-            # TODO! Update user presence!
+            presence = user.presence
 
             await self.event_handler.dispatch_on_presence_update(presence, user)
 

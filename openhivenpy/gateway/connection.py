@@ -125,7 +125,7 @@ class ExecutionLoop:
                             # Fetching the startup_task from the object that stores them
                             async_task = getattr(self._startup_tasks_handler, task_name)
                             # Creating a callable task and appending it to the methods to call
-                            _tasks.append(asyncio.create_task(async_task(), name=task_name))
+                            _tasks.append(asyncio.create_task(async_task()))
 
                         # Passing all tasks as args to the event loop
                         await asyncio.gather(*_tasks)
@@ -155,7 +155,7 @@ class ExecutionLoop:
                             # Fetching the startup_task from the object that stores them
                             async_task = getattr(self._background_tasks_handler, task_name)
                             # Creating a callable task
-                            _tasks.append(asyncio.create_task(async_task(), name=task_name))
+                            _tasks.append(asyncio.create_task(async_task()))
 
                         # Passing all tasks as args to the event loop
                         await asyncio.gather(*_tasks)
@@ -203,9 +203,7 @@ class ExecutionLoop:
                                 suffix="Failed to stop or keep alive execution_loop: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.ClosingError("Failed to stop or keep alive execution_loop!"
-                                     f"> {sys.exc_info()[0].__name__}: {e}")
-        finally:
-            return
+                                    f"> {sys.exc_info()[0].__name__}: {e}") from e
 
     def add_to_loop(self, func: typing.Awaitable = None):
         """
@@ -408,21 +406,17 @@ class Connection(Websocket):
                 raise errs.HivenConnectionError("[CONNECTION] Failed to get connected Client data!")
 
         except Exception as e:
-            utils.log_traceback(msg="[CONNECTION] Traceback:",
-                                suffix="Failed to establish the connection to Hiven: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.HivenConnectionError("Failed to establish the connection to Hiven! "
-                                            f"> {sys.exc_info()[0].__name__}: {e}")
+            raise errs.HivenConnectionError("Failed to establish the connection to Hiven") from e
         except KeyboardInterrupt:
-            raise KeyboardInterrupt
+            raise
 
-        finally:
+        else:
             self._connection_status = "CLOSED"
             logger.info("[CONNECTION] The Client-Session has been closed! Use connect() or run() to reconnect!")
             return
 
     # Kills the connection as well as the event loop
-    async def destroy(self, reason: str = None, exec_loop=True, block_restart: bool = False) -> None:
+    async def destroy(self, reason: str = None, exec_loop=True) -> None:
         """
         Kills the event loop and the running tasks! 
         
@@ -458,7 +452,7 @@ class Connection(Websocket):
                                 suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.ClosingError("Closing the connection to Hiven failed!"
-                                     f"> {sys.exc_info()[0].__name__}: {e}")
+                                     f"> {sys.exc_info()[0].__name__}: {e}") from e
 
     async def close(self, reason: str = None, close_exec_loop=True, block_restart: bool = False) -> None:
         """
@@ -498,7 +492,7 @@ class Connection(Websocket):
                                 suffix=f"Closing the connection to Hiven failed: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
             raise errs.ClosingError("Closing the connection to Hiven failed! "
-                                     f"> {sys.exc_info()[0].__name__}: {e}")
+                                     f"> {sys.exc_info()[0].__name__}: {e}") from e
 
     # Restarts the connection if it errored or crashed
     async def handler_restart_websocket(self):
