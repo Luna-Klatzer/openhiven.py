@@ -219,7 +219,6 @@ class User(LazyUser):
     def website(self) -> str:
         return self._website
 
-    # Still needs to be worked out
     @property
-    def presence(self):
+    def presence(self) -> str:
         return self._presence
