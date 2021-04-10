@@ -30,7 +30,7 @@ __all__ = ['DeletedMessage', 'Message']
 
 
 class DeletedMessage(HivenObject):
-    """ Represents a Deleted Message """
+    """ Represents a Deleted Message in a Room """
     schema = {
         'type': 'object',
         'properties': {
@@ -72,7 +72,7 @@ class DeletedMessage(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the DeletedMessage Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -115,9 +115,7 @@ class DeletedMessage(HivenObject):
 
 
 class Message(HivenObject):
-    """
-    Data Class for a standard Hiven message
-    """
+    """ Represents a standard Hiven message sent by a user """
     schema = {
         'type': 'object',
         'properties': {
@@ -294,7 +292,7 @@ class Message(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Message Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -314,16 +312,16 @@ class Message(HivenObject):
             # TODO! Data needs to be added correctly
             if data.get('house'):
                 house_data = client.storage['houses'][data['house_id']]
-                data['house'] = await House.create_from_dict(house_data, client=client)
+                data['house'] = House._insert_data(house_data, client=client)
 
             room_data = client.storage['rooms'][data['room_id']]
-            data['room'] = await Room.create_from_dict(room_data, client=client)
+            data['room'] = Room._insert_data(room_data, client=client)
 
             author_data = client.storage['houses'][data['house_id']]['members'][data['author']['id']]
-            data['author'] = await User.create_from_dict(author_data, client=client)
+            data['author'] = User._insert_data(author_data, client=client)
 
             if data.get('embed'):
-                data['embed'] = await Embed.create_from_dict(data.get('embed'), client)
+                data['embed'] = Embed._insert_data(data.get('embed'), client)
 
             mentions_ = []
             for d in data.get('mentions', []):
@@ -333,12 +331,12 @@ class Message(HivenObject):
                     'user': d
                 }
                 mention_data = Mention.format_obj_data(dict_)
-                mentions_.append(await Mention.create_from_dict(mention_data, client=client))
+                mentions_.append(Mention._insert_data(mention_data, client=client))
             data['mentions'] = mentions_
 
             if data.get('attachment'):
                 attachment_data = data.get('attachment')
-                data['attachment'] = await Attachment.create_from_dict(attachment_data, client=client)
+                data['attachment'] = Attachment.insert_data(attachment_data, client=client)
 
             instance = cls(**data)
 

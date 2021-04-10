@@ -24,9 +24,7 @@ __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 
 class PrivateGroupRoom(HivenObject):
-    """
-    Represents a private group chat room with multiple person
-    """
+    """ Represents a private group chat room with multiple users """
     schema = {
         'type': 'object',
         'properties': {
@@ -126,7 +124,7 @@ class PrivateGroupRoom(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the PrivateGroupRoom Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -145,7 +143,7 @@ class PrivateGroupRoom(HivenObject):
             _recipients = []
             for id_ in data.get("recipients"):
                 user_data = client.storage['users'][id_]
-                _recipients.append(await User.create_from_dict(user_data, client))
+                _recipients.append(User._insert_data(user_data, client))
 
             data['recipients'] = _recipients
             data['name'] = f"Private Group chat with: {(', '.join(r.name for r in _recipients))}"
@@ -218,7 +216,7 @@ class PrivateGroupRoom(HivenObject):
             data = raw_data.get('data')
 
             data = message.Message.format_obj_data(data)
-            msg = await message.Message.create_from_dict(data, self._client)
+            msg = message.Message._insert_data(data, self._client)
             return msg
         
         except Exception as e:
@@ -250,7 +248,7 @@ class PrivateGroupRoom(HivenObject):
 
 
 class PrivateRoom(HivenObject):
-    """ Represents a private chat room with a user """
+    """ Represents a private chat room with only one user """
     @classmethod
     def validate(cls, data, *args, **kwargs):
         try:
@@ -302,7 +300,7 @@ class PrivateRoom(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the PrivateRoom Class with the passed data
 
@@ -313,7 +311,7 @@ class PrivateRoom(HivenObject):
         try:
             from . import User
             user_data = client.storage['users'][data['recipient']['id']]
-            data['recipient'] = await User.create_from_dict(user_data, client)
+            data['recipient'] = User._insert_data(user_data, client)
             data['client_user'] = client.user
 
             instance = cls(**data)
@@ -411,7 +409,7 @@ class PrivateRoom(HivenObject):
             data = raw_data.get('data')
 
             data = message.Message.format_obj_data(data)
-            msg = await message.Message.create_from_dict(data, self._client)
+            msg = message.Message._insert_data(data, self._client)
             return msg
         
         except Exception as e:

@@ -13,9 +13,7 @@ __all__ = ['Attachment']
 
 
 class Attachment(HivenObject):
-    """
-    Represents a Hiven Attachment
-    """
+    """ Represents a Hiven Message Attachment containing a file """
     schema = {
         'type': 'object',
         'properties': {
@@ -53,7 +51,7 @@ class Attachment(HivenObject):
         return cls.validate(data)
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def insert_data(cls, data: dict, client):
         """
         Creates an instance of the Attachment Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)

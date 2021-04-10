@@ -85,7 +85,7 @@ class Mention(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Mention Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -101,10 +101,10 @@ class Mention(HivenObject):
         """
         try:
             user_data = client.storage['users'][data['user']]
-            data['user'] = await User.create_from_dict(user_data, client)
+            data['user'] = User._insert_data(user_data, client)
 
             user_data = client.storage['users'][data['user']]
-            data['author'] = await User.create_from_dict(user_data, client)
+            data['author'] = User._insert_data(user_data, client)
             instance = cls(**data)
 
         except Exception as e:

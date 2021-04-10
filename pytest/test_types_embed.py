@@ -16,7 +16,7 @@ class TestEmbed:
         }
         data = Embed.validate(data)
         client = openhivenpy.UserClient()
-        obj = asyncio.run(Embed.create_from_dict(data, client))
+        obj = Embed._insert_data(data, client)
 
         assert obj.url == data['url']
         assert obj.type == data['type']
@@ -101,7 +101,7 @@ class TestEmbed:
         assert data['title'] == input['title']
 
         client = openhivenpy.UserClient()
-        obj = asyncio.run(Embed.create_from_dict(data, client))
+        obj = Embed._insert_data(data, client)
 
         assert obj.url == data['url']
         assert obj.type == data['type']

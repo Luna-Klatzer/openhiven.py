@@ -141,7 +141,7 @@ class Invite(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Invite Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -158,7 +158,7 @@ class Invite(HivenObject):
         """
         try:
             house_data = client.storage['houses'][data['house_id']]
-            data['house'] = await House.create_from_dict(house_data, client)
+            data['house'] = House._insert_data(house_data, client)
 
             instance = cls(**data)
 

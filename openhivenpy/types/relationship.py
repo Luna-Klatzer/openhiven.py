@@ -93,7 +93,7 @@ class Relationship(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Relationship Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -110,7 +110,7 @@ class Relationship(HivenObject):
         try:
             data['user_id'] = data.get('user_id')
             user_data = client.storage['users'][data['user_id']]
-            data['user'] = await User.create_from_dict(user_data, client)
+            data['user'] = User._insert_data(user_data, client)
 
             instance = cls(**data)
 

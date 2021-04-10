@@ -181,12 +181,14 @@ def update_and_return(dictionary: dict, data: dict) -> dict:
     return dictionary
 
 
-@functools.lru_cache(maxsize=128)
-def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = None) -> typing.Callable:
+@functools.lru_cache(maxsize=64)
+def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = None,
+                      return_exception: bool = False) -> typing.Callable:
     """
     Wraps a Event Listener Task and adds traceback logging and simple caching to it
 
     :param coro: Function that should be wrapped
+    :param return_exception: If set to True the exception will be reraised
     """
     def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
         @functools.wraps(coro)
@@ -197,6 +199,8 @@ def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = No
                 log_traceback(
                     msg=f"Traceback in function {coro.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
                 )
+                if return_exception:
+                    raise
 
         return wrapper  # func can still be used normally outside the event listening process
 

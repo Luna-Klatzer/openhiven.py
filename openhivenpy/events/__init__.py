@@ -19,19 +19,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 from .parsers import HivenParsers
 
 import asyncio
-from functools import wraps
 import sys
 import inspect
 import logging
 import typing
 
-from ..exceptions import UnknownEventError, ExpectedAsyncFunction
+from ..exceptions import UnknownEventError
 from .. import utils
 
-__all__ = ['SingleDispatchEventListener', 'HivenEventHandler', 'HivenParsers', 'EVENTS']
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
+
+__all__ = [
+    'DispatchEventListener',
+    'SingleDispatchEventListener',
+    'HivenEventHandler',
+    'HivenParsers',
+    'EVENTS',
+    'NON_BUFFER_EVENTS'
+]
 
 logger = logging.getLogger(__name__)
 
@@ -48,48 +62,73 @@ EVENTS = [
     'typing_start'
 ]
 
+NON_BUFFER_EVENTS = [
+    'init', 'ready'
+]
 
-def add_listener(client, listener):
+
+class DispatchEventListener:
+    """Base Class for all DispatchEventListeners"""
+    def __str__(self):
+        return f"<{self.__class__.__name__} for event {self.event_name}>"
+
+    @property
+    def event_name(self) -> str:
+        return getattr(self, '_event_name', None)
+
+    def __call__(self, *args, **kwargs) -> typing.Coroutine:
+        """
+        Dispatches the EventListener and calls a coroutine if one was passed
+
+        :param event_data: Data of the received event
+        :param args: Args that will be passed to the coroutine
+        :param kwargs: Kwargs that will be passed to the coroutine
+        :return: Returns the passed event_data
+        """
+        dispatch: typing.Callable = getattr(self, 'dispatch')
+        return dispatch(*args, **kwargs)
+
+
+def add_listener(client: HivenClient, listener: DispatchEventListener):
     """
     Adds the listener to the client cache and will create a new list if the event_name does not exist yet!
 
     :param client: The HivenClient needed for adding the new listener
     :param listener: The Listener that will be added to the registered event_listeners
     """
-    if client.active_listeners.get(listener.event_name):
-        client.active_listeners[listener.event_name].append(listener)
+    if client._active_listeners.get(listener.event_name):
+        client._active_listeners[listener.event_name].append(listener)
     else:
-        client.active_listeners[listener.event_name] = [listener]
+        client._active_listeners[listener.event_name] = [listener]
 
 
-def remove_listener(client, listener):
+def remove_listener(client: HivenClient, listener: DispatchEventListener):
     """
     Removes the listener from the list and returns it
 
     :param client: The HivenClient needed for the popping
     :param listener: The Listener that will be removed
     """
-    if client.active_listeners.get(listener.event_name):
-        client.active_listeners[listener.event_name].remove(listener)
+    if client._active_listeners.get(listener.event_name):
+        client._active_listeners[listener.event_name].remove(listener)
     else:
-        raise KeyError("The listener does not exist with the event_name in the HivenClient")
+        raise KeyError("The listener does not exist in the cache")
 
 
-class SingleDispatchEventListener:
+class SingleDispatchEventListener(DispatchEventListener):
     """ EventListener Class that will be called only once and will store the events data, args and kwargs """
-
     def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
+        if not inspect.iscoroutinefunction(coro):
+            raise TypeError(f"A coroutine was expected, got {type(coro)}")
         self.coro = coro
-        self.event_name = event_name
+        self._event_name = event_name
         self._client = client
         self._dispatched = False
         self._event_data = None
         self._args = None
         self._kwargs = None
+        super().__init__()
         add_listener(client, self)
-
-    def __str__(self):
-        return f"<SingleDispatchEventListener for event {self.event_name}>"
 
     def __repr__(self):
         info = [
@@ -99,24 +138,9 @@ class SingleDispatchEventListener:
         ]
         return '<SingleDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def __call__(self, event_data: dict, *args, **kwargs):
-        """
-        Dispatches the EventListener and calls a coroutine if one was passed
-
-        :param event_data: Data of the received event
-        :param args: Args that will be passed to the coroutine
-        :param kwargs: Kwargs that will be passed to the coroutine
-        :return: Returns the passed event_data
-        """
-        return self.dispatch(event_data, *args, **kwargs)
-
     @property
     def dispatched(self) -> bool:
         return getattr(self, '_dispatched', False)
-
-    @property
-    def event_data(self):
-        return getattr(self, '_event_data')
 
     @property
     def args(self) -> tuple:
@@ -126,23 +150,18 @@ class SingleDispatchEventListener:
     def kwargs(self) -> dict:
         return getattr(self, '_kwargs')
 
-    async def dispatch(self, event_data: dict, *args, **kwargs) -> dict:
+    async def dispatch(self, *args, **kwargs) -> None:
         """
         Dispatches the EventListener and calls a coroutine if one was passed
 
-        :param event_data: Data of the received event
         :param args: Args that will be passed to the coroutine
         :param kwargs: Kwargs that will be passed to the coroutine
         :return: Returns the passed event_data
         """
-        self._event_data = event_data
         try:
-            if inspect.iscoroutinefunction(self.coro):
-                self._args = args
-                self._kwargs = kwargs
-                await self.coro(*args, **kwargs)
-            else:
-                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous")
+            self._args = args
+            self._kwargs = kwargs
+            await self.coro(*args, **kwargs)
 
         except Exception as e:
             utils.log_traceback(
@@ -151,20 +170,18 @@ class SingleDispatchEventListener:
             )
         self._dispatched = True
         remove_listener(self._client, self)
-        return event_data
 
 
-class MultiDispatchEventListener:
+class MultiDispatchEventListener(DispatchEventListener):
     """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
-
     def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
+        if not inspect.iscoroutinefunction(coro):
+            raise TypeError(f"A coroutine was expected, got {type(coro)}")
         self.coro = coro
-        self.event_name = event_name
+        self._event_name = event_name
         self._client = client
+        super().__init__()
         add_listener(client, self)
-
-    def __str__(self):
-        return f"<MultiDispatchEventListener for event {self.event_name}>"
 
     def __repr__(self):
         info = [
@@ -173,37 +190,22 @@ class MultiDispatchEventListener:
         ]
         return '<MultiDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def __call__(self, event_data: dict, *args, **kwargs):
+    async def dispatch(self, *args, **kwargs) -> None:
         """
-        Dispatches the EventListener and calls a coroutine if one was passed
+        Dispatches the EventListener and calls a coroutine if one was passed.
+        Does not raise exceptions but silences them!
 
-        :param event_data: Data of the received event
         :param args: Args that will be passed to the coroutine
         :param kwargs: Kwargs that will be passed to the coroutine
-        :return: Returns the passed event_data
-        """
-        return self.dispatch(event_data, *args, **kwargs)
-
-    async def dispatch(self, event_data, *args, **kwargs) -> dict:
-        """
-        Dispatches the EventListener and calls a coroutine if one was passed
-
-        :param event_data: Data of the received event
-        :param args: Args that will be passed to the coroutine
-        :param kwargs: Kwargs that will be passed to the coroutine
-        :return: Returns the passed event_data
         """
         try:
-            if inspect.iscoroutinefunction(self.coro):
-                await self.coro(*args, **kwargs)
-            else:
-                raise ExpectedAsyncFunction("Callable of EventListener must be asynchronous")
+            await self.coro(*args, **kwargs)
         except Exception as e:
             utils.log_traceback(
                 msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",
                 suffix=f"{sys.exc_info()[0].__name__}: {e}!"
             )
-        return event_data
+            raise RuntimeError(f"Failed to execute assigned coroutine {self.coro.__name__} due to an exception") from e
 
 
 class HivenEventHandler:
@@ -211,11 +213,11 @@ class HivenEventHandler:
     Events class used to register the main event listeners.
     Is inherited by the HivenClient for easier access.
     """
-
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
-        self.active_listeners = {}
+        self._active_listeners = {}
         self._available_events = EVENTS
+        self._non_buffer_events = NON_BUFFER_EVENTS
 
         # Searching through the HivenClient to find all async functions that were registered for event_listening
         # Regular functions will NOT be registered and only if they are async! This will avoid that errors are thrown
@@ -228,27 +230,35 @@ class HivenEventHandler:
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
 
     @property
-    def available_events(self):
+    def active_listeners(self) -> typing.Dict[str, typing.List[DispatchEventListener]]:
+        return getattr(self, '_active_listeners')
+
+    @property
+    def available_events(self) -> typing.List[str]:
         return getattr(self, '_available_events')
 
-    async def call_listeners(self, event_name: str, event_data: dict = None, *args, **kwargs):
+    @property
+    def non_buffer_events(self) -> typing.List[str]:
+        return getattr(self, '_non_buffer_events')
+
+    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict):
         """
         Dispatches all active EventListeners for the specified event.
+        Does not call the parsers but the function directly and requires the args, kwargs passed
 
         ---
 
         Will run all tasks before returning! Only supposed to be called in cases of special events!
 
         :param event_name: The name of the event that should be triggered
-        :param event_data: The data of the received event
         :param args: Args that will be passed to the coroutines
         :param kwargs: Kwargs that will be passed to the coroutines
         """
-        if event_data is None:
-            event_data = {}
-        events = self.active_listeners.get(event_name.lower().replace('on_', ''))
-        if events:
-            tasks = [e(event_data, *args, **kwargs) for e in events]
+        listeners: typing.List[DispatchEventListener] = self._active_listeners.get(
+            event_name.lower().replace('on_', '')
+        )
+        if listeners:
+            tasks = [listener(*args, **kwargs) for listener in listeners]
             await asyncio.gather(*tasks)
 
     async def wait_for(self,
@@ -277,10 +287,9 @@ class HivenEventHandler:
 
         :param coro: Function that should be wrapped and registered
         """
-
         def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
             if not inspect.iscoroutinefunction(coro):
-                raise ExpectedAsyncFunction("Target of the decorator must be asynchronous!")
+                raise TypeError(f"A coroutine was expected, got {type(coro)}")
 
             if coro.__name__.replace('on_', '') not in self._available_events:
                 raise UnknownEventError("The passed event type is invalid/does not exist")
@@ -311,8 +320,8 @@ class HivenEventHandler:
         if event_name not in self.available_events:
             raise UnknownEventError("The passed event type is invalid/does not exist")
 
-        if self.active_listeners.get(event_name) is None:
-            self.active_listeners[event_name] = []
+        if self._active_listeners.get(event_name) is None:
+            self._active_listeners[event_name] = []
 
         return MultiDispatchEventListener(self, event_name, coro)
 
@@ -331,7 +340,7 @@ class HivenEventHandler:
         if event_name not in self.available_events:
             raise UnknownEventError("The passed event type is invalid/does not exist")
 
-        if self.active_listeners.get(event_name) is None:
-            self.active_listeners[event_name] = []
+        if self._active_listeners.get(event_name) is None:
+            self._active_listeners[event_name] = []
 
         return SingleDispatchEventListener(self, event_name, coro)

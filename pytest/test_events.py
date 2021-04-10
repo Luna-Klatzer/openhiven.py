@@ -20,38 +20,23 @@ class TestSingleDispatchEventListener:
         assert kwargs.pop('test') == 'test'
 
     def test_dispatch_without_coro(self):
-        listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', None)
-
-        expected_return = {'test': 2}
-        return_value = asyncio.run(listener.dispatch(expected_return, *self.example_args,  **self.example_kwargs))
-
-        assert return_value == expected_return
+        try:
+            openhivenpy.events.MultiDispatchEventListener(client, 'test', None)
+        except Exception:
+            pass
+        else:
+            assert False
 
     def test_dispatch_with_coro(self):
         listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', self.example)
-
-        expected_return = {'test': 2}
-        return_value = asyncio.run(listener.dispatch(expected_return, *self.example_args,  **self.example_kwargs))
-
-        assert return_value == expected_return
-
-    def test_await(self):
-        listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', self.example)
-
-        expected_return = {'test': 2}
-        # awaiting the listener since __call__ will automatically return the dispatch coroutine
-        return_value = asyncio.run(listener(expected_return, *self.example_args,  **self.example_kwargs))
-
-        # The Listener should return the passed event_data which is {}
-        assert return_value == expected_return
+        asyncio.run(listener.dispatch(*self.example_args, **self.example_kwargs))
 
     def test_call(self):
         listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', self.example)
 
-        expected_return = {'test': 2}
-        coro = listener(expected_return, *self.example_args,  **self.example_kwargs)
+        coro = listener(*self.example_args, **self.example_kwargs)
         assert inspect.iscoroutine(coro)
-        assert asyncio.run(coro) == expected_return
+        asyncio.run(coro)
 
     def test_get_attribute(self):
         listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', self.example)
@@ -59,15 +44,13 @@ class TestSingleDispatchEventListener:
         assert listener.coro == self.example
         assert listener.event_name == 'test'
         assert listener._client == client
-        assert openhivenpy.utils.get(client.active_listeners['test'], coro=self.example) is not None
+        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is not None
 
-        expected_return = {'test': 2}
-        asyncio.run(listener(expected_return, *self.example_args,  **self.example_kwargs))
+        asyncio.run(listener(*self.example_args, **self.example_kwargs))
         assert listener.dispatched
-        assert listener.event_data == expected_return
         assert list(listener.args) == self.example_args
         assert listener.kwargs == self.example_kwargs
-        assert openhivenpy.utils.get(client.active_listeners['test'], coro=self.example) is None
+        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is None
 
 
 class TestMultiDispatchEventListener:
@@ -79,41 +62,23 @@ class TestMultiDispatchEventListener:
         assert kwargs.pop('test') == 'test'
 
     def test_dispatch_without_coro(self):
-        # Creating a new Client to avoid possible different results by using older ones
-        client = openhivenpy.UserClient()
-
-        listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', None)
-
-        expected_return = {'test': 2}
-        return_value = asyncio.run(listener.dispatch(expected_return, *self.example_args, **self.example_kwargs))
-
-        assert return_value == expected_return
+        try:
+            openhivenpy.events.MultiDispatchEventListener(client, 'test', None)
+        except Exception:
+            pass
+        else:
+            assert False
 
     def test_dispatch_with_coro(self):
         listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
-
-        expected_return = {'test': 2}
-        return_value = asyncio.run(listener.dispatch(expected_return, *self.example_args, **self.example_kwargs))
-
-        assert return_value == expected_return
-
-    def test_await(self):
-        listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
-
-        expected_return = {'test': 2}
-        # awaiting the listener since __call__ will automatically return the dispatch coroutine
-        return_value = asyncio.run(listener(expected_return, *self.example_args, **self.example_kwargs))
-
-        # The Listener should return the passed event_data which is {}
-        assert return_value == expected_return
+        asyncio.run(listener.dispatch(*self.example_args, **self.example_kwargs))
 
     def test_call(self):
         listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
 
-        expected_return = {'test': 2}
-        coro = listener(expected_return, *self.example_args, **self.example_kwargs)
+        coro = listener(*self.example_args, **self.example_kwargs)
         assert inspect.iscoroutine(coro)
-        assert asyncio.run(coro) == expected_return
+        asyncio.run(coro)
 
     def test_get_attribute(self):
         listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
@@ -121,7 +86,7 @@ class TestMultiDispatchEventListener:
         assert listener.coro == self.example
         assert listener.event_name == 'test'
         assert listener._client == client
-        assert openhivenpy.utils.get(client.active_listeners['test'], coro=self.example) is not None
+        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is not None
 
 
 class TestHivenEventHandler:
@@ -134,7 +99,7 @@ class TestHivenEventHandler:
             print("\non_ready was called!")
             await client.close()
 
-        assert len(client.active_listeners['ready']) == 1
+        assert len(client._active_listeners['ready']) == 1
 
         client.run(token_)
 
@@ -145,7 +110,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.call_listeners('ready')
+            await client.call_listeners('ready', (), {})
 
         async def run():
             await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
@@ -159,7 +124,7 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.call_listeners('ready')
+            await client.call_listeners('ready', (), {})
 
         async def run():
             await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
@@ -173,17 +138,17 @@ class TestHivenEventHandler:
 
         async def trigger_test_event():
             await asyncio.sleep(.5)
-            await client.call_listeners('ready')
+            await client.call_listeners('ready', (), {})
 
         async def run():
-            assert len(client.active_listeners['ready']) == 0
+            assert len(client._active_listeners['ready']) == 0
 
             client.add_single_listener(event_name='ready', coro=on_ready)
             # Checking if the listener was added correctly
-            assert len(client.active_listeners['ready']) == 1
+            assert len(client._active_listeners['ready']) == 1
 
             await trigger_test_event()
             # Checking if the listener was removed correctly after being used
-            assert len(client.active_listeners['ready']) == 0
+            assert len(client._active_listeners['ready']) == 0
 
         asyncio.run(run())

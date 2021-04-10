@@ -122,7 +122,7 @@ class Room(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Room Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -137,7 +137,7 @@ class Room(HivenObject):
         :return: The newly constructed Room Instance
         """
         try:
-            data['house'] = House.create_from_dict(
+            data['house'] = House._insert_data(
                 client.storage['houses'][data['house_id']], client
             )
             instance = cls(**data)
@@ -202,7 +202,7 @@ class Room(HivenObject):
             # Raw_data not in correct format => needs to access data field
             data = raw_data.get('data')
             data = Message.format_obj_data(data)
-            return await Message.create_from_dict(data, self._client)
+            return Message._insert_data(data, self._client)
 
         except Exception as e:
             utils.log_traceback(msg="[ROOM] Traceback:",
@@ -266,7 +266,7 @@ class Room(HivenObject):
 
             messages_ = []
             for d in data:
-                msg = await d.Message.create_from_dict(d, self._client)
+                msg = d.Message.insert_data(d, self._client)
                 messages_.append(msg)
 
             return messages_

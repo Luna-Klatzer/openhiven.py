@@ -13,7 +13,7 @@ __all__ = ['Embed']
 
 
 class Embed(HivenObject):
-    """ Represents an embed message object """
+    """ Represents an embed message object either customised or from a website """
     schema = {
         'type': 'object',
         'properties': {
@@ -57,7 +57,7 @@ class Embed(HivenObject):
         return cls.validate(data)
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Embed Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)

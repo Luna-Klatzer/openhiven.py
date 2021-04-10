@@ -23,11 +23,11 @@ __all__ = ['House', 'LazyHouse']
 
 class LazyHouse(HivenObject):
     """
-    Low-Level Data Class for a Hiven House
+    Represents a Hiven House which can contain rooms and entities
 
     Note! This class is a lazy class and does not have every available data!
 
-    Consider fetching for more data the regular house object with utils.get()
+    Consider fetching for more data the regular house object with HivenClient.get_house()
     """
     schema = {
         'type': 'object',
@@ -124,7 +124,7 @@ class LazyHouse(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the LazyHouse Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -182,7 +182,7 @@ class LazyHouse(HivenObject):
 
 
 class House(LazyHouse):
-    """ Data Class for a Hiven House """
+    """ Represents a Hiven House which can contain rooms and entities """
     schema = {
         'type': 'object',
         'properties': {
@@ -278,7 +278,7 @@ class House(LazyHouse):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the House Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -298,7 +298,7 @@ class House(LazyHouse):
             instance._client = client
 
             client_data = instance.get_cached_data()['members'][client.id]
-            instance._client_member = await Member.create_from_dict(client_data, client)
+            instance._client_member = Member._insert_data(client_data, client)
             instance._owner = utils.get(instance.members, id=instance.owner_id)
     
         except Exception as e:
@@ -433,7 +433,7 @@ class House(LazyHouse):
             raw_data = await resp.json()
 
             data = Room.format_obj_data(raw_data.get('data'))
-            return await Room.create_from_dict(data, self._client)
+            return Room._insert_data(data, self._client)
 
         except Exception as e:
             utils.log_traceback(
@@ -464,7 +464,7 @@ class House(LazyHouse):
                 id_ = d.get('id')
                 if id_ not in existing_entity_ids:
                     d = Entity.format_obj_data(d)
-                    _entity = await Entity.create_from_dict(d, self._client)
+                    _entity = Entity._insert_data(d, self._client)
                     self._entities.append(_entity)
                     return _entity
 
@@ -528,7 +528,7 @@ class House(LazyHouse):
 
             data = raw_data.get('data', {})
             data = Invite.format_obj_data(data)
-            return await Invite.create_from_dict(data, self._client)
+            return Invite._insert_data(data, self._client)
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",

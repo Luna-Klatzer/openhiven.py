@@ -21,9 +21,7 @@ __all__ = ['Context']
 
 
 class Context(HivenObject):
-    """
-    Represents a Command Context for a triggered command in the CommandListener
-    """
+    """ Represents a Command Context for a triggered command that was registered prior """
     schema = {
         'type': 'object',
         'properties': {
@@ -93,7 +91,7 @@ class Context(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Context Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)

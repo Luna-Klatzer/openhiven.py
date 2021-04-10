@@ -69,7 +69,6 @@ class TestListeners:
             assert new_user.bio == new['bio']
             assert old_user.bio != new_user.bio
             await client.close()
-
         client.run(token_)
 
     def test_on_message_create(self):

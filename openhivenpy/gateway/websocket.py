@@ -253,7 +253,7 @@ class HivenWebSocket:
 
         :returns: A List of all other events that were received during initialisation that will now need to be called
         """
-        await self.client.call_listeners('init')
+        await self.client.call_listeners('init', (), {})
 
         data = msg['d']
         house_memberships = data.get('house_memberships', {})
@@ -280,7 +280,7 @@ class HivenWebSocket:
         logger.info(f"[CLIENT] Ready after {self.startup_time}s")
 
         # Delaying the receiving process until all ready-state listeners were called
-        await self.client.call_listeners('ready')
+        await self.client.call_listeners('ready', (), {})
         self._ready = True
 
     async def received_init_event(self, msg: aiohttp.WSMessage) -> aiohttp.WSMessage:

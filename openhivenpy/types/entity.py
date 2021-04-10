@@ -22,7 +22,7 @@ __all__ = ['Entity']
 
 
 class Entity(HivenObject):
-    """  Represents a Hiven Entity """
+    """ Represents a Hiven Entity inside a House which can contain Rooms """
     schema = {
         'type': 'object',
         'properties': {
@@ -99,7 +99,7 @@ class Entity(HivenObject):
         return data
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client):
+    def _insert_data(cls, data: dict, client):
         """
         Creates an instance of the Entity Class with the passed data
         (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
@@ -115,7 +115,7 @@ class Entity(HivenObject):
         """
         try:
             from . import House
-            data['house'] = await House.create_from_dict(
+            data['house'] = House._insert_data(
                 data=client.storage['house'][data['house_id']], client=client
             )
             instance = cls(**data)

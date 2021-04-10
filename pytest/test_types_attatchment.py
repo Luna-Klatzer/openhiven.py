@@ -14,7 +14,7 @@ class TestAttachment:
         }
         data = Attachment.validate(data)
         client = openhivenpy.UserClient()
-        obj = asyncio.run(Attachment.create_from_dict(data, client))
+        obj = Attachment.insert_data(data, client)
 
         assert obj.filename == data['filename']
         assert obj.media_url == data['media_url']
@@ -96,6 +96,6 @@ class TestAttachment:
         }
 
         client = openhivenpy.UserClient()
-        obj = asyncio.run(Attachment.create_from_dict(data, client))
+        obj = Attachment.insert_data(data, client)
         assert obj.filename == input['filename']
         assert obj.media_url == input['media_url']

@@ -39,7 +39,9 @@ __all__ = [
     'HTTPError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError', 'HTTPForbiddenError',
     'HTTPResponseError', 'HTTPReceivedNoDataError',
 
-    'InitializationError', 'InvalidPassedDataError', 'ExpectedAsyncFunction',
+    'InitializationError', 'InvalidPassedDataError',
+
+    'ExecutionLoopError', 'ExecutionLoopStartError',
 
     'CommandError'
 ]
@@ -215,9 +217,17 @@ class InvalidPassedDataError(InitializationError):
         super().__init__(arg)
 
 
-class ExpectedAsyncFunction(HivenError):
-    """ The passed function of the decorator is not async and cannot be used """
-    error_msg = "The passed function is not async"
+# -------- ExecutionLoop --------
+
+
+class ExecutionLoopError(HivenError):
+    """ An exception occurred in the execution loop running parallel to the core """
+    error_msg = "An exception occurred in the execution loop running parallel to the core"
+
+
+class ExecutionLoopStartError(HivenError):
+    """ The execution failed to start and crashed """
+    error_msg = "Failed to start the Execution Loop"
 
 
 # -------- COMMAND --------

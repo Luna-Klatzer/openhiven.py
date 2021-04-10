@@ -39,10 +39,10 @@ class HivenParsers:
         buffer: DynamicEventBuffer = self.client.message_broker.get_buffer('user_update')
 
         user_data = types.User.format_obj_data(self.storage['users'][data['id']])
-        user = await types.User.create_from_dict(user_data, self.client)
+        user = types.User._insert_data(user_data, self.client)
 
         user_data = types.User.format_obj_data(data)
-        new_user = await types.User.create_from_dict(user_data, self.client)
+        new_user = types.User._insert_data(user_data, self.client)
 
         self.storage['users'][data['id']].update(data)
 

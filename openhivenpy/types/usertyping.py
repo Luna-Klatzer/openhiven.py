@@ -12,7 +12,7 @@ __all__ = ['UserTyping']
 
 
 class UserTyping(HivenObject):
-    """ Represents a Hiven User Typing in a room """
+    """ Represents a Hiven User typing in a room """
     def __init__(self, **kwargs):
         self._author = kwargs.get('author')
         self._room = kwargs.get('room')
@@ -32,7 +32,7 @@ class UserTyping(HivenObject):
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def create_from_dict(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
+    def _insert_data(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
         """
         Creates an instance of the Relationship Class with the passed data
 

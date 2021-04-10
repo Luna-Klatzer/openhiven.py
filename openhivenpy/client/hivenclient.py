@@ -243,7 +243,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_user(user_id)
         if raw_data:
-            return await types.User.create_from_dict(raw_data, self)
+            return types.User._insert_data(raw_data, self)
         else:
             return None
 
@@ -278,7 +278,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_house(house_id)
         if raw_data:
-            return await types.House.create_from_dict(raw_data, self)
+            return types.House._insert_data(raw_data, self)
         else:
             return None
 
@@ -313,7 +313,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_entity(entity_id)
         if raw_data:
-            return await types.Entity.create_from_dict(raw_data, self)
+            return types.Entity._insert_data(raw_data, self)
         else:
             return None
 
@@ -348,7 +348,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_room(room_id)
         if raw_data:
-            return await types.Room.create_from_dict(raw_data, self)
+            return types.Room._insert_data(raw_data, self)
         else:
             return None
 
@@ -383,7 +383,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_private_room(room_id)
         if raw_data:
-            return await types.PrivateRoom.create_from_dict(raw_data, self)
+            return types.PrivateRoom._insert_data(raw_data, self)
         else:
             return None
 
@@ -418,7 +418,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_private_group_room(room_id)
         if raw_data:
-            return await types.PrivateGroupRoom.create_from_dict(raw_data, self)
+            return types.PrivateGroupRoom._insert_data(raw_data, self)
         else:
             return None
 
@@ -453,7 +453,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_relationship(user_id)
         if raw_data:
-            return await types.Relationship.create_from_dict(raw_data, self)
+            return types.Relationship._insert_data(raw_data, self)
         else:
             return None
 

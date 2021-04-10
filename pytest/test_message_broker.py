@@ -52,9 +52,6 @@ class TestMessageBroker:
 
         client.connection._connection_status = "OPEN"
         await asyncio.gather(message_broker.run(), asyncio.wait_for(test(), 3))
-        
-        assert message_broker.event_consumer.workers.get("ready") is not None
-        assert message_broker.event_consumer.workers['ready'].event == "ready"
 
     def test_init(self):
         client = openhivenpy.HivenClient()
@@ -81,7 +78,7 @@ class TestWorker:
         assert worker.event == "ready"
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client
-        assert worker.event_buffer == message_broker.event_buffers['ready']
+        assert worker.assigned_event_buffer == message_broker.event_buffers['ready']
 
     def test_exec(self):
         pass

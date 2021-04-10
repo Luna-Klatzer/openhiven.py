@@ -103,13 +103,13 @@ class UserClient(HivenClient):
             if incoming_:
                 data['incoming'] = []
                 for d in incoming_:
-                    data['incoming'].append(await types.LazyUser.create_from_dict(d, self.http))
+                    data['incoming'].append(types.LazyUser._insert_data(d, self.http))
 
             outgoing_ = data.get('outgoing')
             if outgoing_:
                 data['outgoing'] = []
                 for d in outgoing_:
-                    data['outgoing'].append(await types.LazyUser.create_from_dict(d, self.http))
+                    data['outgoing'].append(types.LazyUser._insert_data(d, self.http))
 
             return {
                 'incoming': data['incoming'],
