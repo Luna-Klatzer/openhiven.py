@@ -134,10 +134,13 @@ class Mention(HivenTypeObject):
             user_id = None
 
         if type(user_id) is str:
-            self._user = User(
-                data=self._client.storage['users'][user_id], client=self._client
-            )
-            return self._user
+            data = self._client.storage['users'][user_id]
+            if data:
+                self._user = User(data=data, client=self._client)
+                return self._user
+            else:
+                return None
+
         elif type(self._user) is User:
             return self._user
         else:
@@ -157,10 +160,13 @@ class Mention(HivenTypeObject):
             author_id = None
 
         if type(author_id) is str:
-            self._author = User(
-                data=self._client.storage['users'][author_id], client=self._client
-            )
-            return self._author
+            data = self._client.storage['users'][author_id]
+            if data:
+                self._author = User(data=data, client=self._client)
+                return self._author
+            else:
+                return None
+
         elif type(self._author) is User:
             return self._author
         else:

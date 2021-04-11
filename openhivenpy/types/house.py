@@ -298,10 +298,13 @@ class House(LazyHouse):
     def owner(self) -> typing.Optional[Member]:
         from . import Member
         if type(self._owner) is str:
-            self._owner = Member(
-                data=self.get_cached_data()['members'][self._client.id], client=self._client
-            )
-            return self._owner
+            data = self.get_cached_data()['members'][self._client.id]
+            if data:
+                self._owner = Member(data=data, client=self._client)
+                return self._owner
+            else:
+                return None
+
         elif type(self._owner) is Member:
             return self._owner
         else:

@@ -338,9 +338,7 @@ class Message(HivenTypeObject):
     @property
     def attachment(self) -> typing.Optional[Attachment]:
         if type(self._attachment) is dict:
-            self._attachment = Attachment(
-                data=self._attachment, client=self._client
-            )
+            self._attachment = Attachment(data=self._attachment, client=self._client)
             return self._attachment
         elif type(self._attachment) is Attachment:
             return self._attachment

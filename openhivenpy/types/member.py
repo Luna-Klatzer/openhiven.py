@@ -137,10 +137,13 @@ class Member(user.User):
             house_id = None
 
         if house_id:
-            self._house = House(
-                data=self._client.storage['house'][house_id], client=self._client
-            )
-            return self._house
+            data = self._client.storage['houses'][house_id]
+            if data:
+                self._house = House(data=data, client=self._client)
+                return self._house
+            else:
+                return None
+
         elif type(self._house) is House:
             return self._house
         else:

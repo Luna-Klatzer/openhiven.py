@@ -138,10 +138,13 @@ class Relationship(HivenTypeObject):
             user_id = None
 
         if type(user_id) is str:
-            self._user = User(
-                data=self._client.storage['users'][user_id], client=self._client
-            )
-            return self._user
+            data = self._client.storage['users'][user_id]
+            if data:
+                self._user = User(data=data, client=self._client)
+                return self._user
+            else:
+                return None
+
         elif type(self._user) is User:
             return self._user
         else:

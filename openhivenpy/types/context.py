@@ -119,10 +119,13 @@ class Context(HivenTypeObject):
     def house(self) -> typing.Optional[House]:
         from . import House
         if type(self._house) is str:
-            self._house = House(
-                data=self._client.storage['house'][self._house], client=self._client
-            )
-            return self._house
+            data = self._client.storage['houses'][self._house]
+            if data:
+                self._house = House(data=data, client=self._client)
+                return self._house
+            else:
+                return None
+
         elif type(self._house) is House:
             return self._house
         else:
@@ -132,10 +135,13 @@ class Context(HivenTypeObject):
     def room(self) -> typing.Optional[Room]:
         from . import Room
         if type(self._room) is str:
-            self._room = Room(
-                data=self._client.storage['rooms']['house'][self._room], client=self._client
-            )
-            return self._room
+            data = self._client.storage['rooms']['house'].get(self._room)
+            if data:
+                self._room = Room(data=data, client=self._client)
+                return self._room
+            else:
+                return None
+
         elif type(self._room) is Room:
             return self._room
         else:
@@ -145,10 +151,13 @@ class Context(HivenTypeObject):
     def author(self) -> typing.Optional[User]:
         from . import User
         if type(self._author) is str:
-            self._author = User(
-                data=self._client.storage['users'][self._author], client=self._client
-            )
-            return self._author
+            data = self._client.storage['users'][self._author]
+            if data:
+                self._author = User(data=data, client=self._client)
+                return self._author
+            else:
+                return None
+
         elif type(self._author) is User:
             return self._author
         else:
