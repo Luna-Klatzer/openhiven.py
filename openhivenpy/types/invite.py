@@ -1,21 +1,29 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-import types
+import typing
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from . import House
 from .. import utils
-from ..exceptions import InitializationError
+from ..exceptions import InitializationError, InvalidPassedDataError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Invite']
 
 
-class Invite(HivenObject):
+class Invite(HivenTypeObject):
     """ Represents an Invite to a Hiven House """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'code': {
@@ -84,18 +92,31 @@ class Invite(HivenObject):
         'additionalProperties': False,
         'required': ['code']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._code = kwargs.get('code')
-        self._url = kwargs.get('url')
-        self._created_at = kwargs.get('created_at')
-        self._house_id = kwargs.get('house_id')
-        self._max_age = kwargs.get('max_age')
-        self._max_uses = kwargs.get('max_uses')
-        self._type = kwargs.get('type')
-        self._house = kwargs.get('house')
-        self._house_members = kwargs.get('house_members')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._code = data.get('code')
+            self._url = data.get('url')
+            self._created_at = data.get('created_at')
+            self._house_id = data.get('house_id')
+            self._max_age = data.get('max_age')
+            self._max_uses = data.get('max_uses')
+            self._type = data.get('type')
+            self._house = data.get('house')
+            self._house_members = data.get('house_members')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -110,7 +131,7 @@ class Invite(HivenObject):
         return '<Invite {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -120,8 +141,8 @@ class Invite(HivenObject):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         if data.get('invite') is not None:
             invite = data.get('invite')
@@ -130,49 +151,29 @@ class Invite(HivenObject):
         data['code'] = invite.get('code')
         data['url'] = "https://hiven.house/{}".format(data['code'])
         data['created_at'] = invite.get('created_at')
-        data['house_id'] = invite.get('house_id')
         data['max_age'] = invite.get('max_age')
         data['max_uses'] = invite.get('max_uses')
         data['type'] = invite.get('type')
         data['house_members'] = data.get('counts', {}).get('house_members')
 
+        if not invite.get('house_id') and invite.get('house'):
+            house = invite.pop('house')
+            if type(house) is dict:
+                house_id = house.get('id')
+            elif isinstance(house, HivenTypeObject):
+                house_id = getattr(house, 'id', None)
+            else:
+                house_id = None
+
+            if house_id is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house_id'] = house_id
+
         data = cls.validate(data)
         data['type'] = int(data['type'])
+        data['house'] = data['house_id']
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Invite Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Invite Instance
-        """
-        try:
-            house_data = client.storage['houses'][data['house_id']]
-            data['house'] = House._insert_data(house_data, client)
-
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            instance._client = client
-            return instance
 
     @property
     def code(self) -> int:
@@ -199,8 +200,24 @@ class Invite(HivenObject):
         return getattr(self, '_type', None)
         
     @property
-    def house(self) -> House:
-        return getattr(self, '_house', None)
+    def house(self) -> typing.Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            house_id = self._house
+        elif type(self.house_id) is str:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
+            self._house = House(
+                data=self._client.storage['house'][house_id], client=self._client
+            )
+            return self._house
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None
     
     @property
     def house_members(self) -> int:

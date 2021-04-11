@@ -1,20 +1,27 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-import types
 import typing
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from . import User
 from .. import utils
-from ..exceptions import InitializationError
+from ..exceptions import InitializationError, InvalidPassedDataError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Relationship']
 
 
-class Relationship(HivenObject):
+class Relationship(HivenTypeObject):
     """
     Represents a user-relationship with another user or bot
 
@@ -34,7 +41,7 @@ class Relationship(HivenObject):
     
     5 - Blocked User
     """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'user_id': {'type': 'string'},
@@ -51,13 +58,26 @@ class Relationship(HivenObject):
         'additionalProperties': False,
         'required': ['user_id', 'type']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._user_id = kwargs.get('user_id')
-        self._user = kwargs.get('user')
-        self._type = kwargs.get('type')
-        self._last_updated_at = kwargs.get('last_updated_at')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._user_id = data.get('user_id')
+            self._user = data.get('user')
+            self._type = data.get('type')
+            self._last_updated_at = data.get('last_updated_at')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -68,12 +88,12 @@ class Relationship(HivenObject):
         ]
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Union[dict, None]:
+    def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['relationships'][self.user_id]
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -83,52 +103,49 @@ class Relationship(HivenObject):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
-        data['type'] = data.get('type')
-        data['user_id'] = data.get('user_id')
-        data['user'] = data.pop('user')['id']
+        data['type'] = utils.safe_convert(int, data.get('type'))
+
+        if not data.get('user_id') and data.get('user'):
+            user = data.pop('user')
+            if type(user) is dict:
+                user_id = user.get('id')
+            elif isinstance(user, HivenTypeObject):
+                user_id = getattr(user, 'id', None)
+            else:
+                user_id = None
+
+            if user_id is None:
+                raise InvalidPassedDataError("The passed user is not in the correct format!", data=data)
+            else:
+                data['user_id'] = user_id
+        elif data.get('user_id') is None and data.get('user') is None:
+            raise InvalidPassedDataError("user_id and user missing from required data", data=data)
+
+        data['user'] = data['user_id']
         return data
 
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Relationship Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Relationship Instance
-        """
-        try:
-            data['user_id'] = data.get('user_id')
-            user_data = client.storage['users'][data['user_id']]
-            data['user'] = User._insert_data(user_data, client)
-
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            instance._client = client
-            return instance
-
     @property
-    def user(self) -> User:
-        return getattr(self, '_user', None)
+    def user(self) -> typing.Optional[User]:
+        if type(self._user) is str:
+            user_id = self._user
+        elif type(self.user_id) is str:
+            user_id = self.user_id
+        else:
+            user_id = None
+
+        if type(user_id) is str:
+            self._user = User(
+                data=self._client.storage['users'][user_id], client=self._client
+            )
+            return self._user
+        elif type(self._user) is User:
+            return self._user
+        else:
+            return None
 
     @property
     def type(self) -> int:

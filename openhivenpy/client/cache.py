@@ -3,6 +3,7 @@ import sys
 
 from .. import utils
 from .. import types
+from ..exceptions import InitializationError
 
 __all__ = ['ClientCache']
 
@@ -115,7 +116,7 @@ class ClientCache(dict):
                 msg="[CLIENTCACHE] Traceback in add_or_update_house: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
     def add_or_update_user(self, data: dict) -> dict:
         """
@@ -138,7 +139,7 @@ class ClientCache(dict):
                 msg="[CLIENTCACHE] Traceback in add_or_update_user: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
     def add_or_update_room(self, data: dict) -> dict:
         """
@@ -161,7 +162,7 @@ class ClientCache(dict):
                 msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
     def add_or_update_entity(self, data: dict) -> dict:
         """
@@ -184,7 +185,7 @@ class ClientCache(dict):
                 msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
     def add_or_update_private_room(self, data: dict) -> dict:
         """
@@ -210,15 +211,14 @@ class ClientCache(dict):
                     self['rooms']['private']['multi'][id_] = data
                 else:
                     self['rooms']['private']['multi'][id_].update(data)
-
-            return
+            return data
 
         except Exception as e:
             utils.log_traceback(
                 msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
     def add_or_update_relationship(self, data: dict) -> dict:
         """
@@ -234,12 +234,11 @@ class ClientCache(dict):
                 self['relationships'][id_] = data
             else:
                 self['relationships'][id_].update(data)
-
-            return
+            return data
 
         except Exception as e:
             utils.log_traceback(
                 msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
                 suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise
+            raise InitializationError("Failed to update the cache due to an exception occurring") from e

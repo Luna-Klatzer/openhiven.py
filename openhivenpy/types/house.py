@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import logging
 import sys
-import types
 import typing
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
@@ -15,13 +14,14 @@ from ..exceptions import InvalidPassedDataError, InitializationError
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import Member, Room, Entity, Invite
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['House', 'LazyHouse']
 
 
-class LazyHouse(HivenObject):
+class LazyHouse(HivenTypeObject):
     """
     Represents a Hiven House which can contain rooms and entities
 
@@ -29,7 +29,7 @@ class LazyHouse(HivenObject):
 
     Consider fetching for more data the regular house object with HivenClient.get_house()
     """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'id': {'type': 'string'},
@@ -67,25 +67,45 @@ class LazyHouse(HivenObject):
         },
         'required': ['id', 'name', 'owner_id']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._id = kwargs.get('id')
-        self._name = kwargs.get('name')
-        self._icon = kwargs.get('icon')
-        self._owner_id = kwargs.get('owner_id')
-        self._rooms = kwargs.get('rooms')
-        self._type = kwargs.get('type')
+    def __init__(self, data: dict, client: HivenClient):
+        """
+        Represents a Hiven House which can contain rooms and entities
+
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
+        """
+        try:
+            self._id = data.get('id')
+            self._name = data.get('name')
+            self._icon = data.get('icon')
+            self._owner_id = data.get('owner_id')
+            self._owner = data.get('owner')
+            self._rooms = data.get('rooms')
+            self._type = data.get('type')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __str__(self):
         return self.name
 
-    def get_cached_data(self) -> typing.Union[dict, None]:
+    def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['houses'][self.id]
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -96,10 +116,24 @@ class LazyHouse(HivenObject):
         Does NOT contain other objects and only their ids!
         Only exceptions are member objects which are unique in every house
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
+        if not data.get('owner_id') and data.get('owner'):
+            owner = data.pop('owner')
+            if type(owner) is dict:
+                owner_id = owner.get('id')
+            elif isinstance(owner, HivenTypeObject):
+                owner_id = getattr(owner, 'id', None)
+            else:
+                owner_id = None
+
+            if owner_id is None:
+                raise InvalidPassedDataError("The passed owner is not in the correct format!", data=data)
+            else:
+                data['owner_id'] = owner_id
+
         if type(data.get('members')) is list:
             members = data['members']
             data['members'] = {}
@@ -121,37 +155,8 @@ class LazyHouse(HivenObject):
         if type(data.get('entities')) is list:
             data['entities'] = [i['id'] for i in data['entities']]
 
+        data['owner'] = data['owner_id']
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the LazyHouse Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed LazyHouse Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            instance._client = client
-            return instance
 
     @property
     def id(self) -> str:
@@ -166,7 +171,7 @@ class LazyHouse(HivenObject):
         return getattr(self, '_type', None)
 
     @property
-    def icon(self) -> typing.Union[str, None]:
+    def icon(self) -> typing.Optional[str]:
         if getattr(self, '_icon', None):
             return "https://media.hiven.io/v1/houses/{}/icons/{}".format(self.id, self._icon)
         else:
@@ -183,10 +188,10 @@ class LazyHouse(HivenObject):
 
 class House(LazyHouse):
     """ Represents a Hiven House which can contain rooms and entities """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
-            **LazyHouse.schema['properties'],
+            **LazyHouse.json_schema['properties'],
             'entities': {
                 'anyOf': [
                     {'type': 'object'},
@@ -227,19 +232,31 @@ class House(LazyHouse):
             }
         },
         'additionalProperties': False,
-        'required': [*LazyHouse.schema['required'], 'entities', 'members', 'roles']
+        'required': [*LazyHouse.json_schema['required'], 'entities', 'members', 'roles']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._roles = kwargs.get('roles')
-        self._entities = kwargs.get('entities')
-        self._default_permissions = kwargs.get('default_permissions')
-        self._members = kwargs.get('members')
-        self._client_member = kwargs.get('client_member')
-        self._banner = kwargs.get('banner')
-        self._owner = kwargs.get('owner')
-        super().__init__(**kwargs)
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._roles = data.get('roles')
+            self._entities = data.get('entities')
+            self._default_permissions = data.get('default_permissions')
+            self._members = data.get('members')
+            self._client_member = data.get('client_member')
+            self._banner = data.get('banner')
+            self._owner = data.get('owner')
+            self._client = client
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        super().__init__(data, client)
 
     def __repr__(self) -> str:
         info = [
@@ -251,7 +268,7 @@ class House(LazyHouse):
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -261,8 +278,8 @@ class House(LazyHouse):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
         data = LazyHouse.format_obj_data(data)
@@ -277,44 +294,18 @@ class House(LazyHouse):
             )
         return data
 
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the House Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed House Instance
-        """
-        try:
-            from . import Member
-            instance = cls(**data)
-            instance._client = client
-
-            client_data = instance.get_cached_data()['members'][client.id]
-            instance._client_member = Member._insert_data(client_data, client)
-            instance._owner = utils.get(instance.members, id=instance.owner_id)
-    
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            return instance
-
     @property
-    def owner(self) -> Member:
-        return getattr(self, '_owner', None)
+    def owner(self) -> typing.Optional[Member]:
+        from . import Member
+        if type(self._owner) is str:
+            self._owner = Member(
+                data=self.get_cached_data()['members'][self._client.id], client=self._client
+            )
+            return self._owner
+        elif type(self._owner) is Member:
+            return self._owner
+        else:
+            return None
 
     @property
     def client_member(self) -> Member:
@@ -329,22 +320,22 @@ class House(LazyHouse):
         return getattr(self, '_roles', None)
 
     @property
-    def entities(self) -> typing.List[Entity]:
+    def entities(self) -> typing.List[dict]:
         return getattr(self, '_entities', None)
 
     @property
-    def users(self) -> typing.List[Member]:
+    def users(self) -> typing.List[dict]:
         return getattr(self, '_members', None)
 
     @property
-    def members(self) -> typing.List[Member]:
+    def members(self) -> typing.List[dict]:
         return getattr(self, '_members', None)
 
     @property
     def default_permissions(self) -> int:
         return self._default_permissions
 
-    def get_member(self, member_id: int) -> typing.Union[Room, None]:
+    def get_member(self, member_id: str) -> typing.Optional[Room]:
         """
         Fetches a member from the cache based on the id
 
@@ -366,9 +357,10 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the member with id {member_id}: \n{sys.exc_info()[0].__name__}: {e}"
             )
+            # TODO! Raise exception
             return None
 
-    def get_room(self, room_id: int) -> typing.Union[Room, None]:
+    def get_room(self, room_id: str) -> typing.Optional[Room]:
         """
         Fetches a room from the cache based on the id
 
@@ -389,9 +381,10 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
                        f"{sys.exc_info()[0].__name__}: {e}")
+            # TODO! Raise exception
             return None
 
-    def get_entity(self, entity_id: int) -> typing.Union[Entity, None]:
+    def get_entity(self, entity_id: str) -> typing.Optional[Entity]:
         """
         Fetches a entity from the cache based on the id
 
@@ -411,10 +404,12 @@ class House(LazyHouse):
         except Exception as e:
             utils.log_traceback(
                 msg="[HOUSE] Traceback:",
-                suffix=f"Failed to get the member with id {entity_id}: \n{sys.exc_info()[0].__name__}: {e}")
+                suffix=f"Failed to get the member with id {entity_id}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return None
 
-    async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None) -> typing.Union[Room, None]:
+    async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None) -> typing.Optional[Room]:
         """
         Creates a Room in the house with the specified name. 
         
@@ -433,16 +428,17 @@ class House(LazyHouse):
             raw_data = await resp.json()
 
             data = Room.format_obj_data(raw_data.get('data'))
-            return Room._insert_data(data, self._client)
+            return Room(data, self._client)
 
         except Exception as e:
             utils.log_traceback(
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to create room '{name}' in house {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
             )
+            # TODO! Raise exception
             return None
 
-    async def create_entity(self, name: str) -> typing.Union[Entity, None]:
+    async def create_entity(self, name: str) -> typing.Optional[Entity]:
         """
         Creates a entity in the house with the specified name.
 
@@ -459,12 +455,12 @@ class House(LazyHouse):
             data = raw_data.get('data')
 
             # Fetching all existing ids
-            existing_entity_ids = [e.id for e in self.entities]
+            existing_entity_ids = [e['id'] for e in self.entities]
             for d in data:
                 id_ = d.get('id')
                 if id_ not in existing_entity_ids:
                     d = Entity.format_obj_data(d)
-                    _entity = Entity._insert_data(d, self._client)
+                    _entity = Entity(d, self._client)
                     self._entities.append(_entity)
                     return _entity
 
@@ -473,6 +469,7 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to create category '{name}' in house {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
             )
+            # TODO! Raise exception
             return None
 
     async def leave(self) -> bool:
@@ -489,6 +486,7 @@ class House(LazyHouse):
             utils.log_traceback(msg="[HOUSE] Traceback:",
                                 suffix=f"Failed to leave {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
+            # TODO! Raise exception
             return False
 
     async def edit(self, **kwargs) -> bool:
@@ -509,12 +507,15 @@ class House(LazyHouse):
 
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return False
 
-    async def create_invite(self, max_uses: int) -> typing.Union[Invite, None]:
+    async def create_invite(self, max_uses: int) -> typing.Optional[Invite]:
         """
         Creates an invite for the current house. 
 
@@ -528,15 +529,16 @@ class House(LazyHouse):
 
             data = raw_data.get('data', {})
             data = Invite.format_obj_data(data)
-            return Invite._insert_data(data, self._client)
+            return Invite(data, self._client)
 
         except Exception as e:
             utils.log_traceback(msg="[HOUSE] Traceback:",
                                 suffix=f"Failed to create invite for house '{self.name}' with id {self.id}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
+            # TODO! Raise exception
             return None
 
-    async def delete(self) -> typing.Union[str, None]:
+    async def delete(self) -> typing.Optional[str]:
         """
         Deletes the house if permissions are sufficient!
         
@@ -551,4 +553,5 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to delete House {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
             )
+            # TODO! Raise exception
             return None

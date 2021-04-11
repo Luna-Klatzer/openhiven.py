@@ -5,9 +5,8 @@ import logging
 import sys
 import typing
 import fastjsonschema
-from types import FunctionType
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
@@ -15,15 +14,16 @@ from ..exceptions import InvalidPassedDataError, InitializationError
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import House
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Entity']
 
 
-class Entity(HivenObject):
+class Entity(HivenTypeObject):
     """ Represents a Hiven Entity inside a House which can contain Rooms """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'id': {'type': 'string'},
@@ -38,21 +38,48 @@ class Entity(HivenObject):
                 'default': []
             },
             'house_id': {'type': 'string'},
+            'house': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'string'},
+                    {'type': 'null'},
+                ]
+            },
             'position': {'type': 'integer'}
         },
         'additionalProperties': False,
-        'required': ['id', 'name', 'position', 'resource_pointers']
+        'required': ['id', 'name', 'position', 'resource_pointers', 'house_id']
     }
-    json_validator: FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._type = kwargs.get('type')
-        self._position = kwargs.get('position')
-        self._resource_pointers = kwargs.get('resource_pointers')
-        self._name = kwargs.get('name')
-        self._id = kwargs.get('id')
-        self._house_id = kwargs.get('house_id')
-        self._house = kwargs.get('house')
+    def __init__(self, data: dict, client: HivenClient):
+        """
+        Represents a Hiven Entity inside a House which can contain Rooms
+
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
+        """
+        try:
+            super().__init__()
+            self._type = data.get('type')
+            self._position = data.get('position')
+            self._resource_pointers = data.get('resource_pointers')
+            self._name = data.get('name')
+            self._id = data.get('id')
+            self._house_id = data.get('house_id')
+            self._house = data.get('house')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -63,12 +90,12 @@ class Entity(HivenObject):
         ]
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Union[dict, None]:
+    def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
-        return self._client.storage['entities'][self.id]
+        return self._client.storage['entities'].get(self.id)
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -78,14 +105,14 @@ class Entity(HivenObject):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        if data.get('house_id') is None and data.get('house'):
+        if not data.get('house_id') and data.get('house'):
             house = data.pop('house')
             if type(house) is dict:
                 house_id = house.get('id')
-            elif isinstance(house, HivenObject):
+            elif isinstance(house, HivenTypeObject):
                 house_id = getattr(house, 'id', None)
             else:
                 house_id = None
@@ -95,42 +122,9 @@ class Entity(HivenObject):
             else:
                 data['house_id'] = house_id
 
+        data['house'] = data['house_id']
         data = cls.validate(data)
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Entity Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Embed Instance
-        """
-        try:
-            from . import House
-            data['house'] = House._insert_data(
-                data=client.storage['house'][data['house_id']], client=client
-            )
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            instance._client = client
-            return instance
 
     @property
     def type(self) -> int:
@@ -157,5 +151,21 @@ class Entity(HivenObject):
         return getattr(self, '_position', None)
 
     @property
-    def house(self) -> House:
-        return getattr(self, '_house', None)
+    def house(self) -> typing.Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            house_id = self._house
+        elif type(self.house_id) is str:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
+            self._house = House(
+                data=self._client.storage['house'][house_id], client=self._client
+            )
+            return self._house
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None

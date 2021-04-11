@@ -51,7 +51,7 @@ class BotClient(HivenClient):
             ('type',  getattr(self, '_CLIENT_TYPE', None)),
             ('open', getattr(self, 'open', False)),
             ('bot', getattr(self, 'bot', True)),
-            ('name', getattr(self.user, 'name', None)),
-            ('id', getattr(self.user, 'id', None))
+            ('name', getattr(self.client_user, 'name', None)),
+            ('id', getattr(self.client_user, 'id', None))
         ]
         return '<BotClient {}>'.format(' '.join('%s=%s' % t for t in info))

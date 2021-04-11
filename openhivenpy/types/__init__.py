@@ -31,7 +31,10 @@ from __future__ import annotations
 
 import typing
 import inspect
+import types
 from functools import wraps
+
+import fastjsonschema
 
 from .. import utils
 
@@ -85,7 +88,7 @@ def check_valid(func: typing.Callable = None) -> typing.Callable:
         return decorator(func)
 
 
-class HivenObject:
+class HivenTypeObject:
     """ Base Class for all Hiven Objects """
     _client: HivenClient = None
 

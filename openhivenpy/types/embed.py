@@ -1,20 +1,27 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-import types
 import fastjsonschema
 
 from .. import utils
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from ..exceptions import InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Embed']
 
 
-class Embed(HivenObject):
+class Embed(HivenTypeObject):
     """ Represents an embed message object either customised or from a website """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'url': {'type': 'string', 'default': None},
@@ -32,59 +39,45 @@ class Embed(HivenObject):
         'additionalProperties': False,
         'required': ['type', 'title']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
+    def __init__(self, data: dict, client: HivenClient):
         """
-        :param kwargs: Additional Parameter of the class that will be initialised with it
+        Represents an embed message object either customised or from a website
+
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
         """
-        self._url = kwargs.get('url')
-        self._type = kwargs.get('type')
-        self._title = kwargs.get('title')
-        self._image = kwargs.get('image')
-        self._description = kwargs.get('description')
+        try:
+            self._url = data.get('url')
+            self._type = data.get('type')
+            self._title = data.get('title')
+            self._image = data.get('image')
+            self._description = data.get('description')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         return cls.validate(data)
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Embed Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Embed Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
-        else:
-            instance._client = client
-            return instance
 
     @property
     def url(self) -> str:

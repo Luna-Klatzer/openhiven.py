@@ -5,12 +5,10 @@ import datetime
 import logging
 import sys
 import asyncio
-import types
 import typing
-
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
 
@@ -23,15 +21,16 @@ if TYPE_CHECKING:
     from .house import House
     from .mention import Mention
     from .attachment import Attachment
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['DeletedMessage', 'Message']
 
 
-class DeletedMessage(HivenObject):
+class DeletedMessage(HivenTypeObject):
     """ Represents a Deleted Message in a Room """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'message_id': {'type': 'string'},
@@ -47,76 +46,59 @@ class DeletedMessage(HivenObject):
         'additionalProperties': False,
         'required': ['message_id', 'room_id']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._message_id = utils.safe_convert(int, kwargs.get('message_id'))
-        self._house_id = utils.safe_convert(int, kwargs.get('house_id'))
-        self._room_id = utils.safe_convert(int, kwargs.get('room_id'))
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._message_id = data.get('message_id')
+            self._house_id = data.get('house_id')
+            self._room_id = data.get('room_id')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __str__(self):
         return f"Deleted message in room {self.room_id}"
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
         data['message_id'] = data['id']
         return data
 
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the DeletedMessage Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed DeletedMessage Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-        else:
-            instance._client = client
-            return instance
-
     @property
-    def message_id(self):
+    def message_id(self) -> str:
         return getattr(self, '_message_id')
 
     @property
-    def house_id(self):
+    def house_id(self) -> str:
         return getattr(self, '_house_id')
 
     @property
-    def room_id(self):
+    def room_id(self) -> str:
         return getattr(self, '_room_id')
 
 
-class Message(HivenObject):
+class Message(HivenTypeObject):
     """ Represents a standard Hiven message sent by a user """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'id': {'type': 'string'},
@@ -185,27 +167,40 @@ class Message(HivenObject):
         'additionalProperties': False,
         'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._id = kwargs.get('id')
-        self._author = kwargs.get('author')
-        self._author_id = kwargs.get('author_id')
-        self._attachment = kwargs.get('attachment')
-        self._content = kwargs.get('content')
-        self._timestamp = kwargs.get('timestamp')
-        self._edited_at = kwargs.get('edited_at')
-        self._mentions = kwargs.get('mentions')
-        self._type = kwargs.get('type')  # I believe, 0 = normal message, 1 = system.
-        self._exploding = kwargs.get('exploding')
-        self._house_id = kwargs.get('house_id')
-        self._house = kwargs.get('house')
-        self._room_id = kwargs.get('room_id')
-        self._room = kwargs.get('room')
-        self._embed = kwargs.get('embed')
-        self._bucket = kwargs.get('bucket')
-        self._device_id = kwargs.get('device_id')
-        self._exploding_age = kwargs.get('exploding_age')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._id = data.get('id')
+            self._author = data.get('author')
+            self._author_id = data.get('author_id')
+            self._attachment: dict = data.get('attachment')
+            self._content = data.get('content')
+            self._timestamp = data.get('timestamp')
+            self._edited_at = data.get('edited_at')
+            self._mentions = data.get('mentions')
+            self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
+            self._exploding = data.get('exploding')
+            self._house_id = data.get('house_id')
+            self._house = data.get('house')
+            self._room_id = data.get('room_id')
+            self._room = data.get('room')
+            self._embed = data.get('embed')
+            self._bucket = data.get('bucket')
+            self._device_id = data.get('device_id')
+            self._exploding_age = data.get('exploding_age')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __str__(self) -> str:
         return f"<Message id='{self.id}' from '{self.author.name}'>"
@@ -223,7 +218,7 @@ class Message(HivenObject):
         return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -233,124 +228,65 @@ class Message(HivenObject):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data['type'] = utils.safe_convert(int, data.get('type'), None)  # I believe, 0 = normal message, 1 = system.
         data['bucket'] = utils.safe_convert(int, data.get('bucket'), None)
         data['exploding_age'] = utils.safe_convert(int, data.get('exploding_age'), None)
 
-        timestamp = data.get('timestamp')
-        # Converting to seconds because it's in milliseconds
-        if utils.convertible(int, timestamp):
-            data['timestamp'] = datetime.datetime.fromtimestamp(utils.safe_convert(int, timestamp) / 1000)
-        else:
-            data['timestamp'] = timestamp
-
         data = cls.validate(data)
 
-        room_ = data.get('room')
-        if room_:
+        if not data.get('room_id') and data.get('room'):
+            room_ = data.pop('room')
             if type(room_) is dict:
                 room_ = room_.get('id', None)
-            elif isinstance(room_, HivenObject):
+            elif isinstance(room_, HivenTypeObject):
                 room_ = getattr(room_, 'id', None)
+            elif type(data.get('room_id')) is str:
+                room_ = data['room_id']
+            else:
+                room_ = None
 
             if room_ is None:
                 raise InvalidPassedDataError("The passed room is not in the correct format!", data=data)
             else:
-                data['room'] = room_
+                data['room_id'] = room_
 
-        house_ = data.get('house')
-        if house_:
+        if not data.get('house_id') and data.get('house'):
+            house_ = data.pop('house')
             if type(house_) is dict:
                 house_ = house_.get('id', None)
-            elif isinstance(house_, HivenObject):
+            elif isinstance(house_, HivenTypeObject):
                 house_ = getattr(house_, 'id', None)
-
-            if house_ is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            elif type(data.get('house_id')) is str:
+                house_ = data['house_id']
             else:
-                data['house'] = house_
+                house_ = None
 
-        author = data.get('author')
-        if author:
+            data['house_id'] = house_
+
+        if not data.get('author_id') and data.get('author'):
+            author = data.pop('author')
             if type(author) is dict:
                 author = author.get('id', None)
-            elif isinstance(author, HivenObject):
+            elif isinstance(author, HivenTypeObject):
                 author = getattr(author, 'id', None)
+            elif type(data.get('author_id')) is str:
+                author = data['author_id']
+            else:
+                author = None
 
             if author is None:
                 raise InvalidPassedDataError("The passed author is not in the correct format!", data=data)
             else:
                 data['author'] = author
 
+        data['author'] = data['author_id']
+        data['house'] = data['house_id']
+        data['room'] = data['room_id']
         data['device_id'] = utils.safe_convert(str, data.get('device_id'), None)
-        if data.get('attachment'):
-            from .attachment import Attachment
-            data['attachment'] = Attachment.format_obj_data(data.get('attachment'))
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Message Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Message Instance
-        """
-        try:
-            from .embed import Embed
-            from .room import Room
-            from .user import User
-            from .house import House
-            from .mention import Mention
-            from .attachment import Attachment
-
-            # TODO! Data needs to be added correctly
-            if data.get('house'):
-                house_data = client.storage['houses'][data['house_id']]
-                data['house'] = House._insert_data(house_data, client=client)
-
-            room_data = client.storage['rooms'][data['room_id']]
-            data['room'] = Room._insert_data(room_data, client=client)
-
-            author_data = client.storage['houses'][data['house_id']]['members'][data['author']['id']]
-            data['author'] = User._insert_data(author_data, client=client)
-
-            if data.get('embed'):
-                data['embed'] = Embed._insert_data(data.get('embed'), client)
-
-            mentions_ = []
-            for d in data.get('mentions', []):
-                dict_ = {
-                    'timestamp': data['timestamp'],
-                    'author': data['author'],
-                    'user': d
-                }
-                mention_data = Mention.format_obj_data(dict_)
-                mentions_.append(Mention._insert_data(mention_data, client=client))
-            data['mentions'] = mentions_
-
-            if data.get('attachment'):
-                attachment_data = data.get('attachment')
-                data['attachment'] = Attachment.insert_data(attachment_data, client=client)
-
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-        else:
-            instance._client = client
-            return instance
 
     @property
     def id(self) -> str:
@@ -367,6 +303,17 @@ class Message(HivenObject):
     @property
     def created_at(self) -> str:
         return getattr(self, '_created_at', None)
+
+    @property
+    def timestamp(self) -> typing.Optional[datetime.datetime]:
+        if utils.convertible(int, self._timestamp):
+            # Converting to seconds because it's in milliseconds
+            self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
+            return self._timestamp
+        elif type(self._timestamp) is datetime.datetime:
+            return self._timestamp
+        else:
+            return None
 
     @property
     def type(self) -> int:
@@ -389,16 +336,41 @@ class Message(HivenObject):
         return getattr(self, '_house', None)
 
     @property
-    def attachment(self) -> Attachment:
-        return getattr(self, '_attachment', None)
+    def attachment(self) -> typing.Optional[Attachment]:
+        if type(self._attachment) is dict:
+            self._attachment = Attachment(
+                data=self._attachment, client=self._client
+            )
+            return self._attachment
+        elif type(self._attachment) is Attachment:
+            return self._attachment
+        else:
+            return None
 
     @property
     def content(self) -> str:
         return getattr(self, '_content', None)
 
     @property
-    def mentions(self) -> typing.List[Mention]:
-        return getattr(self, '_mentions', None)
+    def mentions(self) -> typing.Optional[typing.List[Mention]]:
+        from . import Mention
+        if type(self._mentions) is str:
+            mentions = []
+            for d in self._mentions:
+                dict_ = {
+                    'timestamp': self.timestamp,
+                    'author': self.author,
+                    'user': d
+                }
+                mention_data = Mention.format_obj_data(dict_)
+                mentions.append(Mention(mention_data, client=self._client))
+
+            self._mentions = mentions
+            return self._mentions
+        elif type(self._mentions) is User:
+            return self._mentions
+        else:
+            return None
 
     @property
     def room_id(self) -> str:

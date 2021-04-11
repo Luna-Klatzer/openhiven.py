@@ -1,22 +1,28 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import sys
 import logging
-import types
 import typing
-
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from .. import utils
 from ..exceptions import InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['LazyUser', 'User']
 
 
-class LazyUser(HivenObject):
+class LazyUser(HivenTypeObject):
     """ Represents the standard Hiven User """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'username': {'type': 'string'},
@@ -69,18 +75,31 @@ class LazyUser(HivenObject):
         },
         'required': ['username', 'name', 'id']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._username = kwargs.get('username')
-        self._name = kwargs.get('name')
-        self._bio = kwargs.get('bio')
-        self._id = kwargs.get('id')
-        self._email_verified = kwargs.get('email_verified')
-        self._user_flags = kwargs.get('user_flags')  # ToDo: Discord.py-esque way of user flags
-        self._icon = kwargs.get('icon')
-        self._header = kwargs.get('header')
-        self._bot = kwargs.get('bot', False)
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._username = data.get('username')
+            self._name = data.get('name')
+            self._bio = data.get('bio')
+            self._id = data.get('id')
+            self._email_verified = data.get('email_verified')
+            self._user_flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
+            self._icon = data.get('icon')
+            self._header = data.get('header')
+            self._bot = data.get('bot', False)
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -94,51 +113,21 @@ class LazyUser(HivenObject):
         return '<LazyUser {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def raw(self) -> typing.Union[dict, None]:
+    def raw(self) -> typing.Optional[dict]:
         return self._client.storage['users'][self.id]
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the LazyUser Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed LazyUser Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-        else:
-            instance._client = client
-            return instance
 
     @property
     def username(self) -> str:
@@ -165,14 +154,14 @@ class LazyUser(HivenObject):
         return getattr(self, '_user_flags', None)
 
     @property
-    def icon(self) -> typing.Union[str, None]:
+    def icon(self) -> typing.Optional[str]:
         if getattr(self, '_icon', None):
             return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
         else:
             return None
 
     @property
-    def header(self) -> typing.Union[str, None]:
+    def header(self) -> typing.Optional[str]:
         if getattr(self, '_header', None):
             return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
         else:
@@ -184,13 +173,11 @@ class LazyUser(HivenObject):
 
 
 class User(LazyUser):
-    """
-    Represents the regular extended Hiven User
-    """
-    schema = {
+    """ Represents the regular extended Hiven User """
+    json_schema = {
         'type': 'object',
         'properties': {
-            **LazyUser.schema['properties'],
+            **LazyUser.json_schema['properties'],
             'location': {
                 'anyOf': [
                     {'type': 'string'},
@@ -235,18 +222,29 @@ class User(LazyUser):
             },
         },
         'additionalProperties': False,
-        'required': [*LazyUser.schema['required']]
+        'required': [*LazyUser.json_schema['required']]
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._location = kwargs.get('location')
-        self._website = kwargs.get('website')
-        self._blocked = kwargs.get('blocked')
-        self._presence = kwargs.get('presence')
-        self._email = kwargs.get('email')
-        self._mfa_enabled = kwargs.get('mfa_enabled')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            super().__init__(data, client)
+            self._location = data.get('location')
+            self._website = data.get('website')
+            self._blocked = data.get('blocked')
+            self._presence = data.get('presence')
+            self._email = data.get('email')
+            self._mfa_enabled = data.get('mfa_enabled')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
 
     def __repr__(self) -> str:
         info = [
@@ -260,46 +258,22 @@ class User(LazyUser):
         return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = LazyUser.format_obj_data(data)
         data = cls.validate(data)
         return data
 
-    def get_cached_data(self) -> typing.Union[dict, None]:
+    def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['users'][self.id]
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the User Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed User Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in function '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-        else:
-            instance._client = client
-            return instance
 
     @property
     def location(self) -> str:

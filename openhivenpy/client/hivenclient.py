@@ -32,8 +32,8 @@ class HivenClient(HivenEventHandler):
         self._loop = loop
         self._log_ws_output = log_ws_output
         self._queue_events = queue_events
-        self._user = types.User()  # Empty User which will return for every value None
         self._storage = ClientCache(log_ws_output)
+        self._user = types.User({}, self)  # Empty User which will return for every value None
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
         super().__init__(HivenParsers(self))
@@ -44,8 +44,8 @@ class HivenClient(HivenEventHandler):
     def __repr__(self) -> str:
         info = [
             ('open', self.open),
-            ('name', getattr(self.user, 'name', None)),
-            ('id', getattr(self.user, 'id', None))
+            ('name', getattr(self.client_user, 'name', None)),
+            ('id', getattr(self.client_user, 'id', None))
         ]
         return '<HivenClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
@@ -136,6 +136,11 @@ class HivenClient(HivenEventHandler):
         await self.connection.close()
         logger.debug("[HIVENCLIENT] Closing the connection! The WebSocket will stop shortly!")
 
+    async def _init_client_user(self):
+        """ Initialises the client user """
+        data = self.storage['client_user']
+        self._client_user = types.User(data, self)
+
     @property
     def open(self) -> bool:
         return getattr(self.connection, 'open', False)
@@ -186,48 +191,48 @@ class HivenClient(HivenEventHandler):
             raise
 
     @property
-    def user(self) -> types.User:
-        return getattr(self, '_user', None)
+    def client_user(self) -> types.User:
+        return getattr(self, '_client_user', None)
 
     @property
     def username(self) -> str:
-        return getattr(self.user, 'username', None)
+        return getattr(self.client_user, 'username', None)
 
     @property
     def name(self) -> str:
-        return getattr(self.user, 'name', None)
+        return getattr(self.client_user, 'name', None)
 
     @property
     def id(self) -> str:
-        return getattr(self.user, 'id', None)
+        return getattr(self.client_user, 'id', None)
 
     @property
     def icon(self) -> str:
-        return getattr(self.user, 'icon', None)
+        return getattr(self.client_user, 'icon', None)
 
     @property
     def header(self) -> str:
-        return getattr(self.user, 'header', None)
+        return getattr(self.client_user, 'header', None)
 
     @property
     def bot(self) -> bool:
-        return getattr(self.user, 'bot', None)
+        return getattr(self.client_user, 'bot', None)
 
     @property
     def location(self) -> str:
-        return getattr(self.user, 'location', None)
+        return getattr(self.client_user, 'location', None)
 
     @property
     def website(self) -> str:
-        return getattr(self.user, 'website', None)
+        return getattr(self.client_user, 'website', None)
 
     @property
     def presence(self) -> str:
-        return getattr(self.user, 'presence', None)
+        return getattr(self.client_user, 'presence', None)
 
     @property
     def joined_at(self) -> typing.Union[datetime.datetime, None]:
-        return getattr(self.user, 'joined_at', None)
+        return getattr(self.client_user, 'joined_at', None)
 
     async def get_user(self, user_id: str) -> typing.Union[types.User, None]:
         """
@@ -243,7 +248,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_user(user_id)
         if raw_data:
-            return types.User._insert_data(raw_data, self)
+            return types.User(raw_data, self)
         else:
             return None
 
@@ -278,7 +283,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_house(house_id)
         if raw_data:
-            return types.House._insert_data(raw_data, self)
+            return types.House(raw_data, self)
         else:
             return None
 
@@ -313,7 +318,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_entity(entity_id)
         if raw_data:
-            return types.Entity._insert_data(raw_data, self)
+            return types.Entity(raw_data, self)
         else:
             return None
 
@@ -348,7 +353,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_room(room_id)
         if raw_data:
-            return types.Room._insert_data(raw_data, self)
+            return types.Room(raw_data, self)
         else:
             return None
 
@@ -383,7 +388,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_private_room(room_id)
         if raw_data:
-            return types.PrivateRoom._insert_data(raw_data, self)
+            return types.PrivateRoom(raw_data, self)
         else:
             return None
 
@@ -418,7 +423,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_private_group_room(room_id)
         if raw_data:
-            return types.PrivateGroupRoom._insert_data(raw_data, self)
+            return types.PrivateGroupRoom(raw_data, self)
         else:
             return None
 
@@ -453,7 +458,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_relationship(user_id)
         if raw_data:
-            return types.Relationship._insert_data(raw_data, self)
+            return types.Relationship(raw_data, self)
         else:
             return None
 

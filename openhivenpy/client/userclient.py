@@ -55,8 +55,8 @@ class UserClient(HivenClient):
             ('type', getattr(self, '_CLIENT_TYPE', None)),
             ('open', getattr(self, 'open', False)),
             ('bot', getattr(self, 'bot', False)),
-            ('name', getattr(self.user, 'name', None)),
-            ('id', getattr(self.user, 'id', None))
+            ('name', getattr(self.client_user, 'name', None)),
+            ('id', getattr(self.client_user, 'id', None))
         ]
         return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
@@ -103,13 +103,13 @@ class UserClient(HivenClient):
             if incoming_:
                 data['incoming'] = []
                 for d in incoming_:
-                    data['incoming'].append(types.LazyUser._insert_data(d, self.http))
+                    data['incoming'].append(types.LazyUser(d, self.http))
 
             outgoing_ = data.get('outgoing')
             if outgoing_:
                 data['outgoing'] = []
                 for d in outgoing_:
-                    data['outgoing'].append(types.LazyUser._insert_data(d, self.http))
+                    data['outgoing'].append(types.LazyUser(d, self.http))
 
             return {
                 'incoming': data['incoming'],

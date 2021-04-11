@@ -1,26 +1,48 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import datetime
 import logging
 import sys
 import typing
 
-from . import HivenObject, House, Room, User
+from . import HivenTypeObject, House, Room, User
 from .. import utils
 from ..exceptions import InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['UserTyping']
 
 
-class UserTyping(HivenObject):
+class UserTyping(HivenTypeObject):
     """ Represents a Hiven User typing in a room """
-    def __init__(self, **kwargs):
-        self._author = kwargs.get('author')
-        self._room = kwargs.get('room')
-        self._house = kwargs.get('house')
-        self._author_id = kwargs.get('author_id')
-        self._house_id = kwargs.get('house_id')
-        self._room_id = kwargs.get('room_id')
-        self._timestamp = kwargs.get('timestamp')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._author = data.get('author')
+            self._room = data.get('room')
+            self._house = data.get('house')
+            self._author_id = data.get('author_id')
+            self._house_id = data.get('house_id')
+            self._room_id = data.get('room_id')
+            self._timestamp = data.get('timestamp')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -31,63 +53,52 @@ class UserTyping(HivenObject):
         ]
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    @classmethod
-    def _insert_data(cls, data: dict, client, *, user, room, house: typing.Optional[HivenObject] = None):
-        """
-        Creates an instance of the Relationship Class with the passed data
-
-        ---
-
-        Represent typing event and therefore needs its attribute passed to be used
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :param user: The user that is typing
-        :param room: The room where the user is typing
-        :param house: The house where the user is typing [Optional]
-        :return: The newly constructed Relationship Instance
-        """
-        try:
-            data['author'] = user
-            data['house'] = house
-            data['room'] = room
-
-            timestamp = data.get('timestamp')
+    @property
+    def timestamp(self) -> typing.Optional[datetime.datetime]:
+        if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
-            if utils.convertible(int, timestamp):
-                data['timestamp'] = datetime.datetime.fromtimestamp(utils.safe_convert(int, timestamp))
-            else:
-                data['timestamp'] = timestamp
-
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
+            self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
+            return self._timestamp
+        elif type(self._timestamp) is datetime.datetime:
+            return self._timestamp
         else:
-            instance._client = client
-            return instance
+            return None
 
     @property
-    def timestamp(self) -> datetime.datetime:
-        return getattr(self, '_timestamp', None)
+    def author(self) -> typing.Optional[User]:
+        if type(self._author) is str:
+            self._author = User(
+                data=self._client.storage['users'][self._author], client=self._client
+            )
+            return self._author
+        elif type(self._author) is User:
+            return self._author
+        else:
+            return None
 
     @property
-    def author(self) -> User:
-        return getattr(self, '_author', None)
+    def house(self) -> typing.Optional[House]:
+        if type(self._house) is str:
+            self._house = House(
+                data=self._client.storage['house'][self._house], client=self._client
+            )
+            return self._house
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None
 
     @property
-    def house(self) -> House:
-        return getattr(self, '_house', None)
-
-    @property
-    def room(self) -> Room:
-        return getattr(self, '_room', None)
+    def room(self) -> typing.Optional[Room]:
+        if type(self._room) is str:
+            self._room = Room(
+                data=self._client.storage['rooms']['house'][self._room], client=self._client
+            )
+            return self._room
+        elif type(self._room) is Room:
+            return self._room
+        else:
+            return None
 
     @property
     def author_id(self) -> str:

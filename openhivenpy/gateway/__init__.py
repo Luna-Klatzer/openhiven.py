@@ -126,6 +126,7 @@ class Connection:
             await self.http.connect(token)
 
             self._connection_status = "OPENING"
+            self.client._init_client_user()
             while self.connection_status not in ("CLOSING", "CLOSED"):
                 try:
                     coro = HivenWebSocket.create_from_client(

@@ -1,22 +1,29 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
 import asyncio
-import types
 import typing
 import fastjsonschema
 
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from .message import Message
 from .house import House
 from .. import utils
-from .. import exceptions as errs
+from ..exceptions import InvalidPassedDataError, InitializationError
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Room']
 
 
-class Room(HivenObject):
+class Room(HivenTypeObject):
     """
     Represents a Hiven Room inside a House
 
@@ -29,7 +36,7 @@ class Room(HivenObject):
     1 - Portal
 
     """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'id': {'type': 'string'},
@@ -79,22 +86,35 @@ class Room(HivenObject):
         'additionalProperties': False,
         'required': ['id', 'name', 'house_id', 'type']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
-        self._id = kwargs.get('id')
-        self._name = kwargs.get('name')
-        self._house_id = kwargs.get('house_id')
-        self._position = kwargs.get('position')
-        self._type = kwargs.get('type')
-        self._emoji = kwargs.get('emoji')
-        self._description = kwargs.get('description')
-        self._last_message_id = kwargs.get('last_message_id')
-        self._house = kwargs.get('house')
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._id = data.get('id')
+            self._name = data.get('name')
+            self._house_id = data.get('house_id')
+            self._position = data.get('position')
+            self._type = data.get('type')
+            self._emoji = data.get('emoji')
+            self._description = data.get('description')
+            self._last_message_id = data.get('last_message_id')
+            self._house = data.get('house')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
-            ('name', repr(self.name)),
+            ('name', self.name),
             ('id', self.id),
             ('house_id', self.house_id),
             ('position', self.position),
@@ -104,54 +124,37 @@ class Room(HivenObject):
         ]
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
-    def get_cached_data(self) -> typing.Union[dict, None]:
+    def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['rooms']['house'][self.id]
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
         instance.
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
+        if not data.get('house_id') and data.get('house'):
+            house = data.pop('house')
+            if type(house) is dict:
+                house_id = house.get('id')
+            elif isinstance(house, HivenTypeObject):
+                house_id = getattr(house, 'id', None)
+            else:
+                house_id = None
+
+            if house_id is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house_id'] = house_id
+
+        data['house'] = data['house_id']
         data = cls.validate(data)
         return data
-
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Room Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Room Instance
-        """
-        try:
-            data['house'] = House._insert_data(
-                client.storage['houses'][data['house_id']], client
-            )
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!")
-        else:
-            instance._client = client
-            return instance
 
     @property
     def id(self) -> str:
@@ -166,8 +169,24 @@ class Room(HivenObject):
         return getattr(self, '_house_id', None)
 
     @property
-    def house(self) -> House:
-        return getattr(self, '_house', None)
+    def house(self) -> typing.Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            house_id = self._house
+        elif type(self.house_id) is str:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
+            self._house = House(
+                data=self._client.storage['house'][house_id], client=self._client
+            )
+            return self._house
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None
 
     @property
     def position(self) -> int:
@@ -182,10 +201,10 @@ class Room(HivenObject):
         return getattr(self, '_emoji', None)
 
     @property
-    def description(self) -> typing.Union[str, None]:
+    def description(self) -> typing.Optional[str]:
         return getattr(self, '_description', None)
 
-    async def send(self, content: str, delay: float = None) -> typing.Union[Message, None]:
+    async def send(self, content: str, delay: float = None) -> typing.Optional[Message]:
         """
         Sends a message in the current room.
         
@@ -202,12 +221,15 @@ class Room(HivenObject):
             # Raw_data not in correct format => needs to access data field
             data = raw_data.get('data')
             data = Message.format_obj_data(data)
-            return Message._insert_data(data, self._client)
+            return Message(data, self._client)
 
         except Exception as e:
-            utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[ROOM] Traceback:",
+                suffix=f"Failed to send message in room {repr(self)}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return None
 
     async def edit(self, **kwargs) -> bool:
@@ -229,10 +251,12 @@ class Room(HivenObject):
 
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
-
-            utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to change the values {keys} in room {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[ROOM] Traceback:",
+                suffix=f"Failed to change the values {keys} in room {repr(self)}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return False
 
     async def start_typing(self) -> bool:
@@ -247,12 +271,15 @@ class Room(HivenObject):
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[ROOM] Traceback:",
+                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return False
 
-    async def get_recent_messages(self) -> typing.Union[list, Message, None]:
+    async def get_recent_messages(self) -> typing.Optional[typing.List[Message]]:
         """
         Gets the recent messages from the current room
             
@@ -265,14 +292,17 @@ class Room(HivenObject):
             data = raw_data.get('data')
 
             messages_ = []
-            for d in data:
-                msg = d.Message.insert_data(d, self._client)
+            for _ in data:
+                msg = Message(_, self._client)
                 messages_.append(msg)
 
             return messages_
 
         except Exception as e:
-            utils.log_traceback(msg="[ROOM] Traceback:",
-                                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[ROOM] Traceback:",
+                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
+            # TODO! Raise exception
             return None

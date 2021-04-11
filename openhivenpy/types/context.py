@@ -3,26 +3,28 @@ from __future__ import annotations
 
 import logging
 import sys
-import types
+import typing
 import fastjsonschema
 
 from .. import utils
-from . import HivenObject, check_valid
+from . import HivenTypeObject, check_valid
 from ..exceptions import InvalidPassedDataError, InitializationError
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import House, User, Room
+    from .. import HivenClient
+
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Context']
 
 
-class Context(HivenObject):
+class Context(HivenTypeObject):
     """ Represents a Command Context for a triggered command that was registered prior """
-    schema = {
+    json_schema = {
         'type': 'object',
         'properties': {
             'room': {'type': 'object'},
@@ -38,19 +40,35 @@ class Context(HivenObject):
         'additionalProperties': False,
         'required': ['room', 'author', 'created_at']
     }
-    json_validator: types.FunctionType = fastjsonschema.compile(schema)
+    json_validator = fastjsonschema.compile(json_schema)
 
-    def __init__(self, **kwargs):
+    def __init__(self, data: dict, client: HivenClient):
         """
-        :param kwargs: Additional Parameter of the class that will be initialised with it
+        Represents a Command Context for a triggered command that was registered prior
+
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
         """
-        self._room = kwargs.get('room')
-        self._author = kwargs.get('author')
-        self._house = kwargs.get('house')
-        self._created_at = kwargs.get('created_at')
+        try:
+            self._room = data.get('room')
+            self._author = data.get('author')
+            self._house = data.get('house')
+            self._created_at = data.get('created_at')
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     @classmethod
-    @check_valid()
+    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -60,77 +78,81 @@ class Context(HivenObject):
 
         Does NOT contain other objects and only their ids!
 
-        :param data: Dict for the data that should be passed
-        :return: The modified dictionary
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
 
-        room = data.get('room')
-        if room:
+        if not data.get('room_id') and data.get('room'):
+            room = data.pop('room')
             if type(room) is dict:
                 room = room.get('id', None)
-            elif isinstance(room, HivenObject):
+            elif isinstance(room, HivenTypeObject):
                 room = getattr(room, 'id', None)
+            else:
+                room = None
 
             if room is None:
                 raise InvalidPassedDataError("The passed room is not in the correct format!", data=data)
             else:
-                data['room'] = room
+                data['room_id'] = room
 
-        house = data.get('house')
-        if house:
+        if not data.get('house_id') and data.get('house'):
+            house = data.pop('house')
             if type(house) is dict:
                 house = house.get('id', None)
-            elif isinstance(house, HivenObject):
+            elif isinstance(house, HivenTypeObject):
                 house = getattr(house, 'id', None)
+            else:
+                house = None
 
             if house is None:
                 raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
             else:
-                data['house'] = house
+                data['house_id'] = house
+
+        data['room'] = data['room_id']
+        data['house'] = data['house_id']
         return data
 
-    @classmethod
-    def _insert_data(cls, data: dict, client):
-        """
-        Creates an instance of the Context Class with the passed data
-        (Needs to be already validated/formed and populated with the wanted data -> objects should be ids)
-
-        ---
-
-        Does not update the cache and only read from it!
-        Only intended to be used to create a instance to interact with Hiven!
-
-        :param data: Dict for the data that should be passed
-        :param client: Client used for accessing the cache
-        :return: The newly constructed Context Instance
-        """
-        try:
-            instance = cls(**data)
-
-        except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{cls.__name__}' Validation:",
-                suffix=f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
+    @property
+    def house(self) -> typing.Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            self._house = House(
+                data=self._client.storage['house'][self._house], client=self._client
             )
-            raise InitializationError(
-                f"Failed to initialise {cls.__name__} due to exception:\n{sys.exc_info()[0].__name__}: {e}!"
-            ) from e
+            return self._house
+        elif type(self._house) is House:
+            return self._house
         else:
-            instance._client = client
-            return instance
+            return None
 
     @property
-    def house(self) -> House:
-        return getattr(self, '_house', None)
+    def room(self) -> typing.Optional[Room]:
+        from . import Room
+        if type(self._room) is str:
+            self._room = Room(
+                data=self._client.storage['rooms']['house'][self._room], client=self._client
+            )
+            return self._room
+        elif type(self._room) is Room:
+            return self._room
+        else:
+            return None
 
     @property
-    def author(self) -> User:
-        return getattr(self, '_author', None)
-
-    @property
-    def room(self) -> Room:
-        return getattr(self, '_room', None)
+    def author(self) -> typing.Optional[User]:
+        from . import User
+        if type(self._author) is str:
+            self._author = User(
+                data=self._client.storage['users'][self._author], client=self._client
+            )
+            return self._author
+        elif type(self._author) is User:
+            return self._author
+        else:
+            return None
 
     @property
     def created_at(self) -> str:
