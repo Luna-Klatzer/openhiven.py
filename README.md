@@ -9,9 +9,6 @@
 [![License](https://img.shields.io/github/license/Nicolas-Klatzer/openhiven.py)](https://github.com/Nicolas-Klatzer/openhiven.py/blob/main/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/openhivenpy/badge/?version=latest)](https://readthedocs.org/projects/openhivenpy/)
 
-## Contributors
-<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
-
 ## Dependencies
 
 [![aiohttp](https://img.shields.io/github/pipenv/locked/dependency-version/Nicolas-Klatzer/openhiven.py/aiohttp/main)](https://docs.aiohttp.org/en/stable/)
@@ -106,3 +103,6 @@ if __name__ == '__main__':
     client.run()
 
 ```
+
+## Contributors
+<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
