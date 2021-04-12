@@ -210,7 +210,7 @@ class Invite(HivenTypeObject):
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'][house_id]
+            data = self._client.storage['houses'].get(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house

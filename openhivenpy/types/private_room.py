@@ -146,7 +146,7 @@ class PrivateGroupRoom(HivenTypeObject):
         if utils.convertible(int, self._recipients):
             recipients = []
             for id_ in self._recipients:
-                data = self._client.storage['users'][id_]
+                data = self._client.storage['users'].get(id_)
                 if data:
                     user_data = User.format_obj_data(data)
                     recipients.append(User(user_data, self._client))
@@ -351,7 +351,7 @@ class PrivateRoom(HivenTypeObject):
             recipient_id = None
 
         if type(self._recipient) is str:
-            data = self._client.storage['users'][recipient_id]
+            data = self._client.storage['users'].get(recipient_id)
             if data:
                 self._recipient = User(data=data, client=self._client)
                 return self._recipient

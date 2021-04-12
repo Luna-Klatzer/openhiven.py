@@ -112,7 +112,12 @@ class Message(HivenTypeObject):
                 'default': {},
             },
             'content': {'type': 'string'},
-            'timestamp': {'type': 'string'},
+            'timestamp': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
             'edited_at': {
                 'anyOf': [
                     {'type': 'string'},
@@ -234,6 +239,7 @@ class Message(HivenTypeObject):
         data['type'] = utils.safe_convert(int, data.get('type'), None)  # I believe, 0 = normal message, 1 = system.
         data['bucket'] = utils.safe_convert(int, data.get('bucket'), None)
         data['exploding_age'] = utils.safe_convert(int, data.get('exploding_age'), None)
+        data['timestamp'] = utils.safe_convert(int, data.get('timestamp'))
 
         data = cls.validate(data)
 

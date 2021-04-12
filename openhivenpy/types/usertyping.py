@@ -67,7 +67,7 @@ class UserTyping(HivenTypeObject):
     @property
     def author(self) -> typing.Optional[User]:
         if type(self._author) is str:
-            data = self._client.storage['users'][self._author]
+            data = self._client.storage['users'].get(self._author)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -82,7 +82,7 @@ class UserTyping(HivenTypeObject):
     @property
     def house(self) -> typing.Optional[House]:
         if type(self._house) is str:
-            data = self._client.storage['houses'][self._house]
+            data = self._client.storage['houses'].get(self._house)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
@@ -97,7 +97,7 @@ class UserTyping(HivenTypeObject):
     @property
     def room(self) -> typing.Optional[Room]:
         if type(self._room) is str:
-            data = self._client.storage['rooms']['house'][self._room]
+            data = self._client.storage['rooms']['house'].get(self._room)
             if data:
                 self._room = Room(data=data, client=self._client)
                 return self._room

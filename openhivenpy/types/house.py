@@ -100,6 +100,14 @@ class LazyHouse(HivenTypeObject):
     def __str__(self):
         return self.name
 
+    def __repr__(self) -> str:
+        info = [
+            ('name', self.name),
+            ('id', self.id),
+            ('owner_id', self.owner_id)
+        ]
+        return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
+
     def get_cached_data(self) -> typing.Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['houses'][self.id]
@@ -258,15 +266,6 @@ class House(LazyHouse):
             ) from e
         super().__init__(data, client)
 
-    def __repr__(self) -> str:
-        info = [
-            ('name', self.name),
-            ('id', self.id),
-            ('banner', self.banner),
-            ('owner_id', self.owner_id)
-        ]
-        return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
-
     @classmethod
     @check_valid
     def format_obj_data(cls, data: dict) -> dict:
@@ -298,8 +297,9 @@ class House(LazyHouse):
     def owner(self) -> typing.Optional[Member]:
         from . import Member
         if type(self._owner) is str:
-            data = self.get_cached_data()['members'][self._client.id]
+            data = self.get_cached_data()['members'].get(self._owner)
             if data:
+                data['user'] = self._client.storage['users'][data['user_id']]
                 self._owner = Member(data=data, client=self._client)
                 return self._owner
             else:

@@ -4,6 +4,8 @@ from __future__ import annotations
 import logging
 import sys
 import typing
+import datetime
+
 import fastjsonschema
 
 from .. import utils
@@ -29,7 +31,12 @@ class Context(HivenTypeObject):
         'properties': {
             'room': {'type': 'object'},
             'author': {'type': 'object'},
-            'created_at': {'type': 'string'},
+            'timestamp': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'}
+                ],
+            },
             'house': {
                 'anyOf': [
                     {'type': 'object'},
@@ -38,7 +45,7 @@ class Context(HivenTypeObject):
             },
         },
         'additionalProperties': False,
-        'required': ['room', 'author', 'created_at']
+        'required': ['room', 'author', 'timestamp']
     }
     json_validator = fastjsonschema.compile(json_schema)
 
@@ -53,7 +60,7 @@ class Context(HivenTypeObject):
             self._room = data.get('room')
             self._author = data.get('author')
             self._house = data.get('house')
-            self._created_at = data.get('created_at')
+            self._timestamp = data.get('timestamp')
 
         except Exception as e:
             utils.log_traceback(
@@ -82,6 +89,7 @@ class Context(HivenTypeObject):
         :return: The modified dictionary, which can then be used to create a new class instance
         """
         data = cls.validate(data)
+        data['timestamp'] = utils.safe_convert(int, data.get('timestamp'))
 
         if not data.get('room_id') and data.get('room'):
             room = data.pop('room')
@@ -111,7 +119,22 @@ class Context(HivenTypeObject):
             else:
                 data['house_id'] = house
 
+        if not data.get('author_id') and data.get('author'):
+            author = data.pop('author')
+            if type(author) is dict:
+                author = author.get('id', None)
+            elif isinstance(author, HivenTypeObject):
+                author = getattr(author, 'id', None)
+            else:
+                author = None
+
+            if author is None:
+                raise InvalidPassedDataError("The passed author is not in the correct format!", data=data)
+            else:
+                data['author_id'] = author
+
         data['room'] = data['room_id']
+        data['author'] = data['author_id']
         data['house'] = data['house_id']
         return data
 
@@ -119,7 +142,7 @@ class Context(HivenTypeObject):
     def house(self) -> typing.Optional[House]:
         from . import House
         if type(self._house) is str:
-            data = self._client.storage['houses'][self._house]
+            data = self._client.storage['houses'].get(self._house)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
@@ -151,7 +174,7 @@ class Context(HivenTypeObject):
     def author(self) -> typing.Optional[User]:
         from . import User
         if type(self._author) is str:
-            data = self._client.storage['users'][self._author]
+            data = self._client.storage['users'].get(self._author)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -164,5 +187,12 @@ class Context(HivenTypeObject):
             return None
 
     @property
-    def created_at(self) -> str:
-        return getattr(self, '_created_at', None)
+    def timestamp(self) -> typing.Optional[datetime.datetime]:
+        if utils.convertible(int, self._timestamp):
+            # Converting to seconds because it's in milliseconds
+            self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
+            return self._timestamp
+        elif type(self._timestamp) is datetime.datetime:
+            return self._timestamp
+        else:
+            return None

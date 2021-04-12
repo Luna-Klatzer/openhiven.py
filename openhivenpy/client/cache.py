@@ -71,10 +71,11 @@ class ClientCache(dict):
         """
         client_user = types.User.format_obj_data(data)
         self['client_user'].update(client_user)
-        if self['users'].get(str(data['id'])) is not None:
-            self['users'][str(data['id'])].update(client_user)
+
+        if self['users'].get(data['id']) is not None:
+            self['users'][data['id']].update(client_user)
         else:
-            self['users'][str(data['id'])] = client_user
+            self['users'][data['id']] = client_user
 
         return client_user
 

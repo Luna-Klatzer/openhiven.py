@@ -13,7 +13,7 @@ from ..exceptions import InvalidPassedDataError, InitializationError
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from . import House
+    from . import House, Room
     from .. import HivenClient
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class Entity(HivenTypeObject):
             'position': {'type': 'integer'}
         },
         'additionalProperties': False,
-        'required': ['id', 'name', 'position', 'resource_pointers', 'house_id']
+        'required': ['id', 'name', 'position', 'resource_pointers']
     }
     json_validator = fastjsonschema.compile(json_schema)
 
@@ -131,8 +131,29 @@ class Entity(HivenTypeObject):
         return getattr(self, '_type', None)
 
     @property
-    def resource_pointers(self) -> list:
-        return getattr(self, '_resource_pointers', None)
+    def resource_pointers(self) -> typing.Optional[typing.List[Room, dict]]:
+        """ Objects contained inside the entity. If dict is returned it's a type that is not yet included in the lib """
+        from . import Room
+        if type(self._resource_pointers) is list and len(self._resource_pointers) > 0:
+            resources_created = False
+            for _ in self._resource_pointers:
+                if type(_) is not dict:
+                    resources_created = True
+
+            if not resources_created:
+                resource_pointers = []
+                for d in self._resource_pointers:
+                    if d['resource_type'] == "room":
+                        data = self._client.storage['rooms']['house'][d['resource_id']]
+                        resource_pointers.append(Room(data, client=self._client))
+                    else:
+                        resource_pointers.append(d)
+
+                self._resource_pointers = resource_pointers
+            return self._resource_pointers
+
+        else:
+            return None
 
     @property
     def name(self) -> str:
@@ -161,7 +182,7 @@ class Entity(HivenTypeObject):
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'][house_id]
+            data = self._client.storage['houses'].get(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house

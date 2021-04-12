@@ -46,7 +46,7 @@ class Member(user.User):
     json_validator = fastjsonschema.compile(json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
-        super().__init__(**data.get('user'))
+        super().__init__(data.get('user'), client)
         try:
             data = {**data.get('user'), **data}
             self._user_id = data.get('user_id')
@@ -64,8 +64,6 @@ class Member(user.User):
             raise InitializationError(
                 f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
             ) from e
-        else:
-            data._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -137,7 +135,7 @@ class Member(user.User):
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'][house_id]
+            data = self._client.storage['houses'].get(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
