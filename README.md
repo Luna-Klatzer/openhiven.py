@@ -1,7 +1,7 @@
 # ![OpenHiven.py](https://images.nxybi.me/da4e88d64f12.png) <br> OpenHiven.py
 ## The OpenSource Python API Wrapper for Hiven!
 
-[![Package Version](https://img.shields.io/badge/package%20version-v0.2.dev1-purple?logo=python)](https://github.com/Nicolas-Klatzer/openhiven.py)
+[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3.2-purple?logo=python)](https://github.com/Nicolas-Klatzer/openhiven.py)
 [![Python Version](https://img.shields.io/badge/python->=3.7-blue?logo=python)](https://python.org)
 ![Build](https://img.shields.io/github/workflow/status/Nicolas-Klatzer/openhiven.py/CodeQL?logo=github)
 [![Latest Commit](https://img.shields.io/github/last-commit/Nicolas-Klatzer/openhiven.py?logo=github&color=violet)](https://github.com/Nicolas-Klatzer/openhiven.py/commits/mainy)
@@ -36,10 +36,10 @@ python3 -m pip install -U https://github.com/Nicolas-Klatzer/openhiven.py/archiv
 ## Documentation
 For full documentation visit the documentation our readthedocs-page
 [here](https://openhivenpy.readthedocs.io/en/latest/) or go to the github pages build 
-[here](https://nicolas-klatzer.github.io/docs_openhiven.py/build/)
+[here [Recommended]](https://nicolas-klatzer.github.io/docs_openhiven.py/build)
 
 
-### Usage Example
+### Usage Example (v0.1.3.2)
 
 **A simple UserClient Bot for quick usage:**
 
@@ -103,3 +103,6 @@ if __name__ == '__main__':
     client.run()
 
 ```
+
+## Contributors
+<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
