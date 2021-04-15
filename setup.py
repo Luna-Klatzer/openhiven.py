@@ -11,13 +11,13 @@ setuptools.setup(
     version="0.2.alpha1",
     author="Nicolas Klatzer",
     author_email="nicolas.klatzer@gmail.com",
-    description="The async Python API Wrapper and Bot-Framework for Hiven!",
+    description="The OpenSource Python API Wrapper and Bot-Framework for Hiven",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="MIT",
     url="https://github.com/Nicolas-Klatzer/openhiven.py",
     project_urls={
-        "Docs": "https://openhivenpy.readthedocs.io/",
+        "Docs": "https://nicolas-klatzer.github.io/docs_openhiven.py",
         "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/latest/api_reference/",
         "Issue-Page": "https://github.com/Nicolas-Klatzer/openhiven.py/issues/",
         "Changelog": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/changelog.html"
