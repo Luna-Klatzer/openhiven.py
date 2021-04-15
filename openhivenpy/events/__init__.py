@@ -150,7 +150,7 @@ class SingleDispatchEventListener(DispatchEventListener):
     def kwargs(self) -> dict:
         return getattr(self, '_kwargs')
 
-    async def dispatch(self, *args, **kwargs) -> None:
+    async def dispatch(self, *args, **kwargs) -> typing.NoReturn:
         """
         Dispatches the EventListener and calls a coroutine if one was passed
 
@@ -190,7 +190,7 @@ class MultiDispatchEventListener(DispatchEventListener):
         ]
         return '<MultiDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    async def dispatch(self, *args, **kwargs) -> None:
+    async def dispatch(self, *args, **kwargs) -> typing.NoReturn:
         """
         Dispatches the EventListener and calls a coroutine if one was passed.
         Does not raise exceptions but silences them!

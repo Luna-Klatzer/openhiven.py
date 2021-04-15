@@ -122,7 +122,7 @@ class Relationship(HivenTypeObject):
                 raise InvalidPassedDataError("The passed user is not in the correct format!", data=data)
             else:
                 data['user_id'] = user_id
-        elif data.get('user_id') is None and data.get('user') is None:
+        elif not data.get('user_id') and not data.get('user'):
             raise InvalidPassedDataError("user_id and user missing from required data", data=data)
 
         data['user'] = data['user_id']
@@ -151,13 +151,13 @@ class Relationship(HivenTypeObject):
             return None
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def user_id(self) -> str:
+    def user_id(self) -> typing.Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)

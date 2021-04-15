@@ -98,22 +98,22 @@ class HTTP:
         return '<HTTP {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def token(self) -> str:
+    def token(self) -> typing.Optional[str]:
         return getattr(self, '_token', None)
 
     @property
-    def ready(self) -> bool:
+    def ready(self) -> typing.Optional[bool]:
         return getattr(self, '_ready', False)
 
     @property
-    def session(self) -> aiohttp.ClientSession:
+    def session(self) -> typing.Optional[aiohttp.ClientSession]:
         return getattr(self, '_session', None)
 
     @property
-    def loop(self) -> asyncio.AbstractEventLoop:
+    def loop(self) -> typing.Optional[asyncio.AbstractEventLoop]:
         return getattr(self, '_loop', None)
 
-    async def connect(self, token: str) -> typing.Union[aiohttp.ClientSession, None]:
+    async def connect(self, token: str) -> typing.Optional[aiohttp.ClientSession]:
         """
         Establishes for the HTTP a connection to Hiven
 

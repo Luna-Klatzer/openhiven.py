@@ -69,6 +69,7 @@ class ClientCache(dict):
 
         :return: The validated data using `format_obj_data` of the User class
         """
+        data = dict(data)
         client_user = types.User.format_obj_data(data)
         self['client_user'].update(client_user)
 
@@ -87,6 +88,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['id']
             for room in data['rooms']:
                 room['house_id'] = id_
@@ -127,6 +129,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['id']
             data = types.User.format_obj_data(data)
             if self['users'].get(id_) is None:
@@ -150,6 +153,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['id']
             data = types.Room.format_obj_data(data)
             if self['rooms']['house'].get(id_) is None:
@@ -173,6 +177,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['id']
             data = types.Entity.format_obj_data(data)
             if self['entities'].get(id_) is None:
@@ -196,6 +201,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['id']
             if int(data['type']) == 1:
                 data = types.PrivateRoom.format_obj_data(data)
@@ -229,6 +235,7 @@ class ClientCache(dict):
         """
         self.check_if_initialised()
         try:
+            data = dict(data)
             id_ = data['user_id']
             data = types.Relationship.format_obj_data(data)
             if self['relationships'].get(id_) is None:

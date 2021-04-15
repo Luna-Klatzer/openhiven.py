@@ -9,19 +9,8 @@ def test_start(token):
     token_ = token
 
 
-class TestEntity:
-    def test_preparation(self):
-        client.storage.update_client_user({
-            "username": "username",
-            "user_flags": 2,
-            "name": "name",
-            "id": '323456789123456789',
-            "icon": None,
-            "header": None,
-            "presence": "online",
-            "bot": False
-        })
-        client.storage.add_or_update_house({
+class TestHouse:
+    data = {
             "rooms": [{
                 "type": 0,
                 "recipients": None,
@@ -70,24 +59,29 @@ class TestEntity:
             }],
             "default_permissions": 10000000,
             "banner": None
+        }
+
+    def test_preparation(self):
+        client.storage.update_client_user({
+            "username": "username",
+            "user_flags": 2,
+            "name": "name",
+            "id": '323456789123456789',
+            "icon": None,
+            "header": None,
+            "presence": "online",
+            "bot": False
         })
 
     def test_init(self):
-        data = {
-            "house_id": "123456789123456789",
-            "type": 1,
-            "resource_pointers": [{
-                "resource_type": "room",
-                "resource_id": "223456789123456789"
-            }],
-            "position": 0,
-            "name": "Rooms",
-            "id": "423456789123456789"
-        }
-        openhivenpy.types.Entity.format_obj_data(data)
-        entity = openhivenpy.types.Entity(data, client)
+        client.storage.add_or_update_house(self.data)
+        house = client.get_house(self.data['id'])
+        user = client.get_user(self.data['owner_id'])
+        entity = client.get_entity(self.data['entities'][0]['id'])
 
-        assert entity._house == data['house_id']
-        assert entity.house.id == data['house_id']
-        assert entity.resource_pointers[0].id == data['resource_pointers'][0]['resource_id']
-        assert entity.house.owner.id == entity.house.owner_id
+        assert house.id == self.data['id']
+        assert house.owner.id == user.id
+        assert house.entities[0].id == entity.id
+        assert house.members[0].id == client.id
+        assert house.users[0].id == client.id
+

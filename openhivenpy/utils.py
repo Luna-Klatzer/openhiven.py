@@ -192,7 +192,7 @@ def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = No
     """
     def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
         @functools.wraps(coro)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs) -> typing.Union[typing.Any, typing.NoReturn]:
             try:
                 return await coro(*args, **kwargs)
             except Exception as e:

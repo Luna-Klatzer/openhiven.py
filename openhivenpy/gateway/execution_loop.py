@@ -61,7 +61,7 @@ class ExecutionLoop:
         """
         return self._startup_finished
 
-    async def start(self) -> None:
+    async def start(self) -> typing.NoReturn:
         """
         Starts the current execution_loop!
 
@@ -145,7 +145,7 @@ class ExecutionLoop:
             self._active = False
             return
 
-    async def stop(self) -> None:
+    async def stop(self) -> typing.NoReturn:
         """ Forces the current execution_loop to stop! """
         try:
             if not self.running_loop.cancelled():

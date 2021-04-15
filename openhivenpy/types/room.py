@@ -157,15 +157,15 @@ class Room(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def name(self) -> str:
+    def name(self) -> typing.Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
@@ -192,15 +192,15 @@ class Room(HivenTypeObject):
             return None
 
     @property
-    def position(self) -> int:
+    def position(self) -> typing.Optional[int]:
         return getattr(self, '_position', None)
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def emoji(self) -> str:
+    def emoji(self) -> typing.Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property

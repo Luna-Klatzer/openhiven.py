@@ -96,37 +96,36 @@ class Connection:
         ))
 
     @property
-    def connection_status(self) -> str:
+    def connection_status(self) -> typing.Optional[str]:
         return getattr(self, '_connection_status', None)
 
     @property
-    def endpoint(self) -> URL:
+    def endpoint(self) -> typing.Optional[URL]:
         return getattr(self, '_endpoint', None)
 
     @property
-    def startup_time(self) -> int:
+    def startup_time(self) -> typing.Optional[int]:
         return getattr(self.ws, '_startup_time', None)
 
     @property
-    def ws(self) -> HivenWebSocket:
+    def ws(self) -> typing.Optional[HivenWebSocket]:
         return getattr(self, '_ws', None)
 
     @property
-    def heartbeat(self) -> int:
+    def heartbeat(self) -> typing.Optional[int]:
         return getattr(self, '_heartbeat', None)
 
     @property
-    def close_timeout(self) -> int:
+    def close_timeout(self) -> typing.Optional[int]:
         return getattr(self, '_close_timeout', None)
 
-    async def connect(self, token: str, restart: bool):
+    async def connect(self, token: str, restart: bool) -> typing.NoReturn:
         """ Establishes a connection to Hiven and runs the background processes """
         try:
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version, loop=self.loop)
             await self.http.connect(token)
 
             self._connection_status = "OPENING"
-            self.client._init_client_user()
             while self.connection_status not in ("CLOSING", "CLOSED"):
                 try:
                     coro = HivenWebSocket.create_from_client(
@@ -176,7 +175,7 @@ class Connection:
         else:
             await self.http.close()
 
-    async def close(self, force: bool = False):
+    async def close(self, force: bool = False) -> typing.NoReturn:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 

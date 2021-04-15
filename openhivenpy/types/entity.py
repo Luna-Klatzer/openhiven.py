@@ -127,7 +127,7 @@ class Entity(HivenTypeObject):
         return data
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     @property

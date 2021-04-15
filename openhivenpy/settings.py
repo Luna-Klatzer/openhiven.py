@@ -1,10 +1,12 @@
 import pkg_resources
 import os
+import typing
 from dotenv import load_dotenv
+
 from openhivenpy.exceptions import HivenENVError
 
 
-def load_env_vars() -> None:
+def load_env_vars() -> typing.NoReturn:
     """ Loads the openhiven.py environment variables from the file openhivenpy.env """
     path = 'openhivenpy.env'
     env_path = pkg_resources.resource_filename(__name__, path)

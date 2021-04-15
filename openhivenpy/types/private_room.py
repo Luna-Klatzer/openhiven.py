@@ -137,7 +137,7 @@ class PrivateGroupRoom(HivenTypeObject):
         return data
 
     @property
-    def client_user(self) -> User:
+    def client_user(self) -> typing.Optional[User]:
         return getattr(self, '_client_user', None)
 
     @property
@@ -161,27 +161,27 @@ class PrivateGroupRoom(HivenTypeObject):
             return None
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def last_message_id(self) -> str:
+    def last_message_id(self) -> typing.Optional[str]:
         return getattr(self, '_last_message_id', None)
 
     @property
-    def name(self) -> str:
+    def name(self) -> typing.Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def description(self) -> int:
+    def description(self) -> typing.Optional[int]:
         return getattr(self, '_description', None)
 
     @property
-    def emoji(self) -> str:
+    def emoji(self) -> typing.Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     async def send(self, content: str, delay: float = None) -> typing.Optional[Message]:
@@ -333,11 +333,11 @@ class PrivateRoom(HivenTypeObject):
             return None
 
     @property
-    def client_user(self) -> User:
+    def client_user(self) -> typing.Optional[User]:
         return getattr(self, '_client_user', None)
 
     @property
-    def recipient_id(self) -> str:
+    def recipient_id(self) -> typing.Optional[str]:
         return getattr(self, '_recipient_id', None)
 
     @property
@@ -364,23 +364,23 @@ class PrivateRoom(HivenTypeObject):
             return None
     
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def description(self) -> str:
+    def description(self) -> typing.Optional[str]:
         return getattr(self, '_description', None)
 
     @property
-    def emoji(self) -> str:
+    def emoji(self) -> typing.Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property
-    def last_message_id(self) -> str:
+    def last_message_id(self) -> typing.Optional[str]:
         return getattr(self, '_last_message_id', None)
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
     
     async def start_call(self, delay: float = None) -> bool:

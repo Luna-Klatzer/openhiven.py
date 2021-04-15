@@ -176,27 +176,27 @@ class Invite(HivenTypeObject):
         return data
 
     @property
-    def code(self) -> int:
+    def code(self) -> typing.Optional[int]:
         return getattr(self, '_code', None)
 
     @property
-    def url(self) -> str:
+    def url(self) -> typing.Optional[str]:
         return getattr(self, '_url', None)
     
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id', None)
     
     @property
-    def max_age(self) -> int:
+    def max_age(self) -> typing.Optional[int]:
         return getattr(self, '_max_age', None)
 
     @property
-    def max_uses(self) -> int:
+    def max_uses(self) -> typing.Optional[int]:
         return getattr(self, '_max_uses', None)
     
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
         
     @property
@@ -223,9 +223,9 @@ class Invite(HivenTypeObject):
             return None
     
     @property
-    def house_members(self) -> int:
+    def house_members(self) -> typing.Optional[int]:
         return getattr(self, '_house_members', None)
 
     @property
-    def created_at(self) -> str:
+    def created_at(self) -> typing.Optional[str]:
         return getattr(self, '_created_at', None)

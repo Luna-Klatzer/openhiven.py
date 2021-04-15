@@ -56,7 +56,7 @@ class TestContext:
                 },
                 "roles": [],
                 "last_permission_update": None,
-                "joined_at": 1,
+                "joined_at": "1970-01-01T00:00:0.000Z",
                 "house_id": "123456789123456789"
             }],
             "id": "123456789123456789",

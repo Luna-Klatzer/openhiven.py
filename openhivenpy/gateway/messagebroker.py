@@ -58,7 +58,7 @@ class MessageBroker:
         self.running_loop = None
 
     @property
-    def running(self):
+    def running(self) -> bool:
         if self.running_loop:
             return not getattr(self.running_loop, 'done')()
         else:
@@ -114,12 +114,12 @@ class Worker:
     def assigned_event_buffer(self) -> DynamicEventBuffer:
         return self.message_broker.event_buffers.get(self.event)
 
-    async def gather_tasks(self, tasks: typing.List[asyncio.Task]) -> None:
+    async def gather_tasks(self, tasks: typing.List[asyncio.Task]) -> typing.NoReturn:
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 
     @utils.wrap_with_logging
-    async def run_forever(self) -> None:
+    async def run_forever(self) -> typing.NoReturn:
         """
         Runs a loop where the worker will wait for the next event that is received.
         Does not return until the client received the close call!
@@ -130,6 +130,7 @@ class Worker:
             if self.assigned_event_buffer:
                 await self.run_one_sequence()
             await asyncio.sleep(.075)
+        return
 
     @utils.wrap_with_logging
     async def run_one_sequence(self):

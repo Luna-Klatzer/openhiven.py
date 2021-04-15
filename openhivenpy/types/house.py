@@ -147,7 +147,6 @@ class LazyHouse(HivenTypeObject):
             data['members'] = {}
             for member_ in members:
                 id_ = member_['user_id'] if member_.get('user_id') else member_.get('user').get('id')
-
                 data['members'][id_] = utils.update_and_return(member_, {'user': id_})
 
         if type(data.get('roles')) is list:
@@ -167,15 +166,15 @@ class LazyHouse(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def name(self) -> str:
+    def name(self) -> typing.Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     @property
@@ -186,11 +185,12 @@ class LazyHouse(HivenTypeObject):
             return None
 
     @property
-    def owner_id(self) -> str:
+    def owner_id(self) -> typing.Optional[int]:
         return getattr(self, '_owner_id', None)
 
+    # TODO! Add constructor
     @property
-    def rooms(self) -> list:
+    def rooms(self) -> typing.Optional[list]:
         return getattr(self, '_rooms', None)
 
 
@@ -247,9 +247,9 @@ class House(LazyHouse):
     def __init__(self, data: dict, client: HivenClient):
         try:
             self._roles = data.get('roles')
-            self._entities = data.get('entities')
+            self._entities: list = data.get('entities')
             self._default_permissions = data.get('default_permissions')
-            self._members = data.get('members')
+            self._members: dict = data.get('members')
             self._client_member = data.get('client_member')
             self._banner = data.get('banner')
             self._owner = data.get('owner')
@@ -311,32 +311,56 @@ class House(LazyHouse):
             return None
 
     @property
-    def client_member(self) -> Member:
+    def client_member(self) -> typing.Optional[Member]:
         return getattr(self, '_client_member', None)
 
     @property
-    def banner(self) -> str:
+    def banner(self) -> typing.Optional[str]:
         return getattr(self, '_banner', None)
 
     @property
-    def roles(self) -> list:
+    def roles(self) ->  typing.Optional[list]:
         return getattr(self, '_roles', None)
 
     @property
-    def entities(self) -> typing.List[dict]:
-        return getattr(self, '_entities', None)
+    def entities(self) -> typing.Optional[typing.List[Entity]]:
+        from . import Entity
+        if type(self._entities) is list:
+            if type(self._entities[0]) is str:
+                entities = []
+                for d in self._entities:
+                    entity_data = self._client.storage['entities'][d]
+                    entities.append(Entity(entity_data, client=self._client))
+
+                self._entities = entities
+            return self._entities
+        else:
+            return None
 
     @property
-    def users(self) -> typing.List[dict]:
-        return getattr(self, '_members', None)
+    def users(self) -> typing.Optional[typing.List[Member]]:
+        return getattr(self, 'members')
 
     @property
-    def members(self) -> typing.List[dict]:
-        return getattr(self, '_members', None)
+    def members(self) -> typing.Optional[typing.List[Member]]:
+        from . import Member
+        if type(self._members) is dict:
+            entities = []
+            for d in dict(self._members).values():
+                member_data = Member.format_obj_data(dict(d))
+                member_data['user'] = self._client.storage['users'][dict(d)['user_id']]
+                entities.append(Member(member_data, client=self._client))
+
+            self._members = entities
+            return self._members
+        if type(self._members) is list:
+            return self._members
+        else:
+            return None
 
     @property
-    def default_permissions(self) -> int:
-        return self._default_permissions
+    def default_permissions(self) -> typing.Optional[int]:
+        return getattr(self, '_default_permissions', None)
 
     def get_member(self, member_id: str) -> typing.Optional[Room]:
         """

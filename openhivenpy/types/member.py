@@ -38,10 +38,12 @@ class Member(user.User):
                     {'type': 'null'}
                 ],
                 'default': {},
-            }
+            },
+            'user': {'type': 'object'},
+            'last_permission_update': {'default': None}
         },
         'additionalProperties': False,
-        'required': [*user.User.json_schema['required'], 'user_id', 'house_id', 'joined_at']
+        'required': ['user', 'user_id', 'house_id', 'joined_at']
     }
     json_validator = fastjsonschema.compile(json_schema)
 
@@ -107,21 +109,23 @@ class Member(user.User):
                 raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
             else:
                 data['house_id'] = house_id
-        else:
+
+        elif not data.get('house_id') and not data.get('house'):
             raise InvalidPassedDataError("house_id and house missing from required data", data=data)
+
         data['house'] = data['house_id']
         return data
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def user_id(self) -> str:
+    def user_id(self) -> typing.Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def joined_house_at(self) -> str:
+    def joined_house_at(self) -> typing.Optional[str]:
         return getattr(self, '_joined_at', None)
 
     @property
@@ -148,15 +152,15 @@ class Member(user.User):
             return None
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def roles(self) -> typing.List[dict]:
+    def roles(self) -> typing.Optional[typing.List[dict]]:
         return getattr(self, '_roles', None)
 
     @property
-    def joined_at(self) -> str:
+    def joined_at(self) -> typing.Optional[str]:
         return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:

@@ -130,27 +130,27 @@ class LazyUser(HivenTypeObject):
         return data
 
     @property
-    def username(self) -> str:
+    def username(self) -> typing.Optional[str]:
         return getattr(self, '_username', None)
 
     @property
-    def name(self) -> str:
+    def name(self) -> typing.Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def bio(self) -> str:
+    def bio(self) -> typing.Optional[str]:
         return getattr(self, '_bio', None)
 
     @property
-    def email_verified(self) -> bool:
+    def email_verified(self) -> typing.Optional[bool]:
         return getattr(self, '_email_verified', None)
 
     @property
-    def user_flags(self) -> typing.Union[int, str]:
+    def user_flags(self) -> typing.Optional[typing.Union[int, str]]:
         return getattr(self, '_user_flags', None)
 
     @property
@@ -168,7 +168,7 @@ class LazyUser(HivenTypeObject):
             return None
     
     @property
-    def bot(self) -> bool:
+    def bot(self) -> typing.Optional[bool]:
         return getattr(self, '_bot', None)
 
 
@@ -276,25 +276,25 @@ class User(LazyUser):
         return self._client.storage['users'][self.id]
 
     @property
-    def location(self) -> str:
+    def location(self) -> typing.Optional[str]:
         return getattr(self, '_location', None)
 
     @property
-    def website(self) -> str:
+    def website(self) -> typing.Optional[str]:
         return getattr(self, '_website', None)
 
     @property
-    def presence(self) -> str:
+    def presence(self) -> typing.Optional[str]:
         return getattr(self, '_presence', None)
 
     @property
-    def email(self) -> str:
+    def email(self) -> typing.Optional[str]:
         return getattr(self, '_email', None)
 
     @property
-    def blocked(self) -> bool:
+    def blocked(self) -> typing.Optional[bool]:
         return getattr(self, '_blocked', None)
 
     @property
-    def mfa_enabled(self) -> bool:
+    def mfa_enabled(self) -> typing.Optional[bool]:
         return getattr(self, '_mfa_enabled', None)

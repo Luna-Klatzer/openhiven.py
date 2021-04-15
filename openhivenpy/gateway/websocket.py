@@ -43,14 +43,14 @@ class KeepAlive:
         self._active = False
 
     @property
-    def active(self) -> bool:
+    def active(self) -> typing.Optional[bool]:
         return getattr(self, '_active', False)
 
     @property
-    def task(self) -> asyncio.Task:
+    def task(self) -> typing.Optional[asyncio.Task]:
         return getattr(self, '_task', None)
 
-    async def run(self) -> None:
+    async def run(self) -> typing.NoReturn:
         """ Runs the current KeepAlive process in a loop that can be cancelled using `KeepAlive.stop()` """
         self._active = True
         while self.ws.open and self.active:
@@ -62,7 +62,7 @@ class KeepAlive:
             except Exception:
                 raise
 
-    async def stop(self) -> None:
+    async def stop(self) -> typing.NoReturn:
         """ Stops the running KeepAlive loop """
         if self._task:
             if self._task.cancelled():
@@ -181,7 +181,7 @@ class HivenWebSocket:
     def close_timeout(self) -> int:
         return getattr(self, '_close_timeout', None)
 
-    async def listening_loop(self) -> None:
+    async def listening_loop(self) -> typing.NoReturn:
         """ Listens infinitely for WebSocket Messages and will trigger events accordingly """
         while True:
             await self.wait_for_event()
@@ -225,7 +225,7 @@ class HivenWebSocket:
                 "[WEBSOCKET] Encountered an Exception in the Websocket!"
             )
 
-    async def received_message(self, msg: aiohttp.WSMessage) -> None:
+    async def received_message(self, msg: aiohttp.WSMessage) -> typing.NoReturn:
         """ Awaits a new incoming message and handles it """
         msg = msg.json()
         opcode, event, data = extract_event(msg)
@@ -246,7 +246,7 @@ class HivenWebSocket:
         else:
             logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {opcode}: {msg}")
 
-    async def received_init(self, msg: dict) -> None:
+    async def received_init(self, msg: dict) -> typing.NoReturn:
         """
         Receives the init message from the host and updates the client cache.
         Will shield the normal message handler from receiving events until the initialisation succeeded.
@@ -294,7 +294,7 @@ class HivenWebSocket:
             logger.warning(f"[WEBSOCKET] Received unexpected websocket message: {op}: {msg}")
             return msg
 
-    async def send_heartbeat(self) -> None:
+    async def send_heartbeat(self) -> typing.NoReturn:
         """ Sends a heartbeat with the additional op-code for keeping the connection alive"""
         try:
             await self.socket.send_str(str(json.dumps({
@@ -303,7 +303,7 @@ class HivenWebSocket:
         except Exception as e:
             raise RestartSessionError(f"Failed to send heartbeat to WebSocket host! {sys.exc_info()[0].__name__}: {e}")
 
-    async def send_auth(self) -> None:
+    async def send_auth(self) -> typing.NoReturn:
         """ Sends the authentication header to the Hiven Endpoint"""
         try:
             await self.socket.send_str(

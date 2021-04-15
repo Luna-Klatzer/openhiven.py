@@ -84,15 +84,15 @@ class DeletedMessage(HivenTypeObject):
         return data
 
     @property
-    def message_id(self) -> str:
+    def message_id(self) -> typing.Optional[str]:
         return getattr(self, '_message_id')
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id')
 
     @property
-    def room_id(self) -> str:
+    def room_id(self) -> typing.Optional[str]:
         return getattr(self, '_room_id')
 
 
@@ -295,19 +295,20 @@ class Message(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> str:
+    def id(self) -> typing.Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def author_id(self) -> str:
+    def author_id(self) -> typing.Optional[str]:
         return getattr(self, '_author_id', None)
 
+    # TODO! add fetcher and constructor
     @property
-    def author(self) -> User:
+    def author(self) -> typing.Optional[User]:
         return getattr(self, '_author', None)
 
     @property
-    def created_at(self) -> str:
+    def created_at(self) -> typing.Optional[str]:
         return getattr(self, '_created_at', None)
 
     @property
@@ -322,23 +323,25 @@ class Message(HivenTypeObject):
             return None
 
     @property
-    def type(self) -> int:
+    def type(self) -> typing.Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def exploding(self) -> bool:
+    def exploding(self) -> typing.Optional[bool]:
         return getattr(self, '_exploding', None)
 
     @property
-    def edited_at(self) -> str:
+    def edited_at(self) -> typing.Optional[str]:
         return getattr(self, '_edited_at', None)
 
+    # TODO! add fetcher and constructor
     @property
-    def room(self) -> Room:
+    def room(self) -> typing.Optional[Room]:
         return getattr(self, '_room', None)
 
+    # TODO! add fetcher and constructor
     @property
-    def house(self) -> House:
+    def house(self) -> typing.Optional[House]:
         return getattr(self, '_house', None)
 
     @property
@@ -352,36 +355,35 @@ class Message(HivenTypeObject):
             return None
 
     @property
-    def content(self) -> str:
+    def content(self) -> typing.Optional[str]:
         return getattr(self, '_content', None)
 
     @property
     def mentions(self) -> typing.Optional[typing.List[Mention]]:
         from . import Mention
-        if type(self._mentions) is str:
-            mentions = []
-            for d in self._mentions:
-                dict_ = {
-                    'timestamp': self.timestamp,
-                    'author': self.author,
-                    'user': d
-                }
-                mention_data = Mention.format_obj_data(dict_)
-                mentions.append(Mention(mention_data, client=self._client))
+        if type(self._mentions) is list:
+            if type(self._mentions[0]) is dict:
+                mentions = []
+                for d in self._mentions:
+                    dict_ = {
+                        'timestamp': self.timestamp,
+                        'author': self.author,
+                        'user': d
+                    }
+                    mention_data = Mention.format_obj_data(dict_)
+                    mentions.append(Mention(mention_data, client=self._client))
 
-            self._mentions = mentions
-            return self._mentions
-        elif type(self._mentions) is User:
+                self._mentions = mentions
             return self._mentions
         else:
             return None
 
     @property
-    def room_id(self) -> str:
+    def room_id(self) -> typing.Optional[str]:
         return getattr(self, '_room_id', None)
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
@@ -389,15 +391,15 @@ class Message(HivenTypeObject):
         return getattr(self, '_embed', None)
 
     @property
-    def bucket(self) -> int:
+    def bucket(self) -> typing.Optional[int]:
         return getattr(self, '_bucket', None)
 
     @property
-    def device_id(self) -> str:
+    def device_id(self) -> typing.Optional[str]:
         return getattr(self, '_device_id', None)
 
     @property
-    def exploding_age(self) -> int:
+    def exploding_age(self) -> typing.Optional[int]:
         return getattr(self, '_exploding_age', None)
 
     async def mark_as_read(self, delay: float = None) -> bool:

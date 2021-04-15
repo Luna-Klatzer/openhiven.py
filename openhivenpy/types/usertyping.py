@@ -110,13 +110,13 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def author_id(self) -> str:
+    def author_id(self) -> typing.Optional[str]:
         return getattr(self, '_author_id', None)
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> typing.Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def room_id(self) -> str:
+    def room_id(self) -> typing.Optional[str]:
         return getattr(self, '_room_id', None)
