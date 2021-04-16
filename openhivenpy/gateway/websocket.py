@@ -251,7 +251,7 @@ class HivenWebSocket:
         Receives the init message from the host and updates the client cache.
         Will shield the normal message handler from receiving events until the initialisation succeeded.
 
-        :returns: A List of all other events that were received during initialisation that will now need to be called
+        :return: A List of all other events that were received during initialisation that will now need to be called
         """
         await self.client.call_listeners('init', (), {})
 

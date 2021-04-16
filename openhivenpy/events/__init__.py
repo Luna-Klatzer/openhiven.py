@@ -314,7 +314,7 @@ class HivenEventHandler:
 
         :param event_name: The key/name of the event the EventListener should be listening to
         :param coro: Coroutine that should be called when the EventListener was dispatched
-        :returns: The newly created EventListener
+        :return: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:
@@ -334,7 +334,7 @@ class HivenEventHandler:
 
         :param event_name: The key/name of the event the EventListener should be listening to
         :param coro: Coroutine that should be called when the EventListener was dispatched
-        :returns: The newly created EventListener
+        :return: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:

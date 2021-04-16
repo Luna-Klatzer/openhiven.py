@@ -188,10 +188,20 @@ class LazyHouse(HivenTypeObject):
     def owner_id(self) -> typing.Optional[int]:
         return getattr(self, '_owner_id', None)
 
-    # TODO! Add constructor
     @property
     def rooms(self) -> typing.Optional[list]:
-        return getattr(self, '_rooms', None)
+        from . import Room
+        if type(self._rooms) is list:
+            if type(self._rooms[0]) is str:
+                rooms = []
+                for d in self._rooms:
+                    room_data = self._client.storage['rooms']['house'][d]
+                    rooms.append(Room(room_data, client=self._client))
+
+                self._rooms = rooms
+            return self._rooms
+        else:
+            return None
 
 
 class House(LazyHouse):
@@ -247,9 +257,11 @@ class House(LazyHouse):
     def __init__(self, data: dict, client: HivenClient):
         try:
             self._roles = data.get('roles')
+            self._roles_data = self._roles
             self._entities: list = data.get('entities')
             self._default_permissions = data.get('default_permissions')
             self._members: dict = data.get('members')
+            self._member_data = self._members
             self._client_member = data.get('client_member')
             self._banner = data.get('banner')
             self._owner = data.get('owner')
@@ -319,7 +331,7 @@ class House(LazyHouse):
         return getattr(self, '_banner', None)
 
     @property
-    def roles(self) ->  typing.Optional[list]:
+    def roles(self) -> typing.Optional[list]:
         return getattr(self, '_roles', None)
 
     @property
@@ -362,20 +374,18 @@ class House(LazyHouse):
     def default_permissions(self) -> typing.Optional[int]:
         return getattr(self, '_default_permissions', None)
 
-    def get_member(self, member_id: str) -> typing.Optional[Room]:
+    def get_member(self, member_id: str) -> typing.Optional[Member]:
         """
         Fetches a member from the cache based on the id
 
-        :returns: The Member Instance if it exists else returns None
+        :return: The Member Instance if it exists else returns None
         """
         try:
             from . import Member
-            # TODO! Create new class when fetched
-            cached_member = utils.get(self.members, id=member_id)
+
+            cached_member = self.find_member(member_id)
             if cached_member:
-                return cached_member
-            else:
-                logger.warning(f"[HOUSE] Found no member with specified id={member_id} in {repr(self)}!")
+                return Member(cached_member, self._client)
 
             return None
 
@@ -384,47 +394,60 @@ class House(LazyHouse):
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the member with id {member_id}: \n{sys.exc_info()[0].__name__}: {e}"
             )
-            # TODO! Raise exception
-            return None
+            raise
+
+    def find_member(self, member_id: str) -> typing.Optional[dict]:
+        """
+        Fetches the raw data of a member
+
+        :param member_id: The id of the member which should be fetched
+        :return: The data in the cache if it was found
+        """
+        return self._member_data.get(member_id)
 
     def get_room(self, room_id: str) -> typing.Optional[Room]:
         """
         Fetches a room from the cache based on the id
 
-        :returns: The Room Instance if it exists else returns None
+        :return: The Room Instance if it exists else returns None
         """
         try:
             from . import Room
-            # TODO! Create new class when fetched
-            cached_room = utils.get(self.rooms, id=room_id)
+            cached_room = self.find_room(room_id)
             if cached_room:
-                return cached_room
-            else:
-                logger.warning(f"[HOUSE] Found no room with specified id={room_id} in the client cache!")
+                return Room(cached_room, self._client)
 
             return None
+
         except Exception as e:
             utils.log_traceback(
                 msg="[HOUSE] Traceback:",
                 suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}")
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
             # TODO! Raise exception
             return None
+
+    def find_room(self, room_id: str) -> typing.Optional[dict]:
+        """
+        Fetches the raw data of a room
+
+        :param room_id: The id of the room which should be fetched
+        :return: The data in the cache if it was found
+        """
+        return self._client.storage['rooms']['house'].get(room_id)
 
     def get_entity(self, entity_id: str) -> typing.Optional[Entity]:
         """
         Fetches a entity from the cache based on the id
 
-        :returns: The Entity Instance if it exists else returns None
+        :return: The Entity Instance if it exists else returns None
         """
         try:
             from . import Entity
-            # TODO! Create new class when fetched
-            cached_member = utils.get(self.members, id=entity_id)
-            if cached_member:
-                return cached_member
-            else:
-                logger.warning(f"[HOUSE] Found no member with specified id={entity_id} in {repr(self)}!")
+            cached_entity = self.find_entity(entity_id)
+            if cached_entity:
+                return Entity(cached_entity, self._client)
 
             return None
 
@@ -435,6 +458,15 @@ class House(LazyHouse):
             )
             # TODO! Raise exception
             return None
+
+    def find_entity(self, entity_id: str) -> typing.Optional[dict]:
+        """
+        Fetches the raw data of a entity
+
+        :param entity_id: The id of the entity which should be fetched
+        :return: The data in the cache if it was found
+        """
+        return self._client.storage['entities'].get(entity_id)
 
     async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None) -> typing.Optional[Room]:
         """
@@ -470,7 +502,7 @@ class House(LazyHouse):
         Creates a entity in the house with the specified name.
 
         :param name: The name of the new entity
-        :returns: The newly created Entity Instance
+        :return: The newly created Entity Instance
         """
         try:
             resp = await self._client.http.post(
@@ -503,16 +535,17 @@ class House(LazyHouse):
         """
         Leaves the house
         
-        :returns: True if it was successful else False
+        :return: True if it was successful else False
         """
         try:
             await self._client.http.delete(endpoint=f"/users/@me/houses/{self.id}")
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to leave {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to leave {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             # TODO! Raise exception
             return False
 
@@ -554,14 +587,16 @@ class House(LazyHouse):
             resp = await self._client.http.post(endpoint=f"/houses/{self.id}/invites", json={"max_uses": max_uses})
             raw_data = await resp.json()
 
-            data = raw_data.get('data', {})
+            data = raw_data.get('data')
             data = Invite.format_obj_data(data)
             return Invite(data, self._client)
 
         except Exception as e:
-            utils.log_traceback(msg="[HOUSE] Traceback:",
-                                suffix=f"Failed to create invite for house '{self.name}' with id {self.id}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[HOUSE] Traceback:",
+                suffix=f"Failed to create invite for house '{self.name}' with id {self.id}: \n"
+                       f"{sys.exc_info()[0].__name__}: {e}"
+            )
             # TODO! Raise exception
             return None
 

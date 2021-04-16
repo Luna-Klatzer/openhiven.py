@@ -74,14 +74,36 @@ class TestHouse:
         })
 
     def test_init(self):
+        self.test_preparation()
         client.storage.add_or_update_house(self.data)
         house = client.get_house(self.data['id'])
         user = client.get_user(self.data['owner_id'])
         entity = client.get_entity(self.data['entities'][0]['id'])
+        room = client.get_room(self.data['rooms'][0]['id'])
 
         assert house.id == self.data['id']
         assert house.owner.id == user.id
         assert house.entities[0].id == entity.id
         assert house.members[0].id == client.id
         assert house.users[0].id == client.id
+        assert house.rooms[0].id == room.id
 
+    def test_find_functions(self):
+        self.test_preparation()
+        self.test_init()
+        house = client.get_house(self.data['id'])
+
+        assert house.entities[0].id == house.find_entity(house.entities[0].id)['id']
+        assert house.members[0].id == house.find_member(house.members[0].id)['user_id']
+        assert house.users[0].id == house.find_member(house.users[0].id)['user_id']
+        assert house.rooms[0].id == house.find_room(house.rooms[0].id)['id']
+
+    def test_get_functions(self):
+        self.test_preparation()
+        self.test_init()
+        house = client.get_house(self.data['id'])
+
+        assert house.entities[0].id == house.get_entity(house.entities[0].id).id
+        assert house.members[0].id == house.get_member(house.members[0].id).id
+        assert house.users[0].id == house.get_member(house.users[0].id).id
+        assert house.rooms[0].id == house.get_room(house.rooms[0].id).id
