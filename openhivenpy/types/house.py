@@ -292,17 +292,24 @@ class House(LazyHouse):
         :param data: Data that should be validated and used to form the object
         :return: The modified dictionary, which can then be used to create a new class instance
         """
-        data = cls.validate(data)
         data = LazyHouse.format_obj_data(data)
-        if data.get('owner_id') is not None:
-            data['owner'] = data.get('owner_id')
-        elif data['owner'].get('id') is not None:
-            data['owner'] = data['owner']['id']
-        else:
-            raise InvalidPassedDataError(
-                "The passed data does not contain a valid owner_id property or owner property containing the id value",
-                data=data
-            )
+        data = cls.validate(data)
+        
+        if not data.get('owner_id') and data.get('owner'):
+            owner = data.pop('owner')
+            if type(owner) is dict:
+                owner_id = owner.get('id')
+            elif isinstance(owner, HivenTypeObject):
+                owner_id = getattr(owner, 'id', None)
+            else:
+                owner_id = None
+
+            if owner_id is None:
+                raise InvalidPassedDataError("The passed owner is not in the correct format!", data=data)
+            else:
+                data['owner_id'] = owner_id
+
+        data['owner'] = data['owner_id']
         return data
 
     @property

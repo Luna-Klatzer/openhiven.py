@@ -3,7 +3,7 @@ name: Bug Report
 about: Create a bug report for a bug we missed.
 title: ''
 labels: bug
-assignees: Nxybi, Nicolas-Klatzer
+assignees: Nxybi, Luna-Klatzer
 
 ---
 

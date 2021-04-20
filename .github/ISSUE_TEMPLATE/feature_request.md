@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest an idea for this project
 title: ''
 labels: question, request
-assignees: Nxybi, Nicolas-Klatzer
+assignees: Nxybi, Luna-Klatzer
 
 ---
 
