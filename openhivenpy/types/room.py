@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import sys
 import asyncio
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -124,7 +124,7 @@ class Room(HivenTypeObject):
         ]
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['rooms']['house'][self.id]
 
@@ -157,19 +157,19 @@ class Room(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         from . import House
         if type(self._house) is str:
             house_id = self._house
@@ -192,22 +192,22 @@ class Room(HivenTypeObject):
             return None
 
     @property
-    def position(self) -> typing.Optional[int]:
+    def position(self) -> Optional[int]:
         return getattr(self, '_position', None)
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def emoji(self) -> typing.Optional[str]:
+    def emoji(self) -> Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property
-    def description(self) -> typing.Optional[str]:
+    def description(self) -> Optional[str]:
         return getattr(self, '_description', None)
 
-    async def send(self, content: str, delay: float = None) -> typing.Optional[Message]:
+    async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
         Sends a message in the current room.
         
@@ -282,7 +282,7 @@ class Room(HivenTypeObject):
             # TODO! Raise exception
             return False
 
-    async def get_recent_messages(self) -> typing.Optional[typing.List[Message]]:
+    async def get_recent_messages(self) -> Optional[List[Message]]:
         """
         Gets the recent messages from the current room
             

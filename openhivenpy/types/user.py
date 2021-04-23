@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sys
 import logging
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -113,7 +113,7 @@ class LazyUser(HivenTypeObject):
         return '<LazyUser {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def raw(self) -> typing.Optional[dict]:
+    def raw(self) -> Optional[dict]:
         return self._client.storage['users'][self.id]
 
     @classmethod
@@ -130,45 +130,45 @@ class LazyUser(HivenTypeObject):
         return data
 
     @property
-    def username(self) -> typing.Optional[str]:
+    def username(self) -> Optional[str]:
         return getattr(self, '_username', None)
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def bio(self) -> typing.Optional[str]:
+    def bio(self) -> Optional[str]:
         return getattr(self, '_bio', None)
 
     @property
-    def email_verified(self) -> typing.Optional[bool]:
+    def email_verified(self) -> Optional[bool]:
         return getattr(self, '_email_verified', None)
 
     @property
-    def user_flags(self) -> typing.Optional[typing.Union[int, str]]:
+    def user_flags(self) -> Optional[Union[int, str]]:
         return getattr(self, '_user_flags', None)
 
     @property
-    def icon(self) -> typing.Optional[str]:
+    def icon(self) -> Optional[str]:
         if getattr(self, '_icon', None):
             return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
         else:
             return None
 
     @property
-    def header(self) -> typing.Optional[str]:
+    def header(self) -> Optional[str]:
         if getattr(self, '_header', None):
             return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
         else:
             return None
     
     @property
-    def bot(self) -> typing.Optional[bool]:
+    def bot(self) -> Optional[bool]:
         return getattr(self, '_bot', None)
 
 
@@ -271,30 +271,30 @@ class User(LazyUser):
         data = cls.validate(data)
         return data
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['users'][self.id]
 
     @property
-    def location(self) -> typing.Optional[str]:
+    def location(self) -> Optional[str]:
         return getattr(self, '_location', None)
 
     @property
-    def website(self) -> typing.Optional[str]:
+    def website(self) -> Optional[str]:
         return getattr(self, '_website', None)
 
     @property
-    def presence(self) -> typing.Optional[str]:
+    def presence(self) -> Optional[str]:
         return getattr(self, '_presence', None)
 
     @property
-    def email(self) -> typing.Optional[str]:
+    def email(self) -> Optional[str]:
         return getattr(self, '_email', None)
 
     @property
-    def blocked(self) -> typing.Optional[bool]:
+    def blocked(self) -> Optional[bool]:
         return getattr(self, '_blocked', None)
 
     @property
-    def mfa_enabled(self) -> typing.Optional[bool]:
+    def mfa_enabled(self) -> Optional[bool]:
         return getattr(self, '_mfa_enabled', None)

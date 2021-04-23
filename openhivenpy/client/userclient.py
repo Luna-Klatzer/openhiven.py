@@ -1,8 +1,7 @@
 import asyncio
 import logging
-import os
 import sys
-import typing
+from typing import Optional, Union, overload
 
 from .hivenclient import HivenClient
 from .. import types
@@ -21,11 +20,11 @@ class UserClient(HivenClient):
     def __init__(
                 self,
                 *,
-                heartbeat: typing.Optional[int] = None,
-                loop: typing.Optional[asyncio.AbstractEventLoop] = None,
-                close_timeout: typing.Optional[int] = None,
-                receive_timeout: typing.Optional[int] = None,
-                log_ws_output: typing.Optional[bool] = False):
+                heartbeat: Optional[int] = None,
+                loop: Optional[asyncio.AbstractEventLoop] = None,
+                close_timeout: Optional[int] = None,
+                receive_timeout: Optional[int] = None,
+                log_ws_output: Optional[bool] = False):
         """
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)
@@ -60,7 +59,15 @@ class UserClient(HivenClient):
         ]
         return '<UserClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    async def cancel_friend_request(self, user: typing.Union[int, types.User] = None) -> bool:
+    @overload
+    async def cancel_friend_request(self, user: types.User) -> bool:
+        ...
+
+    @overload
+    async def cancel_friend_request(self, user: int) -> bool:
+        ...
+
+    async def cancel_friend_request(self, user) -> bool:
         """
         Cancels an open friend request if it exists
         
@@ -87,7 +94,7 @@ class UserClient(HivenClient):
             )
             raise
 
-    async def fetch_current_friend_requests(self) -> typing.Union[dict, None]:
+    async def fetch_current_friend_requests(self) -> Union[dict, None]:
         """
         Fetches all open friend requests on Hiven
         
@@ -103,13 +110,13 @@ class UserClient(HivenClient):
             if incoming_:
                 data['incoming'] = []
                 for d in incoming_:
-                    data['incoming'].append(types.LazyUser(d, self.http))
+                    data['incoming'].append(types.LazyUser(d, self))
 
             outgoing_ = data.get('outgoing')
             if outgoing_:
                 data['outgoing'] = []
                 for d in outgoing_:
-                    data['outgoing'].append(types.LazyUser(d, self.http))
+                    data['outgoing'].append(types.LazyUser(d, self))
 
             return {
                 'incoming': data['incoming'],
@@ -123,7 +130,15 @@ class UserClient(HivenClient):
             )
             raise
 
-    async def block_user(self, user: typing.Union[int, types.User] = None) -> bool:
+    @overload
+    async def block_user(self, user: types.User) -> bool:
+        ...
+
+    @overload
+    async def block_user(self, user: int) -> bool:
+        ...
+
+    async def block_user(self, user) -> bool:
         """
         Blocks a user on Hiven
 
@@ -149,7 +164,15 @@ class UserClient(HivenClient):
                 suffix=f"Failed to block user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}")
             raise
 
-    async def unblock_user(self, user: typing.Union[int, types.User] = None) -> bool:
+    @overload
+    async def unblock_user(self, user: types.User) -> bool:
+        ...
+
+    @overload
+    async def unblock_user(self, user: int) -> bool:
+        ...
+
+    async def unblock_user(self, user) -> bool:
         """
         Unblocks a user if the user is blocked
         
@@ -174,7 +197,15 @@ class UserClient(HivenClient):
                 suffix=f"Failed to unblock a user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}")
             raise
 
-    async def send_friend_request(self, user: typing.Union[int, types.User] = None) -> bool:
+    @overload
+    async def send_friend_request(self, user: types.User) -> bool:
+        ...
+
+    @overload
+    async def send_friend_request(self, user: int) -> bool:
+        ...
+
+    async def send_friend_request(self, user) -> bool:
         """
         Sends a friend request to a user
         

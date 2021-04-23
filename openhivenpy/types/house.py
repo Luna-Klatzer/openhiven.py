@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -108,7 +108,7 @@ class LazyHouse(HivenTypeObject):
         ]
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['houses'][self.id]
 
@@ -166,30 +166,30 @@ class LazyHouse(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def icon(self) -> typing.Optional[str]:
+    def icon(self) -> Optional[str]:
         if getattr(self, '_icon', None):
             return "https://media.hiven.io/v1/houses/{}/icons/{}".format(self.id, self._icon)
         else:
             return None
 
     @property
-    def owner_id(self) -> typing.Optional[int]:
+    def owner_id(self) -> Optional[int]:
         return getattr(self, '_owner_id', None)
 
     @property
-    def rooms(self) -> typing.Optional[list]:
+    def rooms(self) -> Optional[list]:
         from . import Room
         if type(self._rooms) is list:
             if type(self._rooms[0]) is str:
@@ -313,7 +313,7 @@ class House(LazyHouse):
         return data
 
     @property
-    def owner(self) -> typing.Optional[Member]:
+    def owner(self) -> Optional[Member]:
         from . import Member
         if type(self._owner) is str:
             data = self.get_cached_data()['members'].get(self._owner)
@@ -330,19 +330,19 @@ class House(LazyHouse):
             return None
 
     @property
-    def client_member(self) -> typing.Optional[Member]:
+    def client_member(self) -> Optional[Member]:
         return getattr(self, '_client_member', None)
 
     @property
-    def banner(self) -> typing.Optional[str]:
+    def banner(self) -> Optional[str]:
         return getattr(self, '_banner', None)
 
     @property
-    def roles(self) -> typing.Optional[list]:
+    def roles(self) -> Optional[list]:
         return getattr(self, '_roles', None)
 
     @property
-    def entities(self) -> typing.Optional[typing.List[Entity]]:
+    def entities(self) -> Optional[List[Entity]]:
         from . import Entity
         if type(self._entities) is list:
             if type(self._entities[0]) is str:
@@ -357,11 +357,11 @@ class House(LazyHouse):
             return None
 
     @property
-    def users(self) -> typing.Optional[typing.List[Member]]:
+    def users(self) -> Optional[List[Member]]:
         return getattr(self, 'members')
 
     @property
-    def members(self) -> typing.Optional[typing.List[Member]]:
+    def members(self) -> Optional[List[Member]]:
         from . import Member
         if type(self._members) is dict:
             entities = []
@@ -378,10 +378,10 @@ class House(LazyHouse):
             return None
 
     @property
-    def default_permissions(self) -> typing.Optional[int]:
+    def default_permissions(self) -> Optional[int]:
         return getattr(self, '_default_permissions', None)
 
-    def get_member(self, member_id: str) -> typing.Optional[Member]:
+    def get_member(self, member_id: str) -> Optional[Member]:
         """
         Fetches a member from the cache based on the id
 
@@ -403,7 +403,7 @@ class House(LazyHouse):
             )
             raise
 
-    def find_member(self, member_id: str) -> typing.Optional[dict]:
+    def find_member(self, member_id: str) -> Optional[dict]:
         """
         Fetches the raw data of a member
 
@@ -412,7 +412,7 @@ class House(LazyHouse):
         """
         return self._member_data.get(member_id)
 
-    def get_room(self, room_id: str) -> typing.Optional[Room]:
+    def get_room(self, room_id: str) -> Optional[Room]:
         """
         Fetches a room from the cache based on the id
 
@@ -435,7 +435,7 @@ class House(LazyHouse):
             # TODO! Raise exception
             return None
 
-    def find_room(self, room_id: str) -> typing.Optional[dict]:
+    def find_room(self, room_id: str) -> Optional[dict]:
         """
         Fetches the raw data of a room
 
@@ -444,7 +444,7 @@ class House(LazyHouse):
         """
         return self._client.storage['rooms']['house'].get(room_id)
 
-    def get_entity(self, entity_id: str) -> typing.Optional[Entity]:
+    def get_entity(self, entity_id: str) -> Optional[Entity]:
         """
         Fetches a entity from the cache based on the id
 
@@ -466,7 +466,7 @@ class House(LazyHouse):
             # TODO! Raise exception
             return None
 
-    def find_entity(self, entity_id: str) -> typing.Optional[dict]:
+    def find_entity(self, entity_id: str) -> Optional[dict]:
         """
         Fetches the raw data of a entity
 
@@ -475,7 +475,7 @@ class House(LazyHouse):
         """
         return self._client.storage['entities'].get(entity_id)
 
-    async def create_room(self, name: str, parent_entity_id: typing.Optional[int] = None) -> typing.Optional[Room]:
+    async def create_room(self, name: str, parent_entity_id: Optional[int] = None) -> Optional[Room]:
         """
         Creates a Room in the house with the specified name. 
         
@@ -504,7 +504,7 @@ class House(LazyHouse):
             # TODO! Raise exception
             return None
 
-    async def create_entity(self, name: str) -> typing.Optional[Entity]:
+    async def create_entity(self, name: str) -> Optional[Entity]:
         """
         Creates a entity in the house with the specified name.
 
@@ -582,7 +582,7 @@ class House(LazyHouse):
             # TODO! Raise exception
             return False
 
-    async def create_invite(self, max_uses: int) -> typing.Optional[Invite]:
+    async def create_invite(self, max_uses: int) -> Optional[Invite]:
         """
         Creates an invite for the current house. 
 
@@ -607,7 +607,7 @@ class House(LazyHouse):
             # TODO! Raise exception
             return None
 
-    async def delete(self) -> typing.Optional[str]:
+    async def delete(self) -> Optional[str]:
         """
         Deletes the house if permissions are sufficient!
         

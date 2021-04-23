@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -176,31 +176,31 @@ class Invite(HivenTypeObject):
         return data
 
     @property
-    def code(self) -> typing.Optional[int]:
+    def code(self) -> Optional[int]:
         return getattr(self, '_code', None)
 
     @property
-    def url(self) -> typing.Optional[str]:
+    def url(self) -> Optional[str]:
         return getattr(self, '_url', None)
     
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
     
     @property
-    def max_age(self) -> typing.Optional[int]:
+    def max_age(self) -> Optional[int]:
         return getattr(self, '_max_age', None)
 
     @property
-    def max_uses(self) -> typing.Optional[int]:
+    def max_uses(self) -> Optional[int]:
         return getattr(self, '_max_uses', None)
     
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
         
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         from . import House
         if type(self._house) is str:
             house_id = self._house
@@ -223,9 +223,9 @@ class Invite(HivenTypeObject):
             return None
     
     @property
-    def house_members(self) -> typing.Optional[int]:
+    def house_members(self) -> Optional[int]:
         return getattr(self, '_house_members', None)
 
     @property
-    def created_at(self) -> typing.Optional[str]:
+    def created_at(self) -> Optional[str]:
         return getattr(self, '_created_at', None)

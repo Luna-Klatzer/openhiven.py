@@ -98,22 +98,22 @@ class HTTP:
         return '<HTTP {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def token(self) -> typing.Optional[str]:
+    def token(self) -> Optional[str]:
         return getattr(self, '_token', None)
 
     @property
-    def ready(self) -> typing.Optional[bool]:
+    def ready(self) -> Optional[bool]:
         return getattr(self, '_ready', False)
 
     @property
-    def session(self) -> typing.Optional[aiohttp.ClientSession]:
+    def session(self) -> Optional[aiohttp.ClientSession]:
         return getattr(self, '_session', None)
 
     @property
-    def loop(self) -> typing.Optional[asyncio.AbstractEventLoop]:
+    def loop(self) -> Optional[asyncio.AbstractEventLoop]:
         return getattr(self, '_loop', None)
 
-    async def connect(self, token: str) -> typing.Optional[aiohttp.ClientSession]:
+    async def connect(self, token: str) -> Optional[aiohttp.ClientSession]:
         """
         Establishes for the HTTP a connection to Hiven
 
@@ -171,11 +171,11 @@ class HTTP:
             self,
             endpoint: str,
             *,
-            method: typing.Optional[str] = "GET",
-            json: typing.Optional[dict] = None,
-            timeout: typing.Optional[int] = 15,
-            headers: typing.Optional[dict] = None,  # Defaults to an empty header
-            **kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
+            method: Optional[str] = "GET",
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,  # Defaults to an empty header
+            **kwargs) -> Union[aiohttp.ClientResponse, None]:
         """
         Wrapped HTTP request for a specified endpoint.
         
@@ -194,7 +194,7 @@ class HTTP:
                                _method: str,
                                _json: dict,
                                _headers: dict,
-                               **_kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
+                               **_kwargs) -> Union[aiohttp.ClientResponse, None]:
             """
             The Function that stores the request and the handling of exceptions! Will be used as
             a variable so the status of the request can be seen by the asyncio.Task status!
@@ -289,9 +289,9 @@ class HTTP:
     async def get(self,
                   endpoint: str,
                   *,
-                  json: typing.Optional[dict] = None,
-                  timeout: typing.Optional[int] = 15,
-                  headers: typing.Optional[dict] = None,
+                  json: Optional[dict] = None,
+                  timeout: Optional[int] = 15,
+                  headers: Optional[dict] = None,
                   **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'GET' request for a specified endpoint
@@ -318,9 +318,9 @@ class HTTP:
     async def post(self,
                    endpoint: str,
                    *,
-                   json: typing.Optional[dict] = None,
-                   timeout: typing.Optional[int] = 15,
-                   headers: typing.Optional[dict] = None,
+                   json: Optional[dict] = None,
+                   timeout: Optional[int] = 15,
+                   headers: Optional[dict] = None,
                    **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'POST' for a specified endpoint.
@@ -356,9 +356,9 @@ class HTTP:
     async def delete(self,
                      endpoint: str,
                      *,
-                     json: typing.Optional[dict] = None,
-                     timeout: typing.Optional[int] = 15,
-                     headers: typing.Optional[dict] = None,
+                     json: Optional[dict] = None,
+                     timeout: Optional[int] = 15,
+                     headers: Optional[dict] = None,
                      **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'DELETE' for a specified endpoint.
@@ -385,9 +385,9 @@ class HTTP:
     async def put(self,
                   endpoint: str,
                   *,
-                  json: typing.Optional[dict] = None,
-                  timeout: typing.Optional[int] = 15,
-                  headers: typing.Optional[dict] = None,
+                  json: Optional[dict] = None,
+                  timeout: Optional[int] = 15,
+                  headers: Optional[dict] = None,
                   **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PUT' for a specified endpoint.
@@ -425,9 +425,9 @@ class HTTP:
     async def patch(self,
                     endpoint: str,
                     *,
-                    json: typing.Optional[dict] = None,
-                    timeout: typing.Optional[int] = 15,
-                    headers: typing.Optional[dict] = None,
+                    json: Optional[dict] = None,
+                    timeout: Optional[int] = 15,
+                    headers: Optional[dict] = None,
                     **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PATCH' for a specified endpoint.
@@ -463,9 +463,9 @@ class HTTP:
     async def options(self,
                       endpoint: str,
                       *,
-                      json: typing.Optional[dict] = None,
-                      timeout: typing.Optional[int] = 15,
-                      headers: typing.Optional[dict] = None,
+                      json: Optional[dict] = None,
+                      timeout: Optional[int] = 15,
+                      headers: Optional[dict] = None,
                       **kwargs) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'OPTIONS' for a specified endpoint.

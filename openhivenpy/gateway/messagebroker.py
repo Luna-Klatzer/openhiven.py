@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-
 import typing
+from functools import lru_cache
 
 from .. import utils
 
@@ -23,7 +23,7 @@ class DynamicEventBuffer(list):
         self.event = event
         super().__init__(*args, **kwargs)
 
-    def add(self, data: dict, args: tuple = None, kwargs: dict = None):
+    def add(self, data: dict, args: Optional[tuple] = None, kwargs: Optional[dict] = None):
         """
         Adds a new event to the Buffer which will trigger the listeners assigned to the event
 
@@ -77,7 +77,9 @@ class MessageBroker:
         self.event_buffers[event] = new_buffer
         return new_buffer
 
-    def get_buffer(self, event: str, args: tuple = None, kwargs: dict = None) -> DynamicEventBuffer:
+    def get_buffer(self, event: str,
+                   args: Optional[tuple] = None,
+                   kwargs: Optional[dict] = None) -> DynamicEventBuffer:
         """
         Tries to fetch a buffer from the cache. If the buffer is not found a new one will be created
 
@@ -114,12 +116,12 @@ class Worker:
     def assigned_event_buffer(self) -> DynamicEventBuffer:
         return self.message_broker.event_buffers.get(self.event)
 
-    async def gather_tasks(self, tasks: typing.List[asyncio.Task]) -> typing.NoReturn:
+    async def gather_tasks(self, tasks: List[asyncio.Task]) -> NoReturn:
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 
     @utils.wrap_with_logging
-    async def run_forever(self) -> typing.NoReturn:
+    async def run_forever(self) -> NoReturn:
         """
         Runs a loop where the worker will wait for the next event that is received.
         Does not return until the client received the close call!
@@ -133,6 +135,7 @@ class Worker:
         return
 
     @utils.wrap_with_logging
+    @lru_cache(maxsize=64)
     async def run_one_sequence(self):
         """ Fetches an event from the buffer and runs all assigned Event Listeners """
         if self.assigned_event_buffer:
@@ -148,7 +151,7 @@ class Worker:
             kwargs = event['kwargs']  # kwargs to pass to the coro
 
             # Creating a new task for every active listener
-            tasks: typing.List[asyncio.Task] = [
+            tasks: List[asyncio.Task] = [
                 asyncio.create_task(listener(*args, **kwargs)) for listener in listeners
             ]
 

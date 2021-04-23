@@ -1,7 +1,6 @@
 import asyncio
 import logging
-import os
-import typing
+from typing import Optional
 
 from .hivenclient import HivenClient
 
@@ -17,11 +16,11 @@ class BotClient(HivenClient):
     def __init__(
                 self,
                 *,
-                heartbeat: typing.Optional[int] = None,
-                loop: typing.Optional[asyncio.AbstractEventLoop] = None,
-                close_timeout: typing.Optional[int] = None,
-                receive_timeout: typing.Optional[int] = None,
-                log_ws_output: typing.Optional[bool] = False):
+                heartbeat: Optional[int] = None,
+                loop: Optional[asyncio.AbstractEventLoop] = None,
+                close_timeout: Optional[int] = None,
+                receive_timeout: Optional[int] = None,
+                log_ws_output: Optional[bool] = False):
         """
         :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
                           Defaults to the pre-set environment heartbeat (30000)

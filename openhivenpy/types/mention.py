@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -114,7 +114,7 @@ class Mention(HivenTypeObject):
         return data
 
     @property
-    def timestamp(self) -> typing.Optional[datetime.datetime]:
+    def timestamp(self) -> Optional[datetime.datetime]:
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
             self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
@@ -125,7 +125,7 @@ class Mention(HivenTypeObject):
             return None
     
     @property
-    def user(self) -> typing.Optional[User]:
+    def user(self) -> Optional[User]:
         if type(self._user) is str:
             user_id = self._user
         elif type(self.user_id) is str:
@@ -147,11 +147,11 @@ class Mention(HivenTypeObject):
             return None
 
     @property
-    def user_id(self) -> typing.Optional[str]:
+    def user_id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def author(self) -> typing.Optional[User]:
+    def author(self) -> Optional[User]:
         if type(self._author) is str:
             author_id = self._author
         elif type(self.author_id) is str:
@@ -173,5 +173,5 @@ class Mention(HivenTypeObject):
             return None
 
     @property
-    def author_id(self) -> typing.Optional[str]:
+    def author_id(self) -> Optional[str]:
         return getattr(self, '_author_id', None)

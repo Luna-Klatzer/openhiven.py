@@ -38,7 +38,7 @@ class ClientCache(dict):
             'read_state': dict()
         })
 
-    def check_if_initialised(self):
+    def check_if_initialised(self) -> bool:
         if self.get('client_user', None) is not None:
             return True
         else:

@@ -5,7 +5,7 @@ import datetime
 import logging
 import sys
 import asyncio
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -84,15 +84,15 @@ class DeletedMessage(HivenTypeObject):
         return data
 
     @property
-    def message_id(self) -> typing.Optional[str]:
+    def message_id(self) -> Optional[str]:
         return getattr(self, '_message_id')
 
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id')
 
     @property
-    def room_id(self) -> typing.Optional[str]:
+    def room_id(self) -> Optional[str]:
         return getattr(self, '_room_id')
 
 
@@ -295,24 +295,24 @@ class Message(HivenTypeObject):
         return data
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def author_id(self) -> typing.Optional[str]:
+    def author_id(self) -> Optional[str]:
         return getattr(self, '_author_id', None)
 
     # TODO! add fetcher and constructor
     @property
-    def author(self) -> typing.Optional[User]:
+    def author(self) -> Optional[User]:
         return getattr(self, '_author', None)
 
     @property
-    def created_at(self) -> typing.Optional[str]:
+    def created_at(self) -> Optional[str]:
         return getattr(self, '_created_at', None)
 
     @property
-    def timestamp(self) -> typing.Optional[datetime.datetime]:
+    def timestamp(self) -> Optional[datetime.datetime]:
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
             self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
@@ -323,29 +323,29 @@ class Message(HivenTypeObject):
             return None
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def exploding(self) -> typing.Optional[bool]:
+    def exploding(self) -> Optional[bool]:
         return getattr(self, '_exploding', None)
 
     @property
-    def edited_at(self) -> typing.Optional[str]:
+    def edited_at(self) -> Optional[str]:
         return getattr(self, '_edited_at', None)
 
     # TODO! add fetcher and constructor
     @property
-    def room(self) -> typing.Optional[Room]:
+    def room(self) -> Optional[Room]:
         return getattr(self, '_room', None)
 
     # TODO! add fetcher and constructor
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         return getattr(self, '_house', None)
 
     @property
-    def attachment(self) -> typing.Optional[Attachment]:
+    def attachment(self) -> Optional[Attachment]:
         if type(self._attachment) is dict:
             self._attachment = Attachment(data=self._attachment, client=self._client)
             return self._attachment
@@ -355,11 +355,11 @@ class Message(HivenTypeObject):
             return None
 
     @property
-    def content(self) -> typing.Optional[str]:
+    def content(self) -> Optional[str]:
         return getattr(self, '_content', None)
 
     @property
-    def mentions(self) -> typing.Optional[typing.List[Mention]]:
+    def mentions(self) -> Optional[List[Mention]]:
         from . import Mention
         if type(self._mentions) is list:
             if type(self._mentions[0]) is dict:
@@ -379,11 +379,11 @@ class Message(HivenTypeObject):
             return None
 
     @property
-    def room_id(self) -> typing.Optional[str]:
+    def room_id(self) -> Optional[str]:
         return getattr(self, '_room_id', None)
 
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
@@ -391,15 +391,15 @@ class Message(HivenTypeObject):
         return getattr(self, '_embed', None)
 
     @property
-    def bucket(self) -> typing.Optional[int]:
+    def bucket(self) -> Optional[int]:
         return getattr(self, '_bucket', None)
 
     @property
-    def device_id(self) -> typing.Optional[str]:
+    def device_id(self) -> Optional[str]:
         return getattr(self, '_device_id', None)
 
     @property
-    def exploding_age(self) -> typing.Optional[int]:
+    def exploding_age(self) -> Optional[int]:
         return getattr(self, '_exploding_age', None)
 
     async def mark_as_read(self, delay: float = None) -> bool:

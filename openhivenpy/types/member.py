@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -117,19 +117,19 @@ class Member(user.User):
         return data
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def user_id(self) -> typing.Optional[str]:
+    def user_id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def joined_house_at(self) -> typing.Optional[str]:
+    def joined_house_at(self) -> Optional[str]:
         return getattr(self, '_joined_at', None)
 
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         from . import House
         if type(self._house) is str:
             house_id = self._house
@@ -152,15 +152,15 @@ class Member(user.User):
             return None
 
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def roles(self) -> typing.Optional[typing.List[dict]]:
+    def roles(self) -> Optional[List[dict]]:
         return getattr(self, '_roles', None)
 
     @property
-    def joined_at(self) -> typing.Optional[str]:
+    def joined_at(self) -> Optional[str]:
         return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:

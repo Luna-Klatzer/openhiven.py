@@ -76,7 +76,7 @@ class DispatchEventListener:
     def event_name(self) -> str:
         return getattr(self, '_event_name', None)
 
-    def __call__(self, *args, **kwargs) -> typing.Coroutine:
+    def __call__(self, *args, **kwargs) -> Coroutine:
         """
         Dispatches the EventListener and calls a coroutine if one was passed
 
@@ -85,7 +85,7 @@ class DispatchEventListener:
         :param kwargs: Kwargs that will be passed to the coroutine
         :return: Returns the passed event_data
         """
-        dispatch: typing.Callable = getattr(self, 'dispatch')
+        dispatch: Callable = getattr(self, 'dispatch')
         return dispatch(*args, **kwargs)
 
 
@@ -117,7 +117,7 @@ def remove_listener(client: HivenClient, listener: DispatchEventListener):
 
 class SingleDispatchEventListener(DispatchEventListener):
     """ EventListener Class that will be called only once and will store the events data, args and kwargs """
-    def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
+    def __init__(self, client, event_name: str, coro: Union[Callable, Coroutine, None]):
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f"A coroutine was expected, got {type(coro)}")
         self.coro = coro
@@ -150,7 +150,7 @@ class SingleDispatchEventListener(DispatchEventListener):
     def kwargs(self) -> dict:
         return getattr(self, '_kwargs')
 
-    async def dispatch(self, *args, **kwargs) -> typing.NoReturn:
+    async def dispatch(self, *args, **kwargs) -> NoReturn:
         """
         Dispatches the EventListener and calls a coroutine if one was passed
 
@@ -174,7 +174,7 @@ class SingleDispatchEventListener(DispatchEventListener):
 
 class MultiDispatchEventListener(DispatchEventListener):
     """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
-    def __init__(self, client, event_name: str, coro: typing.Union[typing.Callable, typing.Coroutine, None]):
+    def __init__(self, client, event_name: str, coro: Union[Callable, Coroutine, None]):
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f"A coroutine was expected, got {type(coro)}")
         self.coro = coro
@@ -190,7 +190,7 @@ class MultiDispatchEventListener(DispatchEventListener):
         ]
         return '<MultiDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    async def dispatch(self, *args, **kwargs) -> typing.NoReturn:
+    async def dispatch(self, *args, **kwargs) -> NoReturn:
         """
         Dispatches the EventListener and calls a coroutine if one was passed.
         Does not raise exceptions but silences them!
@@ -230,15 +230,15 @@ class HivenEventHandler:
                 logger.debug(f"[EVENTS] Event {listener[0]} registered")
 
     @property
-    def active_listeners(self) -> typing.Dict[str, typing.List[DispatchEventListener]]:
+    def active_listeners(self) -> Dict[str, List[DispatchEventListener]]:
         return getattr(self, '_active_listeners')
 
     @property
-    def available_events(self) -> typing.List[str]:
+    def available_events(self) -> List[str]:
         return getattr(self, '_available_events')
 
     @property
-    def non_buffer_events(self) -> typing.List[str]:
+    def non_buffer_events(self) -> List[str]:
         return getattr(self, '_non_buffer_events')
 
     async def call_listeners(self, event_name: str, args: tuple, kwargs: dict):
@@ -254,7 +254,7 @@ class HivenEventHandler:
         :param args: Args that will be passed to the coroutines
         :param kwargs: Kwargs that will be passed to the coroutines
         """
-        listeners: typing.List[DispatchEventListener] = self._active_listeners.get(
+        listeners: List[DispatchEventListener] = self._active_listeners.get(
             event_name.lower().replace('on_', '')
         )
         if listeners:
@@ -263,7 +263,7 @@ class HivenEventHandler:
 
     async def wait_for(self,
                        event_name: str,
-                       coro: typing.Union[typing.Callable, typing.Coroutine, None] = None) -> (list, dict):
+                       coro: Union[Callable, Coroutine, None] = None) -> (list, dict):
         """
         Waits for an event to be triggered and then returns the *args and **kwargs passed
 
@@ -281,13 +281,13 @@ class HivenEventHandler:
 
         return listener.args, listener.kwargs
 
-    def event(self, coro: typing.Union[typing.Callable, typing.Coroutine] = None) -> typing.Callable:
+    def event(self, coro: Union[Callable, Coroutine] = None) -> Callable:
         """
         Decorator used for registering Client Events
 
         :param coro: Function that should be wrapped and registered
         """
-        def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
+        def decorator(coro: Union[Callable, Coroutine]) -> Callable:
             if not inspect.iscoroutinefunction(coro):
                 raise TypeError(f"A coroutine was expected, got {type(coro)}")
 
@@ -307,8 +307,8 @@ class HivenEventHandler:
 
     def add_multi_listener(self,
                            event_name: str,
-                           coro: typing.Union[typing.Callable,
-                                              typing.Coroutine]) -> MultiDispatchEventListener:
+                           coro: Union[Callable,
+                                              Coroutine]) -> MultiDispatchEventListener:
         """
         Adds a new event listener to the list of active listeners
 
@@ -327,8 +327,8 @@ class HivenEventHandler:
 
     def add_single_listener(self,
                             event_name: str,
-                            coro: typing.Union[typing.Callable,
-                                               typing.Coroutine]) -> SingleDispatchEventListener:
+                            coro: Union[Callable,
+                                               Coroutine]) -> SingleDispatchEventListener:
         """
         Adds a new single dispatch event listener to the list of active listeners
 

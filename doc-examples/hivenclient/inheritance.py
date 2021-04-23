@@ -27,7 +27,7 @@ class Bot(hiven.UserClient):
         print(f"{member.name} joined {house.name}")
 
     async def on_typing_start(self, typing):
-        print(f"{typing.author.name} started typing ...")
+        print(f"{author.name} started typing ...")
 
     async def on_member_update(self, old, new, house):
         print(f"Member {old.name} of house {house.name} updated their account")

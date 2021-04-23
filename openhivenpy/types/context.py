@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import datetime
 
 import fastjsonschema
@@ -139,7 +139,7 @@ class Context(HivenTypeObject):
         return data
 
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         from . import House
         if type(self._house) is str:
             data = self._client.storage['houses'].get(self._house)
@@ -155,7 +155,7 @@ class Context(HivenTypeObject):
             return None
 
     @property
-    def room(self) -> typing.Optional[Room]:
+    def room(self) -> Optional[Room]:
         from . import Room
         if type(self._room) is str:
             data = self._client.storage['rooms']['house'].get(self._room)
@@ -171,7 +171,7 @@ class Context(HivenTypeObject):
             return None
 
     @property
-    def author(self) -> typing.Optional[User]:
+    def author(self) -> Optional[User]:
         from . import User
         if type(self._author) is str:
             data = self._client.storage['users'].get(self._author)
@@ -187,7 +187,7 @@ class Context(HivenTypeObject):
             return None
 
     @property
-    def timestamp(self) -> typing.Optional[datetime.datetime]:
+    def timestamp(self) -> Optional[datetime.datetime]:
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
             self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)

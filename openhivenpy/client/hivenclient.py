@@ -3,7 +3,7 @@ import datetime
 import sys
 import os
 import logging
-import typing
+from typing import Optional, NoReturn
 from asyncio import AbstractEventLoop
 
 from ..settings import load_env_vars
@@ -50,42 +50,42 @@ class HivenClient(HivenEventHandler):
         return '<HivenClient {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def storage(self) -> typing.Optional[ClientCache]:
+    def storage(self) -> Optional[ClientCache]:
         return getattr(self, '_storage', None)
 
     @property
-    def token(self) -> typing.Optional[str]:
+    def token(self) -> Optional[str]:
         return self.storage.get('token')
 
     @property
-    def client_type(self) -> typing.Optional[bool]:
+    def client_type(self) -> Optional[bool]:
         return getattr(self, '_CLIENT_TYPE', False)
 
     @property
-    def log_ws_output(self) -> typing.Optional[str]:
+    def log_ws_output(self) -> Optional[str]:
         return self.storage.get('log_ws_output', None)
 
     @property
-    def http(self) -> typing.Optional[HTTP]:
+    def http(self) -> Optional[HTTP]:
         return getattr(self.connection, 'http', None)
 
     @property
-    def connection(self) -> typing.Optional[Connection]:
+    def connection(self) -> Optional[Connection]:
         return getattr(self, '_connection', None)
 
     @property
-    def queue_events(self) -> typing.Optional[bool]:
+    def queue_events(self) -> Optional[bool]:
         return getattr(self, '_queue_events', None)
 
     @property
-    def loop(self) -> typing.Optional[asyncio.AbstractEventLoop]:
+    def loop(self) -> Optional[asyncio.AbstractEventLoop]:
         return getattr(self, '_loop', None)
 
     def run(self,
             token: str,
             *,
-            loop: typing.Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
-            restart: bool = False) -> typing.NoReturn:
+            loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+            restart: bool = False) -> NoReturn:
         """
         Standard function for establishing a connection to Hiven
 
@@ -131,7 +131,7 @@ class HivenClient(HivenEventHandler):
                 f"Failed to keep alive connection to Hiven: {sys.exc_info()[0].__name__}: {e}"
             )
 
-    async def close(self) -> typing.NoReturn:
+    async def close(self) -> NoReturn:
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
         await self.connection.close()
         logger.debug("[HIVENCLIENT] Closing the connection! The WebSocket will stop shortly!")
@@ -142,23 +142,23 @@ class HivenClient(HivenEventHandler):
         return self._client_user
 
     @property
-    def open(self) -> typing.Optional[bool]:
+    def open(self) -> Optional[bool]:
         return getattr(self.connection, 'open', False)
 
     @property
-    def connection_status(self) -> typing.Optional[int]:
+    def connection_status(self) -> Optional[int]:
         return getattr(self.connection, 'connection_status', None)
 
     @property
-    def startup_time(self) -> typing.Optional[int]:
+    def startup_time(self) -> Optional[int]:
         return getattr(self.connection, 'startup_time', None)
 
     @property
-    def message_broker(self) -> typing.Optional[MessageBroker]:
+    def message_broker(self) -> Optional[MessageBroker]:
         return getattr(self.connection.ws, 'message_broker', None)
 
     @property
-    def initialised(self) -> typing.Optional[bool]:
+    def initialised(self) -> Optional[bool]:
         return getattr(self.connection.ws, '_open', False)
 
     async def edit(self, **kwargs) -> bool:
@@ -191,7 +191,7 @@ class HivenClient(HivenEventHandler):
             raise
 
     @property
-    def client_user(self) -> typing.Optional[types.User]:
+    def client_user(self) -> Optional[types.User]:
         if getattr(self, '_client_user', None) is None:
             if self.storage['client_user']:
                 return self._init_client_user()
@@ -201,46 +201,46 @@ class HivenClient(HivenEventHandler):
             return getattr(self, '_client_user')
 
     @property
-    def username(self) -> typing.Optional[str]:
+    def username(self) -> Optional[str]:
         return getattr(self.client_user, 'username', None)
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         return getattr(self.client_user, 'name', None)
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self.client_user, 'id', None)
 
     @property
-    def icon(self) -> typing.Optional[str]:
+    def icon(self) -> Optional[str]:
         return getattr(self.client_user, 'icon', None)
 
     @property
-    def header(self) -> typing.Optional[str]:
+    def header(self) -> Optional[str]:
         return getattr(self.client_user, 'header', None)
 
     @property
-    def bot(self) -> typing.Optional[bool]:
+    def bot(self) -> Optional[bool]:
         return getattr(self.client_user, 'bot', None)
 
     @property
-    def location(self) -> typing.Optional[str]:
+    def location(self) -> Optional[str]:
         return getattr(self.client_user, 'location', None)
 
     @property
-    def website(self) -> typing.Optional[str]:
+    def website(self) -> Optional[str]:
         return getattr(self.client_user, 'website', None)
 
     @property
-    def presence(self) -> typing.Optional[str]:
+    def presence(self) -> Optional[str]:
         return getattr(self.client_user, 'presence', None)
 
     @property
-    def joined_at(self) -> typing.Optional[datetime.datetime]:
+    def joined_at(self) -> Optional[datetime.datetime]:
         return getattr(self.client_user, 'joined_at', None)
 
-    def get_user(self, user_id: str) -> typing.Optional[types.User]:
+    def get_user(self, user_id: str) -> Optional[types.User]:
         """
         Fetches a User instance from the cache based on the passed id
 
@@ -258,7 +258,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_user(self, user_id: str) -> typing.Optional[dict]:
+    def find_user(self, user_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -275,7 +275,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_house(self, house_id: str) -> typing.Optional[types.House]:
+    def get_house(self, house_id: str) -> Optional[types.House]:
         """
         Fetches a House from the cache based on the passed id
 
@@ -293,7 +293,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_house(self, house_id: str) -> typing.Optional[dict]:
+    def find_house(self, house_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -310,7 +310,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_entity(self, entity_id: str) -> typing.Optional[types.Entity]:
+    def get_entity(self, entity_id: str) -> Optional[types.Entity]:
         """
         Fetches a Entity instance from the cache based on the passed id
 
@@ -328,7 +328,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_entity(self, entity_id: str) -> typing.Optional[dict]:
+    def find_entity(self, entity_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -345,7 +345,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_room(self, room_id: str) -> typing.Optional[types.Room]:
+    def get_room(self, room_id: str) -> Optional[types.Room]:
         """
         Fetches a Room from the cache based on the passed id
 
@@ -363,7 +363,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_room(self, room_id: str) -> typing.Optional[dict]:
+    def find_room(self, room_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -380,7 +380,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_private_room(self, room_id: str) -> typing.Optional[types.PrivateRoom]:
+    def get_private_room(self, room_id: str) -> Optional[types.PrivateRoom]:
         """
         Fetches a single PrivateRoom from the cache based on the passed id
 
@@ -398,7 +398,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_private_room(self, room_id: str) -> typing.Optional[dict]:
+    def find_private_room(self, room_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -415,7 +415,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_private_group_room(self, room_id: str) -> typing.Optional[types.PrivateGroupRoom]:
+    def get_private_group_room(self, room_id: str) -> Optional[types.PrivateGroupRoom]:
         """
         Fetches a multi PrivateGroupRoom from the cache based on the passed id
 
@@ -433,7 +433,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_private_group_room(self, room_id: str) -> typing.Optional[dict]:
+    def find_private_group_room(self, room_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 
@@ -450,7 +450,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_relationship(self, user_id: str) -> typing.Optional[types.Relationship]:
+    def get_relationship(self, user_id: str) -> Optional[types.Relationship]:
         """
         Fetches a Relationship instance from the cache based on the passed id
 
@@ -468,7 +468,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def find_relationship(self, user_id: str) -> typing.Optional[dict]:
+    def find_relationship(self, user_id: str) -> Optional[dict]:
         """
         Fetches a dictionary from the cache based on the passed id
 

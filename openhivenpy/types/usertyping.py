@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 import logging
 import sys
-import typing
+from typing import Optional
 
 from . import HivenTypeObject, House, Room, User
 from .. import utils
@@ -54,7 +54,7 @@ class UserTyping(HivenTypeObject):
         return '<Typing {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def timestamp(self) -> typing.Optional[datetime.datetime]:
+    def timestamp(self) -> Optional[datetime.datetime]:
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
             self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
@@ -65,7 +65,7 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def author(self) -> typing.Optional[User]:
+    def author(self) -> Optional[User]:
         if type(self._author) is str:
             data = self._client.storage['users'].get(self._author)
             if data:
@@ -80,7 +80,7 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         if type(self._house) is str:
             data = self._client.storage['houses'].get(self._house)
             if data:
@@ -95,7 +95,7 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def room(self) -> typing.Optional[Room]:
+    def room(self) -> Optional[Room]:
         if type(self._room) is str:
             data = self._client.storage['rooms']['house'].get(self._room)
             if data:
@@ -110,13 +110,13 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def author_id(self) -> typing.Optional[str]:
+    def author_id(self) -> Optional[str]:
         return getattr(self, '_author_id', None)
 
     @property
-    def house_id(self) -> typing.Optional[str]:
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def room_id(self) -> typing.Optional[str]:
+    def room_id(self) -> Optional[str]:
         return getattr(self, '_room_id', None)

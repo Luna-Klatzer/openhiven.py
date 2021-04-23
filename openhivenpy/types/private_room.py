@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import sys
 import asyncio
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -110,7 +110,7 @@ class PrivateGroupRoom(HivenTypeObject):
         ]
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['rooms']['private']['multi'][self.id]
 
@@ -137,11 +137,11 @@ class PrivateGroupRoom(HivenTypeObject):
         return data
 
     @property
-    def client_user(self) -> typing.Optional[User]:
+    def client_user(self) -> Optional[User]:
         return getattr(self, '_client_user', None)
 
     @property
-    def recipients(self) -> typing.Optional[typing.List[User]]:
+    def recipients(self) -> Optional[List[User]]:
         from . import User
         if utils.convertible(int, self._recipients):
             recipients = []
@@ -161,30 +161,30 @@ class PrivateGroupRoom(HivenTypeObject):
             return None
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def last_message_id(self) -> typing.Optional[str]:
+    def last_message_id(self) -> Optional[str]:
         return getattr(self, '_last_message_id', None)
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         return getattr(self, '_name', None)
 
     @property
-    def description(self) -> typing.Optional[int]:
+    def description(self) -> Optional[int]:
         return getattr(self, '_description', None)
 
     @property
-    def emoji(self) -> typing.Optional[str]:
+    def emoji(self) -> Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
-    async def send(self, content: str, delay: float = None) -> typing.Optional[Message]:
+    async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
         Sends a message in the private room.
 
@@ -274,7 +274,7 @@ class PrivateRoom(HivenTypeObject):
         ]
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['rooms']['private']['single'][self.id]
 
@@ -323,7 +323,7 @@ class PrivateRoom(HivenTypeObject):
         return data
 
     @property
-    def name(self) -> typing.Optional[str]:
+    def name(self) -> Optional[str]:
         if type(self._name) is None:
             self._name = f"Private chat with {self.recipient.name}"
             return self._name
@@ -333,15 +333,15 @@ class PrivateRoom(HivenTypeObject):
             return None
 
     @property
-    def client_user(self) -> typing.Optional[User]:
+    def client_user(self) -> Optional[User]:
         return getattr(self, '_client_user', None)
 
     @property
-    def recipient_id(self) -> typing.Optional[str]:
+    def recipient_id(self) -> Optional[str]:
         return getattr(self, '_recipient_id', None)
 
     @property
-    def recipient(self) -> typing.Optional[User]:
+    def recipient(self) -> Optional[User]:
         from . import User
         if type(self._recipient) is str:
             recipient_id = self._recipient
@@ -364,23 +364,23 @@ class PrivateRoom(HivenTypeObject):
             return None
     
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
 
     @property
-    def description(self) -> typing.Optional[str]:
+    def description(self) -> Optional[str]:
         return getattr(self, '_description', None)
 
     @property
-    def emoji(self) -> typing.Optional[str]:
+    def emoji(self) -> Optional[str]:
         return getattr(self, '_emoji', None)
 
     @property
-    def last_message_id(self) -> typing.Optional[str]:
+    def last_message_id(self) -> Optional[str]:
         return getattr(self, '_last_message_id', None)
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
     
     async def start_call(self, delay: float = None) -> bool:
@@ -410,7 +410,7 @@ class PrivateRoom(HivenTypeObject):
             )
             return False             
 
-    async def send(self, content: str, delay: float = None) -> typing.Optional[Message]:
+    async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
         Sends a message in the private room. 
 

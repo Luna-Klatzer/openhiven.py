@@ -36,8 +36,8 @@ from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFai
 import sys
 import logging
 import os
-import typing
 import asyncio
+from typing import Optional, NoReturn
 from yarl import URL
 
 logger = logging.getLogger(__name__)
@@ -56,11 +56,11 @@ class Connection:
     def __init__(self,
                  client,
                  *,
-                 host: typing.Optional[str] = DEFAULT_HOST,
-                 api_version: typing.Optional[str] = DEFAULT_API_VERSION,
-                 heartbeat: typing.Optional[int] = DEFAULT_HEARTBEAT,
-                 close_timeout: typing.Optional[int] = DEFAULT_CLOSE_TIMEOUT,
-                 loop: typing.Optional[asyncio.AbstractEventLoop] = None):
+                 host: Optional[str] = DEFAULT_HOST,
+                 api_version: Optional[str] = DEFAULT_API_VERSION,
+                 heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
+                 close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT,
+                 loop: Optional[asyncio.AbstractEventLoop] = None):
         self.client = client
         self.http = None
         self.host = host
@@ -96,30 +96,30 @@ class Connection:
         ))
 
     @property
-    def connection_status(self) -> typing.Optional[str]:
+    def connection_status(self) -> Optional[str]:
         return getattr(self, '_connection_status', None)
 
     @property
-    def endpoint(self) -> typing.Optional[URL]:
+    def endpoint(self) -> Optional[URL]:
         return getattr(self, '_endpoint', None)
 
     @property
-    def startup_time(self) -> typing.Optional[int]:
+    def startup_time(self) -> Optional[int]:
         return getattr(self.ws, '_startup_time', None)
 
     @property
-    def ws(self) -> typing.Optional[HivenWebSocket]:
+    def ws(self) -> Optional[HivenWebSocket]:
         return getattr(self, '_ws', None)
 
     @property
-    def heartbeat(self) -> typing.Optional[int]:
+    def heartbeat(self) -> Optional[int]:
         return getattr(self, '_heartbeat', None)
 
     @property
-    def close_timeout(self) -> typing.Optional[int]:
+    def close_timeout(self) -> Optional[int]:
         return getattr(self, '_close_timeout', None)
 
-    async def connect(self, token: str, restart: bool) -> typing.NoReturn:
+    async def connect(self, token: str, restart: bool) -> NoReturn:
         """ Establishes a connection to Hiven and runs the background processes """
         try:
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version, loop=self.loop)
@@ -175,7 +175,7 @@ class Connection:
         else:
             await self.http.close()
 
-    async def close(self, force: bool = False) -> typing.NoReturn:
+    async def close(self, force: bool = False) -> NoReturn:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 

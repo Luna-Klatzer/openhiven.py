@@ -29,7 +29,7 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-import typing
+from typing import Optional
 import inspect
 import types
 from functools import wraps
@@ -63,14 +63,14 @@ __all__ = [
 ]
 
 
-def check_valid(func: typing.Callable = None) -> typing.Callable:
+def check_valid(func: Callable = None) -> Callable:
     """
     Adds an additional try-except clause for logging and exception handling
 
     :param func: Function that should be wrapped
     """
 
-    def decorator(func_: typing.Callable) -> typing.Any:
+    def decorator(func_: Callable) -> Any:
         @wraps(func_)
         def wrapper(*args, **kwargs):
             if inspect.iscoroutinefunction(func_):

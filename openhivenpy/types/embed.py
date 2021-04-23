@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import sys
 import fastjsonschema
-import typing
+from typing import Optional
 
 from .. import utils
 from . import HivenTypeObject, check_valid
@@ -81,21 +81,21 @@ class Embed(HivenTypeObject):
         return cls.validate(data)
 
     @property
-    def url(self) -> typing.Optional[str]:
+    def url(self) -> Optional[str]:
         return getattr(self, '_url', None)
     
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
     
     @property 
-    def title(self) -> typing.Optional[str]:
+    def title(self) -> Optional[str]:
         return getattr(self, '_title', None)
 
     @property 
-    def image(self) -> typing.Optional[str]:
+    def image(self) -> Optional[str]:
         return getattr(self, '_image', None)
     
     @property
-    def description(self) -> typing.Optional[str]:
+    def description(self) -> Optional[str]:
         return getattr(self, '_description', None)

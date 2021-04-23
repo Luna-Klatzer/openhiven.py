@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import sys
-import typing
+from typing import Awaitable, Union, NoReturn, Callable
 
 __all__ = ['StartupTasks', 'BackgroundTasks', 'ExecutionLoop']
 
@@ -61,7 +61,7 @@ class ExecutionLoop:
         """
         return self._startup_finished
 
-    async def start(self) -> typing.NoReturn:
+    async def start(self) -> NoReturn:
         """
         Starts the current execution_loop!
 
@@ -145,7 +145,7 @@ class ExecutionLoop:
             self._active = False
             return
 
-    async def stop(self) -> typing.NoReturn:
+    async def stop(self) -> NoReturn:
         """ Forces the current execution_loop to stop! """
         try:
             if not self.running_loop.cancelled():
@@ -168,7 +168,7 @@ class ExecutionLoop:
         finally:
             return
 
-    def add_to_loop(self, coro: typing.Awaitable = None):
+    def add_to_loop(self, coro: Awaitable = None):
         """
         Decorator used for registering Tasks for the execution_loop
 
@@ -178,27 +178,27 @@ class ExecutionLoop:
 
         :param coro: Function that should be wrapped and then executed in the Execution Loop
         """
-        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]) -> typing.Callable:
-            @wraps(coro)
+        def decorator(wrapper_coro: Union[Callable, Awaitable]) -> Callable:
+            @wraps(wrapper_coro)
             async def wrapper():
                 # Sleeping to avoid too many executions at once
                 await asyncio.sleep(0.05)
-                return await coro
+                return await wrapper_coro
 
             if getattr(self.background_tasks_handler, 'func_.__name__', None) is None:
-                setattr(self.background_tasks_handler, coro.__name__, wrapper)
-            self.background_tasks.append(coro.__name__)
+                setattr(self.background_tasks_handler, wrapper_coro.__name__, wrapper)
+            self.background_tasks.append(wrapper_coro.__name__)
 
-            logger.debug(f"[EXEC-LOOP] >> Task {coro.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Task {wrapper_coro.__name__} added to loop")
 
-            return coro  # returning func so it still can be used outside the class
+            return wrapper_coro  # returning func so it still can be used outside the class
 
         if coro is None:
             return decorator
         else:
             return decorator(coro)
 
-    def add_to_startup(self, coro: typing.Awaitable = None):
+    def add_to_startup(self, coro: Awaitable = None):
         """
         Decorator used for registering Startup Tasks for the execution_loop
 
@@ -208,18 +208,18 @@ class ExecutionLoop:
 
         :param coro: Function that should be wrapped and then executed at startup in the Execution Loop
         """
-        def decorator(coro: typing.Union[typing.Callable, typing.Awaitable]) -> typing.Callable:
-            @wraps(coro)
+        def decorator(wrapper_coro: Union[Callable, Awaitable]) -> Callable:
+            @wraps(wrapper_coro)
             async def wrapper():
-                return await coro
+                return await wrapper_coro
 
             if getattr(self.startup_tasks_handler, 'func_.__name__', None) is None:
-                setattr(self.startup_tasks_handler, coro.__name__, wrapper)
-            self.startup_tasks.append(coro.__name__)
+                setattr(self.startup_tasks_handler, wrapper_coro.__name__, wrapper)
+            self.startup_tasks.append(wrapper_coro.__name__)
 
-            logger.debug(f"[EXEC-LOOP] >> Startup Task {coro.__name__} added to loop")
+            logger.debug(f"[EXEC-LOOP] >> Startup Task {wrapper_coro.__name__} added to loop")
 
-            return coro  # returning func so it still can be used outside the class
+            return wrapper_coro  # returning func so it still can be used outside the class
 
         if coro is None:
             return decorator

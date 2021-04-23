@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -90,7 +90,7 @@ class Entity(HivenTypeObject):
         ]
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['entities'].get(self.id)
 
@@ -127,11 +127,11 @@ class Entity(HivenTypeObject):
         return data
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def resource_pointers(self) -> typing.Optional[typing.List[Room, dict]]:
+    def resource_pointers(self) -> Optional[List[Room, dict]]:
         """ Objects contained inside the entity. If dict is returned it's a type that is not yet included in the lib """
         from . import Room
         if type(self._resource_pointers) is list and len(self._resource_pointers) > 0:
@@ -172,7 +172,7 @@ class Entity(HivenTypeObject):
         return getattr(self, '_position', None)
 
     @property
-    def house(self) -> typing.Optional[House]:
+    def house(self) -> Optional[House]:
         from . import House
         if type(self._house) is str:
             house_id = self._house

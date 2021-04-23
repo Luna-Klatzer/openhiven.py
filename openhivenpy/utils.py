@@ -1,18 +1,66 @@
-import functools
 import logging
 import sys
 import traceback
 from operator import attrgetter
+from functools import wraps
 import inspect
-import typing
+from typing import Union, Coroutine, Callable, Any, Optional, NoReturn
 
 logger = logging.getLogger(__name__)
 
 
-async def dispatch_func_if_exists(obj: object,
+def fetch_func(obj: object, func_name: str) -> Union[Coroutine, Callable, None]:
+    """
+    Fetches a function inside an object and will return the callable or coroutine
+
+    :param obj: Object where to search for the function
+    :param func_name: Name of the function
+    :return: Returns the function/coro itself
+    """
+    func = getattr(obj, func_name, None)
+    if func:
+        if callable(func):
+            return func
+        else:
+            raise TypeError(f"{obj.__class__.__name__} is not callable!")
+    else:
+        logger.debug(f"{func_name} not found! Returning")
+        return None
+
+
+async def dispatch_coro_if_exists(obj: object,
                                   func_name: str,
-                                  func_args: typing.Optional[typing.Union[list, tuple]] = (),
-                                  func_kwargs: typing.Optional[dict] = {}) -> typing.Any:
+                                  func_args: Optional[Union[list, tuple]] = None,
+                                  func_kwargs: Optional[dict] = None) -> Any:
+    """
+    Dispatches the passed functions if it can be found in the passed object instance!
+    If the function is not async it will still call it and return the returns if they exist
+
+    :param obj: Object where to search for the function
+    :param func_name: Name of the function
+    :param func_args: *args of the function
+    :param func_kwargs: **kwargs of the function
+    :return: Returns the data of the function if it returns data and is callable else None
+    """
+    if func_args is None:
+        func_args = ()
+    if func_kwargs is None:
+        func_kwargs = {}
+
+    func = fetch_func(obj, func_name)
+    if func:
+        if inspect.iscoroutinefunction(func):
+            return await wrap_with_logging(func)(*func_args, **func_kwargs)
+        else:
+            return wrap_with_logging(func)(*func_args, **func_kwargs)
+    else:
+        return None
+
+
+def dispatch_func_if_exists(obj: object,
+                            func_name: str,
+                            func_args: Optional[Union[list, tuple]] = None,
+                            func_kwargs: Optional[dict] = None) -> Any:
     """
     Dispatches the passed functions if it can be found in the passed object instance!
 
@@ -22,55 +70,39 @@ async def dispatch_func_if_exists(obj: object,
     :param func_kwargs: **kwargs of the function
     :return: Returns the data of the function if it returns data and is callable else None
     """
-    func = getattr(obj, func_name, None)
-    if func is not None:
-        # Checking if the func is callable:
-        if callable(func):
-            logger.debug(f"Dispatching '{func_name}'")
-            try:
-                # If the function is a coroutine it will be called as an async function
-                if inspect.iscoroutinefunction(func):
-                    return await func(*func_args, **func_kwargs)
-                # If it's a regular function it will be called normally
-                else:
-                    return func(*func_args, **func_kwargs)
-
-            except Exception as e:
-                log_traceback(
-                    level='error',
-                    msg=f'Function {func.__name__} encountered an exception:',
-                    suffix=f"{sys.exc_info()[0].__name__}: {e}"
-                )
-
-        else:
-            raise TypeError(f"{obj.__class__.__name__} is not callable!")
+    if func_args is None:
+        func_args = ()
+    if func_kwargs is None:
+        func_kwargs = {}
+    func = fetch_func(obj, func_name)
+    if func:
+        return wrap_with_logging(func)(*func_args, **func_kwargs)
     else:
-        logger.debug(f"{func_name} not found! Returning")
-        return
+        return None
 
 
-def log_traceback(level: typing.Union[str, None] = 'error',
+def log_traceback(level: Optional[str] = 'error',
                   msg: str = 'Traceback: ',
-                  suffix: typing.Optional[str] = None):
+                  suffix: Optional[str] = None):
     """
     Logs the traceback of the current exception
 
+    :param level: Logger level for the exception. If set to None it will not log any additional message
     :param msg: Message for the logging. Only gets printed out if logging level was correctly set
-    :param level: Logger level for the exception. If '' or None it will not log any additional message
     :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
     """
     tb = traceback.format_tb(sys.exc_info()[2])
-    if level is not None and level != '':
-        log_level = getattr(logger, level)
-        if callable(log_level):
-            tb_str = "".join(frame for frame in tb)
-            # Fetches and prints the current traceback with the passed message
-            log_level(f"{msg}\n{tb_str} {suffix if suffix else ''}\n")
-    else:
-        traceback.print_tb(tb)
+
+    log_level: Callable = getattr(logger, level, None)
+    if log_level is None and not callable(log_level):
+        raise ValueError("The passed level does not exist in the logging module!")
+
+    tb_str = "".join(frame for frame in tb)
+    # Fetches and prints the current traceback with the passed message
+    log_level(f"{msg}\n{tb_str} {suffix if suffix else ''}\n")
 
 
-def get(iterable, **attrs) -> typing.Any:
+def get(iterable, **attrs) -> Any:
     """
     Fetches an object in the passed iterable if the passed attribute align!
 
@@ -111,7 +143,7 @@ def get(iterable, **attrs) -> typing.Any:
     return None
 
 
-def log_validation_traceback(cls: typing.Any, data: dict, e: Exception):
+def log_validation_traceback(cls: Any, data: dict, e: Exception):
     """
     Logger for a Validation Error in the module types
 
@@ -125,34 +157,40 @@ def log_validation_traceback(cls: typing.Any, data: dict, e: Exception):
     )
 
 
-def safe_convert(dtype: typing.Any,
-                 value: typing.Any,
-                 default: typing.Any = 'raise_exc') -> typing.Union[typing.Any, None]:
+MISSING = object()
+
+
+def safe_convert(dtype: Any,
+                 value: Any,
+                 default: Optional[Any] = MISSING) -> Union[Any, None]:
     """
-    Return the passed value in the specified value if it is not None and does not raise an Exception
-    while converting. Returns the passed default if the conversion failed
+    Converts the passed value if it is not None, if it is it will just return None to not cause an exception.
+
+    Returns the passed default if the conversion failed.
+    If the default is missing it will raise the conversion exception.
 
     :param dtype: The datatype the value should be returned
     :param value: The value that should be converted
-    :param default: The default value that should be returned if the conversion failed, else it will raise an exception.
+    :param default: The default value that should be returned if the conversion failed
     :return: The converted value or the default passed value
     """
     try:
         if value is None:
-            if default != 'raise_exc':
+            if default is not MISSING:
                 return default
             else:
                 return None
+
         return dtype(value)
 
     except Exception:
-        if default == 'raise_exc':
+        if default == MISSING:
             raise
         else:
             return default
 
 
-def convertible(dtype: typing.Any, value: typing.Any) -> bool:
+def convertible(dtype: Any, value: Any) -> bool:
     """
     Returns whether the value can be converted into the specified datatype
 
@@ -162,7 +200,7 @@ def convertible(dtype: typing.Any, value: typing.Any) -> bool:
     """
     try:
         dtype(value)
-    except Exception:
+    except (ValueError, TypeError):
         return False
     else:
         return True
@@ -170,7 +208,7 @@ def convertible(dtype: typing.Any, value: typing.Any) -> bool:
 
 def update_and_return(dictionary: dict, data: dict) -> dict:
     """
-    Utilises the standard dictionary .update function but instead of
+    Utilises the standard dictionary update() function but instead of
     returning None it will return the updated dictionary.
 
     :param dictionary: The dictionary that should be updated
@@ -181,30 +219,41 @@ def update_and_return(dictionary: dict, data: dict) -> dict:
     return dictionary
 
 
-@functools.lru_cache(maxsize=64)
-def wrap_with_logging(coro: typing.Union[typing.Callable, typing.Coroutine] = None,
-                      return_exception: bool = False) -> typing.Callable:
+def wrap_with_logging(func: Union[Callable, Coroutine] = None,
+                      return_exception: bool = False) -> Union[Callable, Coroutine]:
     """
-    Wraps a Event Listener Task and adds traceback logging and simple caching to it
+    Wraps a function and adds traceback logging
 
-    :param coro: Function that should be wrapped
+    :param func: Function that should be wrapped
     :param return_exception: If set to True the exception will be reraised
     """
-    def decorator(coro: typing.Union[typing.Callable, typing.Coroutine]) -> typing.Callable:
-        @functools.wraps(coro)
-        async def wrapper(*args, **kwargs) -> typing.Union[typing.Any, typing.NoReturn]:
-            try:
-                return await coro(*args, **kwargs)
-            except Exception as e:
-                log_traceback(
-                    msg=f"Traceback in function {coro.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
-                )
-                if return_exception:
-                    raise
+    def decorator(func: Union[Callable, Coroutine]) -> Callable:
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def wrapper(*args, **kwargs) -> Union[Any, NoReturn]:
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    log_traceback(
+                        msg=f"Traceback in coroutine {func.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
+                    )
+                    if return_exception:
+                        raise
+        else:
+            @wraps(func)
+            def wrapper(*args, **kwargs) -> Union[Any, NoReturn]:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    log_traceback(
+                        msg=f"Traceback in function {func.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
+                    )
+                    if return_exception:
+                        raise
 
         return wrapper  # func can still be used normally outside the event listening process
 
-    if coro is None:
+    if func is None:
         return decorator
     else:
-        return decorator(coro)
+        return decorator(func)

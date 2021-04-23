@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-import typing
+from typing import Optional
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -88,7 +88,7 @@ class Relationship(HivenTypeObject):
         ]
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    def get_cached_data(self) -> typing.Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
         return self._client.storage['relationships'][self.user_id]
 
@@ -129,7 +129,7 @@ class Relationship(HivenTypeObject):
         return data
 
     @property
-    def user(self) -> typing.Optional[User]:
+    def user(self) -> Optional[User]:
         if type(self._user) is str:
             user_id = self._user
         elif type(self.user_id) is str:
@@ -151,13 +151,13 @@ class Relationship(HivenTypeObject):
             return None
 
     @property
-    def type(self) -> typing.Optional[int]:
+    def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
 
     @property
-    def user_id(self) -> typing.Optional[str]:
+    def user_id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def id(self) -> typing.Optional[str]:
+    def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
