@@ -80,7 +80,6 @@ class Mention(HivenTypeObject):
         :param data: Data that should be validated and used to form the object
         :return: The modified dictionary, which can then be used to create a new class instance
         """
-        data = cls.validate(data)
         if not data.get('user_id') and data.get('user'):
             user = data.pop('user')
             if type(user) is dict:
@@ -109,8 +108,9 @@ class Mention(HivenTypeObject):
             else:
                 data['author'] = author
 
-        data['author'] = data['author_id']
-        data['user'] = data['user_id']
+        data['author'] = data.get('author_id')
+        data['user'] = data.get('user_id')
+        data = cls.validate(data)
         return data
 
     @property

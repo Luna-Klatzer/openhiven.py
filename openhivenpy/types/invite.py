@@ -170,9 +170,9 @@ class Invite(HivenTypeObject):
             else:
                 data['house_id'] = house_id
 
-        data = cls.validate(data)
         data['type'] = int(data['type'])
-        data['house'] = data['house_id']
+        data['house'] = data.get('house_id')
+        data = cls.validate(data)
         return data
 
     @property

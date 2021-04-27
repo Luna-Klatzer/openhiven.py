@@ -76,9 +76,9 @@ class HivenWebSocket:
                  socket: aiohttp.ClientWebSocketResponse,
                  *,
                  loop: asyncio.AbstractEventLoop,
-                 log_ws_output: bool = False):
+                 log_websocket: bool = False):
         self.endpoint = None
-        self.log_ws_output = log_ws_output
+        self.log_websocket = log_websocket
 
         self._socket = socket
         self._loop = loop
@@ -257,7 +257,7 @@ class HivenWebSocket:
 
         data = msg['d']
         house_memberships = data.get('house_memberships', {})
-        self.client.storage.update_all(data)
+        self.client.storage.update_primary_data(data)
 
         additional_events = []
         while len(self.client.storage['houses']) < len(house_memberships):

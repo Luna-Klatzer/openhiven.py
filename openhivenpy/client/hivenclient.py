@@ -26,14 +26,40 @@ BOT_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("BOT_TOKEN_LEN"))
 class HivenClient(HivenEventHandler):
     """ Main Class for connecting to Hiven and interacting with the API. """
 
-    def __init__(self, *, loop: AbstractEventLoop = None, log_ws_output: bool = False, queue_events: bool = False):
+    def __init__(
+        self,
+        *,
+        loop: AbstractEventLoop = None,
+        log_websocket: bool = False,
+        queue_events: bool = False,
+        host: Optional[str] = None,
+        api_version: Optional[str] = None,
+        heartbeat: Optional[int] = None,
+        close_timeout: Optional[int] = None
+    ):
+        """
+        :param loop: Loop that will be used to run the Client. If a new one is passed on run() that one will be
+                     used instead
+        :param log_websocket: If set to True will additionally log websocket messages and their content
+        :param host: The host API endpoint of Hiven. Defaults to api.hiven.io
+        :param api_version: The API version that should be used. Defaults to v1
+        :param queue_events: If set to True the received events over the websocket will be queued and event_listeners
+                             will called one after another. If set to False all events are directly assigned to the
+                             asyncio event_loop and executed parallel
+        :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
+                          Defaults to the pre-set environment heartbeat (30000)
+        :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
+                              successfully. Defaults to the pre-set environment close_timeout (40)
+        """
         self._token = ""
-        self._connection = Connection(self)
         self._loop = loop
-        self._log_ws_output = log_ws_output
+        self._log_websocket = log_websocket
         self._queue_events = queue_events
-        self._storage = ClientCache(log_ws_output)
+        self._storage = ClientCache(log_websocket)
         self._user = types.User({}, self)  # Empty User which will return for every value None
+        self._connection = Connection(
+            self, api_version=api_version, host=host, heartbeat=heartbeat, close_timeout=close_timeout
+        )
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
         super().__init__(HivenParsers(self))
@@ -43,11 +69,13 @@ class HivenClient(HivenEventHandler):
 
     def __repr__(self) -> str:
         info = [
-            ('open', self.open),
-            ('name', getattr(self.client_user, 'name', None)),
-            ('id', getattr(self.client_user, 'id', None))
+            ('type', self.client_type),
+            ('open', getattr(self, 'open', False)),
+            ('bot', getattr(self, 'bot', 'na')),
+            ('name', getattr(self.client_user, 'name', 'na')),
+            ('id', getattr(self.client_user, 'id', 'na'))
         ]
-        return '<HivenClient {}>'.format(' '.join('%s=%s' % t for t in info))
+        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
 
     @property
     def storage(self) -> Optional[ClientCache]:
@@ -58,12 +86,12 @@ class HivenClient(HivenEventHandler):
         return self.storage.get('token')
 
     @property
-    def client_type(self) -> Optional[bool]:
-        return getattr(self, '_CLIENT_TYPE', False)
+    def client_type(self) -> Optional[str]:
+        return self.__class__.__name__
 
     @property
-    def log_ws_output(self) -> Optional[str]:
-        return self.storage.get('log_ws_output', None)
+    def log_websocket(self) -> Optional[str]:
+        return self.storage.get('log_websocket', None)
 
     @property
     def http(self) -> Optional[HTTP]:
@@ -84,33 +112,37 @@ class HivenClient(HivenEventHandler):
     def run(self,
             token: str,
             *,
-            loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop(),
+            loop: Optional[asyncio.AbstractEventLoop] = None,
             restart: bool = False) -> NoReturn:
         """
         Standard function for establishing a connection to Hiven
 
         :param token: Token that should be used to connect to Hiven
-        :param loop: Event loop that will be used to execute all async functions. Will use
-                           'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one was
-                           created yet
+        :param loop: Event loop that will be used to execute all async functions. Uses 'asyncio.get_event_loop()' to
+                     fetch the EventLoop. Will create a new one if no one was created yet. If the loop was passed during
+                     initialisation that one will be used if no loop is passed. If a new loop is passed, that one will
+                     be used for execution.
         :param restart: If set to True the Client will restart if an error is encountered!
         """
         try:
-            # Overwriting the until now None Event Loop
-            self._token = token
-            self.storage['token'] = token
+            if self._loop is not None:
+                self._loop = loop if loop is not None else self._loop
+            else:
+                try:
+                    self._loop = loop if loop is not None else asyncio.get_event_loop()
+                except RuntimeError as e:
+                    # If the function is called outside of the main thread a new event_loop must be created, so that the
+                    # process can still be run. This will raise an exception though if the user tries to start the
+                    # client while another loop already is running! Therefore run() should only be used when no
+                    # event_loop was created yet that could interfere with the process, else connect() is available
+                    if "There is no current event loop in thread" in str(e):
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        self._loop = asyncio.get_event_loop()
+                    else:
+                        raise
 
-            if token is None or token == "":
-                logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
-                raise InvalidTokenError("Empty Token was passed!")
-
-            elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
-                logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
-                raise InvalidTokenError("Invalid Token was passed!")
-
-            self._loop = loop
-            self.connection._loop = self._loop
-            self.loop.run_until_complete(self.connection.connect(token, restart=restart))
+            self.loop.run_until_complete(self.connect(token, restart=restart))
 
         except KeyboardInterrupt:
             pass
@@ -127,9 +159,44 @@ class HivenClient(HivenEventHandler):
                 msg="[HIVENCLIENT] Traceback:",
                 suffix=f"Failed to keep alive connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise HivenConnectionError(
-                f"Failed to keep alive connection to Hiven: {sys.exc_info()[0].__name__}: {e}"
+            raise HivenConnectionError("Failed to keep alive connection to Hiven") from e
+
+    async def connect(self, token: str, *, restart: bool = False) -> NoReturn:
+        """Establishes a connection to Hiven and does not return until finished
+
+        :param token: Token that should be used to connect to Hiven
+        :param restart: If set to True the Client will restart if an error is encountered!
+        """
+        try:
+            self._token = token
+            self.storage['token'] = token
+
+            if token is None or token == "":
+                logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
+                raise InvalidTokenError("Empty Token was passed!")
+
+            elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
+                logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
+                raise InvalidTokenError("Invalid Token was passed!")
+
+            await self.connection.connect(restart=restart)
+
+        except KeyboardInterrupt:
+            pass
+
+        except (InvalidTokenError, WebSocketFailedError):
+            raise
+
+        except SessionCreateError:
+            raise
+
+        except Exception as e:
+            utils.log_traceback(
+                level='critical',
+                msg="[HIVENCLIENT] Traceback:",
+                suffix=f"Failed to keep alive connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
             )
+            raise HivenConnectionError(f"Failed to keep alive connection to Hiven") from e
 
     async def close(self) -> NoReturn:
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
@@ -202,43 +269,43 @@ class HivenClient(HivenEventHandler):
 
     @property
     def username(self) -> Optional[str]:
-        return getattr(self.client_user, 'username', None)
+        return getattr(self.client_user, 'username', 'na')
 
     @property
     def name(self) -> Optional[str]:
-        return getattr(self.client_user, 'name', None)
+        return getattr(self.client_user, 'name', 'na')
 
     @property
     def id(self) -> Optional[str]:
-        return getattr(self.client_user, 'id', None)
+        return getattr(self.client_user, 'id', 'na')
 
     @property
     def icon(self) -> Optional[str]:
-        return getattr(self.client_user, 'icon', None)
+        return getattr(self.client_user, 'icon', 'na')
 
     @property
     def header(self) -> Optional[str]:
-        return getattr(self.client_user, 'header', None)
+        return getattr(self.client_user, 'header', 'na')
 
     @property
     def bot(self) -> Optional[bool]:
-        return getattr(self.client_user, 'bot', None)
+        return getattr(self.client_user, 'bot', 'na')
 
     @property
     def location(self) -> Optional[str]:
-        return getattr(self.client_user, 'location', None)
+        return getattr(self.client_user, 'location', 'na')
 
     @property
     def website(self) -> Optional[str]:
-        return getattr(self.client_user, 'website', None)
+        return getattr(self.client_user, 'website', 'na')
 
     @property
     def presence(self) -> Optional[str]:
-        return getattr(self.client_user, 'presence', None)
+        return getattr(self.client_user, 'presence', 'na')
 
     @property
     def joined_at(self) -> Optional[datetime.datetime]:
-        return getattr(self.client_user, 'joined_at', None)
+        return getattr(self.client_user, 'joined_at', 'na')
 
     def get_user(self, user_id: str) -> Optional[types.User]:
         """
@@ -409,7 +476,7 @@ class HivenClient(HivenEventHandler):
         :param room_id: id of the PrivateRoom
         :return: The cached dict if it exists in the cache else None
         """
-        raw_data = self.storage['rooms']['private']['group'].get(room_id)
+        raw_data = self.storage['rooms']['private']['single'].get(room_id)
         if raw_data:
             return dict(raw_data)
         else:
@@ -479,7 +546,7 @@ class HivenClient(HivenEventHandler):
         :param user_id: user-id of the Relationship
         :return: The cached dict if it exists in the cache else None
         """
-        raw_data = self.storage['relationship'].get(user_id)
+        raw_data = self.storage['relationships'].get(user_id)
         if raw_data:
             return dict(raw_data)
         else:

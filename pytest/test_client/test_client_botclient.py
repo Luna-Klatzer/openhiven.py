@@ -1,24 +1,24 @@
 import openhivenpy
-import asyncio
+import test_hivenclient
 
 token_ = ""
 
 
 def test_start(token):
     global token_
-    token_ = token
+    TestBotClient.token = token
 
 
-class TestBotClient:
+class TestBotClient(test_hivenclient.TestHivenClient):
     def test_init(self):
         client = openhivenpy.BotClient()
-        assert client.client_type == 'bot'
+        assert client.client_type == 'BotClient'
         assert client.connection.heartbeat == 30000
         assert client.connection.close_timeout == 60
 
         @client.event()
         async def on_init():
-            assert client.token == token_
+            assert client.token == self.token
             print("\non_init was called!")
 
         @client.event()
@@ -26,4 +26,4 @@ class TestBotClient:
             print("\non_ready was called!")
             await client.close()
 
-        client.run(token_)
+        client.run(self.token)

@@ -8,7 +8,7 @@ import sys
 import time
 import json as json_decoder
 from yarl import URL
-import typing
+from typing import Optional, Union
 
 __all__ = ['HTTP']
 
@@ -59,12 +59,9 @@ class HTTPTraceback:
 
 class HTTP:
     """ HTTP-Client for requests and interaction with the Hiven API """
-    def __init__(self, client: HivenClient, *, host: str, api_version: str, loop: asyncio.AbstractEventLoop):
+    def __init__(self, client: HivenClient, *, host: str, api_version: str):
         """
         :param client: The used HivenClient
-        :param loop: Event loop that will be used to execute all async functions. Will use
-                           'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no
-                           one was created yet
         :param host: Url for the API which will be used to interact with Hiven.
                      Defaults to the pre-set environment host (api.hiven.io)
         :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
@@ -77,12 +74,10 @@ class HTTP:
             "Authorization": client.token,
             "Host": self.host
         }
-        self._token = None
         self._ready = False
         self._session = None  # Will be created during start of connection
-        self._loop = loop
 
-        # Last/Currently executed/ing request
+        # Current request/Latest request
         self._request = None
 
     def __str__(self) -> str:
@@ -99,7 +94,7 @@ class HTTP:
 
     @property
     def token(self) -> Optional[str]:
-        return getattr(self, '_token', None)
+        return getattr(self.client, 'token', None)
 
     @property
     def ready(self) -> Optional[bool]:
@@ -111,13 +106,12 @@ class HTTP:
 
     @property
     def loop(self) -> Optional[asyncio.AbstractEventLoop]:
-        return getattr(self, '_loop', None)
+        return getattr(self.client, '_loop', None)
 
-    async def connect(self, token: str) -> Optional[aiohttp.ClientSession]:
+    async def connect(self) -> Optional[aiohttp.ClientSession]:
         """
         Establishes for the HTTP a connection to Hiven
 
-        :param token: Token required for connecting to Hiven
         :return: The created aiohttp.ClientSession
         """
         try:
@@ -129,7 +123,6 @@ class HTTP:
             trace_config.on_connection_queued_start.append(HTTPTraceback.on_connection_queued_start)
             trace_config.on_response_chunk_received.append(HTTPTraceback.on_response_chunk_received)
 
-            self._token = token
             self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
 

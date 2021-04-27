@@ -2,7 +2,7 @@
 Module that stores the EventListeners Methods and Classes for listening to WebSocket Events
 ---
 Under MIT License
-Copyright © 2020 - 2021 Nicolas Klatzer
+Copyright © 2020 - 2021 Luna Klatzer
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -28,7 +28,7 @@ import asyncio
 import sys
 import inspect
 import logging
-import typing
+from typing import Coroutine, Callable, Union, NoReturn, Dict, List, Awaitable
 
 from ..exceptions import UnknownEventError
 from .. import utils
@@ -78,14 +78,14 @@ class DispatchEventListener:
 
     def __call__(self, *args, **kwargs) -> Coroutine:
         """
-        Dispatches the EventListener and calls a coroutine if one was passed
+        Returns the dispatch function of the class itself
 
         :param event_data: Data of the received event
         :param args: Args that will be passed to the coroutine
         :param kwargs: Kwargs that will be passed to the coroutine
         :return: Returns the passed event_data
         """
-        dispatch: Callable = getattr(self, 'dispatch')
+        dispatch: Union[Callable, Awaitable] = getattr(self, 'dispatch')
         return dispatch(*args, **kwargs)
 
 
@@ -96,10 +96,10 @@ def add_listener(client: HivenClient, listener: DispatchEventListener):
     :param client: The HivenClient needed for adding the new listener
     :param listener: The Listener that will be added to the registered event_listeners
     """
-    if client._active_listeners.get(listener.event_name):
-        client._active_listeners[listener.event_name].append(listener)
+    if client.active_listeners.get(listener.event_name):
+        client.active_listeners[listener.event_name].append(listener)
     else:
-        client._active_listeners[listener.event_name] = [listener]
+        client.active_listeners[listener.event_name] = [listener]
 
 
 def remove_listener(client: HivenClient, listener: DispatchEventListener):
@@ -109,8 +109,8 @@ def remove_listener(client: HivenClient, listener: DispatchEventListener):
     :param client: The HivenClient needed for the popping
     :param listener: The Listener that will be removed
     """
-    if client._active_listeners.get(listener.event_name):
-        client._active_listeners[listener.event_name].remove(listener)
+    if client.active_listeners.get(listener.event_name):
+        client.active_listeners[listener.event_name].remove(listener)
     else:
         raise KeyError("The listener does not exist in the cache")
 

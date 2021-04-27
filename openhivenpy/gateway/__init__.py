@@ -6,7 +6,7 @@ Module for the OpenHiven.py Gateway and Connection to Hiven
 
 Under MIT License
 
-Copyright © 2020 - 2021 Nicolas Klatzer
+Copyright © 2020 - 2021 Luna Klatzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,21 +53,21 @@ DEFAULT_CLOSE_TIMEOUT = int(os.getenv("WS_CLOSE_TIMEOUT"))
 class Connection:
     """ Connection Class used for interaction with the Hiven API and WebSocket Swarm"""
 
-    def __init__(self,
-                 client,
-                 *,
-                 host: Optional[str] = DEFAULT_HOST,
-                 api_version: Optional[str] = DEFAULT_API_VERSION,
-                 heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
-                 close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT,
-                 loop: Optional[asyncio.AbstractEventLoop] = None):
+    def __init__(
+        self,
+        client,
+        *,
+        host: Optional[str] = DEFAULT_HOST,
+        api_version: Optional[str] = DEFAULT_API_VERSION,
+        heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
+        close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT
+    ):
         self.client = client
         self.http = None
-        self.host = host
-        self.api_version = api_version
-        self.loop = loop
-        self._heartbeat = heartbeat
-        self._close_timeout = close_timeout
+        self._host = host if heartbeat is not None else DEFAULT_HOST
+        self._api_version = api_version if heartbeat is not None else DEFAULT_API_VERSION
+        self._heartbeat = heartbeat if heartbeat is not None else DEFAULT_HEARTBEAT
+        self._close_timeout = close_timeout if heartbeat is not None else DEFAULT_CLOSE_TIMEOUT
         self._endpoint = URL(DEFAULT_ENDPOINT)
 
         self._connection_status = "CLOSED"
@@ -75,7 +75,7 @@ class Connection:
         self._ws = None
 
     def __str__(self) -> str:
-        return repr(self)
+        return ""
 
     def __repr__(self) -> str:
         info = [
@@ -94,6 +94,18 @@ class Connection:
             getattr(self.http, 'ready', False),
             getattr(self.ws, 'ready', False)
         ))
+
+    @property
+    def loop(self) -> Optional[asyncio.AbstractEventLoop]:
+        return getattr(self.client, 'loop', None)
+
+    @property
+    def host(self) -> Optional[str]:
+        return getattr(self, '_host', None)
+
+    @property
+    def api_version(self) -> Optional[str]:
+        return getattr(self, '_api_version', None)
 
     @property
     def connection_status(self) -> Optional[str]:
@@ -119,11 +131,11 @@ class Connection:
     def close_timeout(self) -> Optional[int]:
         return getattr(self, '_close_timeout', None)
 
-    async def connect(self, token: str, restart: bool) -> NoReturn:
+    async def connect(self, restart: bool) -> NoReturn:
         """ Establishes a connection to Hiven and runs the background processes """
         try:
-            self.http = HTTP(self.client, host=self.host, api_version=self.api_version, loop=self.loop)
-            await self.http.connect(token)
+            self.http = HTTP(self.client, host=self.host, api_version=self.api_version)
+            await self.http.connect()
 
             self._connection_status = "OPENING"
             while self.connection_status not in ("CLOSING", "CLOSED"):

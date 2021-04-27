@@ -94,8 +94,6 @@ class Member(user.User):
         :param data: Data that should be validated and used to form the object
         :return: The modified dictionary, which can then be used to create a new class instance
         """
-        data = cls.validate(data)
-
         if not data.get('house_id') and data.get('house'):
             house = data.pop('house')
             if type(house) is dict:
@@ -113,7 +111,8 @@ class Member(user.User):
         elif not data.get('house_id') and not data.get('house'):
             raise InvalidPassedDataError("house_id and house missing from required data", data=data)
 
-        data['house'] = data['house_id']
+        data['house'] = data.get('house_id')
+        data = cls.validate(data)
         return data
 
     @property

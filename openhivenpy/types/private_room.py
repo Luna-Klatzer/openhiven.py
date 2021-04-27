@@ -112,7 +112,7 @@ class PrivateGroupRoom(HivenTypeObject):
 
     def get_cached_data(self) -> Optional[dict]:
         """ Fetches the most recent data from the cache based on the instance id """
-        return self._client.storage['rooms']['private']['multi'][self.id]
+        return self._client.storage['rooms']['private']['group'][self.id]
 
     @classmethod
     @check_valid

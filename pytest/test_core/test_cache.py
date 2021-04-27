@@ -75,7 +75,7 @@ class TestCache:
     def test_init(self):
         cache = openhivenpy.client.ClientCache(False)
         assert cache['token'] == "undefined"
-        assert cache['log_ws_output'] is False
+        assert cache['log_websocket'] is False
         assert cache['houses'] == {}
         assert cache['house_ids'] == []
         assert cache['settings'] == {}

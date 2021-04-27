@@ -3,15 +3,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import typing
+from typing import Optional, List, NoReturn
 from functools import lru_cache
 
 from .. import utils
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .. import HivenClient
+    from ..events import DispatchEventListener
 
 __all__ = ['DynamicEventBuffer', 'MessageBroker']
 
@@ -140,9 +142,9 @@ class Worker:
         """ Fetches an event from the buffer and runs all assigned Event Listeners """
         if self.assigned_event_buffer:
             # Fetching the even data for the next event
-            event = self.assigned_event_buffer.get_next_event()
+            event: dict = self.assigned_event_buffer.get_next_event()
 
-            listeners = self.client.active_listeners.get(self.event)
+            listeners: List[DispatchEventListener] = self.client.active_listeners.get(self.event)
 
             if not listeners:
                 return

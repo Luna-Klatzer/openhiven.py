@@ -48,7 +48,7 @@ class Entity(HivenTypeObject):
             'position': {'type': 'integer'}
         },
         'additionalProperties': False,
-        'required': ['id', 'name', 'position', 'resource_pointers']
+        'required': ['id', 'name', 'position', 'resource_pointers', 'house_id']
     }
     json_validator = fastjsonschema.compile(json_schema)
 
@@ -122,7 +122,7 @@ class Entity(HivenTypeObject):
             else:
                 data['house_id'] = house_id
 
-        data['house'] = data['house_id']
+        data['house'] = data.get('house_id')
         data = cls.validate(data)
         return data
 

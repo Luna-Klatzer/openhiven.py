@@ -4,12 +4,12 @@ import traceback
 from operator import attrgetter
 from functools import wraps
 import inspect
-from typing import Union, Coroutine, Callable, Any, Optional, NoReturn
+from typing import Union, Awaitable, Callable, Any, Optional, NoReturn
 
 logger = logging.getLogger(__name__)
 
 
-def fetch_func(obj: object, func_name: str) -> Union[Coroutine, Callable, None]:
+def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:
     """
     Fetches a function inside an object and will return the callable or coroutine
 
@@ -219,15 +219,15 @@ def update_and_return(dictionary: dict, data: dict) -> dict:
     return dictionary
 
 
-def wrap_with_logging(func: Union[Callable, Coroutine] = None,
-                      return_exception: bool = False) -> Union[Callable, Coroutine]:
+def wrap_with_logging(func: Union[Callable, Awaitable] = None,
+                      return_exception: bool = False) -> Union[Callable, Awaitable]:
     """
     Wraps a function and adds traceback logging
 
     :param func: Function that should be wrapped
     :param return_exception: If set to True the exception will be reraised
     """
-    def decorator(func: Union[Callable, Coroutine]) -> Callable:
+    def decorator(func: Union[Callable, Awaitable]) -> Callable:
         if inspect.iscoroutinefunction(func):
             @wraps(func)
             async def wrapper(*args, **kwargs) -> Union[Any, NoReturn]:
