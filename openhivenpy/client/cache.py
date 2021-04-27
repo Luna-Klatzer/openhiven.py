@@ -2,10 +2,9 @@ import logging
 import sys
 from typing import NoReturn
 
-# Using deepcopy instead of standard .copy() from python since regular dict() or dict.copy() would not copy its
-# iterable properties as well, making it possible that you can change properties in one property dict and then change
-# all related dictionaries as well, which results that those changes are applied to all dicts that were created using
-# dict() or copy().
+# Using deepcopy instead of standard .copy() from python since regular dict() or dict.copy() would not duplicate its
+# iterable properties as well and the keys for iterables would point to the same object, which results in that
+# changes to those iterables are applied to all copied dictionaries that were created using dict() or copy().
 from copy import deepcopy
 
 from .. import utils
