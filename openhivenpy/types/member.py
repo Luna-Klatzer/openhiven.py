@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Optional
+from typing import Optional, List
 import fastjsonschema
 
 from . import HivenTypeObject, check_valid
@@ -29,6 +29,7 @@ class Member(user.User):
         'properties': {
             **user.User.json_schema['properties'],
             'user_id': {'type': 'string'},
+            'house': {},
             'house_id': {'type': 'string'},
             'joined_at': {'type': 'string'},
             'roles': {
