@@ -1,22 +1,23 @@
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
+import asyncio
 import datetime
 import logging
 import sys
-import asyncio
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .embed import Embed
-    from .room import Room
+    from .textroom import TextRoom
     from .user import User
     from .house import House
     from .mention import Mention
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['DeletedMessage', 'Message']
 
 
-class DeletedMessage(HivenTypeObject):
+class DeletedMessage(DataClassObject):
     """ Represents a Deleted Message in a Room """
     json_schema = {
         'type': 'object',
@@ -70,7 +71,6 @@ class DeletedMessage(HivenTypeObject):
         return f"Deleted message in room {self.room_id}"
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -96,7 +96,7 @@ class DeletedMessage(HivenTypeObject):
         return getattr(self, '_room_id')
 
 
-class Message(HivenTypeObject):
+class Message(DataClassObject):
     """ Represents a standard Hiven message sent by a user """
     json_schema = {
         'type': 'object',
@@ -223,7 +223,6 @@ class Message(HivenTypeObject):
         return '<Message {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -247,7 +246,7 @@ class Message(HivenTypeObject):
             room_ = data.pop('room')
             if type(room_) is dict:
                 room_ = room_.get('id', None)
-            elif isinstance(room_, HivenTypeObject):
+            elif isinstance(room_, DataClassObject):
                 room_ = getattr(room_, 'id', None)
             elif type(data.get('room_id')) is str:
                 room_ = data['room_id']
@@ -263,7 +262,7 @@ class Message(HivenTypeObject):
             house_ = data.pop('house')
             if type(house_) is dict:
                 house_ = house_.get('id', None)
-            elif isinstance(house_, HivenTypeObject):
+            elif isinstance(house_, DataClassObject):
                 house_ = getattr(house_, 'id', None)
             elif type(data.get('house_id')) is str:
                 house_ = data['house_id']
@@ -276,7 +275,7 @@ class Message(HivenTypeObject):
             author = data.pop('author')
             if type(author) is dict:
                 author = author.get('id', None)
-            elif isinstance(author, HivenTypeObject):
+            elif isinstance(author, DataClassObject):
                 author = getattr(author, 'id', None)
             elif type(data.get('author_id')) is str:
                 author = data['author_id']
@@ -336,7 +335,7 @@ class Message(HivenTypeObject):
 
     # TODO! add fetcher and constructor
     @property
-    def room(self) -> Optional[Room]:
+    def room(self) -> Optional[TextRoom]:
         return getattr(self, '_room', None)
 
     # TODO! add fetcher and constructor

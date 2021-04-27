@@ -27,18 +27,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .websocket import *
-from .http import *
-from .messagebroker import *
-from .. import load_env_vars, utils
-from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
-
-import sys
+import asyncio
 import logging
 import os
-import asyncio
+import sys
 from typing import Optional, NoReturn
+
 from yarl import URL
+
+from .http import *
+from .messagebroker import *
+from .websocket import *
+from .. import load_env_vars, utils, Object
+from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ DEFAULT_HEARTBEAT = int(os.getenv("WS_HEARTBEAT"))
 DEFAULT_CLOSE_TIMEOUT = int(os.getenv("WS_CLOSE_TIMEOUT"))
 
 
-class Connection:
+class Connection(Object):
     """ Connection Class used for interaction with the Hiven API and WebSocket Swarm"""
 
     def __init__(
@@ -183,7 +184,7 @@ class Connection:
                 msg="[CONNECTION] Traceback:",
                 suffix=f"Failed to keep alive current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
             )
-            raise SessionCreateError(f"Failed to establish HivenClient session! > {sys.exc_info()[0].__name__}: {e}")
+            raise SessionCreateError(f"Failed to establish HivenClient session") from e
         else:
             await self.http.close()
 

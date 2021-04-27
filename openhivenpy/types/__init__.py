@@ -29,23 +29,18 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-from typing import Optional
-import inspect
-import types
-from functools import wraps
-
-import fastjsonschema
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
 from .. import utils
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
 
 __all__ = [
-    'check_valid',
-    'Room',
+    'Object',
+    'DataClassObject',
+    'TextRoom',
     'LazyHouse', 'House',
     'PrivateRoom', 'PrivateGroupRoom',
     'LazyUser', 'User',
@@ -63,33 +58,12 @@ __all__ = [
 ]
 
 
-def check_valid(func: Callable = None) -> Callable:
-    """
-    Adds an additional try-except clause for logging and exception handling
-
-    :param func: Function that should be wrapped
-    """
-
-    def decorator(func_: Callable) -> Any:
-        @wraps(func_)
-        def wrapper(*args, **kwargs):
-            if inspect.iscoroutinefunction(func_):
-                raise ValueError("Target of decorator must not be asynchronous")
-            try:
-                return func_(*args, **kwargs)
-            except Exception:
-                raise
-
-        return wrapper  # func can still be used normally outside the event listening process
-
-    if func is None:
-        return decorator
-    else:
-        return decorator(func)
+class Object:
+    """ Base Class for all Hiven Type Classes. Used to signalise it's a generic type without specification """
+    pass
 
 
-class HivenTypeObject:
-    """ Base Class for all Hiven Objects """
+class DataClassObject(Object):
     _client: HivenClient = None
 
     @classmethod
@@ -113,7 +87,7 @@ class HivenTypeObject:
         return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t if t is not None else '' for t in info))
 
 
-from .room import *
+from .textroom import *
 from .house import *
 from .private_room import *
 from .user import *

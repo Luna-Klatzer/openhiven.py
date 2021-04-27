@@ -4,15 +4,16 @@ from __future__ import annotations
 import logging
 import sys
 from typing import Optional, List
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from . import user
 from .. import utils
 from ..exceptions import InitializationError, HTTPForbiddenError, InvalidPassedDataError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
     from . import House
@@ -82,7 +83,6 @@ class Member(user.User):
         return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -99,7 +99,7 @@ class Member(user.User):
             house = data.pop('house')
             if type(house) is dict:
                 house_id = house.get('id')
-            elif isinstance(house, HivenTypeObject):
+            elif isinstance(house, DataClassObject):
                 house_id = getattr(house, 'id', None)
             else:
                 house_id = None

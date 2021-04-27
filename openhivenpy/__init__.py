@@ -36,17 +36,19 @@ __copyright__ = "Luna Klatzer"
 
 import logging
 
-from . import exceptions
-
 # Loading the environment variables which contain basic configuration for the base-lib variables
 # (heartbeat, timeout etc.)
 from openhivenpy.settings import load_env_vars
+from . import exceptions
+
 load_env_vars()
 
+
+from .types import Object
 from . import utils
-from . import types
 from . import events
 from . import gateway
+from .types import *
 from .client import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

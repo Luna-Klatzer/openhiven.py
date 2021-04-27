@@ -4,15 +4,16 @@ from __future__ import annotations
 import logging
 import sys
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from . import User
 from .. import utils
 from ..exceptions import InitializationError, InvalidPassedDataError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Relationship']
 
 
-class Relationship(HivenTypeObject):
+class Relationship(DataClassObject):
     """
     Represents a user-relationship with another user or bot
 
@@ -93,7 +94,6 @@ class Relationship(HivenTypeObject):
         return self._client.storage['relationships'][self.user_id]
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -113,7 +113,7 @@ class Relationship(HivenTypeObject):
             user = data.pop('user')
             if type(user) is dict:
                 user_id = user.get('id')
-            elif isinstance(user, HivenTypeObject):
+            elif isinstance(user, DataClassObject):
                 user_id = getattr(user, 'id', None)
             else:
                 user_id = None

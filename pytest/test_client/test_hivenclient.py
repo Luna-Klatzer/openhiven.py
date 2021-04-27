@@ -1,5 +1,6 @@
-import openhivenpy
 import asyncio
+
+import openhivenpy
 
 token_ = ""
 
@@ -58,6 +59,21 @@ class TestHivenClient:
         @client.event()
         async def on_message_create():
             print("Received message")
+            await client.close()
+
+        client.run(self.token)
+
+    def test_long_run(self):
+        client = openhivenpy.HivenClient()
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            client.message_broker.get_buffer("message_create").add({}, (), {})
+
+        @client.event()
+        async def on_message_create():
+            await asyncio.sleep(10)
             await client.close()
 
         client.run(self.token)
@@ -189,17 +205,17 @@ class TestHivenClient:
 
         result_house_data = client.storage.add_or_update_house(house_data)
         result_relationship_data = client.storage.add_or_update_relationship(relationship_data)
-        room_data = openhivenpy.types.Room.format_obj_data(house_data['rooms'][0])
-        user_data = openhivenpy.types.User.format_obj_data(house_data['members'][0]['user'])
+        room_data = openhivenpy.TextRoom.format_obj_data(house_data['rooms'][0])
+        user_data = openhivenpy.User.format_obj_data(house_data['members'][0]['user'])
 
         house_data['entities'][0]['house_id'] = house_data['id']
-        entity_data = openhivenpy.types.Entity.format_obj_data(house_data['entities'][0])
+        entity_data = openhivenpy.Entity.format_obj_data(house_data['entities'][0])
 
         result_private_room_data = client.storage.add_or_update_private_room(private_room_data)
         result_private_group_room_data = client.storage.add_or_update_private_room(private_group_room_data)
 
-        openhivenpy.types.PrivateRoom.format_obj_data(private_room_data)
-        openhivenpy.types.PrivateGroupRoom.format_obj_data(private_group_room_data)
+        openhivenpy.PrivateRoom.format_obj_data(private_room_data)
+        openhivenpy.PrivateGroupRoom.format_obj_data(private_group_room_data)
 
         assert result_house_data == client.find_house(house_data['id'])
         assert room_data == client.find_room(house_data['rooms'][0]['id'])

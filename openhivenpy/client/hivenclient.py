@@ -1,18 +1,19 @@
 import asyncio
 import datetime
-import sys
-import os
 import logging
-from typing import Optional, NoReturn
+import os
+import sys
 from asyncio import AbstractEventLoop
+from typing import Optional, NoReturn
 
-from ..settings import load_env_vars
-from .. import utils
-from .. import types
-from ..events import HivenParsers, HivenEventHandler
-from ..gateway import Connection, HTTP, MessageBroker
-from ..exceptions import (SessionCreateError, InvalidTokenError, WebSocketFailedError, HivenConnectionError)
 from .cache import ClientCache
+from .. import Object
+from .. import types
+from .. import utils
+from ..events import HivenParsers, HivenEventHandler
+from ..exceptions import (SessionCreateError, InvalidTokenError, WebSocketFailedError, HivenConnectionError)
+from ..gateway import Connection, HTTP, MessageBroker
+from ..settings import load_env_vars
 
 __all__ = ['HivenClient']
 
@@ -23,7 +24,7 @@ USER_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("USER_TOKEN_LEN"))
 BOT_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("BOT_TOKEN_LEN"))
 
 
-class HivenClient(HivenEventHandler):
+class HivenClient(HivenEventHandler, Object):
     """ Main Class for connecting to Hiven and interacting with the API. """
 
     def __init__(
@@ -412,7 +413,7 @@ class HivenClient(HivenEventHandler):
         else:
             return None
 
-    def get_room(self, room_id: str) -> Optional[types.Room]:
+    def get_room(self, room_id: str) -> Optional[types.TextRoom]:
         """
         Fetches a Room from the cache based on the passed id
 
@@ -426,7 +427,7 @@ class HivenClient(HivenEventHandler):
         """
         raw_data = self.find_room(room_id)
         if raw_data:
-            return types.Room(raw_data, self)
+            return types.TextRoom(raw_data, self)
         else:
             return None
 

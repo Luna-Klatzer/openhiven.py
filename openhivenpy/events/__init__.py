@@ -22,19 +22,19 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-from .parsers import HivenParsers
-
 import asyncio
-import sys
 import inspect
 import logging
+import sys
 from typing import Coroutine, Callable, Union, NoReturn, Dict, List, Awaitable
-
-from ..exceptions import UnknownEventError
-from .. import utils
-
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+
+from .parsers import HivenParsers
+from .. import Object
+from .. import utils
+from ..exceptions import UnknownEventError
+
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -67,7 +67,7 @@ NON_BUFFER_EVENTS = [
 ]
 
 
-class DispatchEventListener:
+class DispatchEventListener(Object):
     """Base Class for all DispatchEventListeners"""
     def __str__(self):
         return f"<{self.__class__.__name__} for event {self.event_name}>"
@@ -208,7 +208,7 @@ class MultiDispatchEventListener(DispatchEventListener):
             raise RuntimeError(f"Failed to execute assigned coroutine {self.coro.__name__} due to an exception") from e
 
 
-class HivenEventHandler:
+class HivenEventHandler(Object):
     """
     Events class used to register the main event listeners.
     Is inherited by the HivenClient for easier access.

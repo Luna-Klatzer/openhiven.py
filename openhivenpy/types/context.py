@@ -1,21 +1,21 @@
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
+import datetime
 import logging
 import sys
 from typing import Optional
-import datetime
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
 import fastjsonschema
 
+from . import DataClassObject
 from .. import utils
-from . import HivenTypeObject, check_valid
 from ..exceptions import InvalidPassedDataError, InitializationError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from . import House, User, Room
+    from . import House, User, TextRoom
     from .. import HivenClient
 
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Context']
 
 
-class Context(HivenTypeObject):
+class Context(DataClassObject):
     """ Represents a Command Context for a triggered command that was registered prior """
     json_schema = {
         'type': 'object',
@@ -75,7 +75,6 @@ class Context(HivenTypeObject):
             self._client = client
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -95,7 +94,7 @@ class Context(HivenTypeObject):
             room = data.pop('room')
             if type(room) is dict:
                 room = room.get('id', None)
-            elif isinstance(room, HivenTypeObject):
+            elif isinstance(room, DataClassObject):
                 room = getattr(room, 'id', None)
             else:
                 room = None
@@ -109,7 +108,7 @@ class Context(HivenTypeObject):
             house = data.pop('house')
             if type(house) is dict:
                 house = house.get('id', None)
-            elif isinstance(house, HivenTypeObject):
+            elif isinstance(house, DataClassObject):
                 house = getattr(house, 'id', None)
             else:
                 house = None
@@ -123,7 +122,7 @@ class Context(HivenTypeObject):
             author = data.pop('author')
             if type(author) is dict:
                 author = author.get('id', None)
-            elif isinstance(author, HivenTypeObject):
+            elif isinstance(author, DataClassObject):
                 author = getattr(author, 'id', None)
             else:
                 author = None
@@ -155,17 +154,17 @@ class Context(HivenTypeObject):
             return None
 
     @property
-    def room(self) -> Optional[Room]:
-        from . import Room
+    def room(self) -> Optional[TextRoom]:
+        from . import TextRoom
         if type(self._room) is str:
             data = self._client.storage['rooms']['house'].get(self._room)
             if data:
-                self._room = Room(data=data, client=self._client)
+                self._room = TextRoom(data=data, client=self._client)
                 return self._room
             else:
                 return None
 
-        elif type(self._room) is Room:
+        elif type(self._room) is TextRoom:
             return self._room
         else:
             return None

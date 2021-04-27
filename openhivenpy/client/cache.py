@@ -1,14 +1,14 @@
 import logging
 import sys
-from typing import NoReturn
-
 # Using deepcopy instead of standard .copy() from python since regular dict() or dict.copy() would not duplicate its
 # iterable properties as well and the keys for iterables would point to the same object, which results in that
 # changes to those iterables are applied to all copied dictionaries that were created using dict() or copy().
 from copy import deepcopy
+from typing import NoReturn
 
-from .. import utils
+from .. import Object
 from .. import types
+from .. import utils
 from ..exceptions import InitializationError
 
 __all__ = ['ClientCache']
@@ -16,7 +16,7 @@ __all__ = ['ClientCache']
 logger = logging.getLogger(__name__)
 
 
-class ClientCache(dict):
+class ClientCache(dict, Object):
     """
     Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
     functions to interact with the Client cache more easily and use functions for better readability.
@@ -101,7 +101,7 @@ class ClientCache(dict):
             id_ = data['id']
             for room in data['rooms']:
                 room['house_id'] = id_
-                room = types.Room.format_obj_data(room)
+                room = types.TextRoom.format_obj_data(room)
                 self.add_or_update_room(room)
 
             for member in data['members']:
@@ -169,7 +169,7 @@ class ClientCache(dict):
         try:
             data = deepcopy(item_data)
             id_ = data['id']
-            data = types.Room.format_obj_data(data)
+            data = types.TextRoom.format_obj_data(data)
             if self['rooms']['house'].get(id_) is None:
                 self['rooms']['house'][id_] = data
             else:

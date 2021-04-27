@@ -84,8 +84,8 @@ class TestEntity:
             "name": "Rooms",
             "id": "423456789123456789"
         }
-        openhivenpy.types.Entity.format_obj_data(data)
-        entity = openhivenpy.types.Entity(data, client)
+        openhivenpy.Entity.format_obj_data(data)
+        entity = openhivenpy.Entity(data, client)
 
         assert entity._house == data['house_id']
         assert entity.house.id == data['house_id']

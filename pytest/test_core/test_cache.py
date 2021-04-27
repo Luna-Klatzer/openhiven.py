@@ -1,5 +1,4 @@
 import openhivenpy
-import asyncio
 
 
 class TestCache:
@@ -87,7 +86,7 @@ class TestCache:
         cache.update_client_user(data)
         return_data = cache.update_client_user(data)
 
-        validated_data = openhivenpy.types.User.format_obj_data(data)
+        validated_data = openhivenpy.User.format_obj_data(data)
         assert return_data == validated_data
         assert cache['client_user'] == validated_data
         assert cache['users'][data['id']] == validated_data
@@ -107,6 +106,6 @@ class TestCache:
         client_member = return_data.pop('client_member')
         assert return_data['members'][client_user['id']] == client_member
 
-        validated_data = openhivenpy.types.House.format_obj_data(data)
+        validated_data = openhivenpy.House.format_obj_data(data)
         assert return_data == validated_data
         assert cache['houses'][self.test_house_args['id']] == return_data

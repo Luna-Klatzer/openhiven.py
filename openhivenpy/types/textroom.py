@@ -1,29 +1,30 @@
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
-import asyncio
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
-from .message import Message
+from . import DataClassObject
 from .house import House
+from .message import Message
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['Room']
+__all__ = ['TextRoom']
 
 
-class Room(HivenTypeObject):
+class TextRoom(DataClassObject):
     """
     Represents a Hiven Room inside a House
 
@@ -129,7 +130,6 @@ class Room(HivenTypeObject):
         return self._client.storage['rooms']['house'][self.id]
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -142,7 +142,7 @@ class Room(HivenTypeObject):
             house = data.pop('house')
             if type(house) is dict:
                 house_id = house.get('id')
-            elif isinstance(house, HivenTypeObject):
+            elif isinstance(house, DataClassObject):
                 house_id = getattr(house, 'id', None)
             else:
                 house_id = None

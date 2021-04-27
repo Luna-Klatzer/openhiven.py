@@ -1,17 +1,19 @@
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-import aiohttp
 import asyncio
+import json as json_decoder
 import logging
 import sys
 import time
-import json as json_decoder
-from yarl import URL
 from typing import Optional, Union
+
+import aiohttp
+from yarl import URL
 
 __all__ = ['HTTP']
 
+from .. import Object
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
                           HTTPReceivedNoDataError)
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 request_url_format = "https://{0}/{1}"
 
 
-class HTTPTraceback:
+class HTTPTraceback(Object):
     @staticmethod
     async def on_request_start(session, trace_config_ctx, params):
         logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
@@ -140,7 +142,7 @@ class HTTP:
             )
             self._ready = False
             await self.session.close()
-            raise SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}")
+            raise SessionCreateError(f"Failed to create HTTP-Session") from e
 
     async def close(self) -> bool:
         """

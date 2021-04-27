@@ -84,4 +84,23 @@ class TestWorker:
         pass
 
     def test_run_one_sequence(self):
-        pass
+        client = openhivenpy.UserClient()
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+
+            client.message_broker.get_buffer("room_create").add({})
+            w = client.message_broker.event_consumer.get_worker('room_create')
+            await w.run_one_sequence()
+
+            client.message_broker.get_buffer("message_create").add({})
+            w = client.message_broker.event_consumer.get_worker('message_create')
+            await w.run_one_sequence()
+
+        @client.event()
+        async def on_message_create(*args, **kwargs):
+            print("Received message")
+            await client.close()
+
+        client.run(token_)

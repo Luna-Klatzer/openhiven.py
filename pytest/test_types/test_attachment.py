@@ -1,8 +1,7 @@
-import asyncio
 import fastjsonschema
 
 import openhivenpy
-from openhivenpy.types import Attachment
+from openhivenpy import Attachment
 
 
 class TestAttachment:

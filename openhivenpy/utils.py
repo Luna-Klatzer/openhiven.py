@@ -1,17 +1,19 @@
+import inspect
 import logging
 import sys
 import traceback
-from operator import attrgetter
 from functools import wraps
-import inspect
-from typing import Union, Awaitable, Callable, Any, Optional, NoReturn
+from operator import attrgetter
+from types import TracebackType
+from typing import Union, Awaitable, Callable, Any, Optional, NoReturn, Type, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:
     """
-    Fetches a function inside an object and will return the callable or coroutine
+    Fetches a function inside an object and will return the callable. If the object is not a function it will raise an
+    exception
 
     :param obj: Object where to search for the function
     :param func_name: Name of the function
@@ -81,25 +83,35 @@ def dispatch_func_if_exists(obj: object,
         return None
 
 
-def log_traceback(level: Optional[str] = 'error',
-                  msg: str = 'Traceback: ',
-                  suffix: Optional[str] = None):
+def log_traceback(
+    level: Optional[str] = 'error',
+    msg: str = 'Traceback: ',
+    suffix: Optional[str] = None,
+    exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
+):
     """
-    Logs the traceback of the current exception
+    Logs the traceback of the latest exception
 
-    :param level: Logger level for the exception. If set to None it will not log any additional message
+    :param level: Logger level for the exception
     :param msg: Message for the logging. Only gets printed out if logging level was correctly set
     :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
+    :param exc_info: The exc_info containing the exception and the traceback
     """
-    tb = traceback.format_tb(sys.exc_info()[2])
+    tb = traceback.format_exception(
+        etype=exc_info[0],
+        value=exc_info[1],
+        tb=exc_info[2]
+    )
 
     log_level: Callable = getattr(logger, level, None)
     if log_level is None and not callable(log_level):
         raise ValueError("The passed level does not exist in the logging module!")
 
     tb_str = "".join(frame for frame in tb)
+    suffix = suffix if suffix is not None else None
+
     # Fetches and prints the current traceback with the passed message
-    log_level(f"{msg}\n{tb_str} {suffix if suffix else ''}\n")
+    log_level(f"{msg}\n{tb_str} {suffix}\n")
 
 
 def get(iterable, **attrs) -> Any:
@@ -234,11 +246,9 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    log_traceback(
-                        msg=f"Traceback in coroutine {func.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
-                    )
+                    log_traceback(msg=f"Traceback in coroutine {func.__name__}:")
                     if return_exception:
-                        raise
+                        raise RuntimeError(f"Failed to execute coroutine {func.__name__}") from e
         else:
             @wraps(func)
             def wrapper(*args, **kwargs) -> Union[Any, NoReturn]:
@@ -249,9 +259,9 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                         msg=f"Traceback in function {func.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
                     )
                     if return_exception:
-                        raise
+                        raise RuntimeError(f"Failed to execute function {func.__name__}") from e
 
-        return wrapper  # func can still be used normally outside the event listening process
+        return wrapper  # func can still be used normally
 
     if func is None:
         return decorator

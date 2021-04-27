@@ -1,7 +1,6 @@
 import time
 
 import openhivenpy
-from openhivenpy.types import Context
 
 token_ = ""
 client = openhivenpy.HivenClient()
@@ -103,8 +102,8 @@ class TestContext:
             },
             "timestamp": round(time.time())
         }
-        openhivenpy.types.Context.format_obj_data(data)
-        context = openhivenpy.types.Context(data, client)
+        openhivenpy.Context.format_obj_data(data)
+        context = openhivenpy.Context(data, client)
 
         assert context._author == data['author_id']
         assert context._house == data['house_id']

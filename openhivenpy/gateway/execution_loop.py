@@ -7,23 +7,23 @@ __all__ = ['StartupTasks', 'BackgroundTasks', 'ExecutionLoop']
 
 from functools import wraps
 
-from .. import utils
+from .. import utils, Object
 from ..exceptions import ClosingError
 
 logger = logging.getLogger(__name__)
 
 
-class StartupTasks:
+class StartupTasks(Object):
     """ Class intended to inherit all StartupTasks """
     pass
 
 
-class BackgroundTasks:
+class BackgroundTasks(Object):
     """ Class intended to inherit all BackgroundTasks """
     pass
 
 
-class ExecutionLoop:
+class ExecutionLoop(Object):
     """
     Loop that executes tasks in the background.
 

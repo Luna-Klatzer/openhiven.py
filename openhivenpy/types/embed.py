@@ -3,15 +3,16 @@ from __future__ import annotations
 
 import logging
 import sys
-import fastjsonschema
 from typing import Optional
-
-from .. import utils
-from . import HivenTypeObject, check_valid
-from ..exceptions import InitializationError
-
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+
+import fastjsonschema
+
+from . import DataClassObject
+from .. import utils
+from ..exceptions import InitializationError
+
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Embed']
 
 
-class Embed(HivenTypeObject):
+class Embed(DataClassObject):
     """ Represents an embed message object either customised or from a website """
     json_schema = {
         'type': 'object',
@@ -69,7 +70,6 @@ class Embed(HivenTypeObject):
             self._client = client
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an

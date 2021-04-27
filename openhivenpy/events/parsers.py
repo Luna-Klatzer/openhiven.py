@@ -1,15 +1,16 @@
 import logging
 from typing import Optional, Tuple
 
-from openhivenpy.gateway import DynamicEventBuffer
-from openhivenpy import types
+from .. import Object
+from .. import types
+from ..gateway import DynamicEventBuffer
 
 __all__ = ['HivenParsers']
 
 logger = logging.getLogger(__name__)
 
 
-class HivenParsers:
+class HivenParsers(Object):
     """ Event Parsers for Hiven Events that validate and update the cached data """
     def __init__(self, client):
         self.client = client

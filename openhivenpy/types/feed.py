@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import logging
-
-from . import HivenTypeObject
-
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+
+from . import DataClassObject
+
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Feed']
 
 
-class Feed(HivenTypeObject):
+class Feed(DataClassObject):
     """ Represents the feed that is displayed on Hiven specifically for the user """
     def __init__(self, data: dict, client: HivenClient):
         pass

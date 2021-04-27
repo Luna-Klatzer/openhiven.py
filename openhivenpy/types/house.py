@@ -4,16 +4,17 @@ from __future__ import annotations
 import logging
 import sys
 from typing import Optional, List
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from . import Member, Room, Entity, Invite
+    from . import Member, TextRoom, Entity, Invite
     from .. import HivenClient
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['House', 'LazyHouse']
 
 
-class LazyHouse(HivenTypeObject):
+class LazyHouse(DataClassObject):
     """
     Represents a Hiven House which can contain rooms and entities
 
@@ -113,7 +114,6 @@ class LazyHouse(HivenTypeObject):
         return self._client.storage['houses'][self.id]
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -132,7 +132,7 @@ class LazyHouse(HivenTypeObject):
             owner = data.pop('owner')
             if type(owner) is dict:
                 owner_id = owner.get('id')
-            elif isinstance(owner, HivenTypeObject):
+            elif isinstance(owner, DataClassObject):
                 owner_id = getattr(owner, 'id', None)
             else:
                 owner_id = None
@@ -190,13 +190,13 @@ class LazyHouse(HivenTypeObject):
 
     @property
     def rooms(self) -> Optional[list]:
-        from . import Room
+        from . import TextRoom
         if type(self._rooms) is list:
             if type(self._rooms[0]) is str:
                 rooms = []
                 for d in self._rooms:
                     room_data = self._client.storage['rooms']['house'][d]
-                    rooms.append(Room(room_data, client=self._client))
+                    rooms.append(TextRoom(room_data, client=self._client))
 
                 self._rooms = rooms
             return self._rooms
@@ -279,7 +279,6 @@ class House(LazyHouse):
         super().__init__(data, client)
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -299,7 +298,7 @@ class House(LazyHouse):
             owner = data.pop('owner')
             if type(owner) is dict:
                 owner_id = owner.get('id')
-            elif isinstance(owner, HivenTypeObject):
+            elif isinstance(owner, DataClassObject):
                 owner_id = getattr(owner, 'id', None)
             else:
                 owner_id = None
@@ -412,17 +411,17 @@ class House(LazyHouse):
         """
         return self._member_data.get(member_id)
 
-    def get_room(self, room_id: str) -> Optional[Room]:
+    def get_room(self, room_id: str) -> Optional[TextRoom]:
         """
         Fetches a room from the cache based on the id
 
         :return: The Room Instance if it exists else returns None
         """
         try:
-            from . import Room
+            from . import TextRoom
             cached_room = self.find_room(room_id)
             if cached_room:
-                return Room(cached_room, self._client)
+                return TextRoom(cached_room, self._client)
 
             return None
 
@@ -475,14 +474,14 @@ class House(LazyHouse):
         """
         return self._client.storage['entities'].get(entity_id)
 
-    async def create_room(self, name: str, parent_entity_id: Optional[int] = None) -> Optional[Room]:
+    async def create_room(self, name: str, parent_entity_id: Optional[int] = None) -> Optional[TextRoom]:
         """
         Creates a Room in the house with the specified name. 
         
         :return: A Room Instance for the Hiven Room that was created if successful else None
         """
         try:
-            from . import Room
+            from . import TextRoom
             default_entity = utils.get(self.entities, name="Rooms")
             json = {
                 'name': name,
@@ -493,8 +492,8 @@ class House(LazyHouse):
             resp = await self._client.http.post(f"/houses/{self._id}/rooms", json=json)
             raw_data = await resp.json()
 
-            data = Room.format_obj_data(raw_data.get('data'))
-            return Room(data, self._client)
+            data = TextRoom.format_obj_data(raw_data.get('data'))
+            return TextRoom(data, self._client)
 
         except Exception as e:
             utils.log_traceback(

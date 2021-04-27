@@ -5,15 +5,16 @@ import datetime
 import logging
 import sys
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from . import User
 from .. import utils
 from ..exceptions import InitializationError, InvalidPassedDataError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Mention']
 
 
-class Mention(HivenTypeObject):
+class Mention(DataClassObject):
     """ Represents an mention for a user in Hiven """
     json_schema = {
         'type': 'object',
@@ -67,7 +68,6 @@ class Mention(HivenTypeObject):
             self._client = client
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -84,7 +84,7 @@ class Mention(HivenTypeObject):
             user = data.pop('user')
             if type(user) is dict:
                 user = user.get('id', None)
-            elif isinstance(user, HivenTypeObject):
+            elif isinstance(user, DataClassObject):
                 user = getattr(user, 'id', None)
             else:
                 user = None
@@ -98,7 +98,7 @@ class Mention(HivenTypeObject):
             author = data.pop('author')
             if type(author) is dict:
                 author = author.get('id', None)
-            elif isinstance(author, HivenTypeObject):
+            elif isinstance(author, DataClassObject):
                 author = getattr(author, 'id', None)
             else:
                 author = None

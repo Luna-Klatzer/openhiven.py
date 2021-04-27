@@ -69,6 +69,7 @@ class TestListeners:
             assert new_user.bio == new['bio']
             assert old_user.bio != new_user.bio
             await client.close()
+
         client.run(token_)
 
     def test_on_message_create(self):
@@ -79,7 +80,7 @@ class TestListeners:
             await client.parsers.dispatch('message_create', {})
 
         @client.event()
-        async def on_message_create():
+        async def on_message_create(*args, **kwargs):
             print("Received message")
             await client.close()
 

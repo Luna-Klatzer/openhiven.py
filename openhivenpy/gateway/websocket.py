@@ -5,17 +5,19 @@ import asyncio
 import json
 import logging
 import sys
-import typing
 import time
-import aiohttp
 from enum import IntEnum
-from yarl import URL
-
-from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError
-from .messagebroker import MessageBroker
-
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+from typing import Tuple, Optional, NoReturn
+
+import aiohttp
+from yarl import URL
+
+from .messagebroker import MessageBroker
+from .. import Object
+from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError
+
 if TYPE_CHECKING:
     from ..events import HivenParsers
     from .. import HivenClient
@@ -35,7 +37,7 @@ def extract_event(msg: dict) -> Tuple[int, str, dict]:
     return msg.get('op'), msg.get('e'), msg.get('d')
 
 
-class KeepAlive:
+class KeepAlive(Object):
     def __init__(self, ws):
         self.ws: HivenWebSocket = ws
         self._heartbeat: int = ws.heartbeat
@@ -71,12 +73,14 @@ class KeepAlive:
         self._active = False
 
 
-class HivenWebSocket:
-    def __init__(self,
-                 socket: aiohttp.ClientWebSocketResponse,
-                 *,
-                 loop: asyncio.AbstractEventLoop,
-                 log_websocket: bool = False):
+class HivenWebSocket(Object):
+    def __init__(
+        self,
+        socket: aiohttp.ClientWebSocketResponse,
+        *,
+        loop: asyncio.AbstractEventLoop,
+        log_websocket: bool = False
+    ):
         self.endpoint = None
         self.log_websocket = log_websocket
 
@@ -315,4 +319,4 @@ class HivenWebSocket:
                 })
             )
         except Exception as e:
-            raise SessionCreateError(f"Failed to send auth to the host due to exception: {e}")
+            raise SessionCreateError(f"Failed to send auth to the host") from e

@@ -4,16 +4,17 @@ from __future__ import annotations
 import logging
 import sys
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
 import fastjsonschema
 
-from . import HivenTypeObject, check_valid
+from . import DataClassObject
 from .. import utils
 from ..exceptions import InvalidPassedDataError, InitializationError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from . import House, Room
+    from . import House, TextRoom
     from .. import HivenClient
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['Entity']
 
 
-class Entity(HivenTypeObject):
+class Entity(DataClassObject):
     """ Represents a Hiven Entity inside a House which can contain Rooms """
     json_schema = {
         'type': 'object',
@@ -95,7 +96,6 @@ class Entity(HivenTypeObject):
         return self._client.storage['entities'].get(self.id)
 
     @classmethod
-    @check_valid
     def format_obj_data(cls, data: dict) -> dict:
         """
         Validates the data and appends data if it is missing that would be required for the creation of an
@@ -112,7 +112,7 @@ class Entity(HivenTypeObject):
             house = data.pop('house')
             if type(house) is dict:
                 house_id = house.get('id')
-            elif isinstance(house, HivenTypeObject):
+            elif isinstance(house, DataClassObject):
                 house_id = getattr(house, 'id', None)
             else:
                 house_id = None
@@ -131,9 +131,9 @@ class Entity(HivenTypeObject):
         return getattr(self, '_type', None)
 
     @property
-    def resource_pointers(self) -> Optional[List[Room, dict]]:
+    def resource_pointers(self) -> Optional[List[TextRoom, dict]]:
         """ Objects contained inside the entity. If dict is returned it's a type that is not yet included in the lib """
-        from . import Room
+        from . import TextRoom
         if type(self._resource_pointers) is list and len(self._resource_pointers) > 0:
             resources_created = False
             for _ in self._resource_pointers:
@@ -145,7 +145,7 @@ class Entity(HivenTypeObject):
                 for d in self._resource_pointers:
                     if d['resource_type'] == "room":
                         data = self._client.storage['rooms']['house'][d['resource_id']]
-                        resource_pointers.append(Room(data, client=self._client))
+                        resource_pointers.append(TextRoom(data, client=self._client))
                     else:
                         resource_pointers.append(d)
 

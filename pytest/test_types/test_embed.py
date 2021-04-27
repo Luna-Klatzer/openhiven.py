@@ -1,8 +1,7 @@
-import asyncio
 import fastjsonschema
 
 import openhivenpy
-from openhivenpy.types import Embed
+from openhivenpy import Embed
 
 
 class TestEmbed:

@@ -5,13 +5,13 @@ import datetime
 import logging
 import sys
 from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
-from . import HivenTypeObject, House, Room, User
+from . import DataClassObject, House, TextRoom, User
 from .. import utils
 from ..exceptions import InitializationError
 
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['UserTyping']
 
 
-class UserTyping(HivenTypeObject):
+class UserTyping(DataClassObject):
     """ Represents a Hiven User typing in a room """
     def __init__(self, data: dict, client: HivenClient):
         try:
@@ -95,16 +95,16 @@ class UserTyping(HivenTypeObject):
             return None
 
     @property
-    def room(self) -> Optional[Room]:
+    def room(self) -> Optional[TextRoom]:
         if type(self._room) is str:
             data = self._client.storage['rooms']['house'].get(self._room)
             if data:
-                self._room = Room(data=data, client=self._client)
+                self._room = TextRoom(data=data, client=self._client)
                 return self._room
             else:
                 return None
 
-        elif type(self._room) is Room:
+        elif type(self._room) is TextRoom:
             return self._room
         else:
             return None
