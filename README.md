@@ -36,7 +36,7 @@ python3 -m pip install -U https://github.com/Nicolas-Klatzer/openhiven.py/archiv
 ## Documentation
 For full documentation visit the documentation our readthedocs-page
 [here](https://openhivenpy.readthedocs.io/en/latest/) or go to the github pages build 
-[here [Recommended]](https://luna-klatzer.github.io/docs_openhiven.py/build)
+[here [Recommended]](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
 
 ### Usage Example (v0.1.3.2)
