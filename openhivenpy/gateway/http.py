@@ -16,10 +16,11 @@ __all__ = ['HTTP']
 from .. import Object
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
-                          HTTPReceivedNoDataError)
+                          HTTPReceivedNoDataError, HTTPSessionNotReadyError)
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .. import HivenClient
 
@@ -61,6 +62,7 @@ class HTTPTraceback(Object):
 
 class HTTP:
     """ HTTP-Client for requests and interaction with the Hiven API """
+
     def __init__(self, client: HivenClient, *, host: str, api_version: str):
         """
         :param client: The used HivenClient
@@ -142,6 +144,7 @@ class HTTP:
             )
             self._ready = False
             await self.session.close()
+
             raise SessionCreateError(f"Failed to create HTTP-Session") from e
 
     async def close(self) -> bool:
@@ -185,6 +188,7 @@ class HTTP:
                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         :return: Returns the aiohttp.ClientResponse object
         """
+
         async def http_request(_endpoint: str,
                                _method: str,
                                _json: dict,
@@ -201,12 +205,9 @@ class HTTP:
             :param _kwargs: Additional Parameter for the aiohttp HTTP Request
             :return: Returns the aiohttp.ClientResponse object
             """
+
             if not self._ready:
-                logger.error(
-                    "[HTTP] << The HTTPClient was not ready when trying to perform request with "
-                    f"HTTP {_method}! The session is either not initialised or closed!"
-                )
-                return None
+                raise HTTPSessionNotReadyError()
 
             # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
             # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
@@ -216,12 +217,12 @@ class HTTP:
             url = f"{self.api_url.human_repr()}{_endpoint}"
 
             async with self.session.request(
-                method=_method,
-                url=url,
-                headers=_headers,
-                timeout=_timeout,
-                json=_json,
-                **_kwargs
+                    method=_method,
+                    url=url,
+                    headers=_headers,
+                    timeout=_timeout,
+                    json=_json,
+                    **_kwargs
             ) as _resp:
                 http_resp_code = _resp.status
                 data = await _resp.read()  # Raw response data
@@ -281,13 +282,15 @@ class HTTP:
         # Returning the response instance
         return http_client_response
 
-    async def get(self,
-                  endpoint: str,
-                  *,
-                  json: Optional[dict] = None,
-                  timeout: Optional[int] = 15,
-                  headers: Optional[dict] = None,
-                  **kwargs) -> aiohttp.ClientResponse:
+    async def get(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'GET' request for a specified endpoint
 
@@ -310,13 +313,15 @@ class HTTP:
             **kwargs
         )
 
-    async def post(self,
-                   endpoint: str,
-                   *,
-                   json: Optional[dict] = None,
-                   timeout: Optional[int] = 15,
-                   headers: Optional[dict] = None,
-                   **kwargs) -> aiohttp.ClientResponse:
+    async def post(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'POST' for a specified endpoint.
         
@@ -348,13 +353,15 @@ class HTTP:
             **kwargs
         )
 
-    async def delete(self,
-                     endpoint: str,
-                     *,
-                     json: Optional[dict] = None,
-                     timeout: Optional[int] = 15,
-                     headers: Optional[dict] = None,
-                     **kwargs) -> aiohttp.ClientResponse:
+    async def delete(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'DELETE' for a specified endpoint.
         
@@ -377,13 +384,15 @@ class HTTP:
             **kwargs
         )
 
-    async def put(self,
-                  endpoint: str,
-                  *,
-                  json: Optional[dict] = None,
-                  timeout: Optional[int] = 15,
-                  headers: Optional[dict] = None,
-                  **kwargs) -> aiohttp.ClientResponse:
+    async def put(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PUT' for a specified endpoint.
         
@@ -417,13 +426,15 @@ class HTTP:
             **kwargs
         )
 
-    async def patch(self,
-                    endpoint: str,
-                    *,
-                    json: Optional[dict] = None,
-                    timeout: Optional[int] = 15,
-                    headers: Optional[dict] = None,
-                    **kwargs) -> aiohttp.ClientResponse:
+    async def patch(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PATCH' for a specified endpoint.
         
@@ -455,13 +466,15 @@ class HTTP:
             **kwargs
         )
 
-    async def options(self,
-                      endpoint: str,
-                      *,
-                      json: Optional[dict] = None,
-                      timeout: Optional[int] = 15,
-                      headers: Optional[dict] = None,
-                      **kwargs) -> aiohttp.ClientResponse:
+    async def options(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'OPTIONS' for a specified endpoint.
         

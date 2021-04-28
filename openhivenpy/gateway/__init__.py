@@ -55,13 +55,13 @@ class Connection(Object):
     """ Connection Class used for interaction with the Hiven API and WebSocket Swarm"""
 
     def __init__(
-        self,
-        client,
-        *,
-        host: Optional[str] = DEFAULT_HOST,
-        api_version: Optional[str] = DEFAULT_API_VERSION,
-        heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
-        close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT
+            self,
+            client,
+            *,
+            host: Optional[str] = DEFAULT_HOST,
+            api_version: Optional[str] = DEFAULT_API_VERSION,
+            heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
+            close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT
     ):
         self.client = client
         self.http = None

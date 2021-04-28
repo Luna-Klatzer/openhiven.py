@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from . import House, User, TextRoom
     from .. import HivenClient
 
-
 logger = logging.getLogger(__name__)
 
 __all__ = ['Context']

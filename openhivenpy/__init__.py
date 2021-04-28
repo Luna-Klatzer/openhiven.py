@@ -6,7 +6,11 @@ OpenHiven.py - The OpenSource Python API Wrapper for Hiven
 
 Under MIT License
 
+<<<<<<< HEAD
+Copyright © 2020 - 2021 Nicolas Klatzer
+=======
 Copyright © 2020 - 2021 Luna Klatzer
+>>>>>>> v0.2_rewrite
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +46,6 @@ from openhivenpy.settings import load_env_vars
 from . import exceptions
 
 load_env_vars()
-
 
 from .types import Object
 from . import utils

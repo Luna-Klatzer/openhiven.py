@@ -75,11 +75,11 @@ class KeepAlive(Object):
 
 class HivenWebSocket(Object):
     def __init__(
-        self,
-        socket: aiohttp.ClientWebSocketResponse,
-        *,
-        loop: asyncio.AbstractEventLoop,
-        log_websocket: bool = False
+            self,
+            socket: aiohttp.ClientWebSocketResponse,
+            *,
+            loop: asyncio.AbstractEventLoop,
+            log_websocket: bool = False
     ):
         self.endpoint = None
         self.log_websocket = log_websocket

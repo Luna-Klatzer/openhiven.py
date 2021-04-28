@@ -11,6 +11,7 @@ def test_start(token):
 class TestListeners:
     def test_on_init(self):
         client = openhivenpy.UserClient()
+
         @client.event()
         async def on_init():
             print("\non_init was called!")
@@ -20,6 +21,7 @@ class TestListeners:
 
     def test_on_ready(self):
         client = openhivenpy.UserClient()
+
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
@@ -74,6 +76,7 @@ class TestListeners:
 
     def test_on_message_create(self):
         client = openhivenpy.UserClient()
+
         @client.event()
         async def on_ready():
             print("\non_ready was called!")

@@ -1,9 +1,6 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: question, request
-assignees: Nxybi, Luna-Klatzer
+name: Feature request about: Suggest an idea for this project title: ''
+labels: question, request assignees: Nxybi, Luna-Klatzer
 
 ---
 

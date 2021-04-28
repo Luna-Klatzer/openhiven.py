@@ -80,7 +80,7 @@ class Attachment(DataClassObject):
     @property
     def media_url(self) -> str:
         return getattr(self, '_media_url', None)
-    
+
     @property
     def raw(self) -> dict:
         # Different files have different attribs

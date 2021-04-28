@@ -1,7 +1,6 @@
-import asyncio
 import logging
 import sys
-from typing import Optional, Union, overload
+from typing import Union, overload
 
 from .hivenclient import HivenClient
 from .. import types

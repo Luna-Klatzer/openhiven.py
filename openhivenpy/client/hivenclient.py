@@ -28,15 +28,15 @@ class HivenClient(HivenEventHandler, Object):
     """ Main Class for connecting to Hiven and interacting with the API. """
 
     def __init__(
-        self,
-        *,
-        loop: AbstractEventLoop = None,
-        log_websocket: bool = False,
-        queue_events: bool = False,
-        host: Optional[str] = None,
-        api_version: Optional[str] = None,
-        heartbeat: Optional[int] = None,
-        close_timeout: Optional[int] = None
+            self,
+            *,
+            loop: AbstractEventLoop = None,
+            log_websocket: bool = False,
+            queue_events: bool = False,
+            host: Optional[str] = None,
+            api_version: Optional[str] = None,
+            heartbeat: Optional[int] = None,
+            close_timeout: Optional[int] = None
     ):
         """
         :param loop: Loop that will be used to run the Client. If a new one is passed on run() that one will be

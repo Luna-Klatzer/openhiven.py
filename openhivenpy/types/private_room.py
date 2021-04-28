@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
-from typing import Optional
+from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -72,7 +72,7 @@ class PrivateGroupRoom(DataClassObject):
                 ],
                 'default': None
             },
-            'house_id': {'type': 'null'} # weird hiven bug
+            'house_id': {'type': 'null'}  # weird hiven bug
         },
         'additionalProperties': False,
         'required': ['id', 'recipients', 'type']
@@ -361,7 +361,7 @@ class PrivateRoom(DataClassObject):
             return self._recipient
         else:
             return None
-    
+
     @property
     def id(self) -> Optional[str]:
         return getattr(self, '_id', None)
@@ -381,7 +381,7 @@ class PrivateRoom(DataClassObject):
     @property
     def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
-    
+
     async def start_call(self, delay: float = None) -> bool:
         """openhivenpy.types.PrivateRoom.start_call()
 
@@ -401,13 +401,13 @@ class PrivateRoom(DataClassObject):
                 return True
             else:
                 return False
-            
+
         except Exception as e:
             utils.log_traceback(
                 msg="[PRIVATE_ROOM] Traceback:",
                 suffix=f"Failed to start call in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
             )
-            return False             
+            return False
 
     async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
@@ -433,7 +433,7 @@ class PrivateRoom(DataClassObject):
             data = message.Message.format_obj_data(data)
             msg = message.Message(data, self._client)
             return msg
-        
+
         except Exception as e:
             utils.log_traceback(
                 msg="[PRIVATE_ROOM] Traceback:",

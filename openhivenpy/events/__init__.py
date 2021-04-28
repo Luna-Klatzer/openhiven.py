@@ -2,7 +2,13 @@
 Module that stores the EventListeners Methods and Classes for listening to WebSocket Events
 ---
 Under MIT License
+<<<<<<< HEAD
+
+Copyright © 2020 - 2021 Nicolas Klatzer
+
+=======
 Copyright © 2020 - 2021 Luna Klatzer
+>>>>>>> v0.2_rewrite
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -69,6 +75,7 @@ NON_BUFFER_EVENTS = [
 
 class DispatchEventListener(Object):
     """Base Class for all DispatchEventListeners"""
+
     def __str__(self):
         return f"<{self.__class__.__name__} for event {self.event_name}>"
 
@@ -117,6 +124,7 @@ def remove_listener(client: HivenClient, listener: DispatchEventListener):
 
 class SingleDispatchEventListener(DispatchEventListener):
     """ EventListener Class that will be called only once and will store the events data, args and kwargs """
+
     def __init__(self, client, event_name: str, coro: Union[Callable, Coroutine, None]):
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f"A coroutine was expected, got {type(coro)}")
@@ -174,6 +182,7 @@ class SingleDispatchEventListener(DispatchEventListener):
 
 class MultiDispatchEventListener(DispatchEventListener):
     """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
+
     def __init__(self, client, event_name: str, coro: Union[Callable, Coroutine, None]):
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f"A coroutine was expected, got {type(coro)}")
@@ -213,6 +222,7 @@ class HivenEventHandler(Object):
     Events class used to register the main event listeners.
     Is inherited by the HivenClient for easier access.
     """
+
     def __init__(self, hiven_parsers: HivenParsers):
         self.parsers = hiven_parsers
         self._active_listeners = {}
@@ -287,6 +297,7 @@ class HivenEventHandler(Object):
 
         :param coro: Function that should be wrapped and registered
         """
+
         def decorator(coro: Union[Callable, Coroutine]) -> Callable:
             if not inspect.iscoroutinefunction(coro):
                 raise TypeError(f"A coroutine was expected, got {type(coro)}")
@@ -308,7 +319,7 @@ class HivenEventHandler(Object):
     def add_multi_listener(self,
                            event_name: str,
                            coro: Union[Callable,
-                                              Coroutine]) -> MultiDispatchEventListener:
+                                       Coroutine]) -> MultiDispatchEventListener:
         """
         Adds a new event listener to the list of active listeners
 
@@ -328,7 +339,7 @@ class HivenEventHandler(Object):
     def add_single_listener(self,
                             event_name: str,
                             coro: Union[Callable,
-                                               Coroutine]) -> SingleDispatchEventListener:
+                                        Coroutine]) -> SingleDispatchEventListener:
         """
         Adds a new single dispatch event listener to the list of active listeners
 

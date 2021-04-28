@@ -26,7 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
 __all__ = [
     'HivenError', 'HivenConnectionError', 'HivenENVError',
 
@@ -36,8 +35,8 @@ __all__ = [
     'HivenGatewayError', 'WebSocketMessageError', 'WebSocketFailedError',
     'WebSocketClosedError', 'RestartSessionError',
 
-    'HTTPError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError', 'HTTPForbiddenError',
-    'HTTPResponseError', 'HTTPReceivedNoDataError',
+    'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError',
+    'HTTPForbiddenError', 'HTTPResponseError', 'HTTPReceivedNoDataError',
 
     'InitializationError', 'InvalidPassedDataError',
 
@@ -66,7 +65,7 @@ class HivenError(Exception):
                 self.error_msg = f"Exception occurred in the package openhivenpy"
 
         super().__init__(self.error_msg)
-        
+
     def __str__(self):
         return self.error_msg
 
@@ -115,7 +114,7 @@ class ClosingError(HivenConnectionError):
 class NoneClientType(Warning):
     """ A None Type was passed in the Initialization! """
     error_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
-               "while running!")
+                 "while running!")
 
 
 # -------- GATEWAY --------
@@ -177,6 +176,12 @@ class HTTPRequestTimeoutError(HTTPError):
 
 class HTTPFailedRequestError(HTTPError):
     """ General Exception for errors while handling a request """
+    error_msg = "Failed to perform a request"
+
+
+class HTTPSessionNotReadyError(HTTPError):
+    """ The HTTP Session is not initialised yet """
+    error_msg = "HTTP-Client not initialised"
 
 
 class HTTPForbiddenError(HTTPFailedRequestError):
@@ -206,6 +211,7 @@ class InitializationError(HivenError):
 
 class InvalidPassedDataError(InitializationError):
     """ Failed to utilise data as wanted due to missing or unexpected data! """
+
     def __init__(self, *args, data):
         if args:
             arg = "".join([str(arg) for arg in args])

@@ -1,6 +1,7 @@
-import openhivenpy
 import asyncio
 import inspect
+
+import openhivenpy
 
 token_ = ""
 client = openhivenpy.HivenClient()

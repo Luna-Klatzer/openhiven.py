@@ -182,11 +182,11 @@ class Invite(DataClassObject):
     @property
     def url(self) -> Optional[str]:
         return getattr(self, '_url', None)
-    
+
     @property
     def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
-    
+
     @property
     def max_age(self) -> Optional[int]:
         return getattr(self, '_max_age', None)
@@ -194,11 +194,11 @@ class Invite(DataClassObject):
     @property
     def max_uses(self) -> Optional[int]:
         return getattr(self, '_max_uses', None)
-    
+
     @property
     def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
-        
+
     @property
     def house(self) -> Optional[House]:
         from . import House
@@ -221,7 +221,7 @@ class Invite(DataClassObject):
             return self._house
         else:
             return None
-    
+
     @property
     def house_members(self) -> Optional[int]:
         return getattr(self, '_house_members', None)

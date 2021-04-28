@@ -69,6 +69,7 @@ class ExecutionLoop(Object):
 
         Does not return until the loop has finished!
         """
+
         async def _loop(startup_tasks, tasks):
             """
             Loop coroutine that runs the tasks
@@ -178,6 +179,7 @@ class ExecutionLoop(Object):
 
         :param coro: Function that should be wrapped and then executed in the Execution Loop
         """
+
         def decorator(wrapper_coro: Union[Callable, Awaitable]) -> Callable:
             @wraps(wrapper_coro)
             async def wrapper():
@@ -208,6 +210,7 @@ class ExecutionLoop(Object):
 
         :param coro: Function that should be wrapped and then executed at startup in the Execution Loop
         """
+
         def decorator(wrapper_coro: Union[Callable, Awaitable]) -> Callable:
             @wraps(wrapper_coro)
             async def wrapper():

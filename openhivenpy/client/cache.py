@@ -21,6 +21,7 @@ class ClientCache(dict, Object):
     Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
     functions to interact with the Client cache more easily and use functions for better readability.
     """
+
     def __init__(self, log_websocket: bool, *args, **kwargs):
         super(ClientCache, self).__init__(*args, **kwargs)
         self.update({

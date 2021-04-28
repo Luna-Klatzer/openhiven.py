@@ -1,6 +1,7 @@
-import pkg_resources
 import os
 from typing import NoReturn
+
+import pkg_resources
 from dotenv import load_dotenv
 
 from openhivenpy.exceptions import HivenENVError
@@ -18,4 +19,3 @@ def load_env_vars() -> NoReturn:
 
     if test_var is None:
         raise HivenENVError(f"Failed to load .env file of the module! Expected {env_path} to exist")
-

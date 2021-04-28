@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .hivenclient import HivenClient
 from .botclient import BotClient
-from .userclient import UserClient
 from .cache import ClientCache
+from .hivenclient import HivenClient
+from .userclient import UserClient

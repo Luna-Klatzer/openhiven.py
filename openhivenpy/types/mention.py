@@ -123,7 +123,7 @@ class Mention(DataClassObject):
             return self._timestamp
         else:
             return None
-    
+
     @property
     def user(self) -> Optional[User]:
         if type(self._user) is str:

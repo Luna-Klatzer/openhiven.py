@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import fastjsonschema
 
 from . import DataClassObject
-from . import user
+from . import User
 from .. import utils
 from ..exceptions import InitializationError, HTTPForbiddenError, InvalidPassedDataError
 
@@ -23,12 +23,12 @@ logger = logging.getLogger(__name__)
 __all__ = ['Member']
 
 
-class Member(user.User):
+class Member(User):
     """ Represents a House Member on Hiven which contains the Hiven User, role-data and member-data """
     json_schema = {
         'type': 'object',
         'properties': {
-            **user.User.json_schema['properties'],
+            **User.json_schema['properties'],
             'user_id': {'type': 'string'},
             'house': {},
             'house_id': {'type': 'string'},

@@ -22,6 +22,7 @@ __all__ = ['UserTyping']
 
 class UserTyping(DataClassObject):
     """ Represents a Hiven User typing in a room """
+
     def __init__(self, data: dict, client: HivenClient):
         try:
             self._author = data.get('author')

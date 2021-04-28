@@ -45,7 +45,7 @@ class TestMessageBroker:
         message_broker = openhivenpy.gateway.MessageBroker(client)
         buffer = message_broker.get_buffer("ready")
         buffer.add({})
-        
+
         async def test():
             await asyncio.sleep(.5)
             client.connection._connection_status = "CLOSING"

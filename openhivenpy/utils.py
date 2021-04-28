@@ -84,10 +84,10 @@ def dispatch_func_if_exists(obj: object,
 
 
 def log_traceback(
-    level: Optional[str] = 'error',
-    msg: str = 'Traceback: ',
-    suffix: Optional[str] = None,
-    exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
+        level: Optional[str] = 'error',
+        msg: str = 'Traceback: ',
+        suffix: Optional[str] = None,
+        exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
 ):
     """
     Logs the traceback of the latest exception
@@ -239,6 +239,7 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
     :param func: Function that should be wrapped
     :param return_exception: If set to True the exception will be reraised
     """
+
     def decorator(func: Union[Callable, Awaitable]) -> Callable:
         if inspect.iscoroutinefunction(func):
             @wraps(func)

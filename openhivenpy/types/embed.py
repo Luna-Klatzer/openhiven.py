@@ -83,19 +83,19 @@ class Embed(DataClassObject):
     @property
     def url(self) -> Optional[str]:
         return getattr(self, '_url', None)
-    
+
     @property
     def type(self) -> Optional[int]:
         return getattr(self, '_type', None)
-    
-    @property 
+
+    @property
     def title(self) -> Optional[str]:
         return getattr(self, '_title', None)
 
-    @property 
+    @property
     def image(self) -> Optional[str]:
         return getattr(self, '_image', None)
-    
+
     @property
     def description(self) -> Optional[str]:
         return getattr(self, '_description', None)

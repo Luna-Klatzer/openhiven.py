@@ -1,9 +1,9 @@
 """
 Test-file for testing purposes and development!
 """
-import openhivenpy
 import logging
 
+import openhivenpy
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
@@ -25,4 +25,4 @@ async def on_message_create():
     print(f"Message was created")
 
 if __name__ == '__main__':
-    client.run("Insert token",)
+    client.run("Insert token", )

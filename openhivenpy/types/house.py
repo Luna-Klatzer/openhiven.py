@@ -293,7 +293,7 @@ class House(LazyHouse):
         """
         data = LazyHouse.format_obj_data(data)
         data = cls.validate(data)
-        
+
         if not data.get('owner_id') and data.get('owner'):
             owner = data.pop('owner')
             if type(owner) is dict:
