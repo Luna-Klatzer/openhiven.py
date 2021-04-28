@@ -1,6 +1,9 @@
 ---
-name: Bug Report about: Create a bug report for a bug we missed and should fix title: ''
-labels: bug assignees: Nxybi, Luna-Klatzer
+name: Bug Report 
+about: Create a bug report for a bug we missed and should fix 
+title: ''
+labels: bug 
+assignees: Nxybi, Luna-Klatzer
 
 ---
 
