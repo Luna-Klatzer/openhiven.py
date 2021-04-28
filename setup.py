@@ -10,7 +10,7 @@ setuptools.setup(
     name="openhivenpy",
     version="0.2.alpha1",
     author="Luna Klatzer",
-    author_email="nicolas.klatzer@gmail.com",
+    author_email="luna.klatzer@gmail.com",
     description="The OpenSource Python API Wrapper and Bot-Framework for Hiven",
     long_description=long_description,
     long_description_content_type="text/markdown",
