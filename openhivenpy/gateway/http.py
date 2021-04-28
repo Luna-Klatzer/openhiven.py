@@ -173,7 +173,8 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,  # Defaults to an empty header
-            **kwargs) -> Union[aiohttp.ClientResponse, None]:
+            **kwargs
+    ) -> Union[aiohttp.ClientResponse, None]:
         """
         Wrapped HTTP request for a specified endpoint.
         

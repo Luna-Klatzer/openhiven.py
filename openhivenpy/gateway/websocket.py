@@ -9,7 +9,7 @@ import time
 from enum import IntEnum
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
-from typing import Tuple, Optional, NoReturn
+from typing import Tuple, Optional, NoReturn, Callable, Any
 
 import aiohttp
 from yarl import URL

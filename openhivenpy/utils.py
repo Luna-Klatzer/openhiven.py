@@ -5,7 +5,7 @@ import traceback
 from functools import wraps
 from operator import attrgetter
 from types import TracebackType
-from typing import Union, Awaitable, Callable, Any, Optional, NoReturn, Type, Tuple
+from typing import Union, Awaitable, Callable, Any, Optional, NoReturn, Type, Tuple, Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ def log_traceback(
         msg: str = 'Traceback: ',
         suffix: Optional[str] = None,
         exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
-):
+) -> NoReturn:
     """
     Logs the traceback of the latest exception
 
@@ -114,7 +114,7 @@ def log_traceback(
     log_level(f"{msg}\n{tb_str} {suffix}\n")
 
 
-def get(iterable, **attrs) -> Any:
+def get(iterable: Iterable, **attrs) -> Any:
     """
     Fetches an object in the passed iterable if the passed attribute align!
 
@@ -172,9 +172,7 @@ def log_validation_traceback(cls: Any, data: dict, e: Exception):
 MISSING = object()
 
 
-def safe_convert(dtype: Any,
-                 value: Any,
-                 default: Optional[Any] = MISSING) -> Union[Any, None]:
+def safe_convert(dtype: Any, value: Any, default: Optional[Any] = MISSING) -> Union[Any, None]:
     """
     Converts the passed value if it is not None, if it is it will just return None to not cause an exception.
 
