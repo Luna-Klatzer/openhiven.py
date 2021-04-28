@@ -30,10 +30,12 @@ def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:
         return None
 
 
-async def dispatch_coro_if_exists(obj: object,
-                                  func_name: str,
-                                  func_args: Optional[Union[list, tuple]] = None,
-                                  func_kwargs: Optional[dict] = None) -> Any:
+async def dispatch_coro_if_exists(
+        obj: object,
+        func_name: str,
+        func_args: Optional[Union[list, tuple]] = None,
+        func_kwargs: Optional[dict] = None
+) -> Any:
     """
     Dispatches the passed functions if it can be found in the passed object instance!
     If the function is not async it will still call it and return the returns if they exist
@@ -59,10 +61,12 @@ async def dispatch_coro_if_exists(obj: object,
         return None
 
 
-def dispatch_func_if_exists(obj: object,
-                            func_name: str,
-                            func_args: Optional[Union[list, tuple]] = None,
-                            func_kwargs: Optional[dict] = None) -> Any:
+def dispatch_func_if_exists(
+        obj: object,
+        func_name: str,
+        func_args: Optional[Union[list, tuple]] = None,
+        func_kwargs: Optional[dict] = None
+) -> Any:
     """
     Dispatches the passed functions if it can be found in the passed object instance!
 
