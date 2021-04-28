@@ -1,103 +1,101 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
+import fastjsonschema
+
+from . import DataClassObject
 from .. import utils
-from . import HivenObject
-from .. import exception as errs
+from ..exceptions import InitializationError
+
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('Embed', 'EmbedSchema')
+__all__ = ['Embed']
 
 
-class EmbedSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
+class Embed(DataClassObject):
+    """ Represents an embed message object either customised or from a website """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            'url': {'type': 'string', 'default': None},
+            'type': {'type': 'integer'},
+            'title': {'type': 'string'},
+            'image': {'type': 'string', 'default': None},
+            'description': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            }
+        },
+        'additionalProperties': False,
+        'required': ['type', 'title']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
 
-    url = fields.Str(required=True)
-    type = fields.Str(required=True)
-    title = fields.Str(required=True)
-    image = fields.Str(default=None)
-    description = fields.Str(default=None)
-
-    @post_load
-    def make(self, data, **kwargs):
+    def __init__(self, data: dict, client: HivenClient):
         """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+        Represents an embed message object either customised or from a website
 
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Embed Object
-        """
-        return Embed(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = EmbedSchema()
-
-
-class Embed(HivenObject):
-    """
-    Represents an embed message object
-    """
-    def __init__(self, **kwargs):
-        """
-        Object Instance Construction
-
-        :param kwargs: Additional Parameter of the class that will be initialised with it
-        """
-        self._url = kwargs.get('url')
-        self._type = kwargs.get('type')
-        self._title = kwargs.get('title')
-        self._image = kwargs.get('image', None)
-        self._description = kwargs.get('description', None)
-
-    @classmethod
-    async def from_dict(cls, data: dict, http, **kwargs):
-        """
-        Creates an instance of the Embed Class with the passed data
-
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param kwargs: Additional parameter or instances required for the initialisation
-        :return: The newly constructed Embed Instance
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
         """
         try:
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
+            self._url = data.get('url')
+            self._type = data.get('type')
+            self._title = data.get('title')
+            self._image = data.get('image')
+            self._description = data.get('description')
 
         except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
+            self._client = client
 
-            return instance
+    @classmethod
+    def format_obj_data(cls, data: dict) -> dict:
+        """
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
+        """
+        return cls.validate(data)
 
     @property
-    def url(self):
-        return self._url
-    
-    @property
-    def type(self):
-        return self._type
-    
-    @property 
-    def title(self):
-        return self._title
+    def url(self) -> Optional[str]:
+        return getattr(self, '_url', None)
 
-    @property 
-    def image(self):
-        return self._image
-    
     @property
-    def description(self):
-        return self._description        
+    def type(self) -> Optional[int]:
+        return getattr(self, '_type', None)
+
+    @property
+    def title(self) -> Optional[str]:
+        return getattr(self, '_title', None)
+
+    @property
+    def image(self) -> Optional[str]:
+        return getattr(self, '_image', None)
+
+    @property
+    def description(self) -> Optional[str]:
+        return getattr(self, '_description', None)

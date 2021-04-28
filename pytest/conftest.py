@@ -1,4 +1,8 @@
+import logging
+
 import pytest
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def pytest_addoption(parser):

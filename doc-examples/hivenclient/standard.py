@@ -1,12 +1,15 @@
-import openhivenpy as hiven
 import logging
+
+import openhivenpy as hiven
 
 logging.basicConfig(level=logging.INFO)
 
-client = hiven.UserClient("Insert token")
+client = hiven.UserClient()
+
 
 @client.event()
 async def on_ready():
     print("Bot is ready")
 
-client.run()
+
+client.run("Insert token")

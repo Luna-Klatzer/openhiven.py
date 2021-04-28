@@ -1,57 +1,86 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+from typing import Optional, List
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
-from . import HivenObject
+import fastjsonschema
+
+from . import DataClassObject
 from .. import utils
-from .. import exception as errs
+from ..exceptions import InvalidPassedDataError, InitializationError
+
+if TYPE_CHECKING:
+    from . import House, TextRoom
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('Entity', 'EntitySchema')
+__all__ = ['Entity']
 
 
-class EntitySchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
+class Entity(DataClassObject):
+    """ Represents a Hiven Entity inside a House which can contain Rooms """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
+            'name': {'type': 'string'},
+            'type': {'type': 'integer', 'default': 1},
+            'resource_pointers': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'array'},
+                    {'type': 'null'},
+                ],
+                'default': []
+            },
+            'house_id': {'type': 'string'},
+            'house': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'string'},
+                    {'type': 'null'},
+                ]
+            },
+            'position': {'type': 'integer'}
+        },
+        'additionalProperties': False,
+        'required': ['id', 'name', 'position', 'resource_pointers', 'house_id']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
 
-    id = fields.Int(required=True)
-    name = fields.Str(required=True)
-    type = fields.Int(required=True)
-    resource_pointers = fields.List(fields.Field(), allow_none=True, required=True)
-    house_id = fields.Str(default=None)
-    position = fields.Int(default=0)
-
-    @post_load
-    def make(self, data, **kwargs):
+    def __init__(self, data: dict, client: HivenClient):
         """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
+        Represents a Hiven Entity inside a House which can contain Rooms
 
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Entity Object
+        :param data: Data that should be used to create the object
+        :param client: The HivenClient
         """
-        return Entity(**data, **kwargs)
+        try:
+            super().__init__()
+            self._type = data.get('type')
+            self._position = data.get('position')
+            self._resource_pointers = data.get('resource_pointers')
+            self._name = data.get('name')
+            self._id = data.get('id')
+            self._house_id = data.get('house_id')
+            self._house = data.get('house')
 
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = EntitySchema()
-
-
-class Entity(HivenObject):
-    """
-    Represents a Hiven Entity
-    """
-    _http = None
-
-    def __init__(self, **kwargs):
-        self._type = kwargs.get('type', 1)
-        self._position = kwargs.get('position')
-        self._resource_pointers = kwargs.get('resource_pointers')
-        self._name = kwargs.get('name')
-        self._id = kwargs.get('id')
-        self._house_id = kwargs.get('house_id')
-        self._house = kwargs.get('house')
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -62,63 +91,105 @@ class Entity(HivenObject):
         ]
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> Optional[dict]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['entities'].get(self.id)
+
     @classmethod
-    async def from_dict(cls, data: dict, http, house, **kwargs):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the Entity Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param house: House of the Entity
-        :param kwargs: Additional parameter or instances required for the initialisation
-        :return: The newly constructed Embed Instance
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['house'] = house
+        if not data.get('house_id') and data.get('house'):
+            house = data.pop('house')
+            if type(house) is dict:
+                house_id = house.get('id')
+            elif isinstance(house, DataClassObject):
+                house_id = getattr(house, 'id', None)
+            else:
+                house_id = None
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+            if house_id is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+            else:
+                data['house_id'] = house_id
 
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
+        data['house'] = data.get('house_id')
+        data = cls.validate(data)
+        return data
 
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+    @property
+    def type(self) -> Optional[int]:
+        return getattr(self, '_type', None)
+
+    @property
+    def resource_pointers(self) -> Optional[List[TextRoom, dict]]:
+        """ Objects contained inside the entity. If dict is returned it's a type that is not yet included in the lib """
+        from . import TextRoom
+        if type(self._resource_pointers) is list and len(self._resource_pointers) > 0:
+            resources_created = False
+            for _ in self._resource_pointers:
+                if type(_) is not dict:
+                    resources_created = True
+
+            if not resources_created:
+                resource_pointers = []
+                for d in self._resource_pointers:
+                    if d['resource_type'] == "room":
+                        data = self._client.storage['rooms']['house'][d['resource_id']]
+                        resource_pointers.append(TextRoom(data, client=self._client))
+                    else:
+                        resource_pointers.append(d)
+
+                self._resource_pointers = resource_pointers
+            return self._resource_pointers
+
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+            return None
 
     @property
-    def type(self) -> int:
-        return self._type
+    def name(self) -> str:
+        return getattr(self, '_name', None)
 
     @property
-    def resource_pointers(self) -> list:
-        return self._resource_pointers
+    def id(self) -> str:
+        return getattr(self, '_id', None)
 
     @property
-    def name(self) -> list:
-        return self._name
-
-    @property
-    def id(self) -> list:
-        return self._id
-
-    @property
-    def house_id(self) -> list:
-        return self._house_id
+    def house_id(self) -> str:
+        return getattr(self, '_house_id', None)
 
     @property
     def position(self) -> int:
-        return self._position
+        return getattr(self, '_position', None)
 
     @property
-    def house(self) -> int:
-        return self._house
+    def house(self) -> Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            house_id = self._house
+        elif type(self.house_id) is str:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
+            data = self._client.storage['houses'].get(house_id)
+            if data:
+                self._house = House(data=data, client=self._client)
+                return self._house
+            else:
+                return None
+
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None

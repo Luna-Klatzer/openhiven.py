@@ -1,91 +1,106 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
+import asyncio
 import logging
 import sys
-import asyncio
-import typing
-from marshmallow import Schema, fields, post_load, ValidationError, INCLUDE, EXCLUDE
+from typing import Optional, List
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
-from . import HivenObject
+import fastjsonschema
+
+from . import DataClassObject
 from . import message
-from . import user as module_user  # Import as 'module_user' so it does not interfere with property @user
 from .. import utils
-from .. import exception as errs
+from ..exceptions import InitializationError, InvalidPassedDataError
+
+if TYPE_CHECKING:
+    from . import User, Message
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 
-class PrivateGroupRoomSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
+class PrivateGroupRoom(DataClassObject):
+    """ Represents a private group chat room with multiple users """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
+            'last_message_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'},
+                ],
+                'default': None
+            },
+            'recipients': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'array'},
+                    {'type': 'null'}
+                ],
+                'default': {},
+            },
+            'name': {'default': None},
+            'description': {'default': None},
+            'emoji': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'type': {'type': 'integer'},
+            'permission_overrides': {'default': None},
+            'default_permission_override': {'default': None},
+            'position': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'owner_id': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'house_id': {'type': 'null'}  # weird hiven bug
+        },
+        'additionalProperties': False,
+        'required': ['id', 'recipients', 'type']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
 
-    id = fields.Int(required=True)
-    last_message_id = fields.Int(required=True, allow_none=True)
-    recipients = fields.List(fields.Field(), required=True)
-    name = fields.Str(required=True)
-    type = fields.Int(required=True)
-    emoji = fields.Raw(allow_none=True)
-    description = fields.Str(allow_none=True)
-    client_user = fields.Raw(required=True)
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._id = data.get('id')
+            self._last_message_id = data.get('last_message_id')
+            self._recipients = data.get('recipients')
+            self._name = data.get('name')
+            self._description = data.get('description')
+            self._emoji = data.get('emoji')
+            self._type = data.get('type')
+            self._client_user = client.client_user
 
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new PrivateGroupRoom Object
-        """
-        return PrivateGroupRoom(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_GROUP_SCHEMA = PrivateGroupRoomSchema()
-
-
-class PrivateRoomSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    id = fields.Int(required=True)
-    last_message_id = fields.Int(required=True, allow_none=True)
-    recipient = fields.Raw(required=True)
-    name = fields.Str(required=True)
-    type = fields.Int(required=True)
-    emoji = fields.Raw(allow_none=True)
-    description = fields.Str(allow_none=True)
-    client_user = fields.Raw(required=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new PrivateGroupRoom Object
-        """
-        return PrivateRoom(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = PrivateRoomSchema()
-
-
-class PrivateGroupRoom(HivenObject):
-    """
-    Represents a private group chat room with multiple person
-    """
-    def __init__(self, **kwargs):
-        self._id = kwargs.get('id')
-        self._last_message_id = kwargs.get('last_message_id')
-        self._recipients = kwargs.get('recipients')
-        self._name = kwargs.get('name')
-        self._description = kwargs.get('description')
-        self._emoji = kwargs.get('emoji')
-        self._type = kwargs.get('type')
-        self._client_user = kwargs.get('client_user')
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -96,123 +111,108 @@ class PrivateGroupRoom(HivenObject):
         ]
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> Optional[dict]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['rooms']['private']['group'][self.id]
+
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        users: typing.List[module_user.User],
-                        client_user: module_user.User):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the PrivateGroupRoom Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param users: The cached users list to fetch the user from if it already exists or adding it
-        :param client_user: The client user in the private room
-        :return: The newly constructed PrivateGroupRoom Instance
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['owner_id'] = utils.convert_value(int, data.get('owner_id'))
-            data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
+        data = cls.validate(data)
+        data['name'] = f"Private chat with {data['recipients'][0]['name']}"
 
-            _recipients = []
-            for d in data.get("recipients"):
-                cached_user = utils.get(users, id=utils.convert_value(int, d.get('id')))
-                # Testing if the user was already created or if the object needs to be entirely newly created
-                if cached_user is None:
-                    user_ = await module_user.User.from_dict(d, http)
-                    users.append(user_)
+        if type(data.get('recipients')) is list:
+            data['recipients'] = [i['id'] for i in data['recipients']]
+
+        return data
+
+    @property
+    def client_user(self) -> Optional[User]:
+        return getattr(self, '_client_user', None)
+
+    @property
+    def recipients(self) -> Optional[List[User]]:
+        from . import User
+        if utils.convertible(int, self._recipients):
+            recipients = []
+            for id_ in self._recipients:
+                data = self._client.storage['users'].get(id_)
+                if data:
+                    user_data = User.format_obj_data(data)
+                    recipients.append(User(user_data, self._client))
                 else:
-                    user_ = cached_user
-                # Adding the user
-                _recipients.append(user_)
+                    recipients.append(None)
 
-            data['recipients'] = _recipients
-            data['name'] = f"Private Group chat with {(', '.join(getattr(r, 'name') for r in _recipients))}"
-            data['client_user'] = client_user
+            self._recipients = recipients
 
-            instance = GLOBAL_GROUP_SCHEMA.load(data, unknown=INCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
-
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+        elif type(self._recipients) is User:
+            return self._recipients
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+            return None
 
     @property
-    def client_user(self) -> module_user.User:
-        return self._client_user
+    def id(self) -> Optional[str]:
+        return getattr(self, '_id', None)
 
     @property
-    def recipients(self) -> typing.List[module_user.User]:
-        return self._recipients
-    
-    @property
-    def id(self) -> int:
-        return self._id
+    def last_message_id(self) -> Optional[str]:
+        return getattr(self, '_last_message_id', None)
 
     @property
-    def last_message_id(self) -> int:
-        return self._last_message_id    
-        
-    @property
-    def name(self) -> str:
-        return self._name 
+    def name(self) -> Optional[str]:
+        return getattr(self, '_name', None)
 
     @property
-    def description(self) -> int:
-        return self._description
+    def description(self) -> Optional[int]:
+        return getattr(self, '_description', None)
 
     @property
-    def emoji(self) -> str:
-        return self._emoji
+    def emoji(self) -> Optional[str]:
+        return getattr(self, '_emoji', None)
 
     @property
-    def type(self) -> int:
-        return self._type 
+    def type(self) -> Optional[int]:
+        return getattr(self, '_type', None)
 
-    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
+    async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
-        Sends a message in the private room. 
+        Sends a message in the private room.
 
         :param content: Content of the message
         :param delay: Seconds to wait until sending the message (in seconds)
         :return: A Message instance if successful else None
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http.post(
-                endpoint=f"/rooms/{self.id}/messages",
-                json={"content": content})
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
+            resp = await self._client.http.post(
+                endpoint=f"/rooms/{self.id}/messages", json={"content": content}
+            )
 
             raw_data = await resp.json()
-            if raw_data:
-                # Raw_data not in correct format => needs to access data field
-                data = raw_data.get('data')
-                if data:
-                    return await message.Message.from_dict(
-                        data=data,
-                        http=self._http,
-                        room_=self,
-                        author=self.client_user)
-            else:
-                raise errs.HTTPResponseError()
-        
+
+            # Raw_data not in correct format => needs to access data field
+            data = raw_data.get('data')
+
+            data = message.Message.format_obj_data(data)
+            msg = message.Message(data, self._client)
+            return msg
+
         except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[PRIVATE_GROUP_ROOM] Traceback:",
+                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -224,36 +224,46 @@ class PrivateGroupRoom(HivenObject):
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http.post(f"/rooms/{self.id}/call")
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
+            await self._client.http.post(f"/rooms/{self.id}/call")
+            return True
 
-            data = await resp.json()
-            if data.get('data'):
-                # TODO! Needs implementation
-                return True
-            else:
-                raise errs.HTTPResponseError()
-            
         except Exception as e:
             utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
                                 suffix=f"Failed to start call in {repr(self)}: \n"
                                        f"{sys.exc_info()[0].__name__}: {e}")
-            return False         
+            return False
 
 
-class PrivateRoom(HivenObject):
-    """
-    Represents a private chat room with a user
-    """
-    def __init__(self, **kwargs):
-        self._id = kwargs.get('id')
-        self._last_message_id = kwargs.get('last_message_id')
-        self._recipient = kwargs.get('recipient')
-        self._name = kwargs.get('name')
-        self._description = kwargs.get('description')
-        self._emoji = kwargs.get('emoji')
-        self._type = kwargs.get('type')
-        self._client_user = kwargs.get('client_user')
+class PrivateRoom(DataClassObject):
+    """ Represents a private chat room with only one user """
+    json_schema = PrivateGroupRoom.json_schema
+    json_validator = fastjsonschema.compile(json_schema)
+
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._id = data.get('id')
+            self._last_message_id = data.get('last_message_id')
+            self._recipient = data.get('recipient')
+            self._recipient_id = data.get('recipient_id')
+            self._name = data.get('name')
+            self._description = data.get('description')
+            self._emoji = data.get('emoji')
+            self._type = data.get('type')
+            self._client_user = client.client_user
+
+        except Exception as e:
+            utils.log_traceback(
+                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
+                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
+                       f"{sys.exc_info()[0].__name__}: {e}!"
+            )
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
+            ) from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -264,75 +274,114 @@ class PrivateRoom(HivenObject):
         ]
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> Optional[dict]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['rooms']['private']['single'][self.id]
+
     @classmethod
-    async def from_dict(cls, data: dict, http, client_user, **kwargs):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the PrivateRoom Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param client_user: The client user in the private room
-        :param kwargs: Additional parameter or instances required for the initialisation
-        :return: The newly constructed PrivateRoom Instance
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['last_message_id'] = utils.convert_value(int, data.get('last_message_id'))
-            data['recipient'] = await module_user.User.from_dict(data.get('recipients', [])[0], http)
-            data['name'] = f"Private chat with {data.get('recipient').name}"
-            data['type'] = data.get('type')
-            data['client_user'] = client_user
+        data = cls.validate(data)
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+        name = ""
+        if not data.get('recipient_id') and data.get('recipients'):
+            recipient = data.pop('recipients')[0]
+            if type(recipient) is dict:
+                name = recipient.get('name', None)
+                recipient = recipient.get('id', None)
+            elif isinstance(recipient, DataClassObject):
+                name = getattr(recipient, 'name', None)
+                recipient = getattr(recipient, 'id', None)
+            else:
+                recipient = None
+                name = None
 
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
+            if recipient is None:
+                raise InvalidPassedDataError("The passed recipient/s is/are not in the correct format!", data=data)
+            else:
+                data['recipient_id'] = recipient
 
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+        data['recipient'] = data['recipient_id']
+
+        # If the passed recipient object does not contain the name parameter it will be fetched later from the client
+        # based on the id
+        if name:
+            data['name'] = f"Private chat with {name}"
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+            data['name'] = None
+        return data
 
     @property
-    def client_user(self) -> module_user.User:
-        return self._client_user
+    def name(self) -> Optional[str]:
+        if type(self._name) is None:
+            self._name = f"Private chat with {self.recipient.name}"
+            return self._name
+        elif type(self._name) is str:
+            return self._name
+        else:
+            return None
 
     @property
-    def recipient(self) -> module_user.User:
-        return self._recipient
-    
-    @property
-    def id(self) -> int:
-        return self._id
+    def client_user(self) -> Optional[User]:
+        return getattr(self, '_client_user', None)
 
     @property
-    def description(self) -> int:
-        return self._description
+    def recipient_id(self) -> Optional[str]:
+        return getattr(self, '_recipient_id', None)
 
     @property
-    def emoji(self) -> str:
-        return self._emoji
+    def recipient(self) -> Optional[User]:
+        from . import User
+        if type(self._recipient) is str:
+            recipient_id = self._recipient
+        elif type(self.recipient_id) is str:
+            recipient_id = self.recipient_id
+        else:
+            recipient_id = None
+
+        if type(self._recipient) is str:
+            data = self._client.storage['users'].get(recipient_id)
+            if data:
+                self._recipient = User(data=data, client=self._client)
+                return self._recipient
+            else:
+                return None
+
+        elif type(self._recipient) is User:
+            return self._recipient
+        else:
+            return None
 
     @property
-    def last_message_id(self) -> int:
-        return self._last_message_id    
-        
-    @property
-    def name(self) -> str:
-        return self._name 
+    def id(self) -> Optional[str]:
+        return getattr(self, '_id', None)
 
     @property
-    def type(self) -> int:
-        return self._type 
-    
+    def description(self) -> Optional[str]:
+        return getattr(self, '_description', None)
+
+    @property
+    def emoji(self) -> Optional[str]:
+        return getattr(self, '_emoji', None)
+
+    @property
+    def last_message_id(self) -> Optional[str]:
+        return getattr(self, '_last_message_id', None)
+
+    @property
+    def type(self) -> Optional[int]:
+        return getattr(self, '_type', None)
+
     async def start_call(self, delay: float = None) -> bool:
         """openhivenpy.types.PrivateRoom.start_call()
 
@@ -342,23 +391,25 @@ class PrivateRoom(HivenObject):
         :return: True if successful
         """
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
 
-            resp = await self._http.post(f"/rooms/{self.id}/call")
+            resp = await self._client.http.post(f"/rooms/{self.id}/call")
 
             data = await resp.json()
             if data.get('data'):
                 return True
             else:
                 return False
-            
-        except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix=f"Failed to start call in room {repr(self)}: \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e}")
-            return False             
 
-    async def send(self, content: str, delay: float = None) -> typing.Union[message.Message, None]:
+        except Exception as e:
+            utils.log_traceback(
+                msg="[PRIVATE_ROOM] Traceback:",
+                suffix=f"Failed to start call in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
+            return False
+
+    async def send(self, content: str, delay: float = None) -> Optional[Message]:
         """
         Sends a message in the private room. 
 
@@ -366,36 +417,26 @@ class PrivateRoom(HivenObject):
         :param delay: Delay until sending the message (in seconds)
         :return: Returns a Message Instance if successful.
         """
+        # TODO! Requires functionality check!
         try:
-            await asyncio.sleep(delay=delay) if delay is not None else None
-            resp = await self._http.post(
-                endpoint=f"/rooms/{self.id}/messages",
-                json={"content": content})
+            if delay is not None:
+                await asyncio.sleep(delay=delay)
+            resp = await self._client.http.post(
+                endpoint=f"/rooms/{self.id}/messages", json={"content": content}
+            )
 
             raw_data = await resp.json()
-            if raw_data:
-                # Raw_data not in correct format => needs to access data field
-                data = raw_data.get('data')
-                if data:
-                    # Getting the author / self
-                    raw_data = await self._http.request(f"/users/@me")
-                    author_data = raw_data.get('data')
-                    if author_data:
-                        msg = await message.Message.from_dict(
-                            data=data,
-                            http=self._http,
-                            room_=self,
-                            author=self.client_user)
-                        return msg
-                    else:
-                        raise errs.HTTPReceivedNoDataError()
-                else:
-                    raise errs.HTTPResponseError()
-            else:
-                raise errs.HTTPResponseError()
-        
+
+            # Raw_data not in correct format => needs to access data field
+            data = raw_data.get('data')
+
+            data = message.Message.format_obj_data(data)
+            msg = message.Message(data, self._client)
+            return msg
+
         except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_ROOM] Traceback:",
-                                suffix=f"Failed to send message in room {repr(self)}: \n" 
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                msg="[PRIVATE_ROOM] Traceback:",
+                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+            )
             return None
