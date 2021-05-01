@@ -157,8 +157,8 @@ class HivenClient(HivenEventHandler, Object):
         except Exception as e:
             utils.log_traceback(
                 level='critical',
-                msg="[HIVENCLIENT] Traceback:",
-                suffix=f"Failed to keep alive connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to keep alive connection to Hiven:",
+                exc_info=sys.exc_info()
             )
             raise HivenConnectionError("Failed to keep alive connection to Hiven") from e
 
@@ -194,8 +194,8 @@ class HivenClient(HivenEventHandler, Object):
         except Exception as e:
             utils.log_traceback(
                 level='critical',
-                msg="[HIVENCLIENT] Traceback:",
-                suffix=f"Failed to keep alive connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to keep alive connection to Hiven:",
+                exc_info=sys.exc_info()
             )
             raise HivenConnectionError(f"Failed to keep alive connection to Hiven") from e
 
@@ -253,8 +253,8 @@ class HivenClient(HivenEventHandler, Object):
             keys = "".join(str(key + " ") for key in kwargs.keys())
 
             utils.log_traceback(
-                msg="[CLIENT] Traceback:",
-                suffix=f"Failed change the values {keys}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed change the values {keys}:",
+                exc_info=sys.exc_info()
             )
             raise
 

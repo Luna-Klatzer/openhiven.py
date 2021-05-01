@@ -181,8 +181,8 @@ class Connection(Object):
         except Exception as e:
             utils.log_traceback(
                 level='critical',
-                msg="[CONNECTION] Traceback:",
-                suffix=f"Failed to keep alive current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to keep alive current connection to Hiven:",
+                exc_info=sys.exc_info()
             )
             raise SessionCreateError(f"Failed to establish HivenClient session") from e
         else:
@@ -202,7 +202,7 @@ class Connection(Object):
             await self.ws.socket.close()
             if force:
                 if self.ws.message_broker.running_loop:
-                    if self.ws.message_broker.running_loop.cancelled():
+                    if not self.ws.message_broker.running_loop.cancelled():
                         self.ws.message_broker.running_loop.cancel()
 
             # Waiting until the message_broker is closed
@@ -214,7 +214,7 @@ class Connection(Object):
         except Exception as e:
             utils.log_traceback(
                 level='critical',
-                msg="[CONNECTION] Traceback:",
-                suffix=f"Failed to close current connection to Hiven: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to close current connection to Hiven",
+                exc_info=sys.exc_info()
             )
             raise

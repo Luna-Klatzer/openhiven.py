@@ -5,7 +5,7 @@ import asyncio
 import datetime
 import logging
 import sys
-from typing import Optional, List
+from typing import Optional, List, Union
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -56,14 +56,7 @@ class DeletedMessage(DataClassObject):
             self._room_id = data.get('room_id')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -179,7 +172,7 @@ class Message(DataClassObject):
             self._id = data.get('id')
             self._author = data.get('author')
             self._author_id = data.get('author_id')
-            self._attachment: dict = data.get('attachment')
+            self._attachment: Union[dict, Attachment] = data.get('attachment')
             self._content = data.get('content')
             self._timestamp = data.get('timestamp')
             self._edited_at = data.get('edited_at')
@@ -196,14 +189,7 @@ class Message(DataClassObject):
             self._exploding_age = data.get('exploding_age')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -346,7 +332,7 @@ class Message(DataClassObject):
     @property
     def attachment(self) -> Optional[Attachment]:
         if type(self._attachment) is dict:
-            self._attachment = Attachment(data=self._attachment, client=self._client)
+            self._attachment: Union[Attachment, dict] = Attachment(data=self._attachment, client=self._client)
             return self._attachment
         elif type(self._attachment) is Attachment:
             return self._attachment
@@ -415,9 +401,11 @@ class Message(DataClassObject):
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to mark message as read {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"Failed to mark message as read {repr(self)}:",
+                exc_info=sys.exc_info()
+            )
+            # TODO! Raise exception
 
     async def delete(self, delay: float = None) -> bool:
         """
@@ -438,9 +426,11 @@ class Message(DataClassObject):
                 return True
 
         except Exception as e:
-            utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to delete the message {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"Failed to delete the message {repr(self)}:",
+                exc_info=sys.exc_info()
+            )
+            # TODO! Raise exception
 
     async def edit(self, content: str) -> bool:
         """
@@ -455,7 +445,8 @@ class Message(DataClassObject):
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[MESSAGE] Traceback:",
-                                suffix=f"Failed to edit message {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"Failed to edit message {repr(self)}",
+                exc_info=sys.exc_info()
+            )
             return False

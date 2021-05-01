@@ -127,8 +127,8 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_house: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
@@ -155,8 +155,8 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_user: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
@@ -179,8 +179,8 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
@@ -203,8 +203,8 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
@@ -237,8 +237,8 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e
 
@@ -265,7 +265,7 @@ class ClientCache(dict, Object):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[CLIENTCACHE] Traceback in add_or_update_room: ",
-                suffix=f"Failed to add a new house to the Client cache: \n{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to add a new house to the Client cache:",
+                exc_info=sys.exc_info()
             )
             raise InitializationError("Failed to update the cache due to an exception occurring") from e

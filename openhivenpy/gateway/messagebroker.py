@@ -28,6 +28,12 @@ class DynamicEventBuffer(list, Object):
         self.event = event
         super().__init__(*args, **kwargs)
 
+    def __repr__(self):
+        info = [
+            ('event', self.event)
+        ]
+        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
+
     def add(self, data: dict, args: Optional[tuple] = None, kwargs: Optional[dict] = None):
         """Adds a new event to the Buffer which will trigger the listeners assigned to the event
 
@@ -113,19 +119,19 @@ class Worker(Object):
     """ Worker class targeted at running event_listeners that were fetched from the assigned event_buffer """
 
     def __init__(self, event: str, message_broker):
-        self.event = event
+        self.assigned_event = event
         self.message_broker: MessageBroker = message_broker
         self.client: HivenClient = message_broker.client
 
     def __repr__(self):
         info = [
-            ('event', self.event),
+            ('event', self.assigned_event),
         ]
         return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
 
     @property
     def assigned_event_buffer(self) -> DynamicEventBuffer:
-        return self.message_broker.event_buffers.get(self.event)
+        return self.message_broker.event_buffers.get(self.assigned_event)
 
     async def gather_tasks(self, tasks: List[asyncio.Task]) -> NoReturn:
         """ Executes all passed event_listener tasks parallel """
@@ -152,7 +158,7 @@ class Worker(Object):
             # Fetching the even data for the next event
             event: dict = self.assigned_event_buffer.get_next_event()
 
-            listeners: List[DispatchEventListener] = self.client.active_listeners.get(self.event)
+            listeners: List[DispatchEventListener] = self.client.active_listeners.get(self.assigned_event)
 
             if not listeners:
                 return
@@ -174,7 +180,6 @@ class Worker(Object):
                     asyncio.create_task(self.gather_tasks(tasks))
 
                 del tasks
-
             except Exception as e:
                 raise RuntimeError(f"Failed to run listener tasks assigned to {repr(self)}") from e
 

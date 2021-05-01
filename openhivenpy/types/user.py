@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 from typing import Optional, Union
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
@@ -10,7 +9,6 @@ from typing import TYPE_CHECKING
 import fastjsonschema
 
 from . import DataClassObject
-from .. import utils
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:
@@ -91,14 +89,7 @@ class LazyUser(DataClassObject):
             self._bot = data.get('bot', False)
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -237,14 +228,7 @@ class User(LazyUser):
             self._mfa_enabled = data.get('mfa_enabled')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
 
     def __repr__(self) -> str:
         info = [

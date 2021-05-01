@@ -44,9 +44,8 @@ class UserClient(HivenClient):
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(
-                msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to cancel the friend request of a user with id {user_id}! "
-                       f"\n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to cancel the friend request of a user with id {user_id}:",
+                exc_info=sys.exc_info()
             )
             raise
 
@@ -81,8 +80,8 @@ class UserClient(HivenClient):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to fetch the current open friend requests: \n {sys.exc_info()[0].__name__}: {e}"
+                brief="Failed to fetch the current open friend requests:",
+                exc_info=sys.exc_info()
             )
             raise
 
@@ -116,8 +115,9 @@ class UserClient(HivenClient):
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(
-                msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to block user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}")
+                brief=f"Failed to block user with id {user_id}:",
+                exc_info=sys.exc_info()
+            )
             raise
 
     @overload
@@ -149,8 +149,9 @@ class UserClient(HivenClient):
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(
-                msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to unblock a user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}")
+                brief=f"Failed to unblock a user with id {user_id}:",
+                exc_info=sys.exc_info()
+            )
             raise
 
     @overload
@@ -188,7 +189,7 @@ class UserClient(HivenClient):
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
             utils.log_traceback(
-                msg="[USERCLIENT] Traceback:",
-                suffix=f"Failed to send a friend request a user with id {user_id}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to send a friend request a user with id {user_id}:",
+                exc_info=sys.exc_info()
             )
             raise

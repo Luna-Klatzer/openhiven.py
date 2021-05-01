@@ -60,14 +60,7 @@ class Member(User):
             self._house = data.get('house')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
 
     def __repr__(self) -> str:
         info = [
@@ -182,8 +175,8 @@ class Member(User):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to kick the member due to an exception occurring: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to kick the member due to an exception occurring:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return False

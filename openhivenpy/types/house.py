@@ -87,14 +87,7 @@ class LazyHouse(DataClassObject):
             self._type = data.get('type')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -268,14 +261,7 @@ class House(LazyHouse):
             self._client = client
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         super().__init__(data, client)
 
     @classmethod
@@ -397,9 +383,10 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to get the member with id {member_id}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to get the member with id {member_id}:",
+                exc_info=sys.exc_info()
             )
+            # TODO! Raise exception
             raise
 
     def find_member(self, member_id: str) -> Optional[dict]:
@@ -427,9 +414,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to get the room with id {room_id} in house {repr(self)}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to get the room with id {room_id} in house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -459,8 +445,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to get the member with id {entity_id}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to get the member with id {entity_id}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -497,8 +483,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to create room '{name}' in house {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to create room '{name}' in house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -531,8 +517,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to create category '{name}' in house {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to create category '{name}' in house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -549,8 +535,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to leave {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to leave {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return False
@@ -574,9 +560,8 @@ class House(LazyHouse):
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed edit request of values '{keys}' in house {repr(self)}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed edit request of values '{keys}' in house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return False
@@ -599,9 +584,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to create invite for house '{self.name}' with id {self.id}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to create invite for house {repr(self)}",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -618,8 +602,8 @@ class House(LazyHouse):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[HOUSE] Traceback:",
-                suffix=f"Failed to delete House {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to delete House {repr(self)}",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None

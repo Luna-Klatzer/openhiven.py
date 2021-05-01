@@ -92,13 +92,10 @@ class PrivateGroupRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"Failed to initialise {self.__class__.__name__}:",
+                exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -210,9 +207,10 @@ class PrivateGroupRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to send message in room {repr(self)}:",
+                exc_info=sys.exc_info()
             )
+            # TODO! Raise exception
             return None
 
     async def start_call(self, delay: float = None) -> bool:
@@ -230,9 +228,11 @@ class PrivateGroupRoom(DataClassObject):
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[PRIVATE_GROUP_ROOM] Traceback:",
-                                suffix=f"Failed to start call in {repr(self)}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"Failed to start call in {repr(self)}:",
+                exc_info=sys.exc_info()
+            )
+            # TODO! Raise exception
             return False
 
 
@@ -254,14 +254,7 @@ class PrivateRoom(DataClassObject):
             self._client_user = client.client_user
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -404,9 +397,10 @@ class PrivateRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[PRIVATE_ROOM] Traceback:",
-                suffix=f"Failed to start call in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to start call in room {repr(self)}:",
+                exc_info=sys.exc_info()
             )
+            # TODO! Raise exception
             return False
 
     async def send(self, content: str, delay: float = None) -> Optional[Message]:
@@ -436,7 +430,8 @@ class PrivateRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[PRIVATE_ROOM] Traceback:",
-                suffix=f"Failed to send message in room {repr(self)}: \n{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to send message in room {repr(self)}:",
+                exc_info=sys.exc_info()
             )
+            # TODO! Raise exception
             return None

@@ -2,12 +2,34 @@ import inspect
 import logging
 import sys
 import traceback
+import warnings
 from functools import wraps
 from operator import attrgetter
 from types import TracebackType
 from typing import Union, Awaitable, Callable, Any, Optional, NoReturn, Type, Tuple, Iterable
 
 logger = logging.getLogger(__name__)
+
+
+def deprecated(instead=None):
+    """ Warns the user about a function or tool that is deprecated and shouldn't be used anymore """
+
+    def actual_decorator(func):
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+            if instead:
+                fmt = "{0.__name__} is deprecated, use {1} instead."
+            else:
+                fmt = '{0.__name__} is deprecated.'
+
+            warnings.warn(fmt.format(func, instead), stacklevel=3, category=DeprecationWarning)
+            warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            return func(*args, **kwargs)
+
+        return decorated
+
+    return actual_decorator
 
 
 def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:
@@ -89,16 +111,14 @@ def dispatch_func_if_exists(
 
 def log_traceback(
         level: Optional[str] = 'error',
-        msg: str = 'Traceback: ',
-        suffix: Optional[str] = None,
+        brief: Optional[str] = None,
         exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
 ) -> NoReturn:
     """
     Logs the traceback of the latest exception
 
     :param level: Logger level for the exception
-    :param msg: Message for the logging. Only gets printed out if logging level was correctly set
-    :param suffix: Suffix message that will be appended at the end of the message. Defaults to None
+    :param brief: Small message that will be logged before the traceback
     :param exc_info: The exc_info containing the exception and the traceback
     """
     tb = traceback.format_exception(
@@ -112,10 +132,11 @@ def log_traceback(
         raise ValueError("The passed level does not exist in the logging module!")
 
     tb_str = "".join(frame for frame in tb)
-    suffix = suffix if suffix is not None else None
+    brief = brief if brief is not None else ""
 
     # Fetches and prints the current traceback with the passed message
-    log_level(f"{msg}\n{tb_str} {suffix}\n")
+    log_level(f"{brief}\n\n{tb_str}\n")
+    log_level(f"{brief}\n\n{tb_str}\n")
 
 
 def get(iterable: Iterable, **attrs) -> Any:
@@ -159,18 +180,24 @@ def get(iterable: Iterable, **attrs) -> Any:
     return None
 
 
-def log_validation_traceback(cls: Any, data: dict, e: Exception):
+def log_validation_traceback(
+        cls: Any,
+        data: dict,
+        exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
+) -> NoReturn:
     """
     Logger for a Validation Error in the module types
 
     :param cls: The class that failed to be created with the passed data
     :param data: Data that failed to be validated
-    :param e: The Exception Instance
+    :param exc_info: The exc_info provided by sys.exc_info(). This will be used to log the traceback and information
+                     about the exception
     """
     log_traceback(
-        msg=f"Traceback of Initialisation of 'types.{cls.__name__}'",
-        suffix=f" {e.__class__.__name__}: Encountered errors while validating data: \n{e}\n\nData: {data}"
+        brief=f"Ignoring Exception in Validation of 'types.{cls.__name__}'",
+        exc_info=exc_info
     )
+    logger.error(f"\nData: {data}")
 
 
 MISSING = object()
@@ -249,7 +276,10 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    log_traceback(msg=f"Traceback in coroutine {func.__name__}:")
+                    log_traceback(
+                        brief=f"{'' if return_exception else 'Ignoring'} Exception in coroutine {func.__name__}:",
+                        exc_info=sys.exc_info()
+                    )
                     if return_exception:
                         raise RuntimeError(f"Failed to execute coroutine {func.__name__}") from e
         else:
@@ -259,7 +289,8 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                     return func(*args, **kwargs)
                 except Exception as e:
                     log_traceback(
-                        msg=f"Traceback in function {func.__name__}:", suffix=f"{sys.exc_info()[0].__name__}: {e}"
+                        brief=f"{'' if return_exception else 'Ignoring'} Exception in function {func.__name__}:",
+                        exc_info=sys.exc_info()
                     )
                     if return_exception:
                         raise RuntimeError(f"Failed to execute function {func.__name__}") from e

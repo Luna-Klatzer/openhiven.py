@@ -29,6 +29,7 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
+import sys
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -70,8 +71,8 @@ class DataClassObject(Object):
     def validate(cls, data, *args, **kwargs) -> dict:
         try:
             return getattr(cls, 'json_validator')(data, *args, **kwargs)
-        except Exception as e:
-            utils.log_validation_traceback(cls, data, e)
+        except Exception:
+            utils.log_validation_traceback(cls, data, sys.exc_info())
             raise
 
     def __str__(self) -> str:

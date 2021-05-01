@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import sys
 import time
 from enum import IntEnum
 # Only importing the Objects for the purpose of type hinting and not actual use
@@ -67,7 +66,7 @@ class KeepAlive(Object):
     async def stop(self) -> NoReturn:
         """ Stops the running KeepAlive loop """
         if self._task:
-            if self._task.cancelled():
+            if not self._task.cancelled():
                 self._task.cancel()
         self._task = None
         self._active = False
@@ -103,13 +102,15 @@ class HivenWebSocket(Object):
         self._close_code = None
 
     @classmethod
-    async def create_from_client(cls,
-                                 client: HivenClient,
-                                 endpoint: URL,
-                                 close_timeout: int,
-                                 heartbeat: int,
-                                 loop: asyncio.AbstractEventLoop = asyncio.get_event_loop(),
-                                 **kwargs):
+    async def create_from_client(
+            cls,
+            client: HivenClient,
+            endpoint: URL,
+            close_timeout: int,
+            heartbeat: int,
+            loop: asyncio.AbstractEventLoop = asyncio.get_event_loop(),
+            **kwargs
+    ):
         """ Creates a new WebSocket Instance and starts the Connection to Hiven """
         socket: aiohttp.ClientWebSocketResponse = await client.http.session.ws_connect(
             endpoint.human_repr(), timeout=close_timeout, heartbeat=heartbeat, max_msg_size=0
@@ -203,14 +204,14 @@ class HivenWebSocket(Object):
         logger.debug(f"[WEBSOCKET] Received WebSocket Message Type '{msg.type.name}'")
 
         if msg.type == aiohttp.WSMsgType.TEXT:
-            return await self.received_message(msg) if handler is None else await handler(msg)
+            return await self._received_message(msg) if handler is None else await handler(msg)
 
         elif msg.type == aiohttp.WSMsgType.BINARY:
             if type(msg) is bytes:
                 msg = msg.data.decode("utf-8")
             else:
                 raise
-            return await self.received_message(msg) if handler is None else await handler(msg)
+            return await self._received_message(msg) if handler is None else await handler(msg)
 
         elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
             logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart")
@@ -229,7 +230,7 @@ class HivenWebSocket(Object):
                 "[WEBSOCKET] Encountered an Exception in the Websocket!"
             )
 
-    async def received_message(self, msg: aiohttp.WSMessage) -> NoReturn:
+    async def _received_message(self, msg: aiohttp.WSMessage) -> NoReturn:
         """ Awaits a new incoming message and handles it """
         msg = msg.json()
         opcode, event, data = extract_event(msg)
@@ -242,7 +243,7 @@ class HivenWebSocket(Object):
             logger.debug(f"[WEBSOCKET] Received Websocket Event: {event}")
 
             if event == 'INIT_STATE':
-                await self.received_init(msg)
+                await self._received_init(msg)
             else:
                 await self.parsers.dispatch(event, data)
             return
@@ -250,7 +251,7 @@ class HivenWebSocket(Object):
         else:
             logger.warning(f"[WEBSOCKET] Received unknown websocket op-code message: {opcode}: {msg}")
 
-    async def received_init(self, msg: dict) -> NoReturn:
+    async def _received_init(self, msg: dict) -> NoReturn:
         """
         Receives the init message from the host and updates the client cache.
         Will shield the normal message handler from receiving events until the initialisation succeeded.
@@ -265,7 +266,7 @@ class HivenWebSocket(Object):
 
         additional_events = []
         while len(self.client.storage['houses']) < len(house_memberships):
-            ws_event = await self.wait_for_event(handler=self.received_init_event)
+            ws_event = await self.wait_for_event(handler=self._received_init_event)
 
             op, event, d = extract_event(ws_event.json())
 
@@ -276,7 +277,7 @@ class HivenWebSocket(Object):
 
         # Executing all additional events that were received during the initialisation and were ignored
         for event in additional_events:
-            await self.received_message(event)
+            await self._received_message(event)
 
         self._startup_time = time.time() - self._connection_start
 
@@ -287,7 +288,7 @@ class HivenWebSocket(Object):
         await self.client.call_listeners('ready', (), {})
         self._ready = True
 
-    async def received_init_event(self, msg: aiohttp.WSMessage) -> aiohttp.WSMessage:
+    async def _received_init_event(self, msg: aiohttp.WSMessage) -> aiohttp.WSMessage:
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
         _msg = msg.json()
         op = _msg.get('op')
@@ -305,7 +306,7 @@ class HivenWebSocket(Object):
                 "op": self.OPCode.HEARTBEAT
             })))
         except Exception as e:
-            raise RestartSessionError(f"Failed to send heartbeat to WebSocket host! {sys.exc_info()[0].__name__}: {e}")
+            raise RestartSessionError(f"Failed to send heartbeat to WebSocket host!") from e
 
     async def send_auth(self) -> NoReturn:
         """ Sends the authentication header to the Hiven Endpoint"""

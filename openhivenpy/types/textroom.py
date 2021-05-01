@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
-from typing import Optional
+from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -102,14 +102,7 @@ class TextRoom(DataClassObject):
             self._house = data.get('house')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
@@ -228,9 +221,8 @@ class TextRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[ROOM] Traceback:",
-                suffix=f"Failed to send message in room {repr(self)}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to send message in room {repr(self)}",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None
@@ -255,9 +247,8 @@ class TextRoom(DataClassObject):
         except Exception as e:
             keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
             utils.log_traceback(
-                msg="[ROOM] Traceback:",
-                suffix=f"Failed to change the values {keys} in room {repr(self)}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to change the values {keys} in room {repr(self)}: ",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return False
@@ -275,9 +266,8 @@ class TextRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[ROOM] Traceback:",
-                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to create invite for house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return False
@@ -303,9 +293,8 @@ class TextRoom(DataClassObject):
 
         except Exception as e:
             utils.log_traceback(
-                msg="[ROOM] Traceback:",
-                suffix=f"Failed to create invite for house {self.name} with id {self.id}: \n"
-                       f"{sys.exc_info()[0].__name__}: {e}"
+                brief=f"Failed to create invite for house {repr(self)}:",
+                exc_info=sys.exc_info()
             )
             # TODO! Raise exception
             return None

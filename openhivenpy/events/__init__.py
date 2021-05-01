@@ -169,8 +169,8 @@ class SingleDispatchEventListener(DispatchEventListener):
 
         except Exception as e:
             utils.log_traceback(
-                msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",
-                suffix=f"{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"[EVENTS] {repr(self)} failed to execute due to an exception:",
+                exc_info=sys.exc_info()
             )
         self._dispatched = True
         remove_listener(self._client, self)
@@ -207,8 +207,8 @@ class MultiDispatchEventListener(DispatchEventListener):
             await self.coro(*args, **kwargs)
         except Exception as e:
             utils.log_traceback(
-                msg=f"[EVENTS] EventListener for the event '{self.event_name}' failed to execute due to an exception:",
-                suffix=f"{sys.exc_info()[0].__name__}: {e}!"
+                brief=f"[EVENTS] {repr(self)} failed to execute due to an exception:",
+                exc_info=sys.exc_info()
             )
             raise RuntimeError(f"Failed to execute assigned coroutine {self.coro.__name__} due to an exception") from e
 
@@ -247,7 +247,17 @@ class HivenEventHandler(Object):
     def non_buffer_events(self) -> List[str]:
         return getattr(self, '_non_buffer_events')
 
-    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict):
+    def dispatch_event(self, event_name: str, args: tuple, kwargs: dict) -> NoReturn:
+        """
+        Manually adds an event to the event_buffer and triggers all listeners.
+        Will return immediately and does not require asyncio unlike call_listeners which only calls the listeners
+
+        :param event_name: The name of the event that should be triggered
+        :param args: Args that will be passed to the coroutines
+        :param kwargs: Kwargs that will be passed to the coroutines
+        """
+
+    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict) -> NoReturn:
         """
         Dispatches all active EventListeners for the specified event.
         Does not call the parsers but the function directly and requires the args, kwargs passed
@@ -269,13 +279,14 @@ class HivenEventHandler(Object):
 
     async def wait_for(self,
                        event_name: str,
-                       coro: Union[Callable, Coroutine, None] = None) -> (list, dict):
+                       coro: Union[Callable, Coroutine, None] = None) -> (tuple, dict):
         """
         Waits for an event to be triggered and then returns the *args and **kwargs passed
 
         :param event_name: Name of the event to wait for
         :param coro: Coroutine that can be passed to be additionally triggered when received
-        :return: A tuple of the args and kwargs => [0] = args and [1] = kwargs
+        :raises UnknownEventError: If the event does not exist
+        :return: A tuple of the args and kwargs => (args, kwargs)
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:

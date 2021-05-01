@@ -14,6 +14,7 @@ class TestDynamicEventBuffer:
     def test_init(self):
         buffer = openhivenpy.gateway.DynamicEventBuffer("ready")
         assert buffer.event == "ready"
+        assert repr(buffer) == f"<DynamicEventBuffer event={buffer.event}>"
 
     def test_add(self):
         buffer = openhivenpy.gateway.DynamicEventBuffer("ready")
@@ -75,13 +76,11 @@ class TestWorker:
         message_broker.get_buffer("ready")
 
         worker = message_broker.event_consumer.get_worker("ready")
-        assert worker.event == "ready"
+        assert worker.assigned_event == "ready"
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client
         assert worker.assigned_event_buffer == message_broker.event_buffers['ready']
-
-    def test_exec(self):
-        pass
+        assert repr(worker) == f'<Worker event={worker.assigned_event}>'
 
     def test_run_one_sequence(self):
         client = openhivenpy.UserClient()
@@ -96,6 +95,29 @@ class TestWorker:
 
             client.message_broker.get_buffer("message_create").add({})
             w = client.message_broker.event_consumer.get_worker('message_create')
+            await w.run_one_sequence()
+
+        @client.event()
+        async def on_message_create(*args, **kwargs):
+            print("Received message")
+            await client.close()
+
+        client.run(token_)
+
+    def test_failure_run_one_sequence(self):
+        client = openhivenpy.UserClient()
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+
+            client.message_broker.get_buffer("message_create").add({})
+            w = client.message_broker.event_consumer.get_worker('message_create')
+
+            # Causing an error with passing
+            client._active_listeners['message_create'].append("error")
+            await w.run_one_sequence()
+            client._active_listeners['message_create'].remove("error")
             await w.run_one_sequence()
 
         @client.event()

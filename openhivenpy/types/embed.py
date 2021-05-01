@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
@@ -10,7 +9,6 @@ from typing import TYPE_CHECKING
 import fastjsonschema
 
 from . import DataClassObject
-from .. import utils
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:
@@ -58,14 +56,7 @@ class Embed(DataClassObject):
             self._description = data.get('description')
 
         except Exception as e:
-            utils.log_traceback(
-                msg=f"Traceback in function '{self.__class__.__name__}' Validation:",
-                suffix=f"Failed to initialise {self.__class__.__name__} due to exception:\n"
-                       f"{sys.exc_info()[0].__name__}: {e}!"
-            )
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__} due to an exception occurring"
-            ) from e
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
         else:
             self._client = client
 
