@@ -247,16 +247,16 @@ def convertible(dtype: Any, value: Any) -> bool:
         return True
 
 
-def update_and_return(dictionary: dict, data: dict) -> dict:
+def update_and_return(dictionary: dict, **kwargs) -> dict:
     """
     Utilises the standard dictionary update() function but instead of
     returning None it will return the updated dictionary.
 
     :param dictionary: The dictionary that should be updated
-    :param data: The data in dict format that should be used for the update
+    :param kwargs: Kwargs of the update method
     :return: The updated dictionary
     """
-    dictionary.update(data)
+    dictionary.update(**kwargs)
     return dictionary
 
 

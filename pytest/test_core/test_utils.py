@@ -80,4 +80,4 @@ class TestUtils:
             },
             "y": "x"
         }
-        assert {"x": "y", "y": "x"} == utils.update_and_return(data, {"x": "y"})
+        assert {"x": "y", "y": "x"} == utils.update_and_return(data, x="y")

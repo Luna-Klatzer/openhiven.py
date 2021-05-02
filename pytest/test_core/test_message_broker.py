@@ -49,7 +49,7 @@ class TestMessageBroker:
 
         async def test():
             await asyncio.sleep(.5)
-            client.connection._connection_status = "CLOSING"
+            client.connection._closing = True
 
         client.connection._connection_status = "OPEN"
         await asyncio.gather(message_broker.run(), asyncio.wait_for(test(), 3))

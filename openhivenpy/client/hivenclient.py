@@ -13,13 +13,11 @@ from .. import utils
 from ..events import HivenParsers, HivenEventHandler
 from ..exceptions import (SessionCreateError, InvalidTokenError, WebSocketFailedError, HivenConnectionError)
 from ..gateway import Connection, HTTP, MessageBroker
-from ..settings import load_env_vars
 
 __all__ = ['HivenClient']
 
 logger = logging.getLogger(__name__)
 
-load_env_vars()
 USER_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("USER_TOKEN_LEN"))
 BOT_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("BOT_TOKEN_LEN"))
 
@@ -30,6 +28,7 @@ class HivenClient(HivenEventHandler, Object):
     def __init__(
             self,
             *,
+            token: str = None,
             loop: AbstractEventLoop = None,
             log_websocket: bool = False,
             queue_events: bool = False,
@@ -39,6 +38,9 @@ class HivenClient(HivenEventHandler, Object):
             close_timeout: Optional[int] = None
     ):
         """
+        :param token: Token that can be passed pre-runtime. If not set, the token will need to be passed at
+                      run-time. If a token is passed using environment variables and no other token is passed that one
+                      will be used.
         :param loop: Loop that will be used to run the Client. If a new one is passed on run() that one will be
                      used instead
         :param log_websocket: If set to True will additionally log websocket messages and their content
@@ -52,11 +54,11 @@ class HivenClient(HivenEventHandler, Object):
         :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
                               successfully. Defaults to the pre-set environment close_timeout (40)
         """
-        self._token = ""
+        self._token = token
         self._loop = loop
         self._log_websocket = log_websocket
         self._queue_events = queue_events
-        self._storage = ClientCache(log_websocket)
+        self._storage = ClientCache(log_websocket, token=self._token)
         self._user = types.User({}, self)  # Empty User which will return for every value None
         self._connection = Connection(
             self, api_version=api_version, host=host, heartbeat=heartbeat, close_timeout=close_timeout
@@ -111,14 +113,15 @@ class HivenClient(HivenEventHandler, Object):
         return getattr(self, '_loop', None)
 
     def run(self,
-            token: str,
+            token: str = os.getenv('HIVEN_TOKEN'),
             *,
             loop: Optional[asyncio.AbstractEventLoop] = None,
             restart: bool = False) -> NoReturn:
         """
         Standard function for establishing a connection to Hiven
 
-        :param token: Token that should be used to connect to Hiven
+        :param token: Token that should be used to connect to Hiven. If none is passed it will try to fetch the token
+                      using os.getenv()
         :param loop: Event loop that will be used to execute all async functions. Uses 'asyncio.get_event_loop()' to
                      fetch the EventLoop. Will create a new one if no one was created yet. If the loop was passed during
                      initialisation that one will be used if no loop is passed. If a new loop is passed, that one will
@@ -162,23 +165,26 @@ class HivenClient(HivenEventHandler, Object):
             )
             raise HivenConnectionError("Failed to keep alive connection to Hiven") from e
 
-    async def connect(self, token: str, *, restart: bool = False) -> NoReturn:
+    async def connect(self, token: str = os.getenv('HIVEN_TOKEN'), *, restart: bool = False) -> NoReturn:
         """Establishes a connection to Hiven and does not return until finished
 
-        :param token: Token that should be used to connect to Hiven
+        :param token: Token that should be used to connect to Hiven. If none is passed it will try to fetch the token
+                      using os.getenv(). Will overwrite the pre-runtime passed token if one was passed
         :param restart: If set to True the Client will restart if an error is encountered!
         """
         try:
-            self._token = token
-            self.storage['token'] = token
+            if self._token is None and token is not None:
+                self._token = token
 
-            if token is None or token == "":
+            self.storage['token'] = self._token
+
+            if self._token is None or self._token == "":
                 logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
                 raise InvalidTokenError("Empty Token was passed!")
 
-            elif len(token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
-                logger.critical(f"[HIVENCLIENT] Invalid Token was passed!")
-                raise InvalidTokenError("Invalid Token was passed!")
+            elif len(self._token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
+                logger.critical(f"[HIVENCLIENT] Invalid Token was passed")
+                raise InvalidTokenError("Invalid Token was passed")
 
             await self.connection.connect(restart=restart)
 

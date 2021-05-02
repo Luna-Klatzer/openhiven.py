@@ -269,6 +269,7 @@ class HivenWebSocket(Object):
             ws_event = await self.wait_for_event(handler=self._received_init_event)
 
             op, event, d = extract_event(ws_event.json())
+            logger.debug(f"[WEBSOCKET] Received Websocket Event: {event}")
 
             if event == "HOUSE_JOIN":
                 self.client.storage.add_or_update_house(d)
@@ -290,13 +291,13 @@ class HivenWebSocket(Object):
 
     async def _received_init_event(self, msg: aiohttp.WSMessage) -> aiohttp.WSMessage:
         """ Only intended for the purpose of initialising the Client! Will be called by `received_init` on startup """
-        _msg = msg.json()
-        op = _msg.get('op')
+        msg_dict = msg.json()
+        opcode = msg_dict.get('op')
 
-        if op == self.OPCode.EVENT:
+        if opcode == self.OPCode.EVENT:
             return msg
         else:
-            logger.warning(f"[WEBSOCKET] Received unexpected websocket message: {op}: {msg}")
+            logger.warning(f"[WEBSOCKET] Received unexpected websocket message: {opcode}: {msg}")
             return msg
 
     async def send_heartbeat(self) -> NoReturn:

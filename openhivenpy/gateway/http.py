@@ -255,9 +255,11 @@ class HTTP:
                             f"Failed HTTP request with {http_resp_code} -> Response: None "
                         )
 
-        self._request = asyncio.create_task(http_request(endpoint, method, json, headers, **kwargs))
         try:
-            http_client_response = await asyncio.wait_for(self._request, timeout=timeout)
+            http_client_response = await asyncio.wait_for(
+                http_request(endpoint, method, json, headers, **kwargs),
+                timeout=timeout
+            )
 
         except asyncio.CancelledError:
             logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint}' was cancelled!")

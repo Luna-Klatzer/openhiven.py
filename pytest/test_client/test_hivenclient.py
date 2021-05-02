@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import openhivenpy
 
@@ -27,6 +28,38 @@ class TestHivenClient:
             await client.close()
 
         client.run(self.token)
+
+    def test_run_with_env_token(self):
+        openhivenpy.env.load_env()
+        client = openhivenpy.HivenClient()
+
+        try:
+            assert client.token is None
+            client.run()
+        except openhivenpy.InvalidTokenError:
+            pass
+        else:
+            assert False
+
+        client = openhivenpy.HivenClient(token=os.getenv('HIVEN_TOKEN'))
+        try:
+            assert client.token == os.getenv('HIVEN_TOKEN')
+            client.run()
+        except openhivenpy.InvalidTokenError:
+            pass
+        else:
+            assert False
+
+    def test_pre_configured_token(self):
+        client = openhivenpy.HivenClient(token=self.token)
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await client.close()
+
+        assert client.token == self.token
+        client.run()
 
     def test_connect(self):
         client = openhivenpy.HivenClient()

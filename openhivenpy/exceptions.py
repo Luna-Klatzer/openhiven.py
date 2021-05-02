@@ -32,6 +32,8 @@ __all__ = [
     'ClientTypeError', 'SessionCreateError', 'UnknownEventError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
+    'MessageBrokerError', 'EventConsumerLoopError',
+
     'HivenGatewayError', 'WebSocketMessageError', 'WebSocketFailedError',
     'WebSocketClosedError', 'RestartSessionError',
 
@@ -102,8 +104,8 @@ class UnknownEventError(HivenError):
 
 
 class InvalidTokenError(HivenError):
-    """ Invalid Token was passed! """
-    error_msg = "Invalid Token was passed!"
+    """ Invalid Token was passed """
+    error_msg = "Invalid Token was passed"
 
 
 class ClosingError(HivenConnectionError):
@@ -115,6 +117,19 @@ class NoneClientType(Warning):
     """ A None Type was passed in the Initialization! """
     error_msg = ("A None ClientType was passed! This can indicate faulty usage of the Client and could lead to errors"
                  "while running!")
+
+
+# -------- MESSAGE BROKER --------
+
+
+class MessageBrokerError(HivenError):
+    """ An exception appeared in the message_broker, event_consumer or buffers """
+    error_msg = "The message broker failed due to an exception"
+
+
+class EventConsumerLoopError(MessageBrokerError):
+    """ An exception appeared in the running event_consumer loop running the workers """
+    error_msg = "The event_consumer failed to run properly due to an exception occurring"
 
 
 # -------- GATEWAY --------

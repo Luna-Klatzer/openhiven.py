@@ -38,12 +38,11 @@ from yarl import URL
 from .http import *
 from .messagebroker import *
 from .websocket import *
-from .. import load_env_vars, utils, Object
+from .. import utils, Object
 from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
 
 logger = logging.getLogger(__name__)
 
-load_env_vars()
 DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
 DEFAULT_HOST = os.getenv("HIVEN_HOST")
 DEFAULT_API_VERSION = os.getenv("HIVEN_API_VERSION")
@@ -73,6 +72,7 @@ class Connection(Object):
 
         self._connection_status = "CLOSED"
         self._ready = False
+        self._closing = False
         self._ws = None
 
     def __str__(self) -> str:
@@ -154,7 +154,7 @@ class Connection(Object):
                 except RestartSessionError:
                     # Encountered an exception inside the receive process of the WebSocket and
                     # the system should restart to make sure the user can continue to use the Client
-                    logger.debug("[CONNECTION] Got a request to restart the WebSocket!")
+                    logger.debug("[CONNECTION] Received a request to restart the WebSocket!")
                     continue
 
                 except WebSocketClosedError:
@@ -198,18 +198,21 @@ class Connection(Object):
         """
         try:
             self._connection_status = "CLOSING"
+            self._closing = True
+
             await self.ws.keep_alive.stop()
             await self.ws.socket.close()
             if force:
-                if self.ws.message_broker.running_loop:
-                    if not self.ws.message_broker.running_loop.cancelled():
-                        self.ws.message_broker.running_loop.cancel()
+                if self.ws.message_broker.worker_loop:
+                    if not self.ws.message_broker.worker_loop.cancelled():
+                        self.ws.message_broker.worker_loop.cancel()
 
             # Waiting until the message_broker is closed
             while self.ws.message_broker.running:
                 await asyncio.sleep(.05)
 
             self._connection_status = "CLOSED"
+            self._closing = False
 
         except Exception as e:
             utils.log_traceback(

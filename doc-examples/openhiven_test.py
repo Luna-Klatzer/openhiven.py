@@ -1,6 +1,4 @@
-"""
-Test-file for testing purposes and development!
-"""
+""" Test-file for testing purposes and development! """
 import logging
 
 import openhivenpy

@@ -22,28 +22,33 @@ class ClientCache(dict, Object):
     functions to interact with the Client cache more easily and use functions for better readability.
     """
 
-    def __init__(self, log_websocket: bool, *args, **kwargs):
-        super(ClientCache, self).__init__(*args, **kwargs)
-        self.update({
-            'token': 'undefined',
-            'log_websocket': log_websocket,
-            'client_user': dict(),
-            'houses': dict(),
-            'users': dict(),
-            'rooms': {
-                'private': {
-                    'single': dict(),
-                    'group': dict()
-                },
-                'house': dict()
-            },
-            'entities': dict(),
-            'relationships': dict(),
-            'house_memberships': dict(),
-            'house_ids': list(),
-            'settings': dict(),
-            'read_state': dict()
-        })
+    def __init__(self, log_websocket: bool, **kwargs):
+        super(ClientCache, self).__init__(**kwargs)
+        self.update(
+            # updating the passed dict as well to avoid data being overwritten that were passed with args or kwargs
+            utils.update_and_return(
+                {
+                    'token': 'undefined',
+                    'log_websocket': log_websocket,
+                    'client_user': dict(),
+                    'houses': dict(),
+                    'users': dict(),
+                    'rooms': {
+                        'private': {
+                            'single': dict(),
+                            'group': dict()
+                        },
+                        'house': dict()
+                    },
+                    'entities': dict(),
+                    'relationships': dict(),
+                    'house_memberships': dict(),
+                    'house_ids': list(),
+                    'settings': dict(),
+                    'read_state': dict()
+                }, **kwargs
+            )
+        )
 
     def check_if_initialised(self) -> bool:
         if self.get('client_user', None) is not None:

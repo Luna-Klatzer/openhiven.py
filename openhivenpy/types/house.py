@@ -140,7 +140,7 @@ class LazyHouse(DataClassObject):
             data['members'] = {}
             for member_ in members:
                 id_ = member_['user_id'] if member_.get('user_id') else member_.get('user').get('id')
-                data['members'][id_] = utils.update_and_return(member_, {'user': id_})
+                data['members'][id_] = utils.update_and_return(member_, user=id_)
 
         if type(data.get('roles')) is list:
             roles = data['roles']
