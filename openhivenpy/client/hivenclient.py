@@ -58,14 +58,13 @@ class HivenClient(HivenEventHandler, Object):
         self._loop = loop
         self._log_websocket = log_websocket
         self._queue_events = queue_events
-        self._storage = ClientCache(log_websocket, token=self._token)
-        self._user = types.User({}, self)  # Empty User which will return for every value None
+        self._storage = ClientCache(client=self, log_websocket=log_websocket, token=self._token)
         self._connection = Connection(
             self, api_version=api_version, host=host, heartbeat=heartbeat, close_timeout=close_timeout
         )
 
         # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
-        super().__init__(HivenParsers(self))
+        super().__init__(client=self, parsers=HivenParsers(self))
 
     def __str__(self) -> str:
         return getattr(self, "name")
@@ -112,11 +111,13 @@ class HivenClient(HivenEventHandler, Object):
     def loop(self) -> Optional[asyncio.AbstractEventLoop]:
         return getattr(self, '_loop', None)
 
-    def run(self,
+    def run(
+            self,
             token: str = os.getenv('HIVEN_TOKEN'),
             *,
             loop: Optional[asyncio.AbstractEventLoop] = None,
-            restart: bool = False) -> NoReturn:
+            restart: bool = False
+    ) -> NoReturn:
         """
         Standard function for establishing a connection to Hiven
 
@@ -205,15 +206,16 @@ class HivenClient(HivenEventHandler, Object):
             )
             raise HivenConnectionError(f"Failed to keep alive connection to Hiven") from e
 
-    async def close(self) -> NoReturn:
-        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop """
-        await self.connection.close()
-        logger.debug("[HIVENCLIENT] Closing the connection! The WebSocket will stop shortly!")
+    async def close(self, force: bool = False) -> NoReturn:
+        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 
-    def _init_client_user(self) -> types.User:
-        """ Initialises the client user """
-        self._client_user = types.User(self.storage['client_user'], self)
-        return self._client_user
+        :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
+                      code of event-listeners being stopped while performing actions. If False the stopping will wait
+                      for all running event_listeners to finish
+        """
+        await self.connection.close(force)
+        self.storage.closing_cleanup()
+        logger.debug(f"[HIVENCLIENT] Client {repr(self)} was closed")
 
     @property
     def open(self) -> Optional[bool]:
@@ -266,13 +268,10 @@ class HivenClient(HivenEventHandler, Object):
 
     @property
     def client_user(self) -> Optional[types.User]:
-        if getattr(self, '_client_user', None) is None:
-            if self.storage['client_user']:
-                return self._init_client_user()
-            else:
-                return None
+        if self.storage['client_user']:
+            return self.storage._init_client_user()
         else:
-            return getattr(self, '_client_user')
+            return None
 
     @property
     def username(self) -> Optional[str]:

@@ -61,7 +61,7 @@ __all__ = [
 
 class Object:
     """ Base Class for all Hiven Type Classes. Used to signalise it's a generic type without specification """
-    pass
+    ...
 
 
 class DataClassObject(Object):

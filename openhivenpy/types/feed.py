@@ -19,7 +19,7 @@ class Feed(DataClassObject):
     """ Represents the feed that is displayed on Hiven specifically for the user """
 
     def __init__(self, data: dict, client: HivenClient):
-        pass
+        ...
 
     def __str__(self) -> str:
         return repr(self)

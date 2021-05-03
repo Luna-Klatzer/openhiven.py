@@ -1,5 +1,8 @@
 import asyncio
+import json
 import os
+
+import pkg_resources
 
 import openhivenpy
 
@@ -27,6 +30,32 @@ class TestHivenClient:
             print("\non_ready was called!")
             await client.close()
 
+        client.run(self.token)
+
+    def test_force(self):
+        client = openhivenpy.HivenClient()
+
+        @client.event()
+        async def on_init():
+            assert client.token == self.token
+            print("\non_init was called!")
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await client.close(force=True)
+
+        client.run(self.token)
+
+    def test_run_twice(self):
+        client = openhivenpy.HivenClient()
+
+        @client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await client.close()
+
+        client.run(self.token)
         client.run(self.token)
 
     def test_run_with_env_token(self):
@@ -111,129 +140,18 @@ class TestHivenClient:
 
         client.run(self.token)
 
-    def test_find(self):
-        house_data = {
-            "rooms": [{
-                "type": 0,
-                "recipients": None,
-                "position": 2,
-                "permission_overrides": None,
-                "owner_id": None,
-                "name": "room",
-                "last_message_id": None,
-                "id": "223456789123456789",
-                "house_id": "123456789123456789",
-                "emoji": None,
-                "description": None,
-                "default_permission_override": None
-            }],
-            "roles": [],
-            "owner_id": "323456789123456789",
-            "name": "house",
-            "members": [{
-                "user_id": "323456789123456789",
-                "user": {
-                    "username": "username",
-                    "user_flags": 2,
-                    "name": "name",
-                    "id": "323456789123456789",
-                    "icon": None,
-                    "header": None,
-                    "presence": "online",
-                    "bot": False
-                },
-                "roles": [],
-                "last_permission_update": None,
-                "joined_at": "1970-01-01T00:00:0.000Z",
-                "house_id": "123456789123456789"
-            }],
-            "id": "123456789123456789",
-            "icon": None,
-            "entities": [{
-                "type": 1,
-                "resource_pointers": [{
-                    "resource_type": "room",
-                    "resource_id": "223456789123456789"
-                }],
-                "position": 0,
-                "name": "Rooms",
-                "id": "423456789123456789"
-            }],
-            "default_permissions": 10000000,
-            "banner": None
-        }
-        relationship_data = {
-            "user_id": "223456789123456789",
-            "user": {
-                "username": "test",
-                "user_flags": 2,
-                "name": "test",
-                "id": "423456789123456789",
-                "icon": None,
-                "header": None,
-                "presence": "online"
-            },
-            "type": 3,
-            "last_updated_at": "1970-01-01T00:00:0.000Z"
-        }
-        private_room_data = {
-            "default_permission_override": None,
-            "description": "test",
-            "emoji": None,
-            "house_id": None,
-            "id": "523456789123456789",
-            "last_message_id": None,
-            "name": None,
-            "owner_id": "423456789123456789",
-            "permission_overrides": 10000000,
-            "position": None,
-            "recipients": [{
-                "username": "test",
-                "user_flags": 2,
-                "name": "test",
-                "id": "423456789123456789",
-                "icon": None,
-                "header": None,
-                "presence": "online"
-            }],
-            "type": 1
-        }
-        private_group_room_data = {
-            "default_permission_override": None,
-            "description": "test",
-            "emoji": None,
-            "house_id": None,
-            "id": "623456789123456789",
-            "last_message_id": None,
-            "name": None,
-            "owner_id": "423456789123456789",
-            "permission_overrides": 10000000,
-            "position": None,
-            "recipients": [
-                {
-                    "username": "username",
-                    "user_flags": 2,
-                    "name": "name",
-                    "id": "323456789123456789",
-                    "icon": None,
-                    "header": None,
-                    "presence": "online",
-                    "bot": False
-                },
-                {
-                    "username": "test",
-                    "user_flags": 2,
-                    "name": "test",
-                    "id": "423456789123456789",
-                    "icon": None,
-                    "header": None,
-                    "presence": "online"
-                }
-            ],
-            "type": 2
-        }
+    def _read_config_file(self):
+        with open(pkg_resources.resource_filename(__name__, "test_data.json"), 'r') as file:
+            return json.load(file)
 
+    def test_find(self):
         client = openhivenpy.HivenClient()
+        _data = self._read_config_file()
+        house_data = _data['house_data']
+        relationship_data = _data['relationship_data']
+        private_room_data = _data['private_room_data']
+        private_group_room_data = _data['private_group_room_data']
+
         client.storage.update_client_user(house_data['members'][0]['user'])
 
         result_house_data = client.storage.add_or_update_house(house_data)

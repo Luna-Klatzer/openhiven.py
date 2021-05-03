@@ -1,3 +1,6 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
 # Using deepcopy instead of standard .copy() from python since regular dict() or dict.copy() would not duplicate its
@@ -5,15 +8,44 @@ import sys
 # changes to those iterables are applied to all copied dictionaries that were created using dict() or copy().
 from copy import deepcopy
 from typing import NoReturn
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
 from .. import Object
 from .. import types
 from .. import utils
 from ..exceptions import InitializationError
 
+if TYPE_CHECKING:
+    from .. import HivenClient
+
 __all__ = ['ClientCache']
 
 logger = logging.getLogger(__name__)
+
+
+def _create_default_dict(log_websocket: bool) -> dict:
+    """ Creates the default dictionary format used inside the cache """
+    return {
+        'token': 'undefined',
+        'log_websocket': log_websocket,
+        'client_user': dict(),
+        'houses': dict(),
+        'users': dict(),
+        'rooms': {
+            'private': {
+                'single': dict(),
+                'group': dict()
+            },
+            'house': dict()
+        },
+        'entities': dict(),
+        'relationships': dict(),
+        'house_memberships': dict(),
+        'house_ids': list(),
+        'settings': dict(),
+        'read_state': dict()
+    }
 
 
 class ClientCache(dict, Object):
@@ -22,33 +54,30 @@ class ClientCache(dict, Object):
     functions to interact with the Client cache more easily and use functions for better readability.
     """
 
-    def __init__(self, log_websocket: bool, **kwargs):
+    def __init__(self, client: HivenClient, log_websocket: bool, **kwargs):
         super(ClientCache, self).__init__(**kwargs)
+        self.client = client
         self.update(
-            # updating the passed dict as well to avoid data being overwritten that were passed with args or kwargs
+            # Updating the passed dict as well to avoid data being overwritten that were passed with args or kwargs
             utils.update_and_return(
-                {
-                    'token': 'undefined',
-                    'log_websocket': log_websocket,
-                    'client_user': dict(),
-                    'houses': dict(),
-                    'users': dict(),
-                    'rooms': {
-                        'private': {
-                            'single': dict(),
-                            'group': dict()
-                        },
-                        'house': dict()
-                    },
-                    'entities': dict(),
-                    'relationships': dict(),
-                    'house_memberships': dict(),
-                    'house_ids': list(),
-                    'settings': dict(),
-                    'read_state': dict()
-                }, **kwargs
+                _create_default_dict(log_websocket), **kwargs
             )
         )
+
+    def closing_cleanup(self) -> NoReturn:
+        """
+        Cleans all remaining data after the client exited.
+
+        Not supposed to be called outside of the intended HivenClient.close() method!
+        """
+        self.update(_create_default_dict(self['log_websocket']))
+        self['client_user'] = {}
+        self._init_client_user()
+
+    def _init_client_user(self) -> types.User:
+        """ Initialises the client user based on the cached data """
+        self._client_user = types.User(self['client_user'], self.client)
+        return self._client_user
 
     def check_if_initialised(self) -> bool:
         if self.get('client_user', None) is not None:
@@ -71,6 +100,7 @@ class ClientCache(dict, Object):
         self['house_ids'] = data.get('house_ids', [])
         self['settings'] = data.get('settings', {})
         self['read_state'] = data.get('read_state', {})
+        self['client_user'] = data.get('user')
 
         for r in data.get('private_rooms', []):
             self.add_or_update_private_room(r)

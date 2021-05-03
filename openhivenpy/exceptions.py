@@ -32,9 +32,9 @@ __all__ = [
     'ClientTypeError', 'SessionCreateError', 'UnknownEventError',
     'InvalidTokenError', 'ClosingError', 'NoneClientType',
 
-    'MessageBrokerError', 'EventConsumerLoopError',
+    'MessageBrokerError', 'EventConsumerLoopError', 'WorkerTaskError',
 
-    'HivenGatewayError', 'WebSocketMessageError', 'WebSocketFailedError',
+    'HivenGatewayError', 'KeepAliveError', 'WebSocketMessageError', 'WebSocketFailedError',
     'WebSocketClosedError', 'RestartSessionError',
 
     'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError',
@@ -132,12 +132,22 @@ class EventConsumerLoopError(MessageBrokerError):
     error_msg = "The event_consumer failed to run properly due to an exception occurring"
 
 
+class WorkerTaskError(EventConsumerLoopError):
+    """ An exception occurred in the running worker process """
+    error_msg = "The worker failed to execute properly due to an exception occurring"
+
+
 # -------- GATEWAY --------
 
 
 class HivenGatewayError(HivenConnectionError):
     """ General Exception in the Gateway and Connection to Hiven! """
-    error_msg = "Encountered and Exception in the Hiven Gateway!"
+    error_msg = "Encountered an Exception in the Hiven Gateway!"
+
+
+class KeepAliveError(HivenConnectionError):
+    """ General Exception in the KeepAlive process loop """
+    error_msg = "Failed to process KeepAlive due to an exception occurring"
 
 
 # -------- WEBSOCKET --------

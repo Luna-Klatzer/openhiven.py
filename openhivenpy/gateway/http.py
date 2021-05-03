@@ -163,7 +163,7 @@ class HTTP:
                 brief=f"[HTTP] Failed to close HTTP Session:",
                 exc_info=sys.exc_info()
             )
-            return False
+            raise RuntimeError("Failed to stop the HTTP client") from e
 
     async def raw_request(
             self,

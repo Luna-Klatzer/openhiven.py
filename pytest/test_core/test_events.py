@@ -42,16 +42,16 @@ class TestSingleDispatchEventListener:
     def test_get_attribute(self):
         listener = openhivenpy.events.SingleDispatchEventListener(client, 'test', self.example)
 
-        assert listener.coro == self.example
+        assert listener.awaitable == self.example
         assert listener.event_name == 'test'
         assert listener._client == client
-        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is not None
+        assert openhivenpy.utils.get(client._active_listeners['test'], awaitable=self.example) is not None
 
         asyncio.run(listener(*self.example_args, **self.example_kwargs))
         assert listener.dispatched
         assert list(listener.args) == self.example_args
         assert listener.kwargs == self.example_kwargs
-        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is None
+        assert openhivenpy.utils.get(client._active_listeners['test'], awaitable=self.example) is None
 
 
 class TestMultiDispatchEventListener:
@@ -84,10 +84,10 @@ class TestMultiDispatchEventListener:
     def test_get_attribute(self):
         listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
 
-        assert listener.coro == self.example
+        assert listener.awaitable == self.example
         assert listener.event_name == 'test'
         assert listener._client == client
-        assert openhivenpy.utils.get(client._active_listeners['test'], coro=self.example) is not None
+        assert openhivenpy.utils.get(client._active_listeners['test'], awaitable=self.example) is not None
 
 
 class TestHivenEventHandler:
@@ -114,7 +114,7 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
+            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', awaitable=on_ready))
 
         asyncio.run(run())
 
@@ -128,7 +128,7 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', coro=on_ready))
+            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', awaitable=on_ready))
 
         asyncio.run(run())
 
@@ -142,14 +142,14 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            assert len(client._active_listeners['ready']) == 0
+            assert len(client.active_listeners['ready']) == 0
 
-            client.add_single_listener(event_name='ready', coro=on_ready)
+            client.add_single_listener(event_name='ready', awaitable=on_ready)
             # Checking if the listener was added correctly
-            assert len(client._active_listeners['ready']) == 1
+            assert len(client.active_listeners['ready']) == 1
 
             await trigger_test_event()
             # Checking if the listener was removed correctly after being used
-            assert len(client._active_listeners['ready']) == 0
+            assert len(client.active_listeners['ready']) == 0
 
         asyncio.run(run())

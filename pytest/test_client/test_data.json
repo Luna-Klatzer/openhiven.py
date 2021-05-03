@@ -1,0 +1,132 @@
+{
+  "house_data": {
+    "rooms": [
+      {
+        "type": 0,
+        "recipients": null,
+        "position": 2,
+        "permission_overrides": null,
+        "owner_id": null,
+        "name": "room",
+        "last_message_id": null,
+        "id": "223456789123456789",
+        "house_id": "123456789123456789",
+        "emoji": null,
+        "description": null,
+        "default_permission_override": null
+      }
+    ],
+    "roles": [],
+    "owner_id": "323456789123456789",
+    "name": "house",
+    "members": [
+      {
+        "user_id": "323456789123456789",
+        "user": {
+          "username": "username",
+          "user_flags": 2,
+          "name": "name",
+          "id": "323456789123456789",
+          "icon": null,
+          "header": null,
+          "presence": "online",
+          "bot": false
+        },
+        "roles": [],
+        "last_permission_update": null,
+        "joined_at": "1970-01-01T00:00:0.000Z",
+        "house_id": "123456789123456789"
+      }
+    ],
+    "id": "123456789123456789",
+    "icon": null,
+    "entities": [
+      {
+        "type": 1,
+        "resource_pointers": [
+          {
+            "resource_type": "room",
+            "resource_id": "223456789123456789"
+          }
+        ],
+        "position": 0,
+        "name": "Rooms",
+        "id": "423456789123456789"
+      }
+    ],
+    "default_permissions": 10000000,
+    "banner": null
+  },
+  "relationship_data": {
+    "user_id": "223456789123456789",
+    "user": {
+      "username": "test",
+      "user_flags": 2,
+      "name": "test",
+      "id": "423456789123456789",
+      "icon": null,
+      "header": null,
+      "presence": "online"
+    },
+    "type": 3,
+    "last_updated_at": "1970-01-01T00:00:0.000Z"
+  },
+  "private_room_data": {
+    "default_permission_override": null,
+    "description": "test",
+    "emoji": null,
+    "house_id": null,
+    "id": "523456789123456789",
+    "last_message_id": null,
+    "name": null,
+    "owner_id": "423456789123456789",
+    "permission_overrides": 10000000,
+    "position": null,
+    "recipients": [
+      {
+        "username": "test",
+        "user_flags": 2,
+        "name": "test",
+        "id": "423456789123456789",
+        "icon": null,
+        "header": null,
+        "presence": "online"
+      }
+    ],
+    "type": 1
+  },
+  "private_group_room_data": {
+    "default_permission_override": null,
+    "description": "test",
+    "emoji": null,
+    "house_id": null,
+    "id": "623456789123456789",
+    "last_message_id": null,
+    "name": null,
+    "owner_id": "423456789123456789",
+    "permission_overrides": 10000000,
+    "position": null,
+    "recipients": [
+      {
+        "username": "username",
+        "user_flags": 2,
+        "name": "name",
+        "id": "323456789123456789",
+        "icon": null,
+        "header": null,
+        "presence": "online",
+        "bot": false
+      },
+      {
+        "username": "test",
+        "user_flags": 2,
+        "name": "test",
+        "id": "423456789123456789",
+        "icon": null,
+        "header": null,
+        "presence": "online"
+      }
+    ],
+    "type": 2
+  }
+}

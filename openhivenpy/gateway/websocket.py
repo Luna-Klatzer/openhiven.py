@@ -15,7 +15,7 @@ from yarl import URL
 
 from .messagebroker import MessageBroker
 from .. import Object
-from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError
+from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError, WebSocketFailedError
 
 if TYPE_CHECKING:
     from ..events import HivenParsers
@@ -51,25 +51,29 @@ class KeepAlive(Object):
     def task(self) -> Optional[asyncio.Task]:
         return getattr(self, '_task', None)
 
+    async def _heartbeat_and_sleep(self) -> NoReturn:
+        """ Sends the heartbeat to Hiven and sleeps """
+        await asyncio.wait_for(self.ws.send_heartbeat(), 30)
+        await asyncio.sleep(self._heartbeat / 1000)
+
     async def run(self) -> NoReturn:
         """ Runs the current KeepAlive process in a loop that can be cancelled using `KeepAlive.stop()` """
         self._active = True
-        while self.ws.open and self.active:
+        while self.ws.open:
             try:
-                self._task = asyncio.create_task(asyncio.wait_for(self.ws.send_heartbeat(), 30))
-                await asyncio.sleep(self._heartbeat / 1000)
+                self._task = asyncio.create_task(self._heartbeat_and_sleep())
+                await self._task
             except asyncio.CancelledError:
-                return
+                break
             except Exception:
-                raise
+                raise RuntimeError("KeepAlive failed to process properly due to ")
+        self._active = False
 
     async def stop(self) -> NoReturn:
         """ Stops the running KeepAlive loop """
         if self._task:
-            if not self._task.cancelled():
+            if not self._task.done():
                 self._task.cancel()
-        self._task = None
-        self._active = False
 
 
 class HivenWebSocket(Object):
@@ -93,7 +97,6 @@ class HivenWebSocket(Object):
         self._ready = False
         self._startup_time = None
         self._connection_start = None
-        self._connection_status = "CLOSED"
         self._token = None
         self._heartbeat = None
         self._close_timeout = None
@@ -171,6 +174,14 @@ class HivenWebSocket(Object):
         return getattr(self, '_connection_start', None)
 
     @property
+    def connection_status(self) -> int:
+        return getattr(self.client.connection, 'connection_status', None)
+
+    @property
+    def closing(self) -> bool:
+        return getattr(self.client.connection, '_closing', None)
+
+    @property
     def open(self) -> bool:
         return getattr(self, '_open', None)
 
@@ -213,22 +224,20 @@ class HivenWebSocket(Object):
                 raise
             return await self._received_message(msg) if handler is None else await handler(msg)
 
-        elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
+        self._open = False
+        self._ready = False
+        self.client.connection._connection_status = "CLOSING"
+        if msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
             logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart")
             raise RestartSessionError()
 
         elif msg.type == aiohttp.WSMsgType.CLOSED:
-            self._open = False
             logger.info("[WEBSOCKET] Closing the WebSocket Connection and stopping the processes!")
             raise WebSocketClosedError()
 
         elif msg.type == aiohttp.WSMsgType.ERROR:
-            logger.error(
-                f"[WEBSOCKET] Encountered an Exception in the Websocket! {msg.extra}"
-            )
-            raise WebSocketClosedError(
-                "[WEBSOCKET] Encountered an Exception in the Websocket!"
-            )
+            logger.error(f"[WEBSOCKET] Encountered an Exception in the Websocket! {msg.extra}")
+            raise WebSocketFailedError("[WEBSOCKET] Encountered an Exception in the Websocket!")
 
     async def _received_message(self, msg: aiohttp.WSMessage) -> NoReturn:
         """ Awaits a new incoming message and handles it """
@@ -259,6 +268,8 @@ class HivenWebSocket(Object):
         :return: A List of all other events that were received during initialisation that will now need to be called
         """
         await self.client.call_listeners('init', (), {})
+
+        self.client.connection._connection_status = "OPEN"
 
         data = msg['d']
         house_memberships = data.get('house_memberships', {})

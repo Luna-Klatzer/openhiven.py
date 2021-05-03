@@ -39,7 +39,8 @@ from .http import *
 from .messagebroker import *
 from .websocket import *
 from .. import utils, Object
-from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError
+from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError, \
+    KeepAliveError
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,8 @@ class Connection(Object):
         self._connection_status = "CLOSED"
         self._ready = False
         self._closing = False
+        self._closed = False
+        self._force_closing = False
         self._ws = None
 
     def __str__(self) -> str:
@@ -132,6 +135,14 @@ class Connection(Object):
     def close_timeout(self) -> Optional[int]:
         return getattr(self, '_close_timeout', None)
 
+    @property
+    def closed(self) -> Optional[bool]:
+        return getattr(self, '_closed', None)
+
+    @property
+    def socket_closed(self) -> Optional[bool]:
+        return getattr(getattr(self.ws, 'socket', None), 'closed', False)
+
     async def connect(self, restart: bool) -> NoReturn:
         """ Establishes a connection to Hiven and runs the background processes """
         try:
@@ -139,7 +150,7 @@ class Connection(Object):
             await self.http.connect()
 
             self._connection_status = "OPENING"
-            while self.connection_status not in ("CLOSING", "CLOSED"):
+            while not self.socket_closed:
                 try:
                     coro = HivenWebSocket.create_from_client(
                         self.client, endpoint=self.endpoint, close_timeout=self.close_timeout, heartbeat=self.heartbeat,
@@ -147,8 +158,20 @@ class Connection(Object):
                     )
                     self._ws = await asyncio.wait_for(coro, 30)
                     await self.ws.send_auth()
+                    self._closed = False
                     await asyncio.gather(
                         self.ws.listening_loop(), self.ws.keep_alive.run(), self.ws.message_broker.run()
+                    )
+
+                except asyncio.TimeoutError:
+                    # If the timeout is hit the connection might not be possible or unstable, so a warning needs to be
+                    # thrown
+                    utils.log_traceback(
+                        brief="[CONNECTION] Ignoring Timeout Traceback:",
+                        exc_info=sys.exc_info()
+                    )
+                    logger.warning(
+                        "[CONNECTION] The websocket exceeded the timeout limit! Connection will be restarted!"
                     )
 
                 except RestartSessionError:
@@ -157,21 +180,23 @@ class Connection(Object):
                     logger.debug("[CONNECTION] Received a request to restart the WebSocket!")
                     continue
 
-                except WebSocketClosedError:
-                    # Received close frame which can means the connection suddenly stopped/failed or the user
-                    # used close to close the connection. If that's the case using continue will make the loop
-                    # stop since the connection_status is CLOSING
+                except (WebSocketClosedError, KeepAliveError):
                     continue
 
                 except (Exception, WebSocketFailedError) as e:
-                    logger.error(
-                        f"[CONNECTION] Encountered an exception while running the live websocket: "
-                        f"\n{sys.exc_info()[0].__name__}: {e}"
-                    )
-                    if restart is False:
-                        raise
+                    if self.connection_status == "OPENING":
+                        utils.log_traceback(
+                            brief="[CONNECTION] Encountered an exception while initialising the websocket",
+                            exc_info=sys.exc_info()
+                        )
+                    else:
+                        utils.log_traceback(
+                            brief="[CONNECTION] Encountered an exception while running the core modules ",
+                            exc_info=sys.exc_info()
+                        )
 
-                await asyncio.sleep(.05)
+                    if restart is False:
+                        raise RuntimeError("Websocket encountered an exception while running") from e
 
         except KeyboardInterrupt:
             await self.http.close()
@@ -186,7 +211,14 @@ class Connection(Object):
             )
             raise SessionCreateError(f"Failed to establish HivenClient session") from e
         else:
+            await self.ws.keep_alive.stop()
             await self.http.close()
+
+            while self.ws.keep_alive.active:
+                await asyncio.sleep(.05)
+
+            self.client.connection._connection_status = "CLOSED"
+            self._closed = True
 
     async def close(self, force: bool = False) -> NoReturn:
         """
@@ -199,19 +231,23 @@ class Connection(Object):
         try:
             self._connection_status = "CLOSING"
             self._closing = True
+            self._force_closing = force
 
-            await self.ws.keep_alive.stop()
+            logger.info(f"[CONNECTION] Received force {'close ' if force else ''}call to stop the running Client")
+
             await self.ws.socket.close()
-            if force:
-                if self.ws.message_broker.worker_loop:
-                    if not self.ws.message_broker.worker_loop.cancelled():
-                        self.ws.message_broker.worker_loop.cancel()
 
-            # Waiting until the message_broker is closed
-            while self.ws.message_broker.running:
+            while not self.socket_closed:
                 await asyncio.sleep(.05)
 
-            self._connection_status = "CLOSED"
+            if force:
+                # Forcing the loop to stop making all tasks be cancelled
+                self.ws.message_broker.close_loop()
+            else:
+                # Waiting until the message_broker is closed
+                while self.ws.message_broker.running:
+                    await asyncio.sleep(.05)
+
             self._closing = False
 
         except Exception as e:
@@ -220,4 +256,4 @@ class Connection(Object):
                 brief=f"Failed to close current connection to Hiven",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise RuntimeError("Failed to stop client due to an exception occurring") from e
