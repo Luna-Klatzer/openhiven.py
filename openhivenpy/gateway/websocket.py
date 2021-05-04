@@ -15,13 +15,14 @@ from yarl import URL
 
 from .messagebroker import MessageBroker
 from .. import Object
-from ..exceptions import RestartSessionError, SessionCreateError, WebSocketClosedError, WebSocketFailedError
+from ..exceptions import (RestartSessionError, SessionCreateError, WebSocketClosedError,
+                          WebSocketFailedError, KeepAliveError)
 
 if TYPE_CHECKING:
     from ..events import HivenParsers
     from .. import HivenClient
 
-__all__ = ['HivenWebSocket']
+__all__ = ['HivenWebSocket', 'KeepAlive']
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,8 @@ class KeepAlive(Object):
                 await self._task
             except asyncio.CancelledError:
                 break
-            except Exception:
-                raise RuntimeError("KeepAlive failed to process properly due to ")
+            except Exception as e:
+                raise KeepAliveError("KeepAlive failed to process properly due to an exception occurring") from e
         self._active = False
 
     async def stop(self) -> None:
@@ -227,17 +228,18 @@ class HivenWebSocket(Object):
         self._open = False
         self._ready = False
         self.client.connection._connection_status = "CLOSING"
-        if msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING):
-            logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart")
-            raise RestartSessionError()
-
-        elif msg.type == aiohttp.WSMsgType.CLOSED:
-            logger.info("[WEBSOCKET] Closing the WebSocket Connection and stopping the processes!")
-            raise WebSocketClosedError()
+        if msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING, aiohttp.WSMsgType.CLOSED):
+            # The process is closing so no restart will be scheduled
+            if self.closing:
+                logger.info("[WEBSOCKET] Closing the WebSocket Connection and stopping the processes")
+                raise WebSocketClosedError()
+            else:
+                logger.error("[WEBSOCKET] Received close frame from the Server! WebSocket will force restart")
+                raise RestartSessionError()
 
         elif msg.type == aiohttp.WSMsgType.ERROR:
             logger.error(f"[WEBSOCKET] Encountered an Exception in the Websocket! {msg.extra}")
-            raise WebSocketFailedError("[WEBSOCKET] Encountered an Exception in the Websocket!")
+            raise WebSocketFailedError("[WEBSOCKET] Encountered an Exception in the Websocket")
 
     async def _received_message(self, msg: aiohttp.WSMessage) -> None:
         """ Awaits a new incoming message and handles it """

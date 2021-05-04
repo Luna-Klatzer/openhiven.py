@@ -19,6 +19,12 @@ __all__ = ['DynamicEventBuffer', 'MessageBroker']
 logger = logging.getLogger(__name__)
 
 
+async def _wait_until_done(task: asyncio.Task) -> None:
+    """ Waits until the passed task is done and then returns """
+    while not task.done():
+        await asyncio.sleep(.05)
+
+
 class DynamicEventBuffer(list, Object):
     """
     The DynamicEventBuffer is a list containing all not-executed events that were received over the websocket.
@@ -148,12 +154,6 @@ class MessageBroker(Object):
             raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
 
 
-async def _wait_until_done(task: asyncio.Task) -> None:
-    """ Waits until the passed task is done and then returns """
-    while not task.done():
-        await asyncio.sleep(.05)
-
-
 class Worker(Object):
     """ Worker class targeted at running event_listeners that were fetched from the assigned event_buffer """
 
@@ -272,10 +272,13 @@ class Worker(Object):
 
                 # if queue_events is active running a sequence will not return until all event_listeners were dispatched
                 if self.client.queue_events:
-                    await self._gather_tasks(tasks)
+                    task = asyncio.create_task(self._gather_tasks(tasks))
+                    self._listener_tasks.append(task)
+                    await task
                 else:
                     # without queuing all tasks will be assigned to the asyncio event_loop and run parallel
-                    self._listener_tasks.append(asyncio.create_task(self._gather_tasks(tasks)))
+                    task = asyncio.create_task(self._gather_tasks(tasks))
+                    self._listener_tasks.append(task)
 
             except asyncio.CancelledError:
                 logger.debug(f"Worker {repr(self)} was cancelled and did not finish its tasks!")
@@ -291,7 +294,7 @@ class EventConsumer(Object):
         self.workers: Dict[Worker] = {}
         self.message_broker = message_broker
         self.client = message_broker.client
-        self._tasks: Optional[List[asyncio.Task]] = []
+        self._tasks: Optional[Dict[Worker, asyncio.Task]] = {}
 
     def get_worker(self, event) -> Worker:
         """ Creates a new worker that can execute event_listeners """
@@ -303,9 +306,10 @@ class EventConsumer(Object):
             self.workers[event] = worker
         return worker
 
-    def tasks_closed(self) -> bool:
+    def tasks_done(self) -> bool:
+        """ Returns whether all workers and tasks are done (cancelled, raised an exception or finished)"""
         return all([
-            *(t.done() for t in self._tasks),
+            *(t.done() for t in self._tasks.values()),
             *(w.done() for w in self.workers.values())
         ])
 
@@ -318,7 +322,7 @@ class EventConsumer(Object):
 
             await w.cancel()
 
-        for t in self._tasks:
+        for t in self._tasks.values():
             t: asyncio.Task
             if t.done():
                 continue
@@ -326,7 +330,7 @@ class EventConsumer(Object):
             t.cancel()
 
         # Waiting until all workers and tasks were really finished and everything is cleaned up
-        while not self.tasks_closed():
+        while not self.tasks_done():
             await asyncio.sleep(.05)
 
         logger.debug(f"All workers and tasks of {repr(self)} were cancelled")
@@ -339,7 +343,7 @@ class EventConsumer(Object):
         self.workers = {}
 
         del self._tasks
-        self._tasks = []
+        self._tasks = {}
 
     async def run_all_workers(self) -> tuple:
         """
@@ -351,5 +355,7 @@ class EventConsumer(Object):
         workers = [
             self.get_worker(_) for _ in self.client.available_events if _ not in self.client.non_buffer_events
         ]
-        self._tasks = [asyncio.create_task(worker.run_forever()) for worker in workers]
-        return await asyncio.gather(*self._tasks)
+        self._tasks: Optional[Dict[Worker, asyncio.Task]] = {
+            worker: asyncio.create_task(worker.run_forever()) for worker in workers
+        }
+        return await asyncio.gather(*self._tasks.values())

@@ -137,6 +137,14 @@ class Connection(Object):
         return getattr(self, '_ws', None)
 
     @property
+    def keep_alive(self) -> Optional[KeepAlive]:
+        return getattr(self.ws, 'keep_alive', None)
+
+    @property
+    def message_broker(self) -> Optional[MessageBroker]:
+        return getattr(self.ws, 'message_broker', None)
+
+    @property
     def heartbeat(self) -> Optional[int]:
         return getattr(self, '_heartbeat', None)
 
@@ -150,7 +158,7 @@ class Connection(Object):
 
     @property
     def socket_closed(self) -> Optional[bool]:
-        return getattr(getattr(self.ws, 'socket', None), 'closed', False)
+        return getattr(getattr(self.ws, 'socket', None), 'closed', True)
 
     async def connect(self, restart: bool) -> None:
         """
@@ -162,7 +170,7 @@ class Connection(Object):
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version)
             await self.http.connect()
 
-            while not self.socket_closed:
+            while self.connection_status == "OPENING":
                 try:
                     coro = HivenWebSocket.create_from_client(
                         self.client, endpoint=self.endpoint, close_timeout=self.close_timeout, heartbeat=self.heartbeat,
@@ -173,8 +181,11 @@ class Connection(Object):
 
                     self._closed = False
                     await asyncio.gather(
-                        self.ws.listening_loop(), self.ws.keep_alive.run(), self.ws.message_broker.run()
+                        self.ws.listening_loop(), self.keep_alive.run(), self.ws.message_broker.run()
                     )
+
+                except KeyboardInterrupt:
+                    raise
 
                 except asyncio.TimeoutError:
                     # If the timeout is hit the connection might not be possible or unstable, so a warning needs to be
@@ -190,13 +201,12 @@ class Connection(Object):
                 except RestartSessionError:
                     # Encountered an exception inside the receive process of the WebSocket and
                     # the system should restart to make sure the user can continue to use the Client
-                    logger.debug("[CONNECTION] Received a request to restart the WebSocket!")
+                    logger.debug("[CONNECTION] Restarting the Websocket")
+
+                except WebSocketClosedError:
                     continue
 
-                except (WebSocketClosedError, KeepAliveError):
-                    continue
-
-                except (Exception, WebSocketFailedError) as e:
+                except (Exception, WebSocketFailedError, KeepAliveError) as e:
                     if self.connection_status == "OPENING":
                         utils.log_traceback(
                             brief="[CONNECTION] Encountered an exception while initialising the websocket",
@@ -209,36 +219,67 @@ class Connection(Object):
                         )
 
                     if restart is False:
+                        self._reset_status("CLOSING")
                         raise RuntimeError("Websocket encountered an exception while running") from e
 
-        except KeyboardInterrupt:
-            await self.http.close()
-            await self.close(force=True)
-            return
+                # Resetting the status
+                self._reset_status("OPENING")
 
-        except Exception as e:
+        except KeyboardInterrupt:
+            ...
+        except (RuntimeError, SessionCreateError, Exception) as e:
             utils.log_traceback(
                 level='critical',
                 brief=f"Failed to keep alive current connection to Hiven:",
                 exc_info=sys.exc_info()
             )
             raise SessionCreateError(f"Failed to establish HivenClient session") from e
-        else:
-            await self.ws.keep_alive.stop()
+        finally:
+            self._closing = True
+            self._reset_status("CLOSING")
+
+            await self.keep_alive.stop()
             await self.http.close()
 
-            while self.ws.keep_alive.active:
+            while getattr(self.keep_alive, 'active', None):
                 await asyncio.sleep(.05)
+
+            if type(getattr(self.message_broker, 'message_broker', None)) is MessageBroker:
+                # Forcing the loop to stop making all tasks be cancelled
+                await self.ws.message_broker.close_loop()
 
             self.client.connection._connection_status = "CLOSED"
             self._closed = True
 
+            await self._wait_until_ws_finished()
             del self._ws
+
             self._set_default_properties()
+            self._closing = False
+
+    def _reset_status(self, connection_status: str):
+        """
+        Resets the status to being currently opening and not being active
+
+        Used when the websocket raises an exception and crashes or is restarting (aka. not available in the moment)
+        """
+        self.ws._open = False
+        self.ws._ready = False
+        self.ws._startup_time = None
+        self._connection_status = connection_status
+
+    async def _wait_until_ws_finished(self) -> None:
+        """ Waits until the websocket has finished to return and stop the process """
+        while (getattr(getattr(self.ws, 'message_broker', None), 'running', False)
+               or not self.socket_closed):
+            await asyncio.sleep(.05)
 
     async def close(self, force: bool = False) -> None:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
+
+        Returns before the closing has finished to avoid the case where the close() method was called in an
+        event_listener and therefore not returning would block the process to close in time
 
         :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
                       code of event-listeners being stopped while performing actions. If False the stopping will wait
@@ -251,20 +292,11 @@ class Connection(Object):
 
             logger.info(f"[CONNECTION] Received force {'close ' if force else ''}call to stop the running Client")
 
-            await self.ws.socket.close()
+            if getattr(self.ws, 'socket', None):
+                await self.ws.socket.close()
 
             while not self.socket_closed:
                 await asyncio.sleep(.05)
-
-            if force:
-                # Forcing the loop to stop making all tasks be cancelled
-                await self.ws.message_broker.close_loop()
-            else:
-                # Waiting until the message_broker is closed
-                while self.ws.message_broker.running:
-                    await asyncio.sleep(.05)
-
-            self._closing = False
 
         except Exception as e:
             utils.log_traceback(

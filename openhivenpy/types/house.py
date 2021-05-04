@@ -139,7 +139,7 @@ class LazyHouse(DataClassObject):
             members = data['members']
             data['members'] = {}
             for member_ in members:
-                id_ = member_['user_id'] if member_.get('user_id') else member_.get('user').get('id')
+                id_ = member_['user_id'] if member_.get('user_id') else member_.get('user', {}).get('id')
                 data['members'][id_] = utils.update_and_return(member_, user=id_)
 
         if type(data.get('roles')) is list:
@@ -279,22 +279,6 @@ class House(LazyHouse):
         """
         data = LazyHouse.format_obj_data(data)
         data = cls.validate(data)
-
-        if not data.get('owner_id') and data.get('owner'):
-            owner = data.pop('owner')
-            if type(owner) is dict:
-                owner_id = owner.get('id')
-            elif isinstance(owner, DataClassObject):
-                owner_id = getattr(owner, 'id', None)
-            else:
-                owner_id = None
-
-            if owner_id is None:
-                raise InvalidPassedDataError("The passed owner is not in the correct format!", data=data)
-            else:
-                data['owner_id'] = owner_id
-
-        data['owner'] = data['owner_id']
         return data
 
     @property
