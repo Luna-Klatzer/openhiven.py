@@ -287,10 +287,27 @@ class Message(DataClassObject):
     def author_id(self) -> Optional[str]:
         return getattr(self, '_author_id', None)
 
-    # TODO! add fetcher and constructor
     @property
     def author(self) -> Optional[User]:
-        return getattr(self, '_author', None)
+        if type(self._author) is str:
+            author_id = self._author
+        elif type(self.author_id) is str:
+            author_id = self.author_id
+        else:
+            author_id = None
+
+        if type(author_id) is str:
+            data = self._client.storage['authors'].get(author_id)
+            if data:
+                self._author = User(data=data, client=self._client)
+                return self._author
+            else:
+                return None
+
+        elif type(self._author) is User:
+            return self._author
+        else:
+            return None
 
     @property
     def created_at(self) -> Optional[str]:
@@ -319,15 +336,36 @@ class Message(DataClassObject):
     def edited_at(self) -> Optional[str]:
         return getattr(self, '_edited_at', None)
 
-    # TODO! add fetcher and constructor
     @property
     def room(self) -> Optional[TextRoom]:
-        return getattr(self, '_room', None)
+        from . import TextRoom
+        if type(self._room) is str:
+            data = self._client.storage['rooms']['house'].get(self._room)
+            if data:
+                self._room = TextRoom(data=data, client=self._client)
+                return self._room
+            else:
+                return None
 
-    # TODO! add fetcher and constructor
+        elif type(self._room) is TextRoom:
+            return self._room
+        else:
+            return None
+
     @property
     def house(self) -> Optional[House]:
-        return getattr(self, '_house', None)
+        if type(self._house) is str:
+            data = self._client.storage['houses'].get(self._house)
+            if data:
+                self._house = House(data=data, client=self._client)
+                return self._house
+            else:
+                return None
+
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None
 
     @property
     def attachment(self) -> Optional[Attachment]:

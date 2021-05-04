@@ -40,6 +40,8 @@ __all__ = [
     'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError',
     'HTTPForbiddenError', 'HTTPResponseError', 'HTTPReceivedNoDataError',
 
+    'APIError',
+
     'InitializationError', 'InvalidPassedDataError',
 
     'ExecutionLoopError', 'ExecutionLoopStartError',
@@ -225,6 +227,19 @@ class HTTPReceivedNoDataError(HTTPError):
     received a 204(No Content) in a request that expected data.
     """
     error_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
+
+
+# -------- API --------
+
+
+class APIError(HTTPError):
+    """ An exception in an API-related function that was unable to properly interact with the Hiven servers """
+    error_msg = "Failed to properly execute the API function"
+
+
+class APIForbidden(APIError):
+    """ An exception in an API-related function that was unable to properly interact with the Hiven servers """
+    error_msg = "You do not have the permission to perform this action"
 
 
 # -------- DATA --------
