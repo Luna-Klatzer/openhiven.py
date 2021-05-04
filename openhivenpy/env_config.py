@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import NoReturn
 from typing import Optional, Dict, List, Any, Tuple
 
 import pkg_resources
@@ -23,7 +22,7 @@ class HivenENV:
     def env_vars(self) -> Dict[str, Any]:
         return self._env_vars
 
-    def unload_env(self) -> NoReturn:
+    def unload_env(self) -> None:
         """ Unloads all openhiven.py environment variables. """
         for elem in self.ENV_VAR_KEYS:
             if os.environ.get(elem) is not None:

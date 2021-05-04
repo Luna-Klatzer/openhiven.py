@@ -7,7 +7,6 @@ import sys
 # iterable properties as well and the keys for iterables would point to the same object, which results in that
 # changes to those iterables are applied to all copied dictionaries that were created using dict() or copy().
 from copy import deepcopy
-from typing import NoReturn
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -64,7 +63,7 @@ class ClientCache(dict, Object):
             )
         )
 
-    def closing_cleanup(self) -> NoReturn:
+    def closing_cleanup(self) -> None:
         """
         Cleans all remaining data after the client exited.
 
@@ -85,7 +84,7 @@ class ClientCache(dict, Object):
         else:
             raise ValueError("Data Updates require a initialised Hiven Client!")
 
-    def update_primary_data(self, item_data: dict) -> NoReturn:
+    def update_primary_data(self, item_data: dict) -> None:
         """
         Updates in the cache the following data:
          - List of all House Memberships

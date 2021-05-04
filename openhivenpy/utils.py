@@ -113,7 +113,7 @@ def log_traceback(
         level: Optional[str] = 'error',
         brief: Optional[str] = None,
         exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
-) -> NoReturn:
+) -> None:
     """
     Logs the traceback of the latest exception
 
@@ -184,7 +184,7 @@ def log_validation_traceback(
         cls: Any,
         data: dict,
         exc_info: Tuple[Type[BaseException], BaseException, TracebackType] = sys.exc_info()
-) -> NoReturn:
+) -> None:
     """
     Logger for a Validation Error in the module types
 

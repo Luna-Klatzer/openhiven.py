@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from asyncio import AbstractEventLoop
-from typing import Optional, NoReturn
+from typing import Optional
 
 from .cache import ClientCache
 from .. import Object
@@ -117,7 +117,7 @@ class HivenClient(HivenEventHandler, Object):
             *,
             loop: Optional[asyncio.AbstractEventLoop] = None,
             restart: bool = False
-    ) -> NoReturn:
+    ) -> None:
         """
         Standard function for establishing a connection to Hiven
 
@@ -166,7 +166,7 @@ class HivenClient(HivenEventHandler, Object):
             )
             raise HivenConnectionError("Failed to keep alive connection to Hiven") from e
 
-    async def connect(self, token: str = os.getenv('HIVEN_TOKEN'), *, restart: bool = False) -> NoReturn:
+    async def connect(self, token: str = os.getenv('HIVEN_TOKEN'), *, restart: bool = False) -> None:
         """Establishes a connection to Hiven and does not return until finished
 
         :param token: Token that should be used to connect to Hiven. If none is passed it will try to fetch the token
@@ -206,7 +206,7 @@ class HivenClient(HivenEventHandler, Object):
             )
             raise HivenConnectionError(f"Failed to keep alive connection to Hiven") from e
 
-    async def close(self, force: bool = False) -> NoReturn:
+    async def close(self, force: bool = False) -> None:
         """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 
         :param force: If set to True the running event-listener workers will be forced closed, which may lead to running

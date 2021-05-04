@@ -28,7 +28,7 @@ import asyncio
 import inspect
 import logging
 import sys
-from typing import Coroutine, Callable, Union, NoReturn, Dict, List, Awaitable, Optional
+from typing import Coroutine, Callable, Union, Dict, List, Awaitable, Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -113,7 +113,7 @@ class DispatchEventListener(Object):
         dispatch: Union[Callable, Union[Awaitable, Callable]] = getattr(self, 'dispatch')
         return dispatch(*args, **kwargs)
 
-    def set_awaitable(self, awaitable: Union[Awaitable, Callable]) -> NoReturn:
+    def set_awaitable(self, awaitable: Union[Awaitable, Callable]) -> None:
         """ Sets the coroutine of the event_listener, which will be called when ws-events are received
 
         :param awaitable: Awaitable (Coroutine Function). Can NOT be a initialised coroutine, since parameters will
@@ -127,7 +127,7 @@ class DispatchEventListener(Object):
         else:
             raise RuntimeError(f"Expected awaitable, but got {type(awaitable)}")
 
-    async def dispatch(self) -> NoReturn:
+    async def dispatch(self) -> None:
         ...
 
 
@@ -161,7 +161,7 @@ class SingleDispatchEventListener(DispatchEventListener):
     def kwargs(self) -> dict:
         return getattr(self, '_kwargs')
 
-    async def dispatch(self, *args, **kwargs) -> NoReturn:
+    async def dispatch(self, *args, **kwargs) -> None:
         """
         Dispatches the EventListener and calls a coroutine if one was passed
 
@@ -187,7 +187,7 @@ class SingleDispatchEventListener(DispatchEventListener):
 class MultiDispatchEventListener(DispatchEventListener):
     """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
 
-    async def dispatch(self, *args, **kwargs) -> NoReturn:
+    async def dispatch(self, *args, **kwargs) -> None:
         """
         Dispatches the EventListener and calls a coroutine if one was passed.
         Does not raise exceptions but silences them!
@@ -240,7 +240,7 @@ class HivenEventHandler(Object):
     def non_buffer_events(self) -> List[str]:
         return getattr(self, '_non_buffer_events', None)
 
-    def dispatch_event(self, event_name: str, args: tuple, kwargs: dict) -> NoReturn:
+    def dispatch_event(self, event_name: str, args: tuple, kwargs: dict) -> None:
         """
         Manually adds an event to the event_buffer and triggers all listeners.
         Will return immediately and does not require asyncio unlike call_listeners which only calls the listeners
@@ -250,7 +250,7 @@ class HivenEventHandler(Object):
         :param kwargs: Kwargs that will be passed to the coroutines
         """
 
-    def add_listener(self, listener: DispatchEventListener) -> NoReturn:
+    def add_listener(self, listener: DispatchEventListener) -> None:
         """
         Adds the listener to the client cache and will create a new list if the event_name does not exist yet!
 
@@ -261,7 +261,7 @@ class HivenEventHandler(Object):
         else:
             self.active_listeners[listener.event_name] = [listener]
 
-    def remove_listener(self, listener: DispatchEventListener) -> NoReturn:
+    def remove_listener(self, listener: DispatchEventListener) -> None:
         """
         Removes the listener from the client cache
 
@@ -273,7 +273,7 @@ class HivenEventHandler(Object):
         else:
             raise KeyError("The listener does not exist in the cache")
 
-    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict) -> NoReturn:
+    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict) -> None:
         """
         Dispatches all active EventListeners for the specified event.
         Does not call the parsers but the function directly and requires the args, kwargs passed

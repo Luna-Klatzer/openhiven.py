@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, List, NoReturn, Coroutine, Tuple, Dict
+from typing import Optional, List, Coroutine, Tuple, Dict
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -114,24 +114,44 @@ class MessageBroker(Object):
         else:
             return self.create_buffer(event, args, kwargs)
 
-    def close_loop(self):
+    def _cleanup_buffers(self) -> None:
+        """ Removes all buffers and their content to """
+        del self.event_buffers
+        self.event_buffers = []
+
+    async def close_loop(self) -> None:
         """ Closes the worker_loop and its tasks """
         if self._force_closing:
-            self.event_consumer.close_tasks()
+            await self.event_consumer.close()
 
             if self.worker_loop.cancelled():
                 return
             self.worker_loop.cancel()
+            await _wait_until_done(self.worker_loop)
 
-    async def run(self):
+        else:
+            await _wait_until_done(self.worker_loop)
+            # Despite not being force_closed all tasks and workers will still be removed and a cleanup started, but
+            # only after all workers have finished to avoid destroying event_listeners in their execution
+            await self.event_consumer.close()
+
+        self._cleanup_buffers()
+
+    async def run(self) -> None:
         """ Runs the event_consumer instance which stores the workers for all event_listeners """
         self.worker_loop = asyncio.create_task(self.event_consumer.run_all_workers())
         try:
             await self.worker_loop
         except asyncio.CancelledError:
-            logger.debug("Event Consumer stopped! All workers are cancelled!")
+            return logger.debug("Event Consumer stopped! All workers are cancelled!")
         except Exception as e:
             raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
+
+
+async def _wait_until_done(task: asyncio.Task) -> None:
+    """ Waits until the passed task is done and then returns """
+    while not task.done():
+        await asyncio.sleep(.05)
 
 
 class Worker(Object):
@@ -163,28 +183,30 @@ class Worker(Object):
     def force_closing(self) -> bool:
         return getattr(self.message_broker, '_force_closing', False)
 
-    async def _gather_tasks(self, tasks: List[Coroutine]) -> NoReturn:
+    async def _gather_tasks(self, tasks: List[Coroutine]) -> None:
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 
     def done(self) -> bool:
-        """ Returns whether the process is cancelled """
+        """ Returns whether the process is finished and all tasks finished correctly """
         return all([
             self._tasks_done,
             self._sequence_loop.done(),
             self._cancel_called
         ])
 
-    def cancel(self) -> NoReturn:
+    async def cancel(self) -> None:
         """ Cancels all tasks in the current worker and the main loop that was started using run_forever() """
         for task in self._listener_tasks:
             if task.done():
                 continue
 
             task.cancel()
+            await _wait_until_done(task)
 
         if not self._sequence_loop.cancelled():
             self._sequence_loop.cancel()
+            await _wait_until_done(self._sequence_loop)
 
         self._cancel_called = True
         logger.debug(f"{repr(self)} cancelled")
@@ -192,7 +214,7 @@ class Worker(Object):
     def _tasks_done(self) -> bool:
         return all(t.done() for t in self._listener_tasks)
 
-    async def _wait_until_finished(self) -> NoReturn:
+    async def _wait_until_finished(self) -> None:
         """ Waits until all tasks have finished """
         while True:
             if self._tasks_done():
@@ -200,7 +222,7 @@ class Worker(Object):
 
             await asyncio.sleep(.05)
 
-    async def _loop_sequence(self) -> NoReturn:
+    async def _loop_sequence(self) -> None:
         """ Worker Loop sequence. Only stops when connection.close() was called"""
         while not self.closing:
             # If the event_buffer is not empty
@@ -209,7 +231,7 @@ class Worker(Object):
             await asyncio.sleep(.50)
 
         if self.force_closing:
-            self.cancel()  # destroys itself
+            await self.cancel()  # destroys itself
         else:
             await self._wait_until_finished()
 
@@ -281,14 +303,42 @@ class EventConsumer(Object):
             self.workers[event] = worker
         return worker
 
-    def close_tasks(self) -> NoReturn:
-        """ Closes all worker tasks that are currently running """
+    def tasks_closed(self) -> bool:
+        return all([
+            *(t.done() for t in self._tasks),
+            *(w.done() for w in self.workers.values())
+        ])
+
+    async def close(self) -> None:
+        """ Closes all worker tasks that are currently running. Waits until everything was cleaned up and finished """
         for w in self.workers.values():
+            w: Worker
             if w.done():
                 continue
 
-            w.cancel()
-        logger.debug(f"All workers of {repr(self)} were cancelled")
+            await w.cancel()
+
+        for t in self._tasks:
+            t: asyncio.Task
+            if t.done():
+                continue
+
+            t.cancel()
+
+        # Waiting until all workers and tasks were really finished and everything is cleaned up
+        while not self.tasks_closed():
+            await asyncio.sleep(.05)
+
+        del self._tasks
+        self._tasks = []
+        logger.debug(f"All workers and tasks of {repr(self)} were cancelled")
+
+        self._cleanup_workers()
+
+    def _cleanup_workers(self) -> None:
+        """ Removes all workers and removes the data that still exists """
+        del self.workers
+        self.workers = []
 
     async def run_all_workers(self) -> tuple:
         """

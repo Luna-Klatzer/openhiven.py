@@ -31,7 +31,7 @@ import asyncio
 import logging
 import os
 import sys
-from typing import Optional, NoReturn
+from typing import Optional
 
 from yarl import URL
 
@@ -143,8 +143,11 @@ class Connection(Object):
     def socket_closed(self) -> Optional[bool]:
         return getattr(getattr(self.ws, 'socket', None), 'closed', False)
 
-    async def connect(self, restart: bool) -> NoReturn:
-        """ Establishes a connection to Hiven and runs the background processes """
+    async def connect(self, restart: bool) -> None:
+        """
+        Establishes a connection to Hiven and runs the background processes.
+        Only closes if forced to using close() or an exception is raised and restart is False
+        """
         try:
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version)
             await self.http.connect()
@@ -220,7 +223,7 @@ class Connection(Object):
             self.client.connection._connection_status = "CLOSED"
             self._closed = True
 
-    async def close(self, force: bool = False) -> NoReturn:
+    async def close(self, force: bool = False) -> None:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
 
@@ -242,7 +245,7 @@ class Connection(Object):
 
             if force:
                 # Forcing the loop to stop making all tasks be cancelled
-                self.ws.message_broker.close_loop()
+                await self.ws.message_broker.close_loop()
             else:
                 # Waiting until the message_broker is closed
                 while self.ws.message_broker.running:
