@@ -58,6 +58,7 @@ class HivenClient(HivenEventHandler, Object):
         self._loop = loop
         self._log_websocket = log_websocket
         self._queue_events = queue_events
+        self._client_user = None
         self._storage = ClientCache(client=self, log_websocket=log_websocket, token=self._token)
         self._connection = Connection(
             self, api_version=api_version, host=host, heartbeat=heartbeat, close_timeout=close_timeout
@@ -268,8 +269,12 @@ class HivenClient(HivenEventHandler, Object):
 
     @property
     def client_user(self) -> Optional[types.User]:
+        # Always prefers to fetch the most recent data
         if self.storage['client_user']:
-            return self.storage._init_client_user()
+            self._client_user = self.storage.init_client_user_obj()
+            return self._client_user
+        elif getattr(self, '_client_user', None) is not None:
+            return self._client_user
         else:
             return None
 

@@ -71,15 +71,15 @@ class ClientCache(dict, Object):
         """
         self.update(_create_default_dict(self['log_websocket']))
         self['client_user'] = {}
-        self._init_client_user()
+        self.init_client_user_obj()
 
-    def _init_client_user(self) -> types.User:
+    def init_client_user_obj(self) -> types.User:
         """ Initialises the client user based on the cached data """
-        self._client_user = types.User(self['client_user'], self.client)
-        return self._client_user
+        return types.User(self['client_user'], self.client)
 
     def check_if_initialised(self) -> bool:
-        if self.get('client_user', None) is not None:
+        """ Checks whether the client has initialised """
+        if self.get('client_user') and self.client.http.ready:
             return True
         else:
             raise ValueError("Data Updates require a initialised Hiven Client!")
@@ -99,13 +99,14 @@ class ClientCache(dict, Object):
         self['house_ids'] = data.get('house_ids', [])
         self['settings'] = data.get('settings', {})
         self['read_state'] = data.get('read_state', {})
-        self['client_user'] = data.get('user')
 
         for r in data.get('private_rooms', []):
             self.add_or_update_private_room(r)
 
         for key, data in data.get('relationships', []).items():
             self.add_or_update_relationship(data)
+
+        self.update_client_user(data.get('user'))
 
     def update_client_user(self, item_data: dict) -> dict:
         """

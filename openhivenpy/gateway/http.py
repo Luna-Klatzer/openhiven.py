@@ -131,10 +131,10 @@ class HTTP:
             self._ready = True
 
             resp = await self.get("/users/@me", timeout=30)
-            resp = await resp.json()
+            resp_json: dict = await resp.json()
 
             logger.info("[HTTP] Session was successfully created!")
-            self.client.storage.update_client_user(resp['data'])
+            self.client.storage.update_client_user(resp_json['data'])
             return self.session
 
         except Exception as e:

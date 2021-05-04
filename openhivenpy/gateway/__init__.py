@@ -78,6 +78,15 @@ class Connection(Object):
         self._force_closing = False
         self._ws = None
 
+    def _set_default_properties(self):
+        """ Sets the default properties for the Connection class """
+        self._connection_status = "CLOSED"
+        self._ready = False
+        self._closing = False
+        self._closed = False
+        self._force_closing = False
+        self._ws = None
+
     def __str__(self) -> str:
         return ""
 
@@ -149,10 +158,10 @@ class Connection(Object):
         Only closes if forced to using close() or an exception is raised and restart is False
         """
         try:
+            self._connection_status = "OPENING"
             self.http = HTTP(self.client, host=self.host, api_version=self.api_version)
             await self.http.connect()
 
-            self._connection_status = "OPENING"
             while not self.socket_closed:
                 try:
                     coro = HivenWebSocket.create_from_client(
@@ -161,6 +170,7 @@ class Connection(Object):
                     )
                     self._ws = await asyncio.wait_for(coro, 30)
                     await self.ws.send_auth()
+
                     self._closed = False
                     await asyncio.gather(
                         self.ws.listening_loop(), self.ws.keep_alive.run(), self.ws.message_broker.run()
@@ -222,6 +232,9 @@ class Connection(Object):
 
             self.client.connection._connection_status = "CLOSED"
             self._closed = True
+
+            del self._ws
+            self._set_default_properties()
 
     async def close(self, force: bool = False) -> None:
         """

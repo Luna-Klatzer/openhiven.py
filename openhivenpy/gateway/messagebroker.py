@@ -117,7 +117,7 @@ class MessageBroker(Object):
     def _cleanup_buffers(self) -> None:
         """ Removes all buffers and their content to """
         del self.event_buffers
-        self.event_buffers = []
+        self.event_buffers = {}
 
     async def close_loop(self) -> None:
         """ Closes the worker_loop and its tasks """
@@ -143,7 +143,7 @@ class MessageBroker(Object):
         try:
             await self.worker_loop
         except asyncio.CancelledError:
-            return logger.debug("Event Consumer stopped! All workers are cancelled!")
+            logger.debug("Event Consumer stopped! All workers are cancelled!")
         except Exception as e:
             raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
 
@@ -329,16 +329,17 @@ class EventConsumer(Object):
         while not self.tasks_closed():
             await asyncio.sleep(.05)
 
-        del self._tasks
-        self._tasks = []
         logger.debug(f"All workers and tasks of {repr(self)} were cancelled")
 
-        self._cleanup_workers()
+        self._cleanup()
 
-    def _cleanup_workers(self) -> None:
+    def _cleanup(self) -> None:
         """ Removes all workers and removes the data that still exists """
         del self.workers
-        self.workers = []
+        self.workers = {}
+
+        del self._tasks
+        self._tasks = []
 
     async def run_all_workers(self) -> tuple:
         """
