@@ -34,6 +34,7 @@ __license__ = "MIT"
 __version__ = "0.2.alpha1"
 __copyright__ = "Luna Klatzer"
 
+
 import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
