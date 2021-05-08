@@ -1,44 +1,27 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
-import sys
-import typing
+from typing import Optional
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
-from marshmallow import Schema, fields, ValidationError, EXCLUDE, post_load
+import fastjsonschema
 
-from . import HivenObject
-from . import user
+from . import DataClassObject
+from . import User
 from .. import utils
-from .. import exception as errs
+from ..exceptions import InitializationError, InvalidPassedDataError
+
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Relationship']
 
 
-class RelationshipSchema(Schema):
-    user_id = fields.Int(required=True, allow_none=True)
-    user = fields.Raw(required=True, allow_none=True)
-    type = fields.Int(required=True)
-    id = fields.Int(required=True, allow_none=True)
-    recipient_id = fields.Int(required=True, allow_none=True)
-    last_updated_at = fields.Raw(allow_none=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Relationship Object
-        """
-        return Relationship(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = RelationshipSchema()
-
-
-class Relationship(HivenObject):
+class Relationship(DataClassObject):
     """
     Represents a user-relationship with another user or bot
 
@@ -58,85 +41,115 @@ class Relationship(HivenObject):
     
     5 - Blocked User
     """
-    def __init__(self, **kwargs):
-        self._user_id = kwargs.get('user_id')
-        self._user = kwargs.get('user')
-        self._type = kwargs.get('type')
-        self._id = kwargs.get('id')
-        self._recipient_id = kwargs.get('recipient_id')
-        self._last_updated_at = kwargs.get('last_updated_at')
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            'user_id': {'type': 'string'},
+            'user': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'object'},
+                    {'type': 'null'}
+                ],
+            },
+            'type': {'type': 'integer'},
+            'last_updated_at': {'type': 'string'}
+        },
+        'additionalProperties': False,
+        'required': ['user_id', 'type']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
+
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._user_id = data.get('user_id')
+            self._user = data.get('user')
+            self._type = data.get('type')
+            self._last_updated_at = data.get('last_updated_at')
+
+        except Exception as e:
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
             ('id', self.id),
-            ('recipient_id', self.recipient_id),
             ('user_id', self.user_id),
             ('user', repr(self.user)),
             ('type', self.type)
         ]
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    def get_cached_data(self) -> Optional[dict]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['relationships'][self.user_id]
+
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        users: typing.List[user.User]):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the Relationship Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param users: The users list to fetch the user from
-        :return: The newly constructed Relationship Instance
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            data['user_id'] = utils.convert_value(int, data.get('user_id'))
-            if data['user'] is not None:
-                data['user'] = await user.User.from_dict(data['user'], http)
-                if data['user'] is not None:
-                    users.append(data['user'])
+        data = cls.validate(data)
+        data['type'] = utils.safe_convert(int, data.get('type'))
 
-            if data['user'] is None:
-                data['user'] = utils.get(users, id=utils.convert_value(int, data['user_id']))
+        if not data.get('user_id') and data.get('user'):
+            user = data.pop('user')
+            if type(user) is dict:
+                user_id = user.get('id')
+            elif isinstance(user, DataClassObject):
+                user_id = getattr(user, 'id', None)
+            else:
+                user_id = None
 
-            data['type'] = utils.convert_value(int, data.get('type'))
-            data['id'] = utils.convert_value(int, data.get('id'))
-            data['recipient_id'] = utils.convert_value(int, data.get('recipient_id'))
+            if user_id is None:
+                raise InvalidPassedDataError("The passed user is not in the correct format!", data=data)
+            else:
+                data['user_id'] = user_id
+        elif not data.get('user_id') and not data.get('user'):
+            raise InvalidPassedDataError("user_id and user missing from required data", data=data)
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+        data['user'] = data['user_id']
+        return data
 
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
-
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+    @property
+    def user(self) -> Optional[User]:
+        if type(self._user) is str:
+            user_id = self._user
+        elif type(self.user_id) is str:
+            user_id = self.user_id
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
+            user_id = None
 
-            return instance
+        if type(user_id) is str:
+            data = self._client.storage['users'].get(user_id)
+            if data:
+                self._user = User(data=data, client=self._client)
+                return self._user
+            else:
+                return None
 
-    @property
-    def user(self) -> user.User:
-        return self._user
-
-    @property
-    def type(self) -> int:
-        return self._type
-
-    @property
-    def user_id(self) -> int:
-        return self._user_id
+        elif type(self._user) is User:
+            return self._user
+        else:
+            return None
 
     @property
-    def recipient_id(self) -> int:
-        return self._recipient_id
+    def type(self) -> Optional[int]:
+        return getattr(self, '_type', None)
 
     @property
-    def id(self) -> int:
-        return self._id
+    def user_id(self) -> Optional[str]:
+        return getattr(self, '_user_id', None)
+
+    @property
+    def id(self) -> Optional[str]:
+        return getattr(self, '_id', None)

@@ -1,85 +1,97 @@
-import sys
-import logging
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
 
-from . import HivenObject
-from .. import utils
-from .. import exception as errs
+import logging
+from typing import Optional, Union
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
+import fastjsonschema
+
+from . import DataClassObject
+from ..exceptions import InitializationError
+
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('LazyUser', 'User', 'LazyUserSchema')
+__all__ = ['LazyUser', 'User']
 
 
-class LazyUserSchema(Schema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
+class LazyUser(DataClassObject):
+    """ Represents the standard Hiven User """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            'username': {'type': 'string'},
+            'name': {'type': 'string'},
+            'id': {'type': 'string'},
+            'user_flags': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'integer'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'bio': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'email_verified': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'header': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'icon': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'bot': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'string'},  # TODO! Needs to be removed when the string bug disappeared
+                    {'type': 'null'}
+                ],
+                'default': False
+            }
+        },
+        'required': ['username', 'name', 'id']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
 
-    id = fields.Int(required=True)
-    name = fields.Str(required=True)
-    username = fields.Str(required=True, allow_none=True)
-    user_flags = fields.Raw(default=None, allow_none=True)
-    icon = fields.Str(default=None, allow_none=True)
-    header = fields.Str(default=None, allow_none=True)
-    bot = fields.Bool(default=False, allow_none=True)
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            self._username = data.get('username')
+            self._name = data.get('name')
+            self._bio = data.get('bio')
+            self._id = data.get('id')
+            self._email_verified = data.get('email_verified')
+            self._user_flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
+            self._icon = data.get('icon')
+            self._header = data.get('header')
+            self._bot = data.get('bot', False)
 
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new LazyUser Object
-        """
-        return LazyUser(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_LAZY_SCHEMA = LazyUserSchema()
-
-
-class UserSchema(LazyUserSchema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
-
-    location = fields.Str(default=None, allow_none=True)
-    website = fields.Str(default=None, allow_none=True)
-    presence = fields.Str(default=None, allow_none=True)
-    bio = fields.Str(default=None, allow_none=True)
-    blocked = fields.Bool(default=False, allow_none=True)
-    email_verified = fields.Bool()
-    email = fields.Str(default=None, allow_none=True)
-    mfa_enabled = fields.Bool(default=None, allow_none=True)
-
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new User Object
-        """
-        return User(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = UserSchema()
-
-
-class LazyUser(HivenObject):
-    """
-    Represents the standard Hiven User
-    """
-    def __init__(self, **kwargs):
-        self._username = kwargs.get('username')
-        self._name = kwargs.get('name')
-        self._id = kwargs.get('id')
-        self._user_flags = kwargs.get('user_flags')  # ToDo: Discord.py-esque way of user flags
-        self._icon = kwargs.get('icon')
-        self._header = kwargs.get('header')
-        self._bot = kwargs.get('bot', False)
+        except Exception as e:
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+        else:
+            self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -92,77 +104,131 @@ class LazyUser(HivenObject):
         ]
         return '<LazyUser {}>'.format(' '.join('%s=%s' % t for t in info))
 
+    @property
+    def raw(self) -> Optional[dict]:
+        return self._client.storage['users'][self.id]
+
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        **kwargs):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the LazyUser Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :return: The newly constructed LazyUser Instance
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            if data.get('user') is not None:
-                data = data.get('user')
-            data['id'] = utils.convert_value(int, data.get('id'))
+        data = cls.validate(data)
+        return data
 
-            instance = GLOBAL_LAZY_SCHEMA.load(data, unknown=EXCLUDE)
+    @property
+    def username(self) -> Optional[str]:
+        return getattr(self, '_username', None)
 
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
+    @property
+    def name(self) -> Optional[str]:
+        return getattr(self, '_name', None)
 
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
+    @property
+    def id(self) -> Optional[str]:
+        return getattr(self, '_id', None)
+
+    @property
+    def bio(self) -> Optional[str]:
+        return getattr(self, '_bio', None)
+
+    @property
+    def email_verified(self) -> Optional[bool]:
+        return getattr(self, '_email_verified', None)
+
+    @property
+    def user_flags(self) -> Optional[Union[int, str]]:
+        return getattr(self, '_user_flags', None)
+
+    @property
+    def icon(self) -> Optional[str]:
+        if getattr(self, '_icon', None):
+            return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
         else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+            return None
 
     @property
-    def username(self) -> str:
-        return self._username
+    def header(self) -> Optional[str]:
+        if getattr(self, '_header', None):
+            return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
+        else:
+            return None
 
     @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def id(self) -> int:
-        return self._id
-
-    @property
-    def icon(self) -> str:
-        return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
-
-    @property
-    def header(self) -> str:
-        return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
-    
-    @property
-    def bot(self) -> bool:
-        return self._bot
+    def bot(self) -> Optional[bool]:
+        return getattr(self, '_bot', None)
 
 
 class User(LazyUser):
-    """
-    Represents the regular extended Hiven User
-    """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._location = kwargs.get('location')
-        self._website = kwargs.get('website')
-        self._presence = kwargs.get('presence')  # ToDo: Replace with classic presence string
-        self._email = kwargs.get('email')
-        self._mfa_enabled = kwargs.get('mfa_enabled')
+    """ Represents the regular extended Hiven User """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            **LazyUser.json_schema['properties'],
+            'location': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'website': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'presence': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'email': {
+                'anyOf': [
+                    {'type': 'string'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'blocked': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+            'mfa_enabled': {
+                'anyOf': [
+                    {'type': 'boolean'},
+                    {'type': 'null'}
+                ],
+                'default': None
+            },
+        },
+        'additionalProperties': False,
+        'required': [*LazyUser.json_schema['required']]
+    }
+    json_validator = fastjsonschema.compile(json_schema)
+
+    def __init__(self, data: dict, client: HivenClient):
+        try:
+            super().__init__(data, client)
+            self._location = data.get('location')
+            self._website = data.get('website')
+            self._blocked = data.get('blocked')
+            self._presence = data.get('presence')
+            self._email = data.get('email')
+            self._mfa_enabled = data.get('mfa_enabled')
+
+        except Exception as e:
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
 
     def __repr__(self) -> str:
         info = [
@@ -175,50 +241,43 @@ class User(LazyUser):
         ]
         return '<User {}>'.format(' '.join('%s=%s' % t for t in info))
 
-
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        **kwargs):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the User Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :return: The newly constructed User Instance
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            if data.get('user') is not None:
-                data = data.get('user')
-            data['id'] = utils.convert_value(int, data.get('id'))
+        data = LazyUser.format_obj_data(data)
+        data = cls.validate(data)
+        return data
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
-
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
-
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
-        else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+    def get_cached_data(self) -> Optional[dict]:
+        """ Fetches the most recent data from the cache based on the instance id """
+        return self._client.storage['users'][self.id]
 
     @property
-    def location(self) -> str:
-        return self._location
+    def location(self) -> Optional[str]:
+        return getattr(self, '_location', None)
 
     @property
-    def website(self) -> str:
-        return self._website
+    def website(self) -> Optional[str]:
+        return getattr(self, '_website', None)
 
     @property
-    def presence(self) -> str:
-        return self._presence
+    def presence(self) -> Optional[str]:
+        return getattr(self, '_presence', None)
+
+    @property
+    def email(self) -> Optional[str]:
+        return getattr(self, '_email', None)
+
+    @property
+    def blocked(self) -> Optional[bool]:
+        return getattr(self, '_blocked', None)
+
+    @property
+    def mfa_enabled(self) -> Optional[bool]:
+        return getattr(self, '_mfa_enabled', None)

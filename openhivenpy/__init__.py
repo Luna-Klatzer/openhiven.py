@@ -6,7 +6,7 @@ OpenHiven.py - The OpenSource Python API Wrapper for Hiven
 
 Under MIT License
 
-Copyright © 2020 - 2021 Nicolas Klatzer
+Copyright © 2020 - 2021 Luna Klatzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,23 +29,27 @@ SOFTWARE.
 """
 
 __title__ = "openhiven.py"
-__author__ = "Nicolas Klatzer"
+__author__ = "Luna Klatzer"
 __license__ = "MIT"
-__version__ = "0.2.dev1"
-__copyright__ = "Nicolas Klatzer"
+__version__ = "0.2.alpha1"
+__copyright__ = "Luna Klatzer"
 
 
 import logging
 
-from openhivenpy.settings import load_env
-# Loading the environment
-load_env()
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from . import exception
+from openhivenpy import exceptions
+from .exceptions import *
+
+# Loading the environment variables which contain basic configuration for the module
+from .env_config import HivenENV
+
+env = HivenENV()
+env.load_env()
+
+from .types import *
 from . import utils
-from . import types
 from . import events
 from . import gateway
 from .client import *
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())

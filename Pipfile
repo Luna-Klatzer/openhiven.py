@@ -6,9 +6,10 @@ name = "pypi"
 [packages]
 asyncio = "*"
 typing = ">=3.7.4"
-aiohttp = {extras = ["speedups"], version = ">=3.6"}
+aiohttp = { extras = ["speedups"], version = ">=3.6" }
 python-dotenv = ">=0.15.0"
-marshmallow = ">=3.9"
+yarl = "*"
+fastjsonschema = ">=2.0"
 
 [dev-packages]
 

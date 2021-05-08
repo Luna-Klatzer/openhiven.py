@@ -1,23 +1,25 @@
-import logging
-from marshmallow import Schema, fields, post_load, ValidationError, EXCLUDE
-from .. import utils
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
 
-from . import HivenObject
-from .. import exception as errs
+import logging
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
+from . import DataClassObject
+
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 __all__ = ['Feed']
 
 
-class Feed(HivenObject):
-    """
-    Represents the feed that is displayed on Hiven
+class Feed(DataClassObject):
+    """ Represents the feed that is displayed on Hiven specifically for the user """
 
-    Deprecated and will likely get removed in future releases
-    """
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self, data: dict, client: HivenClient):
+        ...
 
     def __str__(self) -> str:
         return repr(self)

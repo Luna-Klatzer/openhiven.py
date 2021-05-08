@@ -1,9 +1,6 @@
-import asyncio
-
-import openhivenpy as hiven
 import logging
 
-from openhivenpy.utils import utils
+import openhivenpy as hiven
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
@@ -14,14 +11,8 @@ logger.addHandler(handler)
 
 
 class Bot(hiven.UserClient):
-    def __init__(self, token, *args, **kwargs):
-        self._token = token
-        super().__init__(token, *args, **kwargs)
-
-    # Not directly needed but protects the token from ever being changed!
-    @property
-    def token(self):
-        return self._token
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     async def on_ready(self):
         print(f"Bot is ready after {self.startup_time}s")
@@ -36,7 +27,7 @@ class Bot(hiven.UserClient):
         print(f"{member.name} joined {house.name}")
 
     async def on_typing_start(self, typing):
-        print(f"{typing.author.name} started typing ...")
+        print(f"{author.name} started typing ...")
 
     async def on_member_update(self, old, new, house):
         print(f"Member {old.name} of house {house.name} updated their account")
@@ -49,5 +40,5 @@ class Bot(hiven.UserClient):
 
 
 if __name__ == '__main__':
-    client = Bot("")
-    client.run(restart=True)
+    client = Bot()
+    client.run("Insert token", restart=True)

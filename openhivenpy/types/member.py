@@ -1,58 +1,66 @@
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import logging
 import sys
-import typing
+from typing import Optional, List
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
 
-from marshmallow import fields, post_load, ValidationError, EXCLUDE
+import fastjsonschema
 
-from . import HivenObject
-from . import user
+from . import DataClassObject
+from . import User
 from .. import utils
-from .. import exception as errs
+from ..exceptions import InitializationError, HTTPForbiddenError, InvalidPassedDataError
+
+if TYPE_CHECKING:
+    from .. import HivenClient
+    from . import House
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('Member', 'MemberSchema')
+__all__ = ['Member']
 
 
-class MemberSchema(user.UserSchema):
-    # Validations to check for the datatype and that it's passed correctly =>
-    # will throw exception 'ValidationError' in case of an faulty data parsing
+class Member(User):
+    """ Represents a House Member on Hiven which contains the Hiven User, role-data and member-data """
+    json_schema = {
+        'type': 'object',
+        'properties': {
+            **User.json_schema['properties'],
+            'user_id': {'type': 'string'},
+            'house': {},
+            'house_id': {'type': 'string'},
+            'joined_at': {'type': 'string'},
+            'roles': {
+                'anyOf': [
+                    {'type': 'object'},
+                    {'type': 'array'},
+                    {'type': 'null'}
+                ],
+                'default': {},
+            },
+            'user': {'type': 'object'},
+            'last_permission_update': {'default': None}
+        },
+        'additionalProperties': False,
+        'required': ['user', 'user_id', 'house_id', 'joined_at']
+    }
+    json_validator = fastjsonschema.compile(json_schema)
 
-    user_id = fields.Int(required=True)
-    house_id = fields.Int(required=True)
-    joined_at = fields.Str(required=True)
-    roles = fields.List(fields.Field, required=True, allow_none=True, default=[])
-    house = fields.Raw(required=True)
-    last_permission_update = fields.Raw(default=None, allow_none=True)
-    user = fields.Raw()
+    def __init__(self, data: dict, client: HivenClient):
+        super().__init__(data.get('user'), client)
+        try:
+            data = {**data.get('user'), **data}
+            self._user_id = data.get('user_id')
+            self._house_id = data.get('house_id')
+            self._joined_at = data.get('joined_at')
+            self._roles = data.get('roles')
+            self._house = data.get('house')
 
-    @post_load
-    def make(self, data, **kwargs):
-        """
-        Returns an instance of the class using the @classmethod inside the Class to initialise the object
-
-        :param data: Dictionary that will be passed to the initialisation
-        :param kwargs: Additional Data that can be passed
-        :return: A new Member Object
-        """
-        return Member(**data, **kwargs)
-
-
-# Creating a Global Schema for reuse-purposes
-GLOBAL_SCHEMA = MemberSchema()
-
-
-class Member(user.User, HivenObject):
-    """
-    Represents a House Member on Hiven
-    """
-    def __init__(self, **kwargs):
-        self._user_id = kwargs.get('user_id')
-        self._house_id = kwargs.get('house_id')
-        self._joined_at = kwargs.get('joined_at')
-        self._roles = kwargs.get('roles')
-        self._house = kwargs.get('house')
-        super().__init__(**kwargs.get('user'))
+        except Exception as e:
+            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
 
     def __repr__(self) -> str:
         info = [
@@ -68,85 +76,84 @@ class Member(user.User, HivenObject):
         return '<Member {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @classmethod
-    async def from_dict(cls,
-                        data: dict,
-                        http,
-                        houses: typing.Optional[typing.List] = None,
-                        house: typing.Optional[typing.Any] = None,
-                        **kwargs):
+    def format_obj_data(cls, data: dict) -> dict:
         """
-        Creates an instance of the Member Class with the passed data
+        Validates the data and appends data if it is missing that would be required for the creation of an
+        instance.
 
-        :param data: Dict for the data that should be passed
-        :param http: HTTP Client for API-interaction and requests
-        :param houses: The cached list of Houses to automatically fetch the corresponding House from
-        :param house: House passed for the Member. Requires direct specification to work with the Invite
-        :return: The newly constructed Member Instance
+        ---
+
+        Does NOT contain other objects and only their ids!
+
+        :param data: Data that should be validated and used to form the object
+        :return: The modified dictionary, which can then be used to create a new class instance
         """
-        try:
-            user_ = data.get('user')
-            user_['id'] = utils.convert_value(int, user_.get('id'))
-            data['id'] = utils.convert_value(int, user_.get('id'))
-            data['user_id'] = data['id']
-            data['username'] = user_.get('username')
-            data['website'] = user_.get('website', None)
-            data['location'] = user_.get('location', None)
-            data['name'] = user_.get('name')
-            data['roles'] = utils.convert_value(list, data.get('roles'), [])
-            if house is not None:
-                data['house'] = house
-            elif houses is not None:
-                data['house'] = utils.get(houses, id=utils.convert_value(int, data['house']['id']))
+        if not data.get('house_id') and data.get('house'):
+            house = data.pop('house')
+            if type(house) is dict:
+                house_id = house.get('id')
+            elif isinstance(house, DataClassObject):
+                house_id = getattr(house, 'id', None)
             else:
-                raise TypeError(f"Expected Houses or single House! Not {type(house)}, {type(houses)}")
+                house_id = None
 
-            # If the house_id exists and works properly it will be directly used
-            if utils.convertible(int, data.get('house_id')):
-                data['house_id'] = utils.convert_value(int, data.get('house_id'))
+            if house_id is None:
+                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
             else:
-                # else the id of the house object will be used to not pass a None type to the Scheme
-                data['house_id'] = data['house'].id
+                data['house_id'] = house_id
 
-            instance = GLOBAL_SCHEMA.load(data, unknown=EXCLUDE)
+        elif not data.get('house_id') and not data.get('house'):
+            raise InvalidPassedDataError("house_id and house missing from required data", data=data)
 
-        except ValidationError as e:
-            utils.log_validation_traceback(cls, e)
-            raise errs.InvalidPassedDataError(f"Failed to perform validation in '{cls.__name__}'", data=data) from e
-
-        except Exception as e:
-            utils.log_traceback(msg=f"Traceback in '{cls.__name__}' Validation:",
-                                suffix=f"Failed to initialise {cls.__name__} due to exception:\n"
-                                       f"{sys.exc_info()[0].__name__}: {e}!")
-            raise errs.InitializationError(f"Failed to initialise {cls.__name__} due to exception:\n"
-                                           f"{sys.exc_info()[0].__name__}: {e}!") from e
-        else:
-            # Adding the http attribute for API interaction
-            instance._http = http
-
-            return instance
+        data['house'] = data.get('house_id')
+        data = cls.validate(data)
+        return data
 
     @property
-    def id(self) -> int:
+    def id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def user_id(self) -> int:
+    def user_id(self) -> Optional[str]:
         return getattr(self, '_user_id', None)
 
     @property
-    def joined_house_at(self) -> str:
+    def joined_house_at(self) -> Optional[str]:
         return getattr(self, '_joined_at', None)
 
     @property
-    def house_id(self) -> int:
+    def house(self) -> Optional[House]:
+        from . import House
+        if type(self._house) is str:
+            house_id = self._house
+        elif type(self.house_id) is str:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
+            data = self._client.storage['houses'].get(house_id)
+            if data:
+                self._house = House(data=data, client=self._client)
+                return self._house
+            else:
+                return None
+
+        elif type(self._house) is House:
+            return self._house
+        else:
+            return None
+
+    @property
+    def house_id(self) -> Optional[str]:
         return getattr(self, '_house_id', None)
 
     @property
-    def roles(self) -> list:
+    def roles(self) -> Optional[List[dict]]:
         return getattr(self, '_roles', None)
 
     @property
-    def joined_at(self) -> str:
+    def joined_at(self) -> Optional[str]:
         return getattr(self, '_joined_at', None)
 
     async def kick(self) -> bool:
@@ -157,9 +164,19 @@ class Member(user.User, HivenObject):
             
         :return: True if the request was successful else HivenException.Forbidden()
         """
-        # TODO! Needs be changed with the HTTP Exceptions Update
-        resp = await self._http.delete(f"/{self._house_id}/members/{self._user_id}")
-        if not resp.status < 300:
-            raise errs.HTTPForbiddenError()
-        else:
-            return True
+        try:
+            resp = await self._client.http.delete(f"/{self._house_id}/members/{self._user_id}")
+            if not resp.status < 300:
+                raise HTTPForbiddenError()
+            else:
+                return True
+        except HTTPForbiddenError:
+            raise
+
+        except Exception as e:
+            utils.log_traceback(
+                brief=f"Failed to kick the member due to an exception occurring:",
+                exc_info=sys.exc_info()
+            )
+            # TODO! Raise exception
+            return False

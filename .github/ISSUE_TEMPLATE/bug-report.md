@@ -1,9 +1,9 @@
 ---
-name: Bug Report
-about: Create a bug report for a bug we missed.
+name: Bug Report 
+about: Create a bug report for a bug we missed and should fix 
 title: ''
-labels: bug, help wanted
-assignees: Nxybi, Nicolas-Klatzer
+labels: bug 
+assignees: Nxybi, Luna-Klatzer
 
 ---
 
