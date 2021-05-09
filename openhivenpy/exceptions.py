@@ -73,12 +73,6 @@ class HivenError(Exception):
     def __str__(self):
         return self.error_msg
 
-    def __repr__(self):
-        return "<{} error_msg={}>".format(self.__class__.__name__, self.error_msg)
-
-    def __call__(self):
-        return str(self)
-
 
 class HivenConnectionError(HivenError):
     """ The connection to Hiven failed to be kept alive or started! """

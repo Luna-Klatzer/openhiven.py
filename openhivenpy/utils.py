@@ -136,7 +136,6 @@ def log_traceback(
 
     # Fetches and prints the current traceback with the passed message
     log_level(f"{brief}\n\n{tb_str}\n")
-    log_level(f"{brief}\n\n{tb_str}\n")
 
 
 def get(iterable: Iterable, **attrs) -> Any:
