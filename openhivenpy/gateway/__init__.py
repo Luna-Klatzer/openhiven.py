@@ -238,17 +238,20 @@ class Connection(Object):
             self._closing = True
             self._reset_status("CLOSING")
 
-            await self.keep_alive.stop()
-            await self.http.close()
+            if getattr(self, 'http', None):
+                await self.http.close()
 
-            while getattr(self.keep_alive, 'active', None):
-                await asyncio.sleep(.05)
+            if getattr(self, 'keep_alive', None):
+                await self.keep_alive.stop()
 
-            if type(getattr(self.message_broker, 'message_broker', None)) is MessageBroker:
+                while getattr(self.keep_alive, 'active', None):
+                    await asyncio.sleep(.05)
+
+            if getattr(self.message_broker, 'message_broker', None):
                 # Forcing the loop to stop making all tasks be cancelled
                 await self.ws.message_broker.close_loop()
 
-            self.client.connection._connection_status = "CLOSED"
+            self._connection_status = "CLOSED"
             self._closed = True
 
             await self._wait_until_ws_finished()
@@ -263,9 +266,10 @@ class Connection(Object):
 
         Used when the websocket raises an exception and crashes or is restarting (aka. not available in the moment)
         """
-        self.ws._open = False
-        self.ws._ready = False
-        self.ws._startup_time = None
+        if getattr(self, 'ws', None):
+            self.ws._open = False
+            self.ws._ready = False
+            self.ws._startup_time = None
         self._connection_status = connection_status
 
     async def _wait_until_ws_finished(self) -> None:

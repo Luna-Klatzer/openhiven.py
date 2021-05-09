@@ -38,7 +38,8 @@ __all__ = [
     'WebSocketClosedError', 'RestartSessionError',
 
     'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError',
-    'HTTPForbiddenError', 'HTTPResponseError', 'HTTPReceivedNoDataError',
+    'HTTPForbiddenError', 'HTTPResponseError', 'HTTPReceivedNoDataError', 'HTTPNotFoundError',
+    'HTTPInternalServerError',
 
     'APIError',
 
@@ -198,6 +199,16 @@ class HTTPRequestTimeoutError(HTTPError):
 class HTTPFailedRequestError(HTTPError):
     """ General Exception for errors while handling a request """
     error_msg = "Failed to perform a request"
+
+
+class HTTPNotFoundError(HTTPError):
+    """ Failed to reach the specified endpoint """
+    error_msg = "Failed to reach the specified endpoint [Code: 404]"
+
+
+class HTTPInternalServerError(HTTPError):
+    """ Failed to reach the specified endpoint """
+    error_msg = "Failed to perform request due to Hiven internal server error"
 
 
 class HTTPSessionNotReadyError(HTTPError):

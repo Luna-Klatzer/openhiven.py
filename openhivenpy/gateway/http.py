@@ -16,7 +16,7 @@ __all__ = ['HTTP']
 from .. import Object
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
-                          HTTPReceivedNoDataError, HTTPSessionNotReadyError)
+                          HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
@@ -231,6 +231,12 @@ class HTTP:
                 if not data:
                     if http_resp_code != 204:
                         raise HTTPReceivedNoDataError("Received empty response from the Hiven Servers")
+                elif http_resp_code == 404:
+                    raise HTTPNotFoundError()
+                elif http_resp_code >= 500:
+                    raise HTTPInternalServerError(
+                        f"Failed to perform request due to Hiven internal server error [Code: {http_resp_code}]"
+                    )
 
                 _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
                 _success = _json_data.get('success')  # Fetching the success item <== bool
@@ -268,9 +274,6 @@ class HTTP:
         except asyncio.TimeoutError:
             raise HTTPRequestTimeoutError()
 
-        except HTTPError:
-            raise
-
         except Exception as e:
             utils.log_traceback(
                 brief=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}:",
@@ -278,8 +281,7 @@ class HTTP:
             )
             raise HTTPError(
                 f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: "
-                f"{sys.exc_info()[0].__name__}: {e}"
-            )
+            ) from e
 
         # Returning the response instance
         return http_client_response
