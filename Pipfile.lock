@@ -227,11 +227,11 @@
         },
         "marshmallow": {
             "hashes": [
-                "sha256:77ce3097c06d93de37394e0e0bf217dacbb4eabe0b88129e315e10d8790b1354",
-                "sha256:822dfacdf6ac5c2f514182bcddde0cc60d943ca46e4006c1e14761a0605bfc0f"
+                "sha256:8050475b70470cc58f4441ee92375db611792ba39ca1ad41d39cad193ea9e040",
+                "sha256:b45cde981d1835145257b4a3c5cb7b80786dcf5f50dd2990749a50c16cb48e01"
             ],
             "index": "pypi",
-            "version": "==3.12.0"
+            "version": "==3.12.1"
         },
         "multidict": {
             "hashes": [
