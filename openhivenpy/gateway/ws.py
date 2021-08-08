@@ -67,7 +67,7 @@ class Websocket(types.Client):
         self._host = host
         self._api_version = api_version
 
-        self._WEBSOCKET_URL = "wss://swarm-dev.hiven.io/socket?encoding=json&compression=text_json"
+        self._WEBSOCKET_URL = "wss://swarm.hiven.io/socket?encoding=json&compression=text_json"
         self._ENCODING = "json"
 
         # In milliseconds
