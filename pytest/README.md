@@ -38,6 +38,9 @@ Creating a coverage badge for the testing can be easily done using:
 coverage-badge -o coverage.svg
 ```
 
+*Note: Should be done inside `./pytest`, so it is recognised in the main
+README.md*
+
 ### Viewing the Report in HTML
 
 Inside the test directory:

@@ -71,8 +71,8 @@ jobs:
           python -m pip install --upgrade -e .
           cd ./pytest/
           coverage run -m pytest -q --token=${{ secrets.HIVEN_TOKEN }} ;
-          if [ -f ../coverage.svg ]; then rm ../coverage.svg; fi
-          coverage-badge -o ../coverage.svg
+          if [ -f ../coverage.svg ]; then rm ./coverage.svg; fi
+          coverage-badge -o ./coverage.svg
           cd ..
       - name: Sleep for 15 seconds
         uses: kibertoad/wait-action@master
@@ -155,10 +155,8 @@ jobs:
           python -m pip install --upgrade -e .
           cd ./pytest/ ; coverage html ; cd ../..
           mv ./pytest/htmlcov/ /tmp/htmlcov/
-          mv ./img/parac.ico /tmp/parac.ico
           rm -rf *
           mv /tmp/htmlcov/* .
-          mv /tmp/parac.ico favicon.ico
           git branch --set-upstream-to=origin/${{ env.BRANCH_NAME }}-coverage-report ${{ env.BRANCH_NAME }}-coverage-report
       - name: Sleep for 15 seconds
         uses: kibertoad/wait-action@master
