@@ -17,10 +17,10 @@ setuptools.setup(
     license="MIT",
     url="https://github.com/Luna-Klatzer/openhiven.py",
     project_urls={
-        "Docs": "https://Luna-Klatzer.github.io/docs_openhiven.py",
-        "Hiven API Docs": "https://openhivenpy.readthedocs.io/en/latest/api_reference/",
+        "Docs": "https://luna-klatzer.github.io/docs_openhiven.py/latest/",
+        "Hiven API Docs": "https://luna-klatzer.github.io/docs_openhiven.py/latest/api_reference/",
         "Issue-Page": "https://github.com/Luna-Klatzer/openhiven.py/issues/",
-        "Changelog": "https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/changelog.html"
+        "Changelog": "https://luna-klatzer.github.io/docs_openhiven.py/latest/changelog.html"
     },
     packages=setuptools.find_packages(),
     classifiers=[
