@@ -1,59 +1,87 @@
-import os
-import aiohttp
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
+
 import asyncio
+import json as json_decoder
 import logging
 import sys
 import time
-import json as json_decoder
-import typing
+from typing import Optional, Union
 
-__all__ = 'HTTP'
+import aiohttp
+from yarl import URL
 
-from .. import load_env, utils, exception as errs
+__all__ = ['HTTP']
+
+from .. import Object
+from .. import utils
+from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
+                          HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)
+
+# Only importing the Objects for the purpose of type hinting and not actual use
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .. import HivenClient
 
 logger = logging.getLogger(__name__)
 
 # Hiven API endpoint formatting
 request_url_format = "https://{0}/{1}"
 
-# Loading the environment variables
-load_env()
-# Setting the default values to the currently set defaults in the openhivenpy.env file
-_default_host = os.getenv("HIVEN_HOST")
-_default_api_version = os.getenv("HIVEN_API_VERSION")
+
+class HTTPTraceback(Object):
+    @staticmethod
+    async def on_request_start(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
+        logger.debug(f"[HTTP] >> URL >> {params.url}")
+
+    @staticmethod
+    async def on_request_end(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] << Request with HTTP {params.method} finished!")
+        logger.debug(f"[HTTP] << Header << {params.headers}")
+        logger.debug(f"[HTTP] << URL << {params.url}")
+        logger.debug(f"[HTTP] << Response << {params.response}")
+
+    @staticmethod
+    async def on_request_exception(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] << An exception occurred while executing the request")
+
+    @staticmethod
+    async def on_request_redirect(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
+
+    @staticmethod
+    async def on_response_chunk_received(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
+
+    @staticmethod
+    async def on_connection_queued_start(session, trace_config_ctx, params):
+        logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
 
 
 class HTTP:
-    """
-    HTTP-Client for requests and interaction with the Hiven API
-    """
-    def __init__(self,
-                 token: str,
-                 *,
-                 event_loop: typing.Optional[asyncio.AbstractEventLoop],
-                 host: typing.Optional[str] = _default_host,
-                 api_version: typing.Optional[str] = _default_api_version):
-        """
-        Object Instance Construction
+    """ HTTP-Client for requests and interaction with the Hiven API """
 
-        :param token: Authorisation Token for Hiven
-        :param event_loop: Event loop that will be used to execute all async functions. Will use
-                           'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no
-                           one was created yet
+    def __init__(self, client: HivenClient, *, host: str, api_version: str):
+        """
+        :param client: The used HivenClient
         :param host: Url for the API which will be used to interact with Hiven.
                      Defaults to the pre-set environment host (api.hiven.io)
         :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
         """
-        self._token = token
+        self.client = client
         self.host = host
         self.api_version = api_version
-        self.api_url = request_url_format.format(self.host, self.api_version)
-        self.headers = {"Authorization": self._token, "Host": self.host}  # Default header used for requests
+        self.api_url = URL(request_url_format.format(self.host, self.api_version))
+        self.headers = {
+            "Authorization": client.token,
+            "Host": self.host
+        }
         self._ready = False
         self._session = None  # Will be created during start of connection
-        self._event_loop = event_loop
 
-        # Last/Currently executed request
+        # Current request/Latest request
         self._request = None
 
     def __str__(self) -> str:
@@ -69,73 +97,55 @@ class HTTP:
         return '<HTTP {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
-    def ready(self):
-        return self._ready
+    def token(self) -> Optional[str]:
+        return getattr(self.client, 'token', None)
 
     @property
-    def session(self):
-        return self._session
+    def ready(self) -> Optional[bool]:
+        return getattr(self, '_ready', False)
 
     @property
-    def event_loop(self):
-        return self._event_loop
+    def session(self) -> Optional[aiohttp.ClientSession]:
+        return getattr(self, '_session', None)
 
-    async def connect(self) -> typing.Union[aiohttp.ClientSession, None]:
+    @property
+    def loop(self) -> Optional[asyncio.AbstractEventLoop]:
+        return getattr(self.client, '_loop', None)
+
+    async def connect(self) -> Optional[aiohttp.ClientSession]:
         """
         Establishes for the HTTP a connection to Hiven
 
         :return: The created aiohttp.ClientSession
         """
         try:
-            async def on_request_start(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
-                logger.debug(f"[HTTP] >> URL >> {params.url}")
-
-            async def on_request_end(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << Request with HTTP {params.method} finished!")
-                logger.debug(f"[HTTP] << Header << {params.headers}")
-                logger.debug(f"[HTTP] << URL << {params.url}")
-                logger.debug(f"[HTTP] << Response << {params.response}")
-
-            async def on_request_exception(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << An exception occurred while executing the request")
-
-            async def on_request_redirect(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << REDIRECTING with URL {params.url} and HTTP {params.method}")
-
-            async def on_response_chunk_received(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] << Chunk Received << {params.chunk}\n")
-
-            async def on_connection_queued_start(session, trace_config_ctx, params):
-                logger.debug(f"[HTTP] >> HTTP {params.method} with {params.url} queued!")
-
             trace_config = aiohttp.TraceConfig()
-            trace_config.on_request_start.append(on_request_start)
-            trace_config.on_request_end.append(on_request_end)
-            trace_config.on_request_exception.append(on_request_exception)
-            trace_config.on_request_redirect.append(on_request_redirect)
-            trace_config.on_connection_queued_start.append(on_connection_queued_start)
-            trace_config.on_response_chunk_received.append(on_response_chunk_received)
+            trace_config.on_request_start.append(HTTPTraceback.on_request_start)
+            trace_config.on_request_end.append(HTTPTraceback.on_request_end)
+            trace_config.on_request_exception.append(HTTPTraceback.on_request_exception)
+            trace_config.on_request_redirect.append(HTTPTraceback.on_request_redirect)
+            trace_config.on_connection_queued_start.append(HTTPTraceback.on_connection_queued_start)
+            trace_config.on_response_chunk_received.append(HTTPTraceback.on_response_chunk_received)
 
             self._session = aiohttp.ClientSession(trace_configs=[trace_config])
             self._ready = True
 
-            resp = await self.request("/users/@me", timeout=30)
-            if resp:
-                logger.info("[HTTP] Session was successfully created!")
-                return self.session
-            else:
-                # If the request failed it will return None and log a warning
-                logger.warning("[HTTP] Test Request for HTTP Initialisation failed! ")
-                return None
+            resp = await self.get("/users/@me", timeout=30)
+            resp_json: dict = await resp.json()
+
+            logger.info("[HTTP] Session was successfully created!")
+            self.client.storage.update_client_user(resp_json['data'])
+            return self.session
 
         except Exception as e:
-            utils.log_traceback(msg="[HTTP] Traceback:",
-                                suffix="Failed to create HTTP-Session: \n"
-                                       f"> {sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"Failed to create HTTP-Session:",
+                exc_info=sys.exc_info()
+            )
             self._ready = False
             await self.session.close()
-            raise errs.SessionCreateError(f"Failed to create HTTP-Session! > {sys.exc_info()[0].__name__}: {e}") from e
+
+            raise SessionCreateError(f"Failed to create HTTP-Session") from e
 
     async def close(self) -> bool:
         """
@@ -149,19 +159,22 @@ class HTTP:
             return True
 
         except Exception as e:
-            utils.log_traceback(msg="[CONNECTION] Traceback:")
-            logger.critical(f"[HTTP] Failed to close HTTP Session: {sys.exc_info()[0].__name__}: {e}")
-            return False
+            utils.log_traceback(
+                brief=f"[HTTP] Failed to close HTTP Session:",
+                exc_info=sys.exc_info()
+            )
+            raise RuntimeError("Failed to stop the HTTP client") from e
 
     async def raw_request(
             self,
             endpoint: str,
             *,
-            method: typing.Optional[str] = "GET",
-            json: typing.Optional[dict] = None,
-            timeout: typing.Optional[int] = 15,
-            headers: typing.Optional[dict] = None,  # Defaults to an empty header
-            **kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
+            method: Optional[str] = "GET",
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,  # Defaults to an empty header
+            **kwargs
+    ) -> Union[aiohttp.ClientResponse, None]:
         """
         Wrapped HTTP request for a specified endpoint.
         
@@ -176,11 +189,12 @@ class HTTP:
                        See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
         :return: Returns the aiohttp.ClientResponse object
         """
+
         async def http_request(_endpoint: str,
                                _method: str,
                                _json: dict,
                                _headers: dict,
-                               **_kwargs) -> typing.Union[aiohttp.ClientResponse, None]:
+                               **_kwargs) -> Union[aiohttp.ClientResponse, None]:
             """
             The Function that stores the request and the handling of exceptions! Will be used as
             a variable so the status of the request can be seen by the asyncio.Task status!
@@ -192,126 +206,95 @@ class HTTP:
             :param _kwargs: Additional Parameter for the aiohttp HTTP Request
             :return: Returns the aiohttp.ClientResponse object
             """
-            if self._ready:
-                try:
-                    # Creating a new ClientTimeout Instance which will default to having no timeout since
-                    # errors occurred using it! Timeout is therefore handled independently over the _time_out_handler()
-                    _timeout = aiohttp.ClientTimeout(total=None)
 
-                    # If no default headers were passed
-                    if _headers is None:
-                        _headers = self.headers
+            if not self._ready:
+                raise HTTPSessionNotReadyError()
 
-                    url = f"{self.api_url}{_endpoint}"
-                    async with self.session.request(
-                            method=_method,  # HTTP Method
-                            url=url,  # Endpoint url
-                            headers=_headers,  # Passing the headers directly without using the kwargs
-                            timeout=_timeout,  # Timout Object => defaults to None since it caused issues in the past!
-                            json=_json,
-                            **_kwargs) as _resp:
+            # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
+            # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
+            _timeout = aiohttp.ClientTimeout(total=None)
 
-                        http_resp_code = _resp.status  # HTTP Code Response
-                        data = await _resp.read()  # Raw Text data
+            _headers = self.headers if _headers is None else _headers
+            url = f"{self.api_url.human_repr()}{_endpoint}"
 
-                        if data:
-                            _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
-                            _success = _json_data.get('success')  # Fetching the success item <== bool
+            async with self.session.request(
+                    method=_method,
+                    url=url,
+                    headers=_headers,
+                    timeout=_timeout,
+                    json=_json,
+                    **_kwargs
+            ) as _resp:
+                http_resp_code = _resp.status
+                data = await _resp.read()  # Raw response data
 
-                            if _success:
-                                logger.debug(
-                                    f"[HTTP] {http_resp_code} - Request was successful and received expected data!")
-                            else:
-                                # If an error occurred the response body will contain an error field
-                                _error = _json_data.get('error')
-                                if _error:
-                                    err_code = _error.get('code')  # Error-Code
-                                    err_msg = _error.get('message')  # Error-Msg
-                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
-                                                 f"'{err_code}': '{err_msg}'")
-                                else:
-                                    logger.error(f"[HTTP] Failed HTTP request '{_method.upper()}'! {http_resp_code} -> "
-                                                 f"Response: None")
-                        else:
-                            # Empty Responses are generally unexpected for an Hiven API Response and therefore are
-                            # counted as possible issues if the code is 204. If not it's an exception since data was
-                            # expected but not received!
-                            if http_resp_code == 204:
-                                logger.debug("[HTTP] Received empty response!")
-                            else:
-                                logger.error("[HTTP] Received empty response!")
+                if not data:
+                    if http_resp_code != 204:
+                        raise HTTPReceivedNoDataError("Received empty response from the Hiven Servers")
+                elif http_resp_code == 404:
+                    raise HTTPNotFoundError()
+                elif http_resp_code >= 500:
+                    raise HTTPInternalServerError(
+                        f"Failed to perform request due to Hiven internal server error [Code: {http_resp_code}]"
+                    )
 
-                        return _resp
+                _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
+                _success = _json_data.get('success')  # Fetching the success item <== bool
 
-                except Exception as _e:
-                    utils.log_traceback(msg="[HTTP] Traceback:",
-                                        suffix=f"HTTP '{_method.upper()}' failed with endpoint: {_endpoint}: \n"
-                                               f"{sys.exc_info()[0].__name__}, {_e}")
+                if _success:
+                    logger.debug(
+                        f"[HTTP] {http_resp_code} - Request was successful and received expected data"
+                    )
+                    return _resp
+                else:
+                    # If an error occurred the response body will contain an error field
+                    _error = _json_data.get('error')
+                    if _error:
+                        err_code = _error.get('code')
+                        err_msg = _error.get('message')
 
-            else:
-                logger.error(f"[HTTP] << The HTTPClient was not ready when trying to perform request with "
-                             f"HTTP {_method}! The session is either not initialised or closed!")
-                return None
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> '{err_code}': '{err_msg}'"
+                        )
+                    else:
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> Response: None "
+                        )
 
-        self._request = asyncio.create_task(http_request(endpoint, method, json, headers, **kwargs))
         try:
-            http_client_response = await asyncio.wait_for(self._request, timeout=timeout)
+            http_client_response = await asyncio.wait_for(
+                http_request(endpoint, method, json, headers, **kwargs),
+                timeout=timeout
+            )
 
         except asyncio.CancelledError:
             logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint}' was cancelled!")
             return
 
         except asyncio.TimeoutError:
-            logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint} timeout after {timeout}s!")
-            http_client_response = None
+            raise HTTPRequestTimeoutError()
 
         except Exception as e:
-            utils.log_traceback(msg="[HTTP] Suffix",
-                                suffix=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: \n"
-                                       f"{sys.exc_info()[0].__name__}: {e}")
-            raise errs.HTTPError(f"HTTP '{method.upper()}' failed with endpoint: "
-                                 f"{self.host}{endpoint}: {sys.exc_info()[0].__name__}: {e}")
+            utils.log_traceback(
+                brief=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}:",
+                exc_info=sys.exc_info()
+            )
+            raise HTTPError(
+                f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: "
+            ) from e
 
         # Returning the response instance
         return http_client_response
 
-    async def request(self,
-                      endpoint: str,
-                      *,
-                      json: typing.Optional[dict] = None,
-                      timeout: typing.Optional[int] = 15,
-                      headers: typing.Optional[dict] = None,
-                      **kwargs) -> typing.Union[dict, None]:
-        """
-        Wrapped HTTP 'GET' request for a specified endpoint, which returns only the response data!
-        
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
-        :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: A python dictionary containing the response data if successful and else returns `None`
-        """
-        resp = await self.raw_request(endpoint, method="GET", timeout=timeout, json=json, headers=headers, **kwargs)
-        if resp is not None and resp.status < 300:
-            if resp.status < 300 and resp.status != 204:
-                # Returning the data in json format (dict)
-                return await resp.json()
-            else:
-                return None
-        else:
-            return None
-
-    async def get(self,
-                  endpoint: str,
-                  *,
-                  json: typing.Optional[dict] = None,
-                  timeout: typing.Optional[int] = 15,
-                  headers: typing.Optional[dict] = None,
-                  **kwargs) -> aiohttp.ClientResponse:
+    async def get(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'GET' request for a specified endpoint
 
@@ -327,19 +310,22 @@ class HTTP:
         """
         return await self.raw_request(
             endpoint,
-            method="POST",
+            method="GET",
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
-    async def post(self,
-                   endpoint: str,
-                   *,
-                   json: typing.Optional[dict] = None,
-                   timeout: typing.Optional[int] = 15,
-                   headers: typing.Optional[dict] = None,
-                   **kwargs) -> aiohttp.ClientResponse:
+    async def post(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'POST' for a specified endpoint.
         
@@ -368,15 +354,18 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
-    async def delete(self,
-                     endpoint: str,
-                     *,
-                     json: typing.Optional[dict] = None,
-                     timeout: typing.Optional[int] = 15,
-                     headers: typing.Optional[dict] = None,
-                     **kwargs) -> aiohttp.ClientResponse:
+    async def delete(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'DELETE' for a specified endpoint.
         
@@ -396,15 +385,18 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,
-            **kwargs)
+            **kwargs
+        )
 
-    async def put(self,
-                  endpoint: str,
-                  *,
-                  json: typing.Optional[dict] = None,
-                  timeout: typing.Optional[int] = 15,
-                  headers: typing.Optional[dict] = None,
-                  **kwargs) -> aiohttp.ClientResponse:
+    async def put(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PUT' for a specified endpoint.
         
@@ -435,15 +427,18 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,  # Passing the new header for the request
-            **kwargs)
+            **kwargs
+        )
 
-    async def patch(self,
-                    endpoint: str,
-                    *,
-                    json: typing.Optional[dict] = None,
-                    timeout: typing.Optional[int] = 15,
-                    headers: typing.Optional[dict] = None,
-                    **kwargs) -> aiohttp.ClientResponse:
+    async def patch(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PATCH' for a specified endpoint.
         
@@ -472,15 +467,18 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )
 
-    async def options(self,
-                      endpoint: str,
-                      *,
-                      json: typing.Optional[dict] = None,
-                      timeout: typing.Optional[int] = 15,
-                      headers: typing.Optional[dict] = None,
-                      **kwargs) -> aiohttp.ClientResponse:
+    async def options(
+            self,
+            endpoint: str,
+            *,
+            json: Optional[dict] = None,
+            timeout: Optional[int] = 15,
+            headers: Optional[dict] = None,
+            **kwargs
+    ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'OPTIONS' for a specified endpoint.
         
@@ -502,4 +500,5 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
-            **kwargs)
+            **kwargs
+        )

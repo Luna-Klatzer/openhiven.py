@@ -5,12 +5,12 @@
 ### Installation of pytest and current status of openhivenpy
 
 ```bash
-coverage run -m pytest
+python3 -m pip install pytest pytest-asyncio 
 ```
 
 Installing inside the main dir of the project the current state of the module so it can be used for testing:
 ```bash
-python -m pip install -e .
+python3 -m pip install -e .
 ```
 
 ## Running with Coverage
@@ -36,4 +36,12 @@ Creating a coverage badge for the testing can be easily done using:
 
 ```bash
 coverage-badge -o coverage.svg
+```
+
+### Viewing the Report in HTML
+
+Inside the test directory:
+
+```bash
+coverage html
 ```

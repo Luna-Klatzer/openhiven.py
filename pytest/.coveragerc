@@ -1,0 +1,4 @@
+[run]
+source = ../openhivenpy
+omit =
+   *\pkg_resources\*
