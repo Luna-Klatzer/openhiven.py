@@ -36,7 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade -e .
           cd ./pytest
-          python -m pytest -q
+          python -m pytest -q --token=${{ secrets.HIVEN_TOKEN }}
 
   coverage-badge:
     needs: build
@@ -70,7 +70,7 @@ jobs:
         run: |
           python -m pip install --upgrade -e .
           cd ./pytest/
-          coverage run -m pytest -q ;
+          coverage run -m pytest -q --token=${{ secrets.HIVEN_TOKEN }} ;
           if [ -f ../coverage.svg ]; then rm ../coverage.svg; fi
           coverage-badge -o ../coverage.svg
           cd ..
@@ -148,7 +148,7 @@ jobs:
         run: |
           python -m pip install --upgrade -e .
           cd ./pytest/
-          coverage run -m pytest -q ;
+          coverage run -m pytest -q --token=${{ secrets.HIVEN_TOKEN }} ;
           cd ../..
       - name: coverage-html
         run: |
