@@ -36,7 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade -e .
           cd ./pytest
-          python -m pytest -q --token=${{ secrets.HIVEN_TOKEN }}
+          pytest -q --token=${{ secrets.HIVEN_TOKEN }}
 
   coverage-badge:
     needs: build
