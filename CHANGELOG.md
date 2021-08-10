@@ -10,12 +10,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 *Note that Documentation changes should not appear here!*
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Removed
+
 ## [v0.2.dev1] - 2021-08-10
 
 - Rewrite of the base structure. Not all changes will be noted here, but main
   ones!
 
 ### Added
+
 - Message-Broker for handling incoming events and distribute them to the
   listeners.
 - Event-Buffers, which store the events and will one by one execute the events/
