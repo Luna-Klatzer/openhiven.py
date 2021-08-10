@@ -13,7 +13,7 @@ from yarl import URL
 
 __all__ = ['HTTP']
 
-from .. import Object
+from .. import HivenObject
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
                           HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)
@@ -30,10 +30,11 @@ logger = logging.getLogger(__name__)
 request_url_format = "https://{0}/{1}"
 
 
-class HTTPTraceback(Object):
+class HTTPTraceback(HivenObject):
     @staticmethod
     async def on_request_start(session, trace_config_ctx, params):
-        logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
+        logger.debug(
+            f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
         logger.debug(f"[HTTP] >> URL >> {params.url}")
 
     @staticmethod

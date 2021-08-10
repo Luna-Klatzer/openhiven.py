@@ -40,6 +40,7 @@ from . import events
 from . import exceptions
 from . import gateway
 from . import utils
+from .base_types import *
 from .client import *
 from .env_config import HivenENV
 from .exceptions import *
@@ -49,4 +50,5 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 # Loading the environment variables which contain basic configuration
 # for the module
-HivenENV().load_env()
+env = HivenENV()
+env.load_env()

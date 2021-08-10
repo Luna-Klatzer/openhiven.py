@@ -7,7 +7,7 @@ from asyncio import AbstractEventLoop
 from typing import Optional
 
 from .cache import ClientCache
-from .. import Object
+from .. import HivenObject
 from .. import types
 from .. import utils
 from ..events import HivenParsers, HivenEventHandler
@@ -20,7 +20,7 @@ __all__ = ['HivenClient']
 logger = logging.getLogger(__name__)
 
 
-class HivenClient(HivenEventHandler, Object):
+class HivenClient(HivenEventHandler, HivenObject):
     """ Main Class for connecting to Hiven and interacting with the API. """
 
     def __init__(

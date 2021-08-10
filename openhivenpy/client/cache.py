@@ -10,7 +10,7 @@ from copy import deepcopy
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from .. import Object
+from .. import HivenObject
 from .. import types
 from .. import utils
 from ..exceptions import InitializationError
@@ -47,7 +47,7 @@ def _create_default_dict(log_websocket: bool) -> dict:
     }
 
 
-class ClientCache(dict, Object):
+class ClientCache(dict, HivenObject):
     """
     Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
     functions to interact with the Client cache more easily and use functions for better readability.

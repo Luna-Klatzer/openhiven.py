@@ -7,7 +7,7 @@ from typing import Optional, List, Coroutine, Tuple, Dict
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from .. import utils, Object
+from .. import utils, HivenObject
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -25,7 +25,7 @@ async def _wait_until_done(task: asyncio.Task) -> None:
         await asyncio.sleep(.05)
 
 
-class DynamicEventBuffer(list, Object):
+class DynamicEventBuffer(list, HivenObject):
     """
     The DynamicEventBuffer is a list containing all not-executed events that
     were received over the websocket.
@@ -82,7 +82,7 @@ class DynamicEventBuffer(list, Object):
         return self.pop(0)
 
 
-class MessageBroker(Object):
+class MessageBroker(HivenObject):
     """ Message Broker that will store the messages in queues """
 
     def __init__(self, client: HivenClient):
@@ -176,7 +176,7 @@ class MessageBroker(Object):
             raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
 
 
-class Worker(Object):
+class Worker(HivenObject):
     """ Worker class targeted at running event_listeners that were fetched from the assigned event_buffer """
 
     def __init__(self, event: str, message_broker):
@@ -309,7 +309,7 @@ class Worker(Object):
                 raise RuntimeError(f"Failed to run listener tasks assigned to {repr(self)}") from e
 
 
-class EventConsumer(Object):
+class EventConsumer(HivenObject):
     """ EventConsumer class which will simply manage the workers on runtime """
 
     def __init__(self, message_broker: MessageBroker):

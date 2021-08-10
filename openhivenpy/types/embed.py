@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
+from ..base_types import DataClassObject
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:

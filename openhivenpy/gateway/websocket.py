@@ -14,7 +14,7 @@ import aiohttp
 from yarl import URL
 
 from .messagebroker import MessageBroker
-from .. import Object
+from .. import HivenObject
 from ..exceptions import (RestartSessionError, SessionCreateError,
                           WebSocketClosedError,
                           WebSocketFailedError, KeepAliveError)
@@ -38,7 +38,7 @@ def extract_event(msg: dict) -> Tuple[int, str, dict]:
     return msg.get('op'), msg.get('e'), msg.get('d')
 
 
-class KeepAlive(Object):
+class KeepAlive(HivenObject):
     def __init__(self, ws):
         self.ws: HivenWebSocket = ws
         self._heartbeat: int = ws.heartbeat
@@ -78,7 +78,7 @@ class KeepAlive(Object):
                 self._task.cancel()
 
 
-class HivenWebSocket(Object):
+class HivenWebSocket(HivenObject):
     def __init__(
             self,
             socket: aiohttp.ClientWebSocketResponse,

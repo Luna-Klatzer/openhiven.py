@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
 from . import message
 from .. import utils
+from ..base_types import DataClassObject
 from ..exceptions import InitializationError, InvalidPassedDataError
 
 if TYPE_CHECKING:

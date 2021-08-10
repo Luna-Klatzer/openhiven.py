@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
 from .house import House
 from .message import Message
 from .. import utils
+from ..base_types import DataClassObject
 from ..exceptions import InvalidPassedDataError, InitializationError
 
 if TYPE_CHECKING:

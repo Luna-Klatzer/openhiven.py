@@ -33,7 +33,7 @@ from typing import Coroutine, Callable, Union, Dict, List, Awaitable, Optional
 from typing import TYPE_CHECKING
 
 from .event_parsers import HivenParsers
-from .. import Object
+from .. import HivenObject
 from .. import utils
 from ..exceptions import UnknownEventError
 
@@ -69,7 +69,7 @@ NON_BUFFER_EVENTS = [
 ]
 
 
-class DispatchEventListener(Object):
+class DispatchEventListener(HivenObject):
     """ Base Class for all DispatchEventListeners"""
 
     def __init__(
@@ -228,7 +228,7 @@ class MultiDispatchEventListener(DispatchEventListener):
             raise RuntimeError(f"Failed to execute assigned coroutine '{self.awaitable.__name__}'") from e
 
 
-class HivenEventHandler(Object):
+class HivenEventHandler(HivenObject):
     """
     Events class used to register the main event listeners.
     Is inherited by the HivenClient for easier access.

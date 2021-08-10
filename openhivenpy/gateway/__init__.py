@@ -38,7 +38,7 @@ from yarl import URL
 from .http import *
 from .messagebroker import *
 from .websocket import *
-from .. import utils, Object
+from .. import utils, HivenObject
 from ..exceptions import (RestartSessionError, WebSocketClosedError,
                           WebSocketFailedError, SessionCreateError,
                           KeepAliveError)
@@ -46,7 +46,7 @@ from ..exceptions import (RestartSessionError, WebSocketClosedError,
 logger = logging.getLogger(__name__)
 
 
-class Connection(Object):
+class Connection(HivenObject):
     """
     Connection Class used for interaction with the Hiven API and WebSocket
     Swarm

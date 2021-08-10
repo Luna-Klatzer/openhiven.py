@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Optional, Tuple, TYPE_CHECKING
 
-from .. import Object
+from .. import HivenObject
 from .. import types
 from ..gateway import DynamicEventBuffer
 
@@ -32,7 +32,7 @@ def format_event_as_listener(event: str) -> str:
     return 'on_' + event.lower().replace('on_', '')
 
 
-class HivenParsers(Object):
+class HivenParsers(HivenObject):
     """
     Event Parsers for Hiven Events that validate and update the cached data
     """
