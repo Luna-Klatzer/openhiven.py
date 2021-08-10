@@ -11,6 +11,9 @@ jobs:
       OS: ${{ matrix.os }}
       PYTHON: '3.8'
     steps:
+      - name: Add mask
+        run: |
+          echo "::add-mask::${{ secrets.HIVEN_TOKEN }}"
       - uses: actions/checkout@master
       - name: Setup Python
         uses: actions/setup-python@master
