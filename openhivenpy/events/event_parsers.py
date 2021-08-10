@@ -257,18 +257,6 @@ class HivenParsers(HivenObject):
         buffer.add_new_event(data, args, kwargs)
         return args, kwargs
 
-    async def on_member_update(self, data) -> Tuple[tuple, dict]:
-        """ EVENT: MEMBER_UPDATE
-
-        No data passed at the moment. Gives empty args and kwargs
-        """
-        buffer = self._get_from_client_buffer('member_update')
-        # Parameter that will be passed to the listener
-        args = ()
-        kwargs = {}
-        buffer.add_new_event(data, args, kwargs)
-        return args, kwargs
-
     async def on_house_member_chunk(self, data) -> Tuple[tuple, dict]:
         """ EVENT: HOUSE_MEMBER_CHUNK
 

@@ -68,6 +68,7 @@ class TestHivenClient:
         except openhivenpy.InvalidTokenError:
             pass
         else:
+            openhivenpy.env.load_env(search_other=False)
             assert False
 
         client = openhivenpy.HivenClient(token=os.getenv('HIVEN_TOKEN'))
@@ -77,7 +78,11 @@ class TestHivenClient:
         except openhivenpy.InvalidTokenError:
             pass
         else:
+            openhivenpy.env.load_env(search_other=False)
             assert False
+
+        # Resetting to default
+        openhivenpy.env.load_env(search_other=False)
 
     def test_pre_configured_token(self):
         client = openhivenpy.HivenClient(token=self.token)

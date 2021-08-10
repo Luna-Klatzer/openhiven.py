@@ -28,7 +28,9 @@ import asyncio
 import inspect
 import logging
 import sys
-from typing import Coroutine, Callable, Union, Dict, List, Awaitable, Optional
+import time
+from typing import Coroutine, Callable, Union, Dict, List, Awaitable, Optional, \
+    Tuple
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -38,6 +40,7 @@ from ..base_types import HivenObject
 from ..exceptions import UnknownEventError
 
 if TYPE_CHECKING:
+    from ..gateway import MessageBroker
     from .. import HivenClient
 
 __all__ = [
@@ -53,11 +56,13 @@ logger = logging.getLogger(__name__)
 
 EVENTS = [
     'init', 'ready', 'user_update',
-    'house_join', 'house_remove', 'house_update', 'house_delete', 'house_downtime',
+    'house_join', 'house_remove', 'house_update', 'house_delete',
+    'house_downtime',
     'room_create', 'room_update', 'room_delete',
-    'house_member_join', 'house_member_leave', 'house_member_enter', 'house_member_exit', 'house_member_update',
+    'house_member_join', 'house_member_leave', 'house_member_enter',
+    'house_member_exit', 'house_member_update',
     'house_member_chunk', 'batch_house_member_update',
-    'house_entity_update'
+    'house_entity_update',
     'relationship_update',
     'presence_update',
     'message_create', 'message_update', 'message_delete',
@@ -225,7 +230,10 @@ class MultiDispatchEventListener(DispatchEventListener):
                 brief=f"[EVENTS] Ignoring exception in {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            raise RuntimeError(f"Failed to execute assigned coroutine '{self.awaitable.__name__}'") from e
+            raise RuntimeError(
+                f"Failed to execute assigned coroutine "
+                f"'{self.awaitable.__name__}'"
+            ) from e
 
 
 class HivenEventHandler(HivenObject):
@@ -241,10 +249,13 @@ class HivenEventHandler(HivenObject):
         self._available_events = EVENTS
         self._non_buffer_events = NON_BUFFER_EVENTS
 
-        # Searching through the HivenClient to find all async functions that were registered for event_listening
-        # Regular functions will NOT be registered and only if they are async! This will avoid that errors are thrown
-        # when trying to call the functions using 'await'
-        for listener in inspect.getmembers(self, predicate=inspect.iscoroutinefunction):
+        # Searching through the HivenClient to find all async functions that
+        # were registered for event_listening Regular functions will NOT be
+        # registered and only if they are async! This will avoid that errors
+        # are thrown when trying to call the functions using 'await'
+        for listener in inspect.getmembers(
+                self, predicate=inspect.iscoroutinefunction
+        ):
             func_name = listener[0].replace('on_', '')
             awaitable = listener[1]
             if func_name in self._available_events:
@@ -263,16 +274,40 @@ class HivenEventHandler(HivenObject):
     def non_buffer_events(self) -> List[str]:
         return getattr(self, '_non_buffer_events', None)
 
-    def dispatch_event(self, event_name: str, args: tuple, kwargs: dict) -> None:
+    def _validate_existence_of_event(self, name: str):
+        if name.replace('on_', '') not in self.available_events:
+            raise UnknownEventError(
+                "The passed event type is invalid/does not exist"
+            )
+
+    def dispatch_event(
+            self, event_name: str, args: tuple, kwargs: dict
+    ) -> None:
         """
         Manually adds an event to the event_buffer and triggers all listeners.
         Will return immediately and does not require asyncio unlike
-        call_listeners which only calls the listeners
+        call_listeners which only calls the listeners;
+
+        Note that this will NOT call the event parsers but manually directly
+        pass the args and kwargs to the functions!
 
         :param event_name: The name of the event that should be triggered
         :param args: Args that will be passed to the coroutines
         :param kwargs: Kwargs that will be passed to the coroutines
         """
+        self._validate_existence_of_event(event_name)
+
+        _: MessageBroker = getattr(self, 'message_broker')
+        buffer = _.get_buffer(event_name)
+        buffer.add_new_event(
+            {
+                "callee": event_name,
+                "caller": "client",
+                "time": time.time()
+            },
+            args,
+            kwargs
+        )
 
     def add_listener(self, listener: DispatchEventListener) -> None:
         """
@@ -298,10 +333,13 @@ class HivenEventHandler(HivenObject):
         else:
             raise KeyError("The listener does not exist in the cache")
 
-    async def call_listeners(self, event_name: str, args: tuple, kwargs: dict) -> None:
+    async def call_listeners(
+            self, event_name: str, args: tuple, kwargs: dict
+    ) -> None:
         """
         Dispatches all active EventListeners for the specified event.
-        Does not call the parsers but the function directly and requires the args, kwargs passed
+        Does not call the parsers but the function directly and requires the
+        args, kwargs passed
 
         ---
 
@@ -319,9 +357,11 @@ class HivenEventHandler(HivenObject):
             tasks = [listener(*args, **kwargs) for listener in listeners]
             await asyncio.gather(*tasks)
 
-    async def wait_for(self,
-                       event_name: str,
-                       awaitable: Union[Callable, Coroutine, None] = None) -> (tuple, dict):
+    async def wait_for(
+            self,
+            event_name: str,
+            awaitable: Union[Callable, Coroutine, None] = None
+    ) -> Tuple[tuple, dict]:
         """
         Waits for an event to be triggered and then returns the *args and
         **kwargs passed
@@ -334,7 +374,9 @@ class HivenEventHandler(HivenObject):
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:
-            raise UnknownEventError("The passed event type is invalid/does not exist")
+            raise UnknownEventError(
+                "The passed event type is invalid/does not exist"
+            )
 
         listener = self.add_single_listener(event_name, awaitable)
         while not listener.dispatched:
@@ -351,16 +393,19 @@ class HivenEventHandler(HivenObject):
 
         def decorator(awaitable: Union[Callable, Coroutine]) -> Callable:
             if not inspect.iscoroutinefunction(awaitable):
-                raise TypeError(f"A coroutine was expected, got {type(awaitable)}")
+                raise TypeError(
+                    f"A coroutine was expected, got {type(awaitable)}"
+                )
 
-            if awaitable.__name__.replace('on_', '') not in self._available_events:
-                raise UnknownEventError("The passed event type is invalid/does not exist")
+            self._validate_existence_of_event(awaitable.__name__)
 
             func_name = awaitable.__name__.replace('on_', '')
             self.add_multi_listener(func_name, awaitable)
             logger.debug(f"[EVENTS] Event {func_name} registered")
 
-            return awaitable  # func can still be used normally outside the event listening process
+            # func can still be used normally outside the event listening
+            # process
+            return awaitable
 
         if awaitable is None:
             return decorator
@@ -383,7 +428,9 @@ class HivenEventHandler(HivenObject):
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:
-            raise UnknownEventError("The passed event type is invalid/does not exist")
+            raise UnknownEventError(
+                "The passed event type is invalid/does not exist"
+            )
 
         if self._active_listeners.get(event_name) is None:
             self._active_listeners[event_name] = []
@@ -401,13 +448,15 @@ class HivenEventHandler(HivenObject):
 
         :param event_name: The key/name of the event the EventListener should
          be listening to
-        :param awaitable: Coroutine that should be called when the EventListener
-         was dispatched
+        :param awaitable: Coroutine that should be called when the
+         EventListener was dispatched
         :return: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
         if event_name not in self.available_events:
-            raise UnknownEventError("The passed event type is invalid/does not exist")
+            raise UnknownEventError(
+                "The passed event type is invalid/does not exist"
+            )
 
         if self._active_listeners.get(event_name) is None:
             self._active_listeners[event_name] = []

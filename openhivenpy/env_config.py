@@ -64,7 +64,9 @@ class HivenENV:
         load the env-variables from the library file openhivenpy.env
 
         Default function that will be called when importing the openhiven.py
-        module
+        module. This function will attempt to find an env file in the workdir
+        and if it exists that one will be loaded instead. This can be turned
+        off by setting search_other to False
 
         :param path: Optional path that can be passed to load a specific .env
          file. If the file does not contain all data it will default to loading
@@ -94,13 +96,17 @@ class HivenENV:
                     if file.endswith('.env'):
                         env_path = os.path.join(root, file)
 
-                        logger.debug(f"Found {env_path} as .env file. Attempting to load file ")
+                        logger.debug(
+                            f"Found {env_path} as .env file. "
+                            f"Attempting to load file "
+                        )
                         env_vars, success = self.load_env_file(env_path)
                         if success:
                             self._env_vars = env_vars
                             return env_vars
                         else:
-                            # Unloading the environment variables since the files is not in the right format
+                            # Unloading the environment variables since the
+                            # files is not in the right format
                             self.unload_env()
 
         name = 'openhivenpy.env'
@@ -112,4 +118,7 @@ class HivenENV:
             self._env_vars = env_vars
             return env_vars
         else:
-            raise HivenENVError(f"Failed to load .env file of the module! Expected {env_path} to exist")
+            raise HivenENVError(
+                f"Failed to load .env file of the module! "
+                f"Expected {env_path} to exist"
+            )

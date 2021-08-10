@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import User
+from .user import User
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import InitializationError, InvalidPassedDataError

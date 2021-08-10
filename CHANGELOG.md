@@ -16,12 +16,48 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ones!
 
 ### Added
+- Message-Broker for handling incoming events and distribute them to the
+  listeners.
+- Event-Buffers, which store the events and will one by one execute the events/
+  call its listeners. This can be changed by setting queue_events in the client
+  to False, which means all tasks are immediately sent to the event-loop and
+  executed in the next cycle if possible.
+- New event_parsers file with a new execution schema, where calling the
+  function will simply add the event with its data, args and kwargs to the
+  buffer.
+- Added `HivenEventHandler` as a class and interface for listeners and
+  functions related to that.
+- Implementation of `SingleDispatchEventListener`, which will listen for an
+  event once and execute an assigned coroutine when the event is received. This
+  can be done dynamically using `HivenEventHandler.add_single_listener()`
+- Implementation of `MultiDispatchEventListener`, which will listen for an
+  event until the bot is stopped. Will call a coroutine every time the event is
+  received. Creating one can be done dynamically using
+  `HivenEventHandler.add_multi_listener()`
+- `wait_for` function in `HivenEventHandler`, which will dynamically wait for
+  an event. This will under the hood create a
+  simple `SingleDispatchEventListener`. It will return the data passed to the
+  function as well.
+- `dispatch_event` function in `HivenEventHandler`, which will dynamically add
+  a new event to the buffer with the args and kwargs passed.
+- `call_listeners` to call all listeners for an event based on the passed args
+  and kwargs. This will call them directly and not utilise the message-broker
+  unlike `dispatch_event`
 
 ### Changed
 
 - Rewrite of the base structure
+- Proper WebSocket structure, with init handling that will delay all other
+  incoming events until the Bot is ready. This means when the Bot enters ready
+  state all cached events are sent to the event-buffer.
+- Base Types for referencing general types in the library
+- Cache implementation using cache.py, which will hold and store values and
+  provide functions for generating data and update the cache correctly. This
+  will remove implementations in the data classes itself.
 
 ### Removed
+
+- Old structure (everything not mentioned in changed or added is likely gone)
 
 ## [v0.1.3.2] - 2021-04-09
 

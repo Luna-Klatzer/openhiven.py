@@ -1,6 +1,8 @@
 import asyncio
 import inspect
 
+import pytest
+
 import openhivenpy
 
 token_ = ""
@@ -92,7 +94,9 @@ class TestMultiDispatchEventListener:
 
 class TestHivenEventHandler:
     def test_init(self):
-        # Creating a new Client to avoid possible different results by using older ones
+        # Creating a new Client to avoid possible different results by using
+        # older ones
+        global client
         client = openhivenpy.UserClient()
 
         @client.event()
@@ -101,6 +105,49 @@ class TestHivenEventHandler:
             await client.close()
 
         assert len(client._active_listeners['ready']) == 1
+
+        client.run(token_)
+
+    @pytest.mark.parametrize(
+        "args,kwargs", [
+            (("1", "2"), {"1": "1", "2": "2"}),
+            ((), {"1": "1", "2": "2"}),
+            (("1", "2"), {})
+        ]
+    )
+    def test_dispatch_event(self, args: tuple, kwargs: dict):
+        global client
+        client = openhivenpy.UserClient()
+
+        @client.event()
+        async def on_message_create(*args, **kwargs):
+            assert args == args
+            assert kwargs == kwargs
+            await client.close()
+
+        @client.event()
+        async def on_ready():
+            client.dispatch_event(
+                'message_create', args, kwargs
+            )
+            assert client.message_broker.get_buffer("message_create")
+
+        client.run(token_)
+
+    def test_dispatch_event_wrong_event(self):
+        global client
+        client = openhivenpy.UserClient()
+
+        @client.event()
+        async def on_ready():
+            try:
+                client.dispatch_event(
+                    'x', (), {}
+                )
+            except Exception:
+                await client.close()
+            else:
+                assert False, "Expected exception"
 
         client.run(token_)
 
@@ -114,11 +161,14 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', awaitable=on_ready))
+            await asyncio.gather(
+                trigger_test_event(),
+                client.wait_for('on_ready', awaitable=on_ready)
+            )
 
         asyncio.run(run())
 
-    def add_new_multi_event_listener(self):
+    def test_add_new_multi_event_listener(self):
         async def on_ready():
             print("\non_ready was called!")
             return
@@ -128,7 +178,10 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            await asyncio.gather(trigger_test_event(), client.wait_for('on_ready', awaitable=on_ready))
+            await asyncio.gather(
+                trigger_test_event(),
+                client.wait_for('on_ready', awaitable=on_ready)
+            )
 
         asyncio.run(run())
 

@@ -50,7 +50,7 @@ class TestUtils:
             except TypeError as e:
                 pass
             else:
-                assert False
+                assert False, "Expected exception"
 
     def test_get(self):
         obj_list = [ExampleClass()]
