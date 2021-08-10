@@ -27,8 +27,11 @@ async def _wait_until_done(task: asyncio.Task) -> None:
 
 class DynamicEventBuffer(list, Object):
     """
-    The DynamicEventBuffer is a list containing all not-executed events that were received over the websocket.
-    Workers will fetch from the Buffer events and then execute them if event_listeners are assigned to them.
+    The DynamicEventBuffer is a list containing all not-executed events that
+    were received over the websocket.
+
+    Workers will fetch from the Buffer events and then execute them if
+    event_listeners are assigned to them.
     """
 
     def __init__(self, event: str, *args, **kwargs):
@@ -39,14 +42,25 @@ class DynamicEventBuffer(list, Object):
         info = [
             ('event', self.event)
         ]
-        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
+        return '<{} {}>'.format(self.__class__.__name__,
+                                ' '.join('%s=%s' % t for t in info))
 
-    def add(self, data: dict, args: Optional[tuple] = None, kwargs: Optional[dict] = None):
-        """Adds a new event to the Buffer which will trigger the listeners assigned to the event
+    def add_new_event(
+            self,
+            data: dict,
+            args: Optional[tuple] = None,
+            kwargs: Optional[dict] = None
+    ):
+        """
+        Adds a new event to the Buffer which will trigger the listeners
+        assigned to the event
 
-        :param data: The raw WebSocket data containing the information of the event
-        :param args: Args of the Event that should be passed to the event listeners
-        :param kwargs:
+        :param data: The raw WebSocket data containing the information of the
+        event
+        :param args: Args of the Event that should be passed to the event
+        listeners
+        :param kwargs: Kwargs / named args of the Event that should be passed
+        to the event listeners
         """
         if kwargs is None:
             kwargs = {}
@@ -61,7 +75,10 @@ class DynamicEventBuffer(list, Object):
         )
 
     def get_next_event(self) -> dict:
-        """ Fetches the oldest event at index 0. Raises an exception if the buffer is empty! """
+        """
+        Fetches the oldest event at index 0. Raises an exception if the buffer
+        is empty!
+        """
         return self.pop(0)
 
 
@@ -283,7 +300,7 @@ class Worker(Object):
             except asyncio.CancelledError:
                 logger.debug(f"Worker {repr(self)} was cancelled and did not finish its tasks!")
             except Exception as e:
-                self.assigned_event_buffer.add(**event)
+                self.assigned_event_buffer.add_new_event(**event)
                 raise RuntimeError(f"Failed to run listener tasks assigned to {repr(self)}") from e
 
 

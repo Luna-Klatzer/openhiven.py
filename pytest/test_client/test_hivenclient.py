@@ -131,7 +131,8 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
-            client.message_broker.get_buffer("message_create").add({}, (), {})
+            client.message_broker.get_buffer("message_create").add_new_event(
+                {}, (), {})
 
         @client.event()
         async def on_message_create():

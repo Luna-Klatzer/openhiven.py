@@ -114,15 +114,19 @@ class DispatchEventListener(Object):
         return dispatch(*args, **kwargs)
 
     def set_awaitable(self, awaitable: Union[Awaitable, Callable]) -> None:
-        """ Sets the coroutine of the event_listener, which will be called when ws-events are received
+        """
+        Sets the coroutine of the event_listener, which will be called when
+        ws-events are received
 
         :param awaitable: Awaitable (Coroutine Function). Can NOT be a initialised coroutine, since parameters will
                           be passed on Runtime and coroutines are limited to a one-time execution. Coroutine functions
                           or standard asyncio awaitable functions are defined using the `async def` syntax
         """
         if inspect.iscoroutine(awaitable):
-            raise RuntimeError("Coroutine are not allowed as event_listener awaitable")
-        elif inspect.isawaitable(awaitable) or inspect.iscoroutinefunction(awaitable):
+            raise RuntimeError(
+                "Coroutine are not allowed as event_listener awaitable")
+        elif inspect.isawaitable(awaitable) or inspect.iscoroutinefunction(
+                awaitable):
             self._awaitable = awaitable
         else:
             raise RuntimeError(f"Expected awaitable, but got {type(awaitable)}")
@@ -132,9 +136,13 @@ class DispatchEventListener(Object):
 
 
 class SingleDispatchEventListener(DispatchEventListener):
-    """ EventListener Class that will be called only once and will store the events data, args and kwargs """
+    """
+    EventListener Class that will be called only once and will store the
+    events data, args and kwargs
+    """
 
-    def __init__(self, client: HivenClient, event_name: str, awaitable: Union[Awaitable, Callable]):
+    def __init__(self, client: HivenClient, event_name: str,
+                 awaitable: Union[Awaitable, Callable]):
         self._dispatched = False
         self._event_data = None
         self._args = None

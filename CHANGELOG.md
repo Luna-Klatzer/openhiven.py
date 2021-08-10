@@ -12,9 +12,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Rewrite of the base structure. Not all changes will be noted here, but main
+  ones!
+
 ### Added
 
 ### Changed
+
+- Rewrite of the base structure
 
 ### Removed
 
