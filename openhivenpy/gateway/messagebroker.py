@@ -7,7 +7,8 @@ from typing import Optional, List, Coroutine, Tuple, Dict
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from .. import utils, HivenObject
+from .. import utils
+from ..base_types import HivenObject
 
 if TYPE_CHECKING:
     from .. import HivenClient

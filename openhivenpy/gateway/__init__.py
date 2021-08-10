@@ -38,7 +38,8 @@ from yarl import URL
 from .http import *
 from .messagebroker import *
 from .websocket import *
-from .. import utils, HivenObject
+from .. import utils
+from ..base_types import HivenObject
 from ..exceptions import (RestartSessionError, WebSocketClosedError,
                           WebSocketFailedError, SessionCreateError,
                           KeepAliveError)

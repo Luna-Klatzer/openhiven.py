@@ -14,7 +14,7 @@ import aiohttp
 from yarl import URL
 
 from .messagebroker import MessageBroker
-from .. import HivenObject
+from ..base_types import HivenObject
 from ..exceptions import (RestartSessionError, SessionCreateError,
                           WebSocketClosedError,
                           WebSocketFailedError, KeepAliveError)

@@ -25,7 +25,10 @@ __all__ = ['Member']
 
 
 class Member(User):
-    """ Represents a House Member on Hiven which contains the Hiven User, role-data and member-data """
+    """
+    Represents a House Member on Hiven which contains the Hiven User, role-data
+    and member-data
+    """
     json_schema = {
         'type': 'object',
         'properties': {
@@ -61,7 +64,9 @@ class Member(User):
             self._house = data.get('house')
 
         except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__}"
+            ) from e
 
     def __repr__(self) -> str:
         info = [
@@ -100,12 +105,16 @@ class Member(User):
                 house_id = None
 
             if house_id is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed house is not in the correct format!", data=data
+                )
             else:
                 data['house_id'] = house_id
 
         elif not data.get('house_id') and not data.get('house'):
-            raise InvalidPassedDataError("house_id and house missing from required data", data=data)
+            raise InvalidPassedDataError(
+                "house_id and house missing from required data", data=data
+            )
 
         data['house'] = data.get('house_id')
         data = cls.validate(data)
@@ -181,7 +190,8 @@ class Member(User):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to kick the member due to an exception occurring:",
+                brief=f"Failed to kick the member due to an exception "
+                      "occurring:",
                 exc_info=sys.exc_info()
             )
             # TODO! Raise exception

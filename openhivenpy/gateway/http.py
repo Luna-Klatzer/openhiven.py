@@ -13,7 +13,7 @@ from yarl import URL
 
 __all__ = ['HTTP']
 
-from .. import HivenObject
+from ..base_types import HivenObject
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
                           HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)

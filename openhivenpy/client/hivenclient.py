@@ -7,9 +7,9 @@ from asyncio import AbstractEventLoop
 from typing import Optional
 
 from .cache import ClientCache
-from .. import HivenObject
 from .. import types
 from .. import utils
+from ..base_types import HivenObject
 from ..events import HivenParsers, HivenEventHandler
 from ..exceptions import (SessionCreateError, InvalidTokenError,
                           WebSocketFailedError, HivenConnectionError)

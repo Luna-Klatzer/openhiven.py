@@ -3,16 +3,18 @@ from __future__ import annotations
 
 import logging
 import sys
-# Using deepcopy instead of standard .copy() from python since regular dict() or dict.copy() would not duplicate its
-# iterable properties as well and the keys for iterables would point to the same object, which results in that
-# changes to those iterables are applied to all copied dictionaries that were created using dict() or copy().
+# Using deepcopy instead of standard .copy() from python since regular dict()
+# or dict.copy() would not duplicate its iterable properties as well and the
+# keys for iterables would point to the same object, which results in that
+# changes to those iterables are applied to all copied dictionaries that were
+# created using dict() or copy().
 from copy import deepcopy
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from .. import HivenObject
 from .. import types
 from .. import utils
+from ..base_types import HivenObject
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:

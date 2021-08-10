@@ -7,8 +7,8 @@ from __future__ import annotations
 import logging
 from typing import Optional, Tuple, TYPE_CHECKING
 
-from .. import HivenObject
 from .. import types
+from ..base_types import HivenObject
 from ..gateway import DynamicEventBuffer
 
 if TYPE_CHECKING:

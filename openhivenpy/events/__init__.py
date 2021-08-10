@@ -33,8 +33,8 @@ from typing import Coroutine, Callable, Union, Dict, List, Awaitable, Optional
 from typing import TYPE_CHECKING
 
 from .event_parsers import HivenParsers
-from .. import HivenObject
 from .. import utils
+from ..base_types import HivenObject
 from ..exceptions import UnknownEventError
 
 if TYPE_CHECKING:
