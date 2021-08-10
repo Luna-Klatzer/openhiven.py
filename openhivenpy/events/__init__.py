@@ -72,7 +72,12 @@ NON_BUFFER_EVENTS = [
 class DispatchEventListener(Object):
     """ Base Class for all DispatchEventListeners"""
 
-    def __init__(self, client: HivenClient, event_name: str, awaitable: Union[Awaitable, Callable]):
+    def __init__(
+            self,
+            client: HivenClient,
+            event_name: str,
+            awaitable: Union[Awaitable, Callable]
+    ):
         self._client = client
         self._event_name = event_name
         self._awaitable: Optional[Awaitable] = None
@@ -99,7 +104,9 @@ class DispatchEventListener(Object):
             ('event_name', getattr(self, 'event_name', None)),
             ('awaitable', getattr(self, 'awaitable', None))
         ]
-        return '<MultiDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
+        return '<MultiDispatchEventListener {}>'.format(
+            ' '.join('%s=%s' % t for t in info)
+        )
 
     def __call__(self, *args, **kwargs) -> Union[Coroutine, Awaitable]:
         """
@@ -108,9 +115,12 @@ class DispatchEventListener(Object):
         :param event_data: Data of the received event
         :param args: Args that will be passed to the coroutine
         :param kwargs: Kwargs that will be passed to the coroutine
-        :return: The coroutine instance which can be used in an await expression or asyncio functions
+        :return: The coroutine instance which can be used in an await
+         expression or asyncio functions
         """
-        dispatch: Union[Callable, Union[Awaitable, Callable]] = getattr(self, 'dispatch')
+        dispatch: Union[Callable, Union[Awaitable, Callable]] = getattr(
+            self, 'dispatch'
+        )
         return dispatch(*args, **kwargs)
 
     def set_awaitable(self, awaitable: Union[Awaitable, Callable]) -> None:
@@ -118,9 +128,11 @@ class DispatchEventListener(Object):
         Sets the coroutine of the event_listener, which will be called when
         ws-events are received
 
-        :param awaitable: Awaitable (Coroutine Function). Can NOT be a initialised coroutine, since parameters will
-                          be passed on Runtime and coroutines are limited to a one-time execution. Coroutine functions
-                          or standard asyncio awaitable functions are defined using the `async def` syntax
+        :param awaitable: Awaitable (Coroutine Function). Can NOT be a
+         initialised coroutine, since parameters will be passed on Runtime and
+         coroutines are limited to a one-time execution. Coroutine functions
+         or standard asyncio awaitable functions are defined using the
+         `async def` syntax
         """
         if inspect.iscoroutine(awaitable):
             raise RuntimeError(
@@ -193,7 +205,10 @@ class SingleDispatchEventListener(DispatchEventListener):
 
 
 class MultiDispatchEventListener(DispatchEventListener):
-    """ EventListener Class that is used primarily for EventListeners that will be called multiple times """
+    """
+    EventListener Class that is used primarily for EventListeners that will
+    be called multiple times
+    """
 
     async def dispatch(self, *args, **kwargs) -> None:
         """
@@ -251,7 +266,8 @@ class HivenEventHandler(Object):
     def dispatch_event(self, event_name: str, args: tuple, kwargs: dict) -> None:
         """
         Manually adds an event to the event_buffer and triggers all listeners.
-        Will return immediately and does not require asyncio unlike call_listeners which only calls the listeners
+        Will return immediately and does not require asyncio unlike
+        call_listeners which only calls the listeners
 
         :param event_name: The name of the event that should be triggered
         :param args: Args that will be passed to the coroutines
@@ -260,7 +276,8 @@ class HivenEventHandler(Object):
 
     def add_listener(self, listener: DispatchEventListener) -> None:
         """
-        Adds the listener to the client cache and will create a new list if the event_name does not exist yet!
+        Adds the listener to the client cache and will create a new list if
+         the event_name does not exist yet!
 
         :param listener: The Listener that will be added
         """
@@ -288,7 +305,8 @@ class HivenEventHandler(Object):
 
         ---
 
-        Will run all tasks before returning! Only supposed to be called in cases of special events!
+        Will run all tasks before returning! Only supposed to be called in
+         cases of special events!
 
         :param event_name: The name of the event that should be triggered
         :param args: Args that will be passed to the coroutines
@@ -305,10 +323,12 @@ class HivenEventHandler(Object):
                        event_name: str,
                        awaitable: Union[Callable, Coroutine, None] = None) -> (tuple, dict):
         """
-        Waits for an event to be triggered and then returns the *args and **kwargs passed
+        Waits for an event to be triggered and then returns the *args and
+        **kwargs passed
 
         :param event_name: Name of the event to wait for
-        :param awaitable: Coroutine that can be passed to be additionally triggered when received
+        :param awaitable: Coroutine that can be passed to be additionally
+         triggered when received
         :raises UnknownEventError: If the event does not exist
         :return: A tuple of the args and kwargs => (args, kwargs)
         """
@@ -355,8 +375,10 @@ class HivenEventHandler(Object):
         """
         Adds a new event listener to the list of active listeners
 
-        :param event_name: The key/name of the event the EventListener should be listening to
-        :param awaitable: Coroutine that should be called when the EventListener was dispatched
+        :param event_name: The key/name of the event the EventListener should
+          be listening to
+        :param awaitable: Coroutine that should be called when the
+         EventListener was dispatched
         :return: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')
@@ -374,10 +396,13 @@ class HivenEventHandler(Object):
             awaitable: Union[Callable, Coroutine]
     ) -> SingleDispatchEventListener:
         """
-        Adds a new single dispatch event listener to the list of active listeners
+        Adds a new single dispatch event listener to the list of active
+        listeners
 
-        :param event_name: The key/name of the event the EventListener should be listening to
-        :param awaitable: Coroutine that should be called when the EventListener was dispatched
+        :param event_name: The key/name of the event the EventListener should
+         be listening to
+        :param awaitable: Coroutine that should be called when the EventListener
+         was dispatched
         :return: The newly created EventListener
         """
         event_name = event_name.replace('on_', '')

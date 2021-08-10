@@ -109,21 +109,24 @@ class PrivateGroupRoom(DataClassObject):
         return '<PrivateGroupRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['rooms']['private']['group'][self.id]
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a
+         new class instance
         """
         data = cls.validate(data)
         data['name'] = f"Private chat with {data['recipients'][0]['name']}"
@@ -193,7 +196,8 @@ class PrivateGroupRoom(DataClassObject):
             if delay is not None:
                 await asyncio.sleep(delay=delay)
             resp = await self._client.http.post(
-                endpoint=f"/rooms/{self.id}/messages", json={"content": content}
+                endpoint=f"/rooms/{self.id}/messages",
+                json={"content": content}
             )
 
             raw_data = await resp.json()
@@ -274,15 +278,16 @@ class PrivateRoom(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a
+         new class instance
         """
         data = cls.validate(data)
 
@@ -403,7 +408,9 @@ class PrivateRoom(DataClassObject):
             # TODO! Raise exception
             return False
 
-    async def send(self, content: str, delay: float = None) -> Optional[Message]:
+    async def send(
+            self, content: str, delay: float = None
+    ) -> Optional[Message]:
         """
         Sends a message in the private room. 
 

@@ -39,37 +39,38 @@ from .http import *
 from .messagebroker import *
 from .websocket import *
 from .. import utils, Object
-from ..exceptions import RestartSessionError, WebSocketClosedError, WebSocketFailedError, SessionCreateError, \
-    KeepAliveError
+from ..exceptions import (RestartSessionError, WebSocketClosedError,
+                          WebSocketFailedError, SessionCreateError,
+                          KeepAliveError)
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ENDPOINT = os.getenv("WS_ENDPOINT")
-DEFAULT_HOST = os.getenv("HIVEN_HOST")
-DEFAULT_API_VERSION = os.getenv("HIVEN_API_VERSION")
-DEFAULT_HEARTBEAT = int(os.getenv("WS_HEARTBEAT"))
-DEFAULT_CLOSE_TIMEOUT = int(os.getenv("WS_CLOSE_TIMEOUT"))
-
 
 class Connection(Object):
-    """ Connection Class used for interaction with the Hiven API and WebSocket Swarm"""
+    """
+    Connection Class used for interaction with the Hiven API and WebSocket
+    Swarm
+    """
 
     def __init__(
             self,
             client,
             *,
-            host: Optional[str] = DEFAULT_HOST,
-            api_version: Optional[str] = DEFAULT_API_VERSION,
-            heartbeat: Optional[int] = DEFAULT_HEARTBEAT,
-            close_timeout: Optional[int] = DEFAULT_CLOSE_TIMEOUT
+            host: Optional[str] = None,
+            api_version: Optional[str] = None,
+            heartbeat: Optional[int] = None,
+            close_timeout: Optional[int] = None
     ):
         self.client = client
         self.http = None
-        self._host = host if heartbeat is not None else DEFAULT_HOST
-        self._api_version = api_version if heartbeat is not None else DEFAULT_API_VERSION
-        self._heartbeat = heartbeat if heartbeat is not None else DEFAULT_HEARTBEAT
-        self._close_timeout = close_timeout if heartbeat is not None else DEFAULT_CLOSE_TIMEOUT
-        self._endpoint = URL(DEFAULT_ENDPOINT)
+        self._host = host if host is not None else os.getenv("HIVEN_HOST")
+        self._api_version = api_version if api_version is not None else \
+            os.getenv("HIVEN_API_VERSION")
+        self._heartbeat = heartbeat if heartbeat is not None else \
+            int(os.getenv("WS_HEARTBEAT"))
+        self._close_timeout = close_timeout if close_timeout is not None else \
+            int(os.getenv("WS_CLOSE_TIMEOUT"))
+        self._endpoint = URL(os.getenv("WS_ENDPOINT"))
 
         self._connection_status = "CLOSED"
         self._ready = False
@@ -188,19 +189,21 @@ class Connection(Object):
                     raise
 
                 except asyncio.TimeoutError:
-                    # If the timeout is hit the connection might not be possible or unstable, so a warning needs to be
-                    # thrown
+                    # If the timeout is hit the connection might not be
+                    # possible or unstable, so a warning needs to be thrown
                     utils.log_traceback(
                         brief="[CONNECTION] Ignoring Timeout Traceback:",
                         exc_info=sys.exc_info()
                     )
                     logger.warning(
-                        "[CONNECTION] The websocket exceeded the timeout limit! Connection will be restarted!"
+                        "[CONNECTION] The websocket exceeded the timeout limit!"
+                        " Connection will be restarted!"
                     )
 
                 except RestartSessionError:
-                    # Encountered an exception inside the receive process of the WebSocket and
-                    # the system should restart to make sure the user can continue to use the Client
+                    # Encountered an exception inside the receive process of
+                    # the WebSocket and the system should restart to make sure
+                    # the user can continue to use the Client
                     logger.debug("[CONNECTION] Restarting the Websocket")
 
                 except WebSocketClosedError:
@@ -209,18 +212,22 @@ class Connection(Object):
                 except (Exception, WebSocketFailedError, KeepAliveError) as e:
                     if self.connection_status == "OPENING":
                         utils.log_traceback(
-                            brief="[CONNECTION] Encountered an exception while initialising the websocket",
+                            brief="[CONNECTION] Encountered an exception while"
+                                  " initialising the websocket",
                             exc_info=sys.exc_info()
                         )
                     else:
                         utils.log_traceback(
-                            brief="[CONNECTION] Encountered an exception while running the core modules ",
+                            brief="[CONNECTION] Encountered an exception while "
+                                  "running the core modules ",
                             exc_info=sys.exc_info()
                         )
 
                     if restart is False:
                         self._reset_status("CLOSING")
-                        raise RuntimeError("Websocket encountered an exception while running") from e
+                        raise RuntimeError(
+                            "Websocket encountered an exception while running"
+                        ) from e
 
                 # Resetting the status
                 self._reset_status("OPENING")
@@ -264,7 +271,8 @@ class Connection(Object):
         """
         Resets the status to being currently opening and not being active
 
-        Used when the websocket raises an exception and crashes or is restarting (aka. not available in the moment)
+        Used when the websocket raises an exception and crashes or is restarting
+        (aka. not available in the moment)
         """
         if getattr(self, 'ws', None):
             self.ws._open = False
@@ -273,28 +281,37 @@ class Connection(Object):
         self._connection_status = connection_status
 
     async def _wait_until_ws_finished(self) -> None:
-        """ Waits until the websocket has finished to return and stop the process """
-        while (getattr(getattr(self.ws, 'message_broker', None), 'running', False)
+        """
+        Waits until the websocket has finished to return and stop the process
+         """
+        while (getattr(getattr(self.ws, 'message_broker', None), 'running',
+                       False)
                or not self.socket_closed):
             await asyncio.sleep(.05)
 
     async def close(self, force: bool = False) -> None:
         """
-        Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
+        Closes the Connection to Hiven and stops the running WebSocket and the
+        Event Processing Loop
 
-        Returns before the closing has finished to avoid the case where the close() method was called in an
-        event_listener and therefore not returning would block the process to close in time
+        Returns before the closing has finished to avoid the case where the
+        close() method was called in an event_listener and therefore not
+        returning would block the process to close in time
 
-        :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
-                      code of event-listeners being stopped while performing actions. If False the stopping will wait
-                      for all running event_listeners to finish
+        :param force: If set to True the running event-listener workers will be
+         forced closed, which may lead to running code of event-listeners being
+         stopped while performing actions. If False the stopping will wait for
+         all running event_listeners to finish
         """
         try:
             self._connection_status = "CLOSING"
             self._closing = True
             self._force_closing = force
 
-            logger.info(f"[CONNECTION] Received force {'close ' if force else ''}call to stop the running Client")
+            logger.info(
+                f"[CONNECTION] Received force {'close ' if force else ''}"
+                f"call to stop the running Client"
+            )
 
             if getattr(self.ws, 'socket', None):
                 await self.ws.socket.close()
@@ -308,4 +325,6 @@ class Connection(Object):
                 brief=f"Failed to close current connection to Hiven",
                 exc_info=sys.exc_info()
             )
-            raise RuntimeError("Failed to stop client due to an exception occurring") from e
+            raise RuntimeError(
+                "Failed to stop client due to an exception occurring"
+            ) from e

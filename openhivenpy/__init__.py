@@ -34,22 +34,19 @@ __license__ = "MIT"
 __version__ = "0.2.dev1"
 __copyright__ = "Luna Klatzer"
 
-
 import logging
+
+from . import events
+from . import exceptions
+from . import gateway
+from . import utils
+from .client import *
+from .env_config import HivenENV
+from .exceptions import *
+from .types import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from openhivenpy import exceptions
-from .exceptions import *
-
-# Loading the environment variables which contain basic configuration for the module
-from .env_config import HivenENV
-
-env = HivenENV()
-env.load_env()
-
-from .types import *
-from . import utils
-from . import events
-from . import gateway
-from .client import *
+# Loading the environment variables which contain basic configuration
+# for the module
+HivenENV().load_env()

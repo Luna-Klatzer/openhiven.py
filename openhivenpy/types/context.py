@@ -49,7 +49,8 @@ class Context(DataClassObject):
 
     def __init__(self, data: dict, client: HivenClient):
         """
-        Represents a Command Context for a triggered command that was registered prior
+        Represents a Command Context for a triggered command that was
+        registered prior
 
         :param data: Data that should be used to create the object
         :param client: The HivenClient
@@ -68,15 +69,16 @@ class Context(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = cls.validate(data)
         data['timestamp'] = utils.safe_convert(int, data.get('timestamp'))

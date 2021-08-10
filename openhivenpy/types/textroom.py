@@ -125,11 +125,12 @@ class TextRoom(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be
+        required for the creation of an instance.
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         if not data.get('house_id') and data.get('house'):
             house = data.pop('house')
@@ -211,7 +212,10 @@ class TextRoom(DataClassObject):
         try:
             if delay is not None:
                 await asyncio.sleep(delay=delay)
-            resp = await self._client.http.post(f"/rooms/{self.id}/messages", json={"content": content})
+            resp = await self._client.http.post(
+                f"/rooms/{self.id}/messages",
+                json={"content": content}
+            )
             raw_data = await resp.json()
 
             # Raw_data not in correct format => needs to access data field

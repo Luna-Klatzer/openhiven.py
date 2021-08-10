@@ -6,25 +6,35 @@ import warnings
 from functools import wraps
 from operator import attrgetter
 from types import TracebackType
-from typing import Union, Awaitable, Callable, Any, Optional, NoReturn, Type, Tuple, Iterable
+from typing import (Union, Awaitable, Callable, Any, Optional, NoReturn, Type,
+                    Tuple, Iterable)
 
 logger = logging.getLogger(__name__)
 
 
 def deprecated(instead=None):
-    """ Warns the user about a function or tool that is deprecated and shouldn't be used anymore """
+    """
+    Warns the user about a function or tool that is deprecated and shouldn't
+    be used anymore
+    """
 
     def actual_decorator(func):
         @wraps(func)
         def decorated(*args, **kwargs):
-            warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+            # turn off filter
+            warnings.simplefilter('always', DeprecationWarning)
             if instead:
                 fmt = "{0.__name__} is deprecated, use {1} instead."
             else:
                 fmt = '{0.__name__} is deprecated.'
 
-            warnings.warn(fmt.format(func, instead), stacklevel=3, category=DeprecationWarning)
-            warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            warnings.warn(
+                fmt.format(func, instead),
+                stacklevel=3,
+                category=DeprecationWarning
+            )
+            # reset filter
+            warnings.simplefilter('default', DeprecationWarning)
             return func(*args, **kwargs)
 
         return decorated
@@ -34,8 +44,8 @@ def deprecated(instead=None):
 
 def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:
     """
-    Fetches a function inside an object and will return the callable. If the object is not a function it will raise an
-    exception
+    Fetches a function inside an object and will return the callable. If the
+    object is not a function it will raise an exception
 
     :param obj: Object where to search for the function
     :param func_name: Name of the function
@@ -59,14 +69,18 @@ async def dispatch_coro_if_exists(
         func_kwargs: Optional[dict] = None
 ) -> Any:
     """
-    Dispatches the passed functions if it can be found in the passed object instance!
-    If the function is not async it will still call it and return the returns if they exist
+    Dispatches the passed functions if it can be found in the passed object
+    instance!
+
+    If the function is not async it will still call it and return the
+    function data if any are returned
 
     :param obj: Object where to search for the function
     :param func_name: Name of the function
     :param func_args: *args of the function
     :param func_kwargs: **kwargs of the function
-    :return: Returns the data of the function if it returns data and is callable else None
+    :return: Returns the data of the function if it returns data and is
+     callable else None
     """
     if func_args is None:
         func_args = ()
@@ -90,13 +104,15 @@ def dispatch_func_if_exists(
         func_kwargs: Optional[dict] = None
 ) -> Any:
     """
-    Dispatches the passed functions if it can be found in the passed object instance!
+    Dispatches the passed functions if it can be found in the passed object
+    instance!
 
     :param obj: Object where to search for the function
     :param func_name: Name of the function
     :param func_args: *args of the function
     :param func_kwargs: **kwargs of the function
-    :return: Returns the data of the function if it returns data and is callable else None
+    :return: Returns the data of the function if it returns data and is
+     callable else None
     """
     if func_args is None:
         func_args = ()
@@ -189,8 +205,8 @@ def log_validation_traceback(
 
     :param cls: The class that failed to be created with the passed data
     :param data: Data that failed to be validated
-    :param exc_info: The exc_info provided by sys.exc_info(). This will be used to log the traceback and information
-                     about the exception
+    :param exc_info: The exc_info provided by sys.exc_info(). This will be used
+     to log the traceback and information about the exception
     """
     log_traceback(
         brief=f"Ignoring Exception in Validation of 'types.{cls.__name__}'",
@@ -202,16 +218,20 @@ def log_validation_traceback(
 MISSING = object()
 
 
-def safe_convert(dtype: Any, value: Any, default: Optional[Any] = MISSING) -> Union[Any, None]:
+def safe_convert(
+        dtype: Any, value: Any, default: Optional[Any] = MISSING
+) -> Union[Any, None]:
     """
-    Converts the passed value if it is not None, if it is it will just return None to not cause an exception.
+    Converts the passed value if it is not None, if it is it will just return
+    None to not cause an exception.
 
     Returns the passed default if the conversion failed.
     If the default is missing it will raise the conversion exception.
 
     :param dtype: The datatype the value should be returned
     :param value: The value that should be converted
-    :param default: The default value that should be returned if the conversion failed
+    :param default: The default value that should be returned if the conversion
+     failed
     :return: The converted value or the default passed value
     """
     try:

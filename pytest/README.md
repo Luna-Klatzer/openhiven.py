@@ -8,7 +8,8 @@
 python3 -m pip install pytest pytest-asyncio 
 ```
 
-Installing inside the main dir of the project the current state of the module so it can be used for testing:
+Installing inside the main dir of the project the current state of the module,
+so it can be used for testing:
 ```bash
 python3 -m pip install -e .
 ```

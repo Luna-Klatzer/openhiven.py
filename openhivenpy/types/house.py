@@ -109,8 +109,8 @@ class LazyHouse(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
@@ -118,7 +118,8 @@ class LazyHouse(DataClassObject):
         Only exceptions are member objects which are unique in every house
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = cls.validate(data)
         if not data.get('owner_id') and data.get('owner'):
@@ -267,15 +268,16 @@ class House(LazyHouse):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = LazyHouse.format_obj_data(data)
         data = cls.validate(data)
@@ -536,7 +538,9 @@ class House(LazyHouse):
         try:
             for key, data in kwargs.items():
                 if key in ['name']:
-                    await self._client.http.patch(endpoint=f"/houses/{self.id}", json={key: data})
+                    await self._client.http.patch(
+                        endpoint=f"/houses/{self.id}", json={key: data}
+                    )
                     return True
                 else:
                     raise NameError("The passed value does not exist in the House!")
@@ -559,7 +563,10 @@ class House(LazyHouse):
         """
         try:
             from . import Invite
-            resp = await self._client.http.post(endpoint=f"/houses/{self.id}/invites", json={"max_uses": max_uses})
+            resp = await self._client.http.post(
+                endpoint=f"/houses/{self.id}/invites",
+                json={"max_uses": max_uses}
+            )
             raw_data = await resp.json()
 
             data = raw_data.get('data')

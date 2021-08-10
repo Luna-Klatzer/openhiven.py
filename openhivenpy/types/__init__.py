@@ -30,6 +30,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import sys
+from abc import ABC
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
@@ -59,8 +60,11 @@ __all__ = [
 ]
 
 
-class Object:
-    """ Base Class for all Hiven Type Classes. Used to signalise it's a generic type without specification """
+class Object(ABC):
+    """
+    Base Class for all Hiven Type Classes. Used to signalise it's a
+    generic type without specification
+    """
     ...
 
 

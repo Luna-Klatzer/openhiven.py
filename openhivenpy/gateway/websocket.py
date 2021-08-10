@@ -15,7 +15,8 @@ from yarl import URL
 
 from .messagebroker import MessageBroker
 from .. import Object
-from ..exceptions import (RestartSessionError, SessionCreateError, WebSocketClosedError,
+from ..exceptions import (RestartSessionError, SessionCreateError,
+                          WebSocketClosedError,
                           WebSocketFailedError, KeepAliveError)
 
 if TYPE_CHECKING:
@@ -199,31 +200,40 @@ class HivenWebSocket(Object):
         return getattr(self, '_close_timeout', None)
 
     async def listening_loop(self) -> None:
-        """ Listens infinitely for WebSocket Messages and will trigger events accordingly """
+        """
+        Listens infinitely for WebSocket Messages and will trigger events
+        accordingly
+        """
         while True:
             await self.wait_for_event()
 
     async def wait_for_event(self, handler: Callable = None) -> Any:
         """
-        Waits for an event or websocket message and then triggers appropriately the events or raises Exceptions
+        Waits for an event or websocket message and then triggers appropriately
+         the events or raises Exceptions
 
         Will raise an exception if a close frame was received>
 
-        :param handler: Handler Awaitable that will be executed instead of `received_message()` if not None
+        :param handler: Handler Awaitable that will be executed instead of
+        `received_message()` if not None
         """
         msg = await self.socket.receive()
 
-        logger.debug(f"[WEBSOCKET] Received WebSocket Message Type '{msg.type.name}'")
+        logger.debug(
+            f"[WEBSOCKET] Received WebSocket Message Type '{msg.type.name}'"
+        )
 
         if msg.type == aiohttp.WSMsgType.TEXT:
-            return await self._received_message(msg) if handler is None else await handler(msg)
+            return await self._received_message(
+                msg) if handler is None else await handler(msg)
 
         elif msg.type == aiohttp.WSMsgType.BINARY:
             if type(msg) is bytes:
                 msg = msg.data.decode("utf-8")
             else:
                 raise
-            return await self._received_message(msg) if handler is None else await handler(msg)
+            return await self._received_message(
+                msg) if handler is None else await handler(msg)
 
         self._open = False
         self._ready = False

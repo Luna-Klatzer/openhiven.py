@@ -56,11 +56,11 @@ class DynamicEventBuffer(list, Object):
         assigned to the event
 
         :param data: The raw WebSocket data containing the information of the
-        event
+         event
         :param args: Args of the Event that should be passed to the event
-        listeners
+         listeners
         :param kwargs: Kwargs / named args of the Event that should be passed
-        to the event listeners
+         to the event listeners
         """
         if kwargs is None:
             kwargs = {}
@@ -104,11 +104,13 @@ class MessageBroker(Object):
 
     def create_buffer(self, event: str, args, kwargs) -> DynamicEventBuffer:
         """
-        Creates a new EventBuffer which stores events that will trigger event_listener
+        Creates a new EventBuffer which stores events that will trigger
+        event_listener
 
         :param event: The event name
         :param args: Args that should be passed for the creation of the buffer
-        :param kwargs: Kwargs that should be passed for the creation of the buffer
+        :param kwargs: Kwargs that should be passed for the creation of the
+         buffer
         :return: The newly created Buffer
         """
         new_buffer = DynamicEventBuffer(event, *args, **kwargs)
@@ -119,11 +121,14 @@ class MessageBroker(Object):
                    args: Optional[tuple] = None,
                    kwargs: Optional[dict] = None) -> DynamicEventBuffer:
         """
-        Tries to fetch a buffer from the cache. If the buffer is not found a new one will be created
+        Tries to fetch a buffer from the cache. If the buffer is not found a
+        new one will be created
 
         :param event: The event name
-        :param args: Args that should be passed for the creation of the buffer if it's not found
-        :param kwargs: Kwargs that should be passed for the creation of the buffer if it's not found
+        :param args: Args that should be passed for the creation of the buffer
+         if it's not found
+        :param kwargs: Kwargs that should be passed for the creation of the
+         buffer if it's not found
         :return: The fetched or newly created buffer instance
         """
         if kwargs is None:

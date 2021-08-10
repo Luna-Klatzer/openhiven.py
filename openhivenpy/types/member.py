@@ -12,7 +12,8 @@ import fastjsonschema
 from . import DataClassObject
 from . import User
 from .. import utils
-from ..exceptions import InitializationError, HTTPForbiddenError, InvalidPassedDataError
+from ..exceptions import InitializationError, HTTPForbiddenError, \
+    InvalidPassedDataError
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -78,15 +79,16 @@ class Member(User):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         if not data.get('house_id') and data.get('house'):
             house = data.pop('house')
@@ -160,12 +162,16 @@ class Member(User):
         """
         Kicks a user from the house.
 
-        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`
+        The client needs permissions to kick, or else this will raise
+        `HivenException.Forbidden`
             
-        :return: True if the request was successful else HivenException.Forbidden()
+        :return: True if the request was successful
+        :raises Forbidden: If the request failed to execute
         """
         try:
-            resp = await self._client.http.delete(f"/{self._house_id}/members/{self._user_id}")
+            resp = await self._client.http.delete(
+                f"/{self._house_id}/members/{self._user_id}"
+            )
             if not resp.status < 300:
                 raise HTTPForbiddenError()
             else:
