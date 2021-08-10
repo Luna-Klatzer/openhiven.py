@@ -45,7 +45,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   unlike `dispatch_event`
 
 ### Changed
-
 - Rewrite of the base structure
 - Proper WebSocket structure, with init handling that will delay all other
   incoming events until the Bot is ready. This means when the Bot enters ready
@@ -56,7 +55,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   will remove implementations in the data classes itself.
 
 ### Removed
-
 - Old structure (everything not mentioned in changed or added is likely gone)
 
 ## [v0.1.3.2] - 2021-04-09
