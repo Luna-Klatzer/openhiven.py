@@ -68,6 +68,7 @@ class TestHivenClient:
         except openhivenpy.InvalidTokenError:
             pass
         else:
+            openhivenpy.env.load_env(search_other=False)
             assert False
 
         client = openhivenpy.HivenClient(token=os.getenv('HIVEN_TOKEN'))
@@ -77,7 +78,11 @@ class TestHivenClient:
         except openhivenpy.InvalidTokenError:
             pass
         else:
+            openhivenpy.env.load_env(search_other=False)
             assert False
+
+        # Resetting to default
+        openhivenpy.env.load_env(search_other=False)
 
     def test_pre_configured_token(self):
         client = openhivenpy.HivenClient(token=self.token)
@@ -131,7 +136,8 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
-            client.message_broker.get_buffer("message_create").add({}, (), {})
+            client.message_broker.get_buffer("message_create").add_new_event(
+                {}, (), {})
 
         @client.event()
         async def on_message_create():

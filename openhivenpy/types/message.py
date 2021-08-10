@@ -11,9 +11,10 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
 from .. import utils
-from ..exceptions import InvalidPassedDataError, InitializationError, HTTPForbiddenError
+from ..base_types import DataClassObject
+from ..exceptions import InvalidPassedDataError, InitializationError, \
+    HTTPForbiddenError
 
 if TYPE_CHECKING:
     from .embed import Embed
@@ -66,11 +67,13 @@ class DeletedMessage(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
+        Validates the data and appends data if it is missing that would be
+        required for the creation of an
         instance.
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = cls.validate(data)
         data['message_id'] = data['id']
@@ -211,7 +214,8 @@ class Message(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
+        Validates the data and appends data if it is missing that would be
+        required for the creation of an
         instance.
 
         ---
@@ -219,11 +223,15 @@ class Message(DataClassObject):
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
-        data['type'] = utils.safe_convert(int, data.get('type'), None)  # I believe, 0 = normal message, 1 = system.
+        # I believe, 0 = normal message, 1 = system.
+        data['type'] = utils.safe_convert(int, data.get('type'), None)
         data['bucket'] = utils.safe_convert(int, data.get('bucket'), None)
-        data['exploding_age'] = utils.safe_convert(int, data.get('exploding_age'), None)
+        data['exploding_age'] = utils.safe_convert(int,
+                                                   data.get('exploding_age'),
+                                                   None)
         data['timestamp'] = utils.safe_convert(int, data.get('timestamp'))
 
         data = cls.validate(data)
@@ -435,7 +443,9 @@ class Message(DataClassObject):
         try:
             if delay is not None:
                 await asyncio.sleep(delay=delay)
-            await self._client.http.post(endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack")
+            await self._client.http.post(
+                endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack"
+            )
             return True
 
         except Exception as e:
@@ -456,7 +466,9 @@ class Message(DataClassObject):
             if delay is not None:
                 await asyncio.sleep(delay=delay)
 
-            resp = await self._client.http.delete(endpoint=f"/rooms/{self.room_id}/messages/{self.id}")
+            resp = await self._client.http.delete(
+                endpoint=f"/rooms/{self.room_id}/messages/{self.id}"
+            )
 
             if not resp.status < 300:
                 raise HTTPForbiddenError()

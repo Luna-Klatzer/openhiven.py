@@ -13,7 +13,7 @@ from yarl import URL
 
 __all__ = ['HTTP']
 
-from .. import Object
+from ..base_types import HivenObject
 from .. import utils
 from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
                           HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)
@@ -30,10 +30,11 @@ logger = logging.getLogger(__name__)
 request_url_format = "https://{0}/{1}"
 
 
-class HTTPTraceback(Object):
+class HTTPTraceback(HivenObject):
     @staticmethod
     async def on_request_start(session, trace_config_ctx, params):
-        logger.debug(f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
+        logger.debug(
+            f"[HTTP] >> Request with HTTP {params.method} started at {time.time()}")
         logger.debug(f"[HTTP] >> URL >> {params.url}")
 
     @staticmethod
@@ -67,13 +68,16 @@ class HTTP:
         """
         :param client: The used HivenClient
         :param host: Url for the API which will be used to interact with Hiven.
-                     Defaults to the pre-set environment host (api.hiven.io)
-        :param api_version: Version string for the API Version. Defaults to the pre-set environment version (v1)
+         Defaults to the pre-set environment host (api.hiven.io)
+        :param api_version: Version string for the API Version. Defaults to the
+         pre-set environment version (defaults to v1)
         """
         self.client = client
         self.host = host
         self.api_version = api_version
-        self.api_url = URL(request_url_format.format(self.host, self.api_version))
+        self.api_url = URL(
+            request_url_format.format(self.host, self.api_version)
+        )
         self.headers = {
             "Authorization": client.token,
             "Host": self.host
@@ -178,15 +182,17 @@ class HTTP:
         """
         Wrapped HTTP request for a specified endpoint.
         
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
+        :param timeout: Time the server has time to respond before the
+         connection timeouts. Defaults to 15
         :param method: HTTP Method that should be used to perform the request
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
+        :param headers: Defaults to the normal headers. Note: Changing content
+         type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+         for more info
         :return: Returns the aiohttp.ClientResponse object
         """
 
@@ -196,13 +202,15 @@ class HTTP:
                                _headers: dict,
                                **_kwargs) -> Union[aiohttp.ClientResponse, None]:
             """
-            The Function that stores the request and the handling of exceptions! Will be used as
-            a variable so the status of the request can be seen by the asyncio.Task status!
+            The Function that stores the request and the handling of
+            exceptions! Will be used as a variable so the status of the request
+             can be seen by the asyncio.Task status!
 
             :param _endpoint: Endpoint of the request
             :param _method: HTTP method of the request
             :param _json: Additional JSON Data if it exists
-            :param _headers: Headers that will be sent! Defaults to the ones that were created during initialisation
+            :param _headers: Headers that will be sent! Defaults to the ones
+             that were created during initialisation
             :param _kwargs: Additional Parameter for the aiohttp HTTP Request
             :return: Returns the aiohttp.ClientResponse object
             """
@@ -210,8 +218,9 @@ class HTTP:
             if not self._ready:
                 raise HTTPSessionNotReadyError()
 
-            # Creating a new ClientTimeout Instance which will default to None since the Timeout was reported
-            # to cause errors! Timeouts are therefore handled in a regular `asyncio.wait_for`
+            # Creating a new ClientTimeout Instance which will default to None
+            # since the Timeout was reported to cause errors! Timeouts are
+            # therefore handled in a regular `asyncio.wait_for`
             _timeout = aiohttp.ClientTimeout(total=None)
 
             _headers = self.headers if _headers is None else _headers
@@ -230,35 +239,44 @@ class HTTP:
 
                 if not data:
                     if http_resp_code != 204:
-                        raise HTTPReceivedNoDataError("Received empty response from the Hiven Servers")
+                        raise HTTPReceivedNoDataError(
+                            "Received empty response from the Hiven Servers"
+                        )
                 elif http_resp_code == 404:
                     raise HTTPNotFoundError()
                 elif http_resp_code >= 500:
                     raise HTTPInternalServerError(
-                        f"Failed to perform request due to Hiven internal server error [Code: {http_resp_code}]"
+                        f"Failed to perform request due to Hiven internal "
+                        f"server error [Code: {http_resp_code}]"
                     )
 
-                _json_data = json_decoder.loads(data)  # Loading the data in json => will fail if not json
-                _success = _json_data.get('success')  # Fetching the success item <== bool
+                # Loading the data in json => will fail if not json
+                _json_data = json_decoder.loads(data)
+                # Fetching the success item <== bool
+                _success = _json_data.get('success')
 
                 if _success:
                     logger.debug(
-                        f"[HTTP] {http_resp_code} - Request was successful and received expected data"
+                        f"[HTTP] {http_resp_code} - "
+                        f"Request was successful and received expected data"
                     )
                     return _resp
                 else:
-                    # If an error occurred the response body will contain an error field
+                    # If an error occurred the response body will contain an
+                    # error field
                     _error = _json_data.get('error')
                     if _error:
                         err_code = _error.get('code')
                         err_msg = _error.get('message')
 
                         raise HTTPFailedRequestError(
-                            f"Failed HTTP request with {http_resp_code} -> '{err_code}': '{err_msg}'"
+                            f"Failed HTTP request with {http_resp_code} -> "
+                            f"'{err_code}': '{err_msg}'"
                         )
                     else:
                         raise HTTPFailedRequestError(
-                            f"Failed HTTP request with {http_resp_code} -> Response: None "
+                            f"Failed HTTP request with {http_resp_code} -> "
+                            f"Response: None "
                         )
 
         try:
@@ -268,7 +286,10 @@ class HTTP:
             )
 
         except asyncio.CancelledError:
-            logger.warning(f"[HTTP] >> Request '{method.upper()}' for endpoint '{endpoint}' was cancelled!")
+            logger.warning(
+                f"[HTTP] >> Request '{method.upper()}' for endpoint "
+                f"'{endpoint}' was cancelled!"
+            )
             return
 
         except asyncio.TimeoutError:
@@ -276,11 +297,13 @@ class HTTP:
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}:",
+                brief=f"HTTP '{method.upper()}' failed with endpoint: "
+                      f"{self.host}{endpoint}:",
                 exc_info=sys.exc_info()
             )
             raise HTTPError(
-                f"HTTP '{method.upper()}' failed with endpoint: {self.host}{endpoint}: "
+                f"HTTP '{method.upper()}' failed with endpoint: "
+                f"{self.host}{endpoint}: "
             ) from e
 
         # Returning the response instance
@@ -298,15 +321,18 @@ class HTTP:
         """
         Wrapped HTTP 'GET' request for a specified endpoint
 
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+         connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+         type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+        https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+         for more info
+        :return: Returns the ClientResponse object if successful and else
+         returns `None`
         """
         return await self.raw_request(
             endpoint,
@@ -329,15 +355,18 @@ class HTTP:
         """
         Wrapped HTTP 'POST' for a specified endpoint.
         
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+         connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+         type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+         for more info
+        :return: Returns the ClientResponse object if successful and else
+         returns `None`
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -369,15 +398,18 @@ class HTTP:
         """
         Wrapped HTTP 'DELETE' for a specified endpoint.
         
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+         connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+         type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+         for more info
+        :return: Returns the ClientResponse object if successful and else
+         returns `None`
         """
         return await self.raw_request(
             endpoint,
@@ -402,15 +434,18 @@ class HTTP:
         
         Similar to post, but multiple requests do not affect performance
 
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+        to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+        connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+        type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+        https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+        for more info
+        :return: Returns the ClientResponse object if successful and else
+        returns `None`
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -442,15 +477,18 @@ class HTTP:
         """
         Wrapped HTTP 'PATCH' for a specified endpoint.
         
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+        to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+        connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+        type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+        https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+        for more info
+        :return: Returns the ClientResponse object if successful and else
+        returns `None`
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -484,15 +522,18 @@ class HTTP:
         
         Requests permission for performing communication with a URL or server
         
-        :param endpoint: Url place in url format '/../../..' Will be appended to the standard link:
-                        'https://api.hiven.io/{version}'
+        :param endpoint: Url place in url format '/../../..' Will be appended
+        to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
-        :param timeout: Time the server has time to respond before the connection timeouts. Defaults to 15
-        :param headers: Defaults to the normal headers. Note: Changing content type can make the request break.
-                        Use with caution!
-        :param kwargs: Other parameter for requesting.
-                       See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info
-        :return: Returns the ClientResponse object if successful and else returns `None`
+        :param timeout: Time the server has time to respond before the
+        connection timeouts. Defaults to 15
+        :param headers: Defaults to the normal headers. Note: Changing content
+        type can make the request break. Use with caution!
+        :param kwargs: Other parameter for requesting. See
+        https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+        for more info
+        :return: Returns the ClientResponse object if successful and else
+        returns `None`
         """
         return await self.raw_request(
             endpoint,

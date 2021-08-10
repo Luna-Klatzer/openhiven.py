@@ -8,7 +8,8 @@
 python3 -m pip install pytest pytest-asyncio 
 ```
 
-Installing inside the main dir of the project the current state of the module so it can be used for testing:
+Installing inside the main dir of the project the current state of the module,
+so it can be used for testing:
 ```bash
 python3 -m pip install -e .
 ```
@@ -37,6 +38,9 @@ Creating a coverage badge for the testing can be easily done using:
 ```bash
 coverage-badge -o coverage.svg
 ```
+
+*Note: Should be done inside `./pytest`, so it is recognised in the main
+README.md*
 
 ### Viewing the Report in HTML
 

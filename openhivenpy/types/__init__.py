@@ -29,18 +29,7 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-import sys
-# Only importing the Objects for the purpose of type hinting and not actual use
-from typing import TYPE_CHECKING
-
-from .. import utils
-
-if TYPE_CHECKING:
-    from .. import HivenClient
-
 __all__ = [
-    'Object',
-    'DataClassObject',
     'TextRoom',
     'LazyHouse', 'House',
     'PrivateRoom', 'PrivateGroupRoom',
@@ -58,48 +47,18 @@ __all__ = [
     'Relationship'
 ]
 
-
-class Object:
-    """ Base Class for all Hiven Type Classes. Used to signalise it's a generic type without specification """
-    ...
-
-
-class DataClassObject(Object):
-    _client: HivenClient = None
-
-    @classmethod
-    def validate(cls, data, *args, **kwargs) -> dict:
-        try:
-            return getattr(cls, 'json_validator')(data, *args, **kwargs)
-        except Exception:
-            utils.log_validation_traceback(cls, data, sys.exc_info())
-            raise
-
-    def __str__(self) -> str:
-        return repr(self)
-
-    def __repr__(self) -> str:
-        # Automatically creating a list of tuples for all values
-        info = [
-            (attribute.replace('_', ''), value) if attribute != '_client' else None
-            for attribute, value in self.__dict__.items()
-        ]
-
-        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t if t is not None else '' for t in info))
-
-
-from .textroom import *
-from .house import *
-from .private_room import *
-from .user import *
-from .message import *
-from .context import *
-from .member import *
-from .usertyping import *
 from .attachment import *
-from .feed import *
-from .entity import *
-from .invite import *
-from .mention import *
+from .context import *
 from .embed import *
+from .entity import *
+from .feed import *
+from .house import *
+from .invite import *
+from .member import *
+from .mention import *
+from .message import *
+from .private_room import *
 from .relationship import *
+from .textroom import *
+from .user import *
+from .usertyping import *

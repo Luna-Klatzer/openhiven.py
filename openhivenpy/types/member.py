@@ -9,10 +9,11 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
-from . import User
+from .user import User
 from .. import utils
-from ..exceptions import InitializationError, HTTPForbiddenError, InvalidPassedDataError
+from ..base_types import DataClassObject
+from ..exceptions import InitializationError, HTTPForbiddenError, \
+    InvalidPassedDataError
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -24,7 +25,10 @@ __all__ = ['Member']
 
 
 class Member(User):
-    """ Represents a House Member on Hiven which contains the Hiven User, role-data and member-data """
+    """
+    Represents a House Member on Hiven which contains the Hiven User, role-data
+    and member-data
+    """
     json_schema = {
         'type': 'object',
         'properties': {
@@ -60,7 +64,9 @@ class Member(User):
             self._house = data.get('house')
 
         except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__}"
+            ) from e
 
     def __repr__(self) -> str:
         info = [
@@ -78,15 +84,16 @@ class Member(User):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         ---
 
         Does NOT contain other objects and only their ids!
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         if not data.get('house_id') and data.get('house'):
             house = data.pop('house')
@@ -98,12 +105,16 @@ class Member(User):
                 house_id = None
 
             if house_id is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed house is not in the correct format!", data=data
+                )
             else:
                 data['house_id'] = house_id
 
         elif not data.get('house_id') and not data.get('house'):
-            raise InvalidPassedDataError("house_id and house missing from required data", data=data)
+            raise InvalidPassedDataError(
+                "house_id and house missing from required data", data=data
+            )
 
         data['house'] = data.get('house_id')
         data = cls.validate(data)
@@ -160,12 +171,16 @@ class Member(User):
         """
         Kicks a user from the house.
 
-        The client needs permissions to kick, or else this will raise `HivenException.Forbidden`
+        The client needs permissions to kick, or else this will raise
+        `HivenException.Forbidden`
             
-        :return: True if the request was successful else HivenException.Forbidden()
+        :return: True if the request was successful
+        :raises Forbidden: If the request failed to execute
         """
         try:
-            resp = await self._client.http.delete(f"/{self._house_id}/members/{self._user_id}")
+            resp = await self._client.http.delete(
+                f"/{self._house_id}/members/{self._user_id}"
+            )
             if not resp.status < 300:
                 raise HTTPForbiddenError()
             else:
@@ -175,7 +190,8 @@ class Member(User):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to kick the member due to an exception occurring:",
+                brief=f"Failed to kick the member due to an exception "
+                      "occurring:",
                 exc_info=sys.exc_info()
             )
             # TODO! Raise exception

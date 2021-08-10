@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 import fastjsonschema
 
-from . import DataClassObject
+from ..base_types import BaseUser
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['LazyUser', 'User']
 
 
-class LazyUser(DataClassObject):
+class LazyUser(BaseUser):
     """ Represents the standard Hiven User """
     json_schema = {
         'type': 'object',
@@ -89,7 +89,9 @@ class LazyUser(DataClassObject):
             self._bot = data.get('bot', False)
 
         except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__}"
+            ) from e
         else:
             self._client = client
 
@@ -111,56 +113,60 @@ class LazyUser(DataClassObject):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be
+        required for the creation of an instance.
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = cls.validate(data)
         return data
 
     @property
     def username(self) -> Optional[str]:
-        return getattr(self, '_username', None)
+        """ Username of the user """
+        return super().username
 
     @property
     def name(self) -> Optional[str]:
-        return getattr(self, '_name', None)
+        """ Name of the user """
+        return super().name
 
     @property
     def id(self) -> Optional[str]:
-        return getattr(self, '_id', None)
+        """ Unique string id of the user """
+        return super().id
 
     @property
     def bio(self) -> Optional[str]:
-        return getattr(self, '_bio', None)
+        """ Bio of the user """
+        return super().bio
 
     @property
     def email_verified(self) -> Optional[bool]:
-        return getattr(self, '_email_verified', None)
+        """ Returns True if the email is verified """
+        return super().email_verified
 
     @property
     def user_flags(self) -> Optional[Union[int, str]]:
-        return getattr(self, '_user_flags', None)
+        """ User flags represented as an numeric value/str """
+        return super().user_flags
 
     @property
     def icon(self) -> Optional[str]:
-        if getattr(self, '_icon', None):
-            return f"https://media.hiven.io/v1/users/{self._id}/icons/{self._icon}"
-        else:
-            return None
+        """ The icon of the user as a link """
+        return super().icon
 
     @property
     def header(self) -> Optional[str]:
-        if getattr(self, '_header', None):
-            return f"https://media.hiven.io/v1/users/{self._id}/headers/{self._header}"
-        else:
-            return None
+        """ The header of the user as a link """
+        return super().header
 
     @property
     def bot(self) -> Optional[bool]:
-        return getattr(self, '_bot', None)
+        """ Returns true when the user is a bot """
+        return super().bot
 
 
 class User(LazyUser):
@@ -228,7 +234,9 @@ class User(LazyUser):
             self._mfa_enabled = data.get('mfa_enabled')
 
         except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__}"
+            ) from e
 
     def __repr__(self) -> str:
         info = [
@@ -244,11 +252,12 @@ class User(LazyUser):
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
         """
-        Validates the data and appends data if it is missing that would be required for the creation of an
-        instance.
+        Validates the data and appends data if it is missing that would be 
+        required for the creation of an instance.
 
         :param data: Data that should be validated and used to form the object
-        :return: The modified dictionary, which can then be used to create a new class instance
+        :return: The modified dictionary, which can then be used to create a 
+         new class instance
         """
         data = LazyUser.format_obj_data(data)
         data = cls.validate(data)

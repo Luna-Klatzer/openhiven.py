@@ -1,0 +1,39 @@
+name: Codecov
+
+on: [ push ]
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: '3.8'
+    steps:
+      - name: Add mask
+        run: |
+          echo "::add-mask::${{ secrets.HIVEN_TOKEN }}"
+      - uses: actions/checkout@master
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: 3.8
+      - name: Generate coverage report
+        run: |
+          pip install pytest
+          pip install pytest-cov
+          python -m pip install --upgrade -e .
+          cd pytest
+          pytest -q --token=${{ secrets.HIVEN_TOKEN }} --cov=./ --cov-report=xml
+          cd ..
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: .
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./coverage.xml
+          flags: unittests
+          verbose: true

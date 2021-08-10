@@ -5,7 +5,7 @@ import logging
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from . import DataClassObject
+from ..base_types import DataClassObject
 
 if TYPE_CHECKING:
     from .. import HivenClient

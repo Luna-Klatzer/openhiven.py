@@ -28,9 +28,10 @@ A clear and concise description of what you expected to happen. Add if possible 
 What happened aka. error, unprovided data etc.
 
 **Additional context**
-Add any other context about the problem here. Possible customisation or environmental changes that could affect your program
+Add any other context about the problem here. Possible customisation or
+environmental changes that could affect your program
 
 **Environment**
 Python: *version*
-OpenHiven.py: *version*
+openhiven.py: *version*
 OS: *version*

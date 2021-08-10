@@ -7,7 +7,8 @@ from typing import Optional, List, Coroutine, Tuple, Dict
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from .. import utils, Object
+from .. import utils
+from ..base_types import HivenObject
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -25,10 +26,13 @@ async def _wait_until_done(task: asyncio.Task) -> None:
         await asyncio.sleep(.05)
 
 
-class DynamicEventBuffer(list, Object):
+class DynamicEventBuffer(list, HivenObject):
     """
-    The DynamicEventBuffer is a list containing all not-executed events that were received over the websocket.
-    Workers will fetch from the Buffer events and then execute them if event_listeners are assigned to them.
+    The DynamicEventBuffer is a list containing all not-executed events that
+    were received over the websocket.
+
+    Workers will fetch from the Buffer events and then execute them if
+    event_listeners are assigned to them.
     """
 
     def __init__(self, event: str, *args, **kwargs):
@@ -39,14 +43,25 @@ class DynamicEventBuffer(list, Object):
         info = [
             ('event', self.event)
         ]
-        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
+        return '<{} {}>'.format(self.__class__.__name__,
+                                ' '.join('%s=%s' % t for t in info))
 
-    def add(self, data: dict, args: Optional[tuple] = None, kwargs: Optional[dict] = None):
-        """Adds a new event to the Buffer which will trigger the listeners assigned to the event
+    def add_new_event(
+            self,
+            data: dict,
+            args: Optional[tuple] = None,
+            kwargs: Optional[dict] = None
+    ):
+        """
+        Adds a new event to the Buffer which will trigger the listeners
+        assigned to the event
 
-        :param data: The raw WebSocket data containing the information of the event
-        :param args: Args of the Event that should be passed to the event listeners
-        :param kwargs:
+        :param data: The raw WebSocket data containing the information of the
+         event
+        :param args: Args of the Event that should be passed to the event
+         listeners
+        :param kwargs: Kwargs / named args of the Event that should be passed
+         to the event listeners
         """
         if kwargs is None:
             kwargs = {}
@@ -61,11 +76,14 @@ class DynamicEventBuffer(list, Object):
         )
 
     def get_next_event(self) -> dict:
-        """ Fetches the oldest event at index 0. Raises an exception if the buffer is empty! """
+        """
+        Fetches the oldest event at index 0. Raises an exception if the buffer
+        is empty!
+        """
         return self.pop(0)
 
 
-class MessageBroker(Object):
+class MessageBroker(HivenObject):
     """ Message Broker that will store the messages in queues """
 
     def __init__(self, client: HivenClient):
@@ -87,11 +105,13 @@ class MessageBroker(Object):
 
     def create_buffer(self, event: str, args, kwargs) -> DynamicEventBuffer:
         """
-        Creates a new EventBuffer which stores events that will trigger event_listener
+        Creates a new EventBuffer which stores events that will trigger
+        event_listener
 
         :param event: The event name
         :param args: Args that should be passed for the creation of the buffer
-        :param kwargs: Kwargs that should be passed for the creation of the buffer
+        :param kwargs: Kwargs that should be passed for the creation of the
+         buffer
         :return: The newly created Buffer
         """
         new_buffer = DynamicEventBuffer(event, *args, **kwargs)
@@ -102,11 +122,14 @@ class MessageBroker(Object):
                    args: Optional[tuple] = None,
                    kwargs: Optional[dict] = None) -> DynamicEventBuffer:
         """
-        Tries to fetch a buffer from the cache. If the buffer is not found a new one will be created
+        Tries to fetch a buffer from the cache. If the buffer is not found a
+        new one will be created
 
         :param event: The event name
-        :param args: Args that should be passed for the creation of the buffer if it's not found
-        :param kwargs: Kwargs that should be passed for the creation of the buffer if it's not found
+        :param args: Args that should be passed for the creation of the buffer
+         if it's not found
+        :param kwargs: Kwargs that should be passed for the creation of the
+         buffer if it's not found
         :return: The fetched or newly created buffer instance
         """
         if kwargs is None:
@@ -154,8 +177,11 @@ class MessageBroker(Object):
             raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
 
 
-class Worker(Object):
-    """ Worker class targeted at running event_listeners that were fetched from the assigned event_buffer """
+class Worker(HivenObject):
+    """
+    Worker class targeted at running event_listeners that were fetched from
+    the assigned event_buffer
+    """
 
     def __init__(self, event: str, message_broker):
         self.assigned_event = event
@@ -168,19 +194,25 @@ class Worker(Object):
     def __repr__(self):
         info = [
             ('event', self.assigned_event),
+            ('done', self.done)
         ]
-        return '<{} {}>'.format(self.__class__.__name__, ' '.join('%s=%s' % t for t in info))
+        return '<{} {}>'.format(
+            self.__class__.__name__, ' '.join('%s=%s' % t for t in info)
+        )
 
     @property
     def assigned_event_buffer(self) -> DynamicEventBuffer:
+        """ The assigned event buffer to the worker """
         return self.message_broker.event_buffers.get(self.assigned_event)
 
     @property
     def closing(self) -> bool:
+        """ Returns whether the client connection is currently closing """
         return getattr(self.client.connection, '_closing', False)
 
     @property
     def force_closing(self) -> bool:
+        """ Returns whether force_closing is enabled in the message_broker """
         return getattr(self.message_broker, '_force_closing', False)
 
     async def _gather_tasks(self, tasks: List[Coroutine]) -> None:
@@ -188,7 +220,10 @@ class Worker(Object):
         await asyncio.gather(*tasks)
 
     def done(self) -> bool:
-        """ Returns whether the process is finished and all tasks finished correctly """
+        """
+        Returns whether the process is finished and all tasks finished
+        correctly
+        """
         return all([
             self._tasks_done,
             self._sequence_loop.done(),
@@ -196,9 +231,12 @@ class Worker(Object):
         ])
 
     async def cancel(self) -> None:
-        """ Cancels all tasks in the current worker and the main loop that was started using run_forever() """
+        """
+        Cancels all tasks in the current worker and the main loop that was
+        started using run_forever()
+        """
         for task in self._listener_tasks:
-            if task.done():
+            if task.done():  # already done or cancelled
                 continue
 
             task.cancel()
@@ -223,7 +261,9 @@ class Worker(Object):
             await asyncio.sleep(.05)
 
     async def _loop_sequence(self) -> None:
-        """ Worker Loop sequence. Only stops when connection.close() was called"""
+        """
+        Worker Loop sequence. Only stops when connection.close() was called
+        """
         while not self.closing:
             # If the event_buffer is not empty
             if self.assigned_event_buffer:
@@ -238,10 +278,12 @@ class Worker(Object):
     @utils.wrap_with_logging
     async def run_forever(self) -> Tuple:
         """
-        Runs a while loop where the worker will wait for events and call the listeners when received
+        Runs a while loop where the worker will wait for events and call the
+        listeners when received.
         Does not return until the client received the close call!
         """
-        # Unless the closing signal is received inside the client it will run forever
+        # Unless the closing signal is received inside the client it will run
+        # forever
         self._sequence_loop = asyncio.create_task(self._loop_sequence())
         try:
             return await self._sequence_loop
@@ -252,12 +294,16 @@ class Worker(Object):
 
     @utils.wrap_with_logging
     async def run_one_sequence(self):
-        """ Fetches an event from the buffer and runs all assigned event listeners """
+        """
+        Fetches an event from the buffer and runs all assigned event listeners
+        """
         if self.assigned_event_buffer:
             # Fetching the even data for the next event
             event: dict = self.assigned_event_buffer.get_next_event()
 
-            listeners: List[DispatchEventListener] = self.client.active_listeners.get(self.assigned_event)
+            listeners: List[
+                DispatchEventListener] = self.client.active_listeners.get(
+                self.assigned_event)
 
             # If no listeners exists it will just return
             if not listeners:
@@ -268,26 +314,35 @@ class Worker(Object):
 
             try:
                 # Creating a new task for every active listener
-                tasks: List[Coroutine] = [listener(*args, **kwargs) for listener in listeners]
+                tasks: List[Coroutine] = [
+                    listener(*args, **kwargs) for listener in listeners
+                ]
 
-                # if queue_events is active running a sequence will not return until all event_listeners were dispatched
+                # if queue_events is active running a sequence will not return
+                # until all event_listeners were dispatched
                 if self.client.queue_events:
                     task = asyncio.create_task(self._gather_tasks(tasks))
                     self._listener_tasks.append(task)
                     await task
                 else:
-                    # without queuing all tasks will be assigned to the asyncio event_loop and run parallel
+                    # without queuing all tasks will be assigned to the asyncio
+                    # event_loop and run parallel
                     task = asyncio.create_task(self._gather_tasks(tasks))
                     self._listener_tasks.append(task)
 
             except asyncio.CancelledError:
-                logger.debug(f"Worker {repr(self)} was cancelled and did not finish its tasks!")
+                logger.debug(
+                    f"Worker {repr(self)} was cancelled and "
+                    f"did not finish its tasks!"
+                )
             except Exception as e:
-                self.assigned_event_buffer.add(**event)
-                raise RuntimeError(f"Failed to run listener tasks assigned to {repr(self)}") from e
+                self.assigned_event_buffer.add_new_event(**event)
+                raise RuntimeError(
+                    f"Failed to run listener tasks assigned to {repr(self)}"
+                ) from e
 
 
-class EventConsumer(Object):
+class EventConsumer(HivenObject):
     """ EventConsumer class which will simply manage the workers on runtime """
 
     def __init__(self, message_broker: MessageBroker):
@@ -307,14 +362,20 @@ class EventConsumer(Object):
         return worker
 
     def tasks_done(self) -> bool:
-        """ Returns whether all workers and tasks are done (cancelled, raised an exception or finished)"""
+        """
+        Returns whether all workers and tasks are done
+        (cancelled, raised an exception or finished)
+        """
         return all([
             *(t.done() for t in self._tasks.values()),
             *(w.done() for w in self.workers.values())
         ])
 
     async def close(self) -> None:
-        """ Closes all worker tasks that are currently running. Waits until everything was cleaned up and finished """
+        """
+        Closes all worker tasks that are currently running. Waits until
+        everything was cleaned up and finished
+        """
         for w in self.workers.values():
             w: Worker
             if w.done():
@@ -329,7 +390,8 @@ class EventConsumer(Object):
 
             t.cancel()
 
-        # Waiting until all workers and tasks were really finished and everything is cleaned up
+        # Waiting until all workers and tasks were really finished and
+        # everything is cleaned up
         while not self.tasks_done():
             await asyncio.sleep(.05)
 
@@ -348,9 +410,11 @@ class EventConsumer(Object):
     async def run_all_workers(self) -> tuple:
         """
         Creates workers for all available events and runs them parallel
-        *non_buffer_events* in this case are ignored since they are non-websocket events and need to be called using
-        call_listeners. Those tasks will not be running parallel but will be called in the websocket task and delay
-        the websocket receiving process, so that startup can be easier managed (on_init, on_ready)
+        *non_buffer_events* in this case are ignored since they are
+        non-websocket events and need to be called using call_listeners. Those
+        tasks will not be running parallel but will be called in the websocket
+        task and delay the websocket receiving process, so that startup can be
+         easier managed (on_init, on_ready)
         """
         workers = [
             self.get_worker(_) for _ in self.client.available_events if _ not in self.client.non_buffer_events

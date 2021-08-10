@@ -7,8 +7,9 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from . import DataClassObject, House, TextRoom, User
+from . import House, TextRoom, User
 from .. import utils
+from ..base_types import DataClassObject
 from ..exceptions import InitializationError
 
 if TYPE_CHECKING:

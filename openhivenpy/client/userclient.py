@@ -28,7 +28,11 @@ class UserClient(HivenClient):
         Cancels an open friend request if it exists
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful else it will raise an exception
+        :return: True if the request was successful
+        :raises TypeError: If the passed user is not one of the types: int or
+         types.User
+        :raises HTTPError: If the request was unsuccessful and an error was
+         encountered
         """
         try:
             if type(user) is int:
@@ -36,9 +40,13 @@ class UserClient(HivenClient):
             elif type(user) is types.User:
                 user_id = str(getattr(user, 'id'))
             else:
-                raise TypeError(f"Expected openhivenpy.types.User or int! Not {type(user)}")
+                raise TypeError(
+                    f"Expected openhivenpy.types.User or int! Not {type(user)}"
+                )
 
-            resp = await self.http.delete(endpoint=f"/relationships/@me/friend-requests/{user_id}")
+            resp = await self.http.delete(
+                endpoint=f"/relationships/@me/friend-requests/{user_id}"
+            )
             return True
 
         except Exception as e:
@@ -98,7 +106,9 @@ class UserClient(HivenClient):
         Blocks a user on Hiven
 
         :param user: Int or User Object used for the request
-        :return: True if the request was successful else it will raise an exception
+        :return: True if the request was successful
+        :raises HTTPError: If the request was unsuccessful and an error was
+         encountered
         """
         try:
             if type(user) is int:
@@ -133,7 +143,9 @@ class UserClient(HivenClient):
         Unblocks a user if the user is blocked
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful else it will raise an exception
+        :return: True if the request was successful
+        :raises HTTPError: If the request was unsuccessful and an error was
+         encountered
         """
         try:
             if type(user) is int:
@@ -167,7 +179,9 @@ class UserClient(HivenClient):
         Sends a friend request to a user
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful else it will raise an exception
+        :return: True if the request was successful
+        :raises HTTPError: If the request was unsuccessful and an error was
+         encountered
         """
         try:
             if type(user) is int:

@@ -18,14 +18,14 @@ class TestDynamicEventBuffer:
 
     def test_add(self):
         buffer = openhivenpy.gateway.DynamicEventBuffer("ready")
-        buffer.add({})
+        buffer.add_new_event({})
         assert buffer[0]['data'] == {}
         assert buffer[0]['args'] == ()
         assert buffer[0]['kwargs'] == {}
 
     def test_get_next_event(self):
         buffer = openhivenpy.gateway.DynamicEventBuffer("ready")
-        buffer.add({})
+        buffer.add_new_event({})
         assert buffer[0]['data'] == {}
         assert buffer[0]['args'] == ()
         assert buffer[0]['kwargs'] == {}
@@ -45,7 +45,7 @@ class TestMessageBroker:
         client.add_multi_listener("ready", self.call)  # <== only for testing
         message_broker = openhivenpy.gateway.MessageBroker(client)
         buffer = message_broker.get_buffer("ready")
-        buffer.add({})
+        buffer.add_new_event({})
 
         async def test():
             await asyncio.sleep(.5)
@@ -89,11 +89,12 @@ class TestWorker:
         async def on_ready():
             print("\non_ready was called!")
 
-            client.message_broker.get_buffer("room_create").add({})
+            client.message_broker.get_buffer("room_create").add_new_event({})
             w = client.message_broker.event_consumer.get_worker('room_create')
             await w.run_one_sequence()
 
-            client.message_broker.get_buffer("message_create").add({})
+            client.message_broker.get_buffer("message_create").add_new_event(
+                {})
             w = client.message_broker.event_consumer.get_worker('message_create')
             await w.run_one_sequence()
 
@@ -111,7 +112,8 @@ class TestWorker:
         async def on_ready():
             print("\non_ready was called!")
 
-            client.message_broker.get_buffer("message_create").add({})
+            client.message_broker.get_buffer("message_create").add_new_event(
+                {})
             w = client.message_broker.event_consumer.get_worker('message_create')
 
             # Causing an error with passing

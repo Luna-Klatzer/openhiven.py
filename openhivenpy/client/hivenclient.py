@@ -7,22 +7,20 @@ from asyncio import AbstractEventLoop
 from typing import Optional
 
 from .cache import ClientCache
-from .. import Object
 from .. import types
 from .. import utils
+from ..base_types import HivenObject
 from ..events import HivenParsers, HivenEventHandler
-from ..exceptions import (SessionCreateError, InvalidTokenError, WebSocketFailedError, HivenConnectionError)
+from ..exceptions import (SessionCreateError, InvalidTokenError,
+                          WebSocketFailedError, HivenConnectionError)
 from ..gateway import Connection, HTTP, MessageBroker
 
 __all__ = ['HivenClient']
 
 logger = logging.getLogger(__name__)
 
-USER_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("USER_TOKEN_LEN"))
-BOT_TOKEN_LEN: int = utils.safe_convert(int, os.getenv("BOT_TOKEN_LEN"))
 
-
-class HivenClient(HivenEventHandler, Object):
+class HivenClient(HivenEventHandler, HivenObject):
     """ Main Class for connecting to Hiven and interacting with the API. """
 
     def __init__(
@@ -38,33 +36,41 @@ class HivenClient(HivenEventHandler, Object):
             close_timeout: Optional[int] = None
     ):
         """
-        :param token: Token that can be passed pre-runtime. If not set, the token will need to be passed at
-                      run-time. If a token is passed using environment variables and no other token is passed that one
-                      will be used.
-        :param loop: Loop that will be used to run the Client. If a new one is passed on run() that one will be
-                     used instead
-        :param log_websocket: If set to True will additionally log websocket messages and their content
+        :param token: Token that can be passed pre-runtime. If not set, the
+         token will need to be passed at run-time. If a token is passed using
+         local available environment variables and no other token is passed
+         that one will be used.
+        :param loop: Loop that will be used to run the Client. If a new one is
+         passed on run() that one will be used instead
+        :param log_websocket: If set to True will additionally log websocket
+         messages and their content
         :param host: The host API endpoint of Hiven. Defaults to api.hiven.io
         :param api_version: The API version that should be used. Defaults to v1
-        :param queue_events: If set to True the received events over the websocket will be queued and event_listeners
-                             will called one after another. If set to False all events are directly assigned to the
-                             asyncio event_loop and executed parallel
-        :param heartbeat: Intervals in which the bot will send heartbeats to the Websocket.
-                          Defaults to the pre-set environment heartbeat (30000)
-        :param close_timeout: Seconds after the websocket will timeout after the end handshake didn't complete
-                              successfully. Defaults to the pre-set environment close_timeout (40)
+        :param queue_events: If set to True the received events over the
+         websocket will be queued and event_listeners will called one after
+         another. If set to False all events are directly assigned to the
+         asyncio event_loop and executed parallel
+        :param heartbeat: Intervals in which the bot will send heartbeats to
+         the Websocket. Defaults to the pre-set environment variable heartbeat
+         (default at 30000)
+        :param close_timeout: Seconds after the websocket will timeout after
+         the end handshake didn't complete successfully. Defaults to the pre-set
+         environment variable close_timeout (default at 40)
         """
         self._token = token
         self._loop = loop
         self._log_websocket = log_websocket
         self._queue_events = queue_events
         self._client_user = None
-        self._storage = ClientCache(client=self, log_websocket=log_websocket, token=self._token)
+        self._storage = ClientCache(client=self, log_websocket=log_websocket,
+                                    token=self._token)
         self._connection = Connection(
-            self, api_version=api_version, host=host, heartbeat=heartbeat, close_timeout=close_timeout
+            self, api_version=api_version, host=host, heartbeat=heartbeat,
+            close_timeout=close_timeout
         )
 
-        # Inheriting the HivenEventHandler class that will call and trigger the parsers for events
+        # Inheriting the HivenEventHandler class that will call and trigger
+        # the parsers for events
         super().__init__(client=self, parsers=HivenParsers(self))
 
     def __str__(self) -> str:
@@ -114,7 +120,7 @@ class HivenClient(HivenEventHandler, Object):
 
     def run(
             self,
-            token: str = os.getenv('HIVEN_TOKEN'),
+            token: str = None,
             *,
             loop: Optional[asyncio.AbstractEventLoop] = None,
             restart: bool = False
@@ -122,25 +128,33 @@ class HivenClient(HivenEventHandler, Object):
         """
         Standard function for establishing a connection to Hiven
 
-        :param token: Token that should be used to connect to Hiven. If none is passed it will try to fetch the token
-                      using os.getenv()
-        :param loop: Event loop that will be used to execute all async functions. Uses 'asyncio.get_event_loop()' to
-                     fetch the EventLoop. Will create a new one if no one was created yet. If the loop was passed during
-                     initialisation that one will be used if no loop is passed. If a new loop is passed, that one will
-                     be used for execution.
-        :param restart: If set to True the Client will restart if an error is encountered!
+        :param token: Token that should be used to connect to Hiven. If none is
+         passed it will try to fetch the token using os.getenv()
+        :param loop: Event loop that will be used to execute all async
+         functions. Uses 'asyncio.get_event_loop()' to fetch the EventLoop.
+         Will create a new one if no one was created yet. If the loop was
+         passed during initialisation that one will be used if no loop is
+         passed. If a new loop is passed, that one will be used for execution.
+        :param restart: If set to True the Client will restart if an error is
+         encountered!
         """
         try:
+            if token is None:
+                token = os.getenv('HIVEN_TOKEN')
+
             if self._loop is not None:
                 self._loop = loop if loop is not None else self._loop
             else:
                 try:
                     self._loop = loop if loop is not None else asyncio.get_event_loop()
                 except RuntimeError as e:
-                    # If the function is called outside of the main thread a new event_loop must be created, so that the
-                    # process can still be run. This will raise an exception though if the user tries to start the
-                    # client while another loop already is running! Therefore run() should only be used when no
-                    # event_loop was created yet that could interfere with the process, else connect() is available
+                    # If the function is called outside of the main thread a
+                    # new event_loop must be created, so that the process can
+                    # still be run. This will raise an exception though if the
+                    # user tries to start the client while another loop already
+                    # is running! Therefore run() should only be used when no
+                    # event_loop was created yet that could interfere with the
+                    # process, else connect() is available
                     if "There is no current event loop in thread" in str(e):
                         loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(loop)
@@ -165,26 +179,45 @@ class HivenClient(HivenEventHandler, Object):
                 brief=f"Failed to keep alive connection to Hiven:",
                 exc_info=sys.exc_info()
             )
-            raise HivenConnectionError("Failed to keep alive connection to Hiven") from e
+            raise HivenConnectionError(
+                "Failed to keep alive connection to Hiven") from e
 
-    async def connect(self, token: str = os.getenv('HIVEN_TOKEN'), *, restart: bool = False) -> None:
+    async def connect(
+            self,
+            token: str = None,
+            *,
+            restart: bool = False
+    ) -> None:
         """Establishes a connection to Hiven and does not return until finished
 
-        :param token: Token that should be used to connect to Hiven. If none is passed it will try to fetch the token
-                      using os.getenv(). Will overwrite the pre-runtime passed token if one was passed
-        :param restart: If set to True the Client will restart if an error is encountered!
+        :param token: Token that should be used to connect to Hiven. If none is
+         passed it will try to fetch the token in the environment variables
+         using os.getenv('HIVEN_TOKEN'). Will overwrite the pre-runtime passed
+         token if one was passed
+        :param restart: If set to True the Client will restart if an error is
+         encountered!
         """
         try:
+            if token is None:
+                token = os.getenv('HIVEN_TOKEN')
+
             if self._token is None and token is not None:
                 self._token = token
 
             self.storage['token'] = self._token
 
+            user_token_len: int = utils.safe_convert(
+                int, os.getenv("USER_TOKEN_LEN")
+            )
+            bot_token_len: int = utils.safe_convert(
+                int, os.getenv("BOT_TOKEN_LEN")
+            )
+
             if self._token is None or self._token == "":
                 logger.critical(f"[HIVENCLIENT] Empty Token was passed!")
                 raise InvalidTokenError("Empty Token was passed!")
 
-            elif len(self._token) not in (USER_TOKEN_LEN, BOT_TOKEN_LEN):
+            elif len(self._token) not in (user_token_len, bot_token_len):
                 logger.critical(f"[HIVENCLIENT] Invalid Token was passed")
                 raise InvalidTokenError("Invalid Token was passed")
 
@@ -205,14 +238,19 @@ class HivenClient(HivenEventHandler, Object):
                 brief=f"Failed to keep alive connection to Hiven:",
                 exc_info=sys.exc_info()
             )
-            raise HivenConnectionError(f"Failed to keep alive connection to Hiven") from e
+            raise HivenConnectionError(
+                f"Failed to keep alive connection to Hiven"
+            ) from e
 
     async def close(self, force: bool = False) -> None:
-        """ Closes the Connection to Hiven and stops the running WebSocket and the Event Processing Loop
+        """
+        Closes the Connection to Hiven and stops the running WebSocket and
+        the Event Processing Loop
 
-        :param force: If set to True the running event-listener workers will be forced closed, which may lead to running
-                      code of event-listeners being stopped while performing actions. If False the stopping will wait
-                      for all running event_listeners to finish
+        :param force: If set to True the running event-listener workers will be
+         forced closed, which may lead to running code of event-listeners being
+         stopped while performing actions. If False the stopping will wait
+         for all running event_listeners to finish
         """
         await self.connection.close(force)
         self.storage.closing_cleanup()
@@ -250,8 +288,11 @@ class HivenClient(HivenEventHandler, Object):
         """
         try:
             for key in kwargs.keys():
-                if key in ['header', 'icon', 'bio', 'location', 'website', 'username']:
-                    await self.http.patch(endpoint="/users/@me", json={key: kwargs.get(key)})
+                if key in ['header', 'icon', 'bio', 'location', 'website',
+                           'username']:
+                    await self.http.patch(
+                        endpoint="/users/@me", json={key: kwargs.get(key)}
+                    )
 
                     return True
 
@@ -324,7 +365,8 @@ class HivenClient(HivenEventHandler, Object):
 
         ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while
         the instance exists the data will not be updated!
 
         :param user_id: id of the User
@@ -359,7 +401,8 @@ class HivenClient(HivenEventHandler, Object):
 
         ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while
         the instance exists the data will not be updated!
 
         :param house_id: id of the House
@@ -394,8 +437,9 @@ class HivenClient(HivenEventHandler, Object):
 
         ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
-        the instance exists the data will not be updated!
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while the instance exists the data will not be
+        updated!
 
         :param entity_id: id of the Entity
         :return: The Entity instance if it was found else None
