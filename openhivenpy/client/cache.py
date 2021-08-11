@@ -51,15 +51,17 @@ def _create_default_dict(log_websocket: bool) -> dict:
 
 class ClientCache(dict, HivenObject):
     """
-    Client Cache Class used for storing all data of the Client. Emulates a dictionary and contains additional
-    functions to interact with the Client cache more easily and use functions for better readability.
+    Client Cache Class used for storing all data of the Client. Emulates a
+    dictionary and contains additional functions to interact with the Client
+    cache more easily and use functions for better readability.
     """
 
     def __init__(self, client: HivenClient, log_websocket: bool, **kwargs):
         super(ClientCache, self).__init__(**kwargs)
         self.client = client
         self.update(
-            # Updating the passed dict as well to avoid data being overwritten that were passed with args or kwargs
+            # Updating the passed dict as well to avoid data being overwritten
+            # that were passed with args or kwargs
             utils.update_and_return(
                 _create_default_dict(log_websocket), **kwargs
             )
@@ -69,7 +71,8 @@ class ClientCache(dict, HivenObject):
         """
         Cleans all remaining data after the client exited.
 
-        Not supposed to be called outside of the intended HivenClient.close() method!
+        Not supposed to be called outside of the intended HivenClient.close()
+        method!
         """
         self.update(_create_default_dict(self['log_websocket']))
         self['client_user'] = {}

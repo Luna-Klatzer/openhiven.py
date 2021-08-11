@@ -195,7 +195,7 @@ class TestHivenEventHandler:
             await client.call_listeners('ready', (), {})
 
         async def run():
-            assert len(client.active_listeners['ready']) == 0
+            assert not client.active_listeners
 
             client.add_single_listener(event_name='ready', awaitable=on_ready)
             # Checking if the listener was added correctly

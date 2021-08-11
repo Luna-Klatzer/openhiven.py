@@ -43,18 +43,34 @@ class HivenENV:
          successful
         """
         self.unload_env()
-        if load_dotenv(path, verbose=True, override=True):
-            for elem in self.ENV_VAR_KEYS:
-                if os.getenv(elem) is None:
-                    break
-            # If all elements are found then the .env succeeded loading
-            else:
+        try:
+            if load_dotenv(path, verbose=True, override=True):
                 logger.debug(f"Loaded {path} as .env file")
-                return dict((item, os.getenv(item)) for item in
-                            self.ENV_VAR_KEYS), True
+                return dict(
+                    (item, os.getenv(item)) for item in self.ENV_VAR_KEYS
+                    if os.getenv(item) is not None
+                ), True
+        except Exception:
+            ...
 
         logger.debug(f"Ignoring failed load of {path} as .env file")
         return dict((item, None) for item in self.ENV_VAR_KEYS), False
+
+    def load_default_env(self):
+        """ Loads the default library environment file """
+        name = 'openhivenpy.env'
+        env_path = pkg_resources.resource_filename(__name__, name)
+
+        env_vars, success = self.load_env_file(env_path)
+        # If the load failed it will return False
+        if success:
+            self._env_vars = env_vars
+            return env_vars
+        else:
+            raise HivenENVError(
+                f"Failed to load .env file of the module! "
+                f"Expected {env_path} to exist"
+            )
 
     def load_env(
             self, path: Optional[str] = None, search_other: bool = True
@@ -66,7 +82,10 @@ class HivenENV:
         Default function that will be called when importing the openhiven.py
         module. This function will attempt to find an env file in the workdir
         and if it exists that one will be loaded instead. This can be turned
-        off by setting search_other to False
+        off by setting search_other to False.
+
+        If certain variables are missing in the file the defaults of the
+        library will be used to avoid issues while running.
 
         :param path: Optional path that can be passed to load a specific .env
          file. If the file does not contain all data it will default to loading
@@ -82,10 +101,11 @@ class HivenENV:
          openhiven.env file and all loading attempts were unsuccessful
         :returns: The loaded environment dictionary
         """
+        self.load_default_env()
         if path is not None:
             env_vars, success = self.load_env_file(path)
             if success:
-                self._env_vars = env_vars
+                self._env_vars.update(env_vars)
                 return env_vars
 
         if search_other:
@@ -102,23 +122,10 @@ class HivenENV:
                         )
                         env_vars, success = self.load_env_file(env_path)
                         if success:
-                            self._env_vars = env_vars
+                            self._env_vars.update(env_vars)
                             return env_vars
                         else:
                             # Unloading the environment variables since the
-                            # files is not in the right format
+                            # file is not in the right format
                             self.unload_env()
-
-        name = 'openhivenpy.env'
-        env_path = pkg_resources.resource_filename(__name__, name)
-
-        env_vars, success = self.load_env_file(env_path)
-        # If the load failed it will return False
-        if success:
-            self._env_vars = env_vars
-            return env_vars
-        else:
-            raise HivenENVError(
-                f"Failed to load .env file of the module! "
-                f"Expected {env_path} to exist"
-            )
+                            self.load_default_env()

@@ -79,8 +79,10 @@ class TestWorker:
         assert worker.assigned_event == "ready"
         assert worker.message_broker == message_broker
         assert worker.client == message_broker.client
-        assert worker.assigned_event_buffer == message_broker.event_buffers['ready']
-        assert repr(worker) == f'<Worker event={worker.assigned_event}>'
+        assert worker.assigned_event_buffer == message_broker.event_buffers[
+            'ready']
+        assert repr(worker) == \
+               f'<Worker event={worker.assigned_event} done=False>'
 
     def test_run_one_sequence(self):
         client = openhivenpy.UserClient()

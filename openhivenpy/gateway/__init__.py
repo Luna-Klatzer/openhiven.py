@@ -329,3 +329,5 @@ class Connection(HivenObject):
             raise RuntimeError(
                 "Failed to stop client due to an exception occurring"
             ) from e
+        finally:
+            self.client.cleanup_listeners()

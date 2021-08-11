@@ -24,7 +24,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ones!
 
 ### Added
-
 - Message-Broker for handling incoming events and distribute them to the
   listeners.
 - Event-Buffers, which store the events and will one by one execute the events/
@@ -62,6 +61,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Cache implementation using cache.py, which will hold and store values and
   provide functions for generating data and update the cache correctly. This
   will remove implementations in the data classes itself.
+- Dot-Env Handling, which will now load the openhivenpy.env file on default and
+  update all variables based on the given input. This will avoid None values
+  when an .env file only updates a few values
 
 ### Removed
 - Old structure (everything not mentioned in changed or added is likely gone)
