@@ -300,7 +300,9 @@ class Connection(HivenObject):
                or not self.socket_closed):
             await asyncio.sleep(.05)
 
-    async def close(self, force: bool = False) -> None:
+    async def close(
+            self, force: bool = False, remove_listeners: bool = True
+    ) -> None:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the
         Event Processing Loop
@@ -313,6 +315,9 @@ class Connection(HivenObject):
          forced closed, which may lead to running code of event-listeners being
          stopped while performing actions. If False the stopping will wait for
          all running event_listeners to finish
+        :param remove_listeners: If sett to True, it will remove all listeners
+         including the ones created using @client.event(), add_multi_listener()
+         and add_single_listener()
         """
         try:
             self._connection_status = "CLOSING"
@@ -340,4 +345,5 @@ class Connection(HivenObject):
                 "Failed to stop client due to an exception occurring"
             ) from e
         finally:
-            self.client.cleanup_listeners()
+            if remove_listeners:
+                self.client.cleanup_listeners()

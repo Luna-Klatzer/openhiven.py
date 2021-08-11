@@ -242,7 +242,9 @@ class HivenClient(HivenEventHandler, HivenObject):
                 f"Failed to keep alive connection to Hiven"
             ) from e
 
-    async def close(self, force: bool = False) -> None:
+    async def close(
+            self, force: bool = False, remove_listeners: bool = True
+    ) -> None:
         """
         Closes the Connection to Hiven and stops the running WebSocket and
         the Event Processing Loop
@@ -251,8 +253,11 @@ class HivenClient(HivenEventHandler, HivenObject):
          forced closed, which may lead to running code of event-listeners being
          stopped while performing actions. If False the stopping will wait
          for all running event_listeners to finish
+        :param remove_listeners: If sett to True, it will remove all listeners
+         including the ones created using @client.event(), add_multi_listener()
+         and add_single_listener()
         """
-        await self.connection.close(force)
+        await self.connection.close(force, remove_listeners)
         self.storage.closing_cleanup()
         logger.debug(f"[HIVENCLIENT] Client {repr(self)} was closed")
 

@@ -53,7 +53,7 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await client.close()
+            await client.close(remove_listeners=False)
 
         client.run(self.token)
         client.run(self.token)
