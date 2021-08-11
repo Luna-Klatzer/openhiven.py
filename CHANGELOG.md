@@ -51,6 +51,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `call_listeners` to call all listeners for an event based on the passed args
   and kwargs. This will call them directly and not utilise the message-broker
   unlike `dispatch_event`
+- Added `HTTPRateLimitError` for receiving http rate-limits (429) and parameter
+  retry_on_rate_limit to raw_request()
 
 ### Changed
 - Rewrite of the base structure

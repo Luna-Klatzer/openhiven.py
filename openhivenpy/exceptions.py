@@ -34,12 +34,13 @@ __all__ = [
 
     'MessageBrokerError', 'EventConsumerLoopError', 'WorkerTaskError',
 
-    'HivenGatewayError', 'KeepAliveError', 'WebSocketMessageError', 'WebSocketFailedError',
-    'WebSocketClosedError', 'RestartSessionError',
+    'HivenGatewayError', 'KeepAliveError', 'WebSocketMessageError',
+    'WebSocketFailedError', 'WebSocketClosedError', 'RestartSessionError',
 
-    'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError', 'HTTPFailedRequestError',
-    'HTTPForbiddenError', 'HTTPResponseError', 'HTTPReceivedNoDataError', 'HTTPNotFoundError',
-    'HTTPInternalServerError',
+    'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError',
+    'HTTPFailedRequestError', 'HTTPForbiddenError', 'HTTPResponseError',
+    'HTTPReceivedNoDataError', 'HTTPNotFoundError', 'HTTPInternalServerError',
+    'HTTPRateLimitError',
 
     'APIError',
 
@@ -206,9 +207,16 @@ class HTTPNotFoundError(HTTPError):
     error_msg = "Failed to reach the specified endpoint [Code: 404]"
 
 
+class HTTPRateLimitError(HTTPError):
+    """ Received a RateLimit which blocks the request from performing """
+    error_msg = "Failed to reach the specified endpoint due to rate-limit " \
+                "[Code: 429]"
+
+
 class HTTPInternalServerError(HTTPError):
     """ Failed to reach the specified endpoint """
-    error_msg = "Failed to perform request due to Hiven internal server error"
+    error_msg = "Failed to perform request due to Hiven internal server " \
+                "error [Code: 5**]"
 
 
 class HTTPSessionNotReadyError(HTTPError):
@@ -218,12 +226,14 @@ class HTTPSessionNotReadyError(HTTPError):
 
 class HTTPForbiddenError(HTTPFailedRequestError):
     """ The client was forbidden to perform a Request """
-    error_msg = "The client was forbidden to execute a certain task or function!"
+    error_msg = "The client was forbidden to execute a certain task or " \
+                "function!"
 
 
 class HTTPResponseError(HTTPError):
     """ Response was in wrong format or expected data was not received """
-    error_msg = "Failed to handle Response and utilise data! Code: {}! See HTTP logs!"
+    error_msg = "Failed to handle Response and utilise data! Code: {}! " \
+                "See HTTP logs!"
 
 
 class HTTPReceivedNoDataError(HTTPError):
@@ -231,19 +241,26 @@ class HTTPReceivedNoDataError(HTTPError):
     Received a response without the required data field or
     received a 204(No Content) in a request that expected data.
     """
-    error_msg = "Response does not contain the expected Data! Code: {}! See HTTP logs!"
+    error_msg = "Response does not contain the expected Data! Code: {}! " \
+                "See HTTP logs!"
 
 
 # -------- API --------
 
 
 class APIError(HTTPError):
-    """ An exception in an API-related function that was unable to properly interact with the Hiven servers """
+    """
+    An exception in an API-related function that was unable to properly
+    interact with the Hiven servers
+    """
     error_msg = "Failed to properly execute the API function"
 
 
 class APIForbidden(APIError):
-    """ An exception in an API-related function that was unable to properly interact with the Hiven servers """
+    """
+    An exception in an API-related function that was unable to properly
+    interact with the Hiven servers
+    """
     error_msg = "You do not have the permission to perform this action"
 
 
@@ -261,7 +278,8 @@ class InvalidPassedDataError(InitializationError):
         if args:
             arg = "".join([str(arg) for arg in args])
         else:
-            arg = "The initializer failed to validate and utilise the data likely due to wrong data passed!"
+            arg = "The initializer failed to validate and utilise the data " \
+                  "likely due to wrong data passed!"
 
         if data:
             arg += f"\n Data: {data}"
@@ -272,8 +290,11 @@ class InvalidPassedDataError(InitializationError):
 
 
 class ExecutionLoopError(HivenError):
-    """ An exception occurred in the execution loop running parallel to the core """
-    error_msg = "An exception occurred in the execution loop running parallel to the core"
+    """
+    An exception occurred in the execution loop running parallel to the core
+    """
+    error_msg = "An exception occurred in the execution loop running parallel " \
+                "to the core"
 
 
 class ExecutionLoopStartError(HivenError):
