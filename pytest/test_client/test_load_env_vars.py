@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import openhivenpy
 
@@ -10,8 +11,8 @@ default_env_vars = openhivenpy.env.env_vars  # <== openhivenpy.env
 
 
 class TestENV:
-    CORRECT_PATH = f'{os.path.dirname(__file__)}\\correct.env'
-    FALSE_PATH = f'{os.path.dirname(__file__)}\\false.env'
+    CORRECT_PATH = str(Path(f'{os.path.dirname(__file__)}') / f'correct.env')
+    FALSE_PATH = str(Path(f'{os.path.dirname(__file__)}') / 'false.env')
 
     def test_load(self):
         openhivenpy.env.load_env(search_other=False)  # <== openhivenpy.env
