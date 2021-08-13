@@ -18,7 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
-## [v0.2.dev1] - 2021-08-10
+## [v0.2.dev1] - 2021-08-13
 
 - Rewrite of the base structure. Not all changes will be noted here, but main
   ones!
