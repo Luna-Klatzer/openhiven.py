@@ -1,6 +1,6 @@
 ---
 name: Feature request 
-about: Suggest an idea for this project 
+about: Suggest an idea for this project. Please only open when a maintainer asked you to in 'Discussions'. Open there a discussion first before using this 
 title: '[Feature] ...'
 labels: question
 request assignees: Nxybi, Luna-Klatzer

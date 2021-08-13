@@ -1,6 +1,6 @@
 ---
 name: Bug Report 
-about: Create a bug report for a bug we missed and should fix 
+about: Create a bug report for a bug we missed and should fix. Please only open when a maintainer asked you to in 'Discussions'. Open there a discussion first before using this 
 title: '[Bug] ...'
 labels: bug 
 assignees: Nxybi, Luna-Klatzer
