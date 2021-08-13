@@ -10,6 +10,10 @@
         - [Install (Github Build)](#install-github-build)
     - [Documentation](#documentation)
         - [Usage Example (v0.1.3.2)](#usage-example-v0132)
+    - [Development](#development)
+        - [Testing](#testing)
+        - [Building](#building)
+        - [Uploading to PyPi and testing using `twine`](#uploading-to-pypi-and-testing-using-twine)
     - [Contributors](#contributors)
     - [Copyright and License](#copyright-and-license)
 
@@ -138,6 +142,53 @@ if __name__ == '__main__':
     client = Bot()
     client.run("Insert token")
 
+```
+
+## Development
+
+### Testing
+
+Testing openhiven.py is done over GitHub Actions and more specific `pytest`,
+which runs tests for the module that are located in `./pytest`.
+
+These tests validate functionality and also make requests to the Hiven API or
+rather in this case a Mock API to not spam the native Rest API of Hiven.
+(Visible here: https://mockapi.io/projects/61143430cba40600170c1e66)
+
+*To run these tests simply use (Make sure the pypi module `pytest` is
+installed):*
+
+```bash
+cd ./pytest
+pytest -q --token=${{ secrets.HIVEN_TOKEN }}
+```
+
+### Building
+
+Building the module to be able to install it can be done using the `build`
+module of Python. Simply install `build` and then use this snippet to build the
+module:
+
+```bash
+python -m build
+```
+
+The build module/s should be located in `./dist`
+
+### Uploading to PyPi and testing using `twine`
+
+To upload a new version to PyPi simply use the pypi module `twine`.
+
+Before uploading [build](#building) the module and then test them using:
+
+```bash
+twine check dist/*
+```
+
+If everything is fine upload using:
+
+```bash
+twine upload dist/*
 ```
 
 ## Contributors
