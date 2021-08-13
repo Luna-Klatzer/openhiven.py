@@ -160,8 +160,12 @@ installed):*
 
 ```bash
 cd ./pytest
-pytest -q --token=${{ secrets.HIVEN_TOKEN }}
+pytest -q --token=<HIVEN_TOKEN>
 ```
+
+*A HIVEN_TOKEN is required for testing. Get one before running the tests, so
+they can run successfully. More
+info [here](https://luna-klatzer.github.io/docs_openhiven.py/latest/getting_started/deploying_your_first_bot.html#getting-a-user-token)*
 
 ### Building
 
