@@ -239,15 +239,18 @@ class HTTP:
                     if retry_on_rate_limit is False:
                         raise HTTPRateLimitError()
 
-                    # "rate_limit", { "expires_at": "<unix-timestamp>"}
-                    _json_data = json_decoder.loads(data)
+                    if data:
+                        # "rate_limit", { "expires_at": "<unix-timestamp>"}
+                        _json_data = json_decoder.loads(data)
 
-                    unix_ts = time.time()
-                    retry_after: int = utils.safe_convert(
-                        dtype=int,
-                        value=_json_data.get("expires_at"),
-                        default=5
-                    ) - unix_ts
+                        unix_ts = time.time()
+                        retry_after: int = utils.safe_convert(
+                            dtype=int,
+                            value=_json_data.get("expires_at"),
+                            default=5
+                        ) - unix_ts
+                    else:
+                        retry_after: int = 5
 
                     # min additional 0.1s
                     await asyncio.sleep(retry_after + 0.1)
@@ -257,7 +260,8 @@ class HTTP:
                         f"Failed to perform request due to Hiven internal "
                         f"server error [Code: {http_resp_code}]"
                     )
-                elif not data:
+
+                if not data:
                     if http_resp_code != 204:
                         raise HTTPReceivedNoDataError(
                             "Received empty response from the Hiven "
