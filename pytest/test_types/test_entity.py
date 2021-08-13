@@ -13,7 +13,7 @@ class TestEntity:
     def test_preparation(self):
         client.storage.update_client_user({
             "username": "username",
-            "user_flags": 2,
+            "flags": 2,
             "name": "name",
             "id": '323456789123456789',
             "icon": None,
@@ -43,7 +43,7 @@ class TestEntity:
                 "user_id": "323456789123456789",
                 "user": {
                     "username": "username",
-                    "user_flags": 2,
+                    "flags": 2,
                     "name": "name",
                     "id": "323456789123456789",
                     "icon": None,

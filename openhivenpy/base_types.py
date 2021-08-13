@@ -90,9 +90,9 @@ class BaseUser(DataClassObject):
 
     @property
     @abstractmethod
-    def user_flags(self) -> Optional[Union[int, str]]:
+    def flags(self) -> Optional[Union[int, str]]:
         """ User flags represented as an numeric value/str """
-        return getattr(self, '_user_flags', None)
+        return getattr(self, '_flags', None)
 
     @property
     @abstractmethod

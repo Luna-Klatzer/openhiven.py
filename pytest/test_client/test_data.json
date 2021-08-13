@@ -24,7 +24,7 @@
         "user_id": "323456789123456789",
         "user": {
           "username": "username",
-          "user_flags": 2,
+          "flags": 2,
           "name": "name",
           "id": "323456789123456789",
           "icon": null,
@@ -61,7 +61,7 @@
     "user_id": "223456789123456789",
     "user": {
       "username": "test",
-      "user_flags": 2,
+      "flags": 2,
       "name": "test",
       "id": "423456789123456789",
       "icon": null,
@@ -85,7 +85,7 @@
     "recipients": [
       {
         "username": "test",
-        "user_flags": 2,
+        "flags": 2,
         "name": "test",
         "id": "423456789123456789",
         "icon": null,
@@ -109,7 +109,7 @@
     "recipients": [
       {
         "username": "username",
-        "user_flags": 2,
+        "flags": 2,
         "name": "name",
         "id": "323456789123456789",
         "icon": null,
@@ -119,7 +119,7 @@
       },
       {
         "username": "test",
-        "user_flags": 2,
+        "flags": 2,
         "name": "test",
         "id": "423456789123456789",
         "icon": null,

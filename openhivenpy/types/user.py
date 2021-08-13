@@ -27,7 +27,7 @@ class LazyUser(BaseUser):
             'username': {'type': 'string'},
             'name': {'type': 'string'},
             'id': {'type': 'string'},
-            'user_flags': {
+            'flags': {
                 'anyOf': [
                     {'type': 'string'},
                     {'type': 'integer'},
@@ -83,7 +83,7 @@ class LazyUser(BaseUser):
             self._bio = data.get('bio')
             self._id = data.get('id')
             self._email_verified = data.get('email_verified')
-            self._user_flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
+            self._flags = data.get('flags')  # ToDo: Discord.py-esque way of user flags
             self._icon = data.get('icon')
             self._header = data.get('header')
             self._bot = data.get('bot', False)
@@ -149,9 +149,9 @@ class LazyUser(BaseUser):
         return super().email_verified
 
     @property
-    def user_flags(self) -> Optional[Union[int, str]]:
+    def flags(self) -> Optional[Union[int, str]]:
         """ User flags represented as an numeric value/str """
-        return super().user_flags
+        return super().flags
 
     @property
     def icon(self) -> Optional[str]:

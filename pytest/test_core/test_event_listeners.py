@@ -43,7 +43,7 @@ class TestListeners:
                         "id": "123456789123456789",
                         "location": "",
                         "name": "example",
-                        "user_flags": 0,
+                        "flags": 0,
                         "username": "Example"
                     },
                     {
@@ -55,7 +55,7 @@ class TestListeners:
                         "id": "123456789123456789",
                         "location": "",
                         "name": "example",
-                        "user_flags": 0,
+                        "flags": 0,
                         "username": "Example"
                     }
             ),
@@ -69,7 +69,7 @@ class TestListeners:
                         "id": "123456789123456789",
                         "location": "",
                         "name": "example",
-                        "user_flags": 0,
+                        "flags": 0,
                         "username": "Example"
                     },
                     {
@@ -81,7 +81,7 @@ class TestListeners:
                         "id": "123456789123456789",
                         "location": "",
                         "name": "example",
-                        "user_flags": 0,
+                        "flags": 0,
                         "username": "Example"
                     }
             )
