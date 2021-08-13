@@ -56,8 +56,32 @@ python3 -m pip install -U https://github.com/Luna-Klatzer/openhiven.py/archive/m
 For full documentation visit the documentation our github pages build
 [here](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
+### Usage Example (v0.2.dev1)
 
-### Usage Example (v0.1.3.2)
+*The following listeners will not pass args to the listener until 0.2.dev2:*
+
+- house_join
+- house_remove
+- house_update
+- house_delete
+- house_downtime
+- room_create
+- room_update
+- room_delete
+- house_member_join
+- house_member_leave
+- house_member_enter
+- house_member_exit
+- house_member_update
+- house_member_chunk
+- batch_house_member_update
+- house_entity_update
+- relationship_update
+- presence_update
+- message_create
+- message_update
+- message_delete
+- typing_start
 
 **A simple UserClient Bot for quick usage:**
 
