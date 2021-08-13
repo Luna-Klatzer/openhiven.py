@@ -18,7 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
-## [v0.2.dev1] - 2021-08-10
+## [v0.2.dev1] - 2021-08-13
 
 - Rewrite of the base structure. Not all changes will be noted here, but main
   ones!
@@ -201,9 +201,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/v0.2.dev1...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev1...v0.2.dev
 
-[v0.2.dev1]: https://github.com/Para-C/Para-C/compare/v0.1.3.2...v0.2.dev1
+[v0.2.dev1]: https://github.com/Para-C/Para-C/compare/v0.1.3.2...0.2.dev1
 
 [v0.1.3.2]: https://github.com/Para-C/Para-C/compare/v0.1.2.1...v0.1.3.2
 

@@ -10,6 +10,10 @@
         - [Install (Github Build)](#install-github-build)
     - [Documentation](#documentation)
         - [Usage Example (v0.1.3.2)](#usage-example-v0132)
+    - [Development](#development)
+        - [Testing](#testing)
+        - [Building](#building)
+        - [Uploading to PyPi and testing using `twine`](#uploading-to-pypi-and-testing-using-twine)
     - [Contributors](#contributors)
     - [Copyright and License](#copyright-and-license)
 
@@ -56,8 +60,32 @@ python3 -m pip install -U https://github.com/Luna-Klatzer/openhiven.py/archive/m
 For full documentation visit the documentation our github pages build
 [here](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
+### Usage Example (v0.2.dev1)
 
-### Usage Example (v0.1.3.2)
+*The following listeners will not pass args to the listener until 0.2.dev2:*
+
+- house_join
+- house_remove
+- house_update
+- house_delete
+- house_downtime
+- room_create
+- room_update
+- room_delete
+- house_member_join
+- house_member_leave
+- house_member_enter
+- house_member_exit
+- house_member_update
+- house_member_chunk
+- batch_house_member_update
+- house_entity_update
+- relationship_update
+- presence_update
+- message_create
+- message_update
+- message_delete
+- typing_start
 
 **A simple UserClient Bot for quick usage:**
 
@@ -114,6 +142,57 @@ if __name__ == '__main__':
     client = Bot()
     client.run("Insert token")
 
+```
+
+## Development
+
+### Testing
+
+Testing openhiven.py is done over GitHub Actions and more specific `pytest`,
+which runs tests for the module that are located in `./pytest`.
+
+These tests validate functionality and also make requests to the Hiven API or
+rather in this case a Mock API to not spam the native Rest API of Hiven.
+(Visible here: https://mockapi.io/projects/61143430cba40600170c1e66)
+
+*To run these tests simply use (Make sure the pypi module `pytest` is
+installed):*
+
+```bash
+cd ./pytest
+pytest -q --token=<HIVEN_TOKEN>
+```
+
+*A HIVEN_TOKEN is required for testing. Get one before running the tests, so
+they can run successfully. More
+info [here](https://luna-klatzer.github.io/docs_openhiven.py/latest/getting_started/deploying_your_first_bot.html#getting-a-user-token)*
+
+### Building
+
+Building the module to be able to install it can be done using the `build`
+module of Python. Simply install `build` and then use this snippet to build the
+module:
+
+```bash
+python -m build
+```
+
+The build module/s should be located in `./dist`
+
+### Uploading to PyPi and testing using `twine`
+
+To upload a new version to PyPi simply use the pypi module `twine`.
+
+Before uploading [build](#building) the module and then test them using:
+
+```bash
+twine check dist/*
+```
+
+If everything is fine upload using:
+
+```bash
+twine upload dist/*
 ```
 
 ## Contributors
