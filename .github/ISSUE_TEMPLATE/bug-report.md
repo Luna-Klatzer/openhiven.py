@@ -1,7 +1,7 @@
 ---
 name: Bug Report 
 about: Create a bug report for a bug we missed and should fix 
-title: ''
+title: '[Bug] ...'
 labels: bug 
 assignees: Nxybi, Luna-Klatzer
 
