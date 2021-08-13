@@ -222,17 +222,19 @@ def safe_convert(
         dtype: Any, value: Any, default: Optional[Any] = MISSING
 ) -> Union[Any, None]:
     """
-    Converts the passed value if it is not None, if it is it will just return
-    None to not cause an exception.
-
-    Returns the passed default if the conversion failed.
-    If the default is missing it will raise the conversion exception.
+    Converts the passed value. If the conversion fails or the value is None
+    it will simply return the default if it not (the default) MISSING. If
+    that's the case:
+    - if it failed due to conversion error it will reraise the Exception.
+    - else if the value was None it will return None as well.
 
     :param dtype: The datatype the value should be returned
     :param value: The value that should be converted
     :param default: The default value that should be returned if the conversion
      failed
     :return: The converted value or the default passed value
+    :raises Exception: If default is MISSING and the conversion raised an
+     exception.
     """
     try:
         if value is None:
@@ -279,8 +281,10 @@ def update_and_return(dictionary: dict, **kwargs) -> dict:
     return dictionary
 
 
-def wrap_with_logging(func: Union[Callable, Awaitable] = None,
-                      return_exception: bool = False) -> Union[Callable, Awaitable]:
+def wrap_with_logging(
+        func: Union[Callable, Awaitable] = None,
+        return_exception: bool = False
+) -> Union[Callable, Awaitable]:
     """
     Wraps a function and adds traceback logging
 
@@ -296,11 +300,14 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                     return await func(*args, **kwargs)
                 except Exception as e:
                     log_traceback(
-                        brief=f"{'' if return_exception else 'Ignoring'} Exception in coroutine {func.__name__}:",
+                        brief=f"{'' if return_exception else 'Ignoring'} "
+                              f"Exception in coroutine {func.__name__}:",
                         exc_info=sys.exc_info()
                     )
                     if return_exception:
-                        raise RuntimeError(f"Failed to execute coroutine {func.__name__}") from e
+                        raise RuntimeError(
+                            f"Failed to execute coroutine {func.__name__}"
+                        ) from e
         else:
             @wraps(func)
             def wrapper(*args, **kwargs) -> Union[Any, NoReturn]:
@@ -308,11 +315,14 @@ def wrap_with_logging(func: Union[Callable, Awaitable] = None,
                     return func(*args, **kwargs)
                 except Exception as e:
                     log_traceback(
-                        brief=f"{'' if return_exception else 'Ignoring'} Exception in function {func.__name__}:",
+                        brief=f"{'' if return_exception else 'Ignoring'} "
+                              f"Exception in function {func.__name__}:",
                         exc_info=sys.exc_info()
                     )
                     if return_exception:
-                        raise RuntimeError(f"Failed to execute function {func.__name__}") from e
+                        raise RuntimeError(
+                            f"Failed to execute function {func.__name__}"
+                        ) from e
 
         return wrapper  # func can still be used normally
 

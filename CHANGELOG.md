@@ -24,7 +24,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ones!
 
 ### Added
-
 - Message-Broker for handling incoming events and distribute them to the
   listeners.
 - Event-Buffers, which store the events and will one by one execute the events/
@@ -52,6 +51,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `call_listeners` to call all listeners for an event based on the passed args
   and kwargs. This will call them directly and not utilise the message-broker
   unlike `dispatch_event`
+- `HTTPRateLimitError` for receiving http rate-limits (429) and parameter
+  retry_on_rate_limit to raw_request()
+- Parameter `remove_listeners` to `HivenClient.close()`, which will, if set to
+  True, remove all listeners created using @client.event(),
+  add_multi_listener() and add_single_listener()
 
 ### Changed
 - Rewrite of the base structure
@@ -62,6 +66,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Cache implementation using cache.py, which will hold and store values and
   provide functions for generating data and update the cache correctly. This
   will remove implementations in the data classes itself.
+- Dot-Env Handling, which will now load the openhivenpy.env file on default and
+  update all variables based on the given input. This will avoid None values
+  when an .env file only updates a few values
 
 ### Removed
 - Old structure (everything not mentioned in changed or added is likely gone)

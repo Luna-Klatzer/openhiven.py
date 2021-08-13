@@ -280,6 +280,10 @@ class HivenEventHandler(HivenObject):
                 "The passed event type is invalid/does not exist"
             )
 
+    def cleanup_listeners(self) -> None:
+        """ Cleanups the listeners and empties all active listeners """
+        self._active_listeners = {}
+
     def dispatch_event(
             self, event_name: str, args: tuple, kwargs: dict
     ) -> None:

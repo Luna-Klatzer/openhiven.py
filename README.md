@@ -17,7 +17,7 @@
 
 <p align="center">
 
-[![Package Version](https://img.shields.io/badge/package%20version-v0.1.3.2-purple?logo=python)](https://github.com/Luna-Klatzer/openhiven.py)
+[![PyPI version](https://badge.fury.io/py/openhivenpy.svg)](https://badge.fury.io/py/openhivenpy)
 [![Python Version](https://img.shields.io/badge/python->=3.7-blue?logo=python)](https://python.org)
 ![Build](https://img.shields.io/github/workflow/status/Luna-Klatzer/openhiven.py/CodeQL?logo=github)
 ![Lines of Code](https://img.shields.io/tokei/lines/github/Luna-Klatzer/openhiven.py)

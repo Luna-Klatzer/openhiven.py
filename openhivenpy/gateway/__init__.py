@@ -165,17 +165,25 @@ class Connection(HivenObject):
     async def connect(self, restart: bool) -> None:
         """
         Establishes a connection to Hiven and runs the background processes.
-        Only closes if forced to using close() or an exception is raised and restart is False
+        Only closes if forced to using close() or an exception is raised and
+        restart is False
         """
         try:
             self._connection_status = "OPENING"
-            self.http = HTTP(self.client, host=self.host, api_version=self.api_version)
+            self.http = HTTP(
+                self.client,
+                host=self.host,
+                api_version=self.api_version
+            )
             await self.http.connect()
 
             while self.connection_status == "OPENING":
                 try:
                     coro = HivenWebSocket.create_from_client(
-                        self.client, endpoint=self.endpoint, close_timeout=self.close_timeout, heartbeat=self.heartbeat,
+                        self.client,
+                        endpoint=self.endpoint,
+                        close_timeout=self.close_timeout,
+                        heartbeat=self.heartbeat,
                         loop=self.loop
                     )
                     self._ws = await asyncio.wait_for(coro, 30)
@@ -241,7 +249,9 @@ class Connection(HivenObject):
                 brief=f"Failed to keep alive current connection to Hiven:",
                 exc_info=sys.exc_info()
             )
-            raise SessionCreateError(f"Failed to establish HivenClient session") from e
+            raise SessionCreateError(
+                f"Failed to establish HivenClient session"
+            ) from e
         finally:
             self._closing = True
             self._reset_status("CLOSING")
@@ -290,7 +300,9 @@ class Connection(HivenObject):
                or not self.socket_closed):
             await asyncio.sleep(.05)
 
-    async def close(self, force: bool = False) -> None:
+    async def close(
+            self, force: bool = False, remove_listeners: bool = True
+    ) -> None:
         """
         Closes the Connection to Hiven and stops the running WebSocket and the
         Event Processing Loop
@@ -303,6 +315,9 @@ class Connection(HivenObject):
          forced closed, which may lead to running code of event-listeners being
          stopped while performing actions. If False the stopping will wait for
          all running event_listeners to finish
+        :param remove_listeners: If sett to True, it will remove all listeners
+         including the ones created using @client.event(), add_multi_listener()
+         and add_single_listener()
         """
         try:
             self._connection_status = "CLOSING"
@@ -329,3 +344,6 @@ class Connection(HivenObject):
             raise RuntimeError(
                 "Failed to stop client due to an exception occurring"
             ) from e
+        finally:
+            if remove_listeners:
+                self.client.cleanup_listeners()

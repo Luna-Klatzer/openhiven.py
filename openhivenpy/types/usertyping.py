@@ -34,7 +34,9 @@ class UserTyping(DataClassObject):
             self._timestamp = data.get('timestamp')
 
         except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+            raise InitializationError(
+                f"Failed to initialise {self.__class__.__name__}"
+            ) from e
         else:
             self._client = client
 

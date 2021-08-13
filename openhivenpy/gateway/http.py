@@ -15,8 +15,11 @@ __all__ = ['HTTP']
 
 from ..base_types import HivenObject
 from .. import utils
-from ..exceptions import (HTTPError, SessionCreateError, HTTPFailedRequestError, HTTPRequestTimeoutError,
-                          HTTPReceivedNoDataError, HTTPSessionNotReadyError, HTTPNotFoundError, HTTPInternalServerError)
+from ..exceptions import (HTTPError, SessionCreateError,
+                          HTTPFailedRequestError, HTTPRequestTimeoutError,
+                          HTTPReceivedNoDataError, HTTPSessionNotReadyError,
+                          HTTPNotFoundError, HTTPInternalServerError,
+                          HTTPRateLimitError)
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
@@ -169,6 +172,128 @@ class HTTP:
             )
             raise RuntimeError("Failed to stop the HTTP client") from e
 
+    async def http_request(
+            self,
+            endpoint: str,
+            method: str,
+            json: dict,
+            headers: dict,
+            retry_on_rate_limit: bool,
+            **kwargs
+    ) -> Union[aiohttp.ClientResponse, None]:
+        """
+        The Function that stores the request and the handling of
+        exceptions! Will be used as a variable so the status of the request
+        can be seen by the asyncio.Task status!
+
+        :param endpoint: Endpoint of the request
+        :param method: HTTP method of the request
+        :param json: Additional JSON Data if it exists
+        :param headers: Headers that will be sent! Defaults to the ones
+         that were created during initialisation
+        :param kwargs: Additional Parameter for the aiohttp HTTP Request
+        :param retry_on_rate_limit: Should the request retry after a
+         rate_limit was received.
+        :return: Returns the aiohttp.ClientResponse object
+        :raises HTTPNotFoundError: If 404 is returned
+        :raises HTTPRateLimitError: If a rate-limit is received (429) and
+         retry_on_rate_limit is False
+        :raises HTTPInternalServerError: If 5** is returned
+        :raises HTTPReceivedNoDataError: If no data is returned and the code is
+         not 204 (no data)
+        :raises HTTPFailedRequestError: If no success object is returned
+        """
+
+        if not self._ready:
+            raise HTTPSessionNotReadyError()
+
+        # Creating a new ClientTimeout Instance which will default to None
+        # since the Timeout was reported to cause errors! Timeouts are
+        # therefore handled in a regular `asyncio.wait_for`
+        _timeout = aiohttp.ClientTimeout(total=None)
+
+        headers = self.headers if headers is None else headers
+        url: False = f"{self.api_url.human_repr()}{endpoint}"
+
+        while True:
+            async with self.session.request(
+                    method=method,
+                    url=url,
+                    headers=headers,
+                    timeout=_timeout,
+                    json=json,
+                    **kwargs
+            ) as _resp:
+                http_resp_code = _resp.status
+                data = await _resp.read()  # Raw response data
+
+                if http_resp_code == 404:
+                    raise HTTPNotFoundError()
+                elif http_resp_code == 429:
+                    logger.debug(
+                        f"[HTTP] {http_resp_code} - "
+                        f"Received rate-limit! Param 'retry_on_rate_limit' is "
+                        f"{retry_on_rate_limit}"
+                    )
+
+                    if retry_on_rate_limit is False:
+                        raise HTTPRateLimitError()
+
+                    # "rate_limit", { "expires_at": "<unix-timestamp>"}
+                    _json_data = json_decoder.loads(data)
+
+                    unix_ts = time.time()
+                    retry_after: int = utils.safe_convert(
+                        dtype=int,
+                        value=_json_data.get("expires_at"),
+                        default=5
+                    ) - unix_ts
+
+                    # min additional 0.1s
+                    await asyncio.sleep(retry_after + 0.1)
+                    continue
+                elif http_resp_code >= 500:
+                    raise HTTPInternalServerError(
+                        f"Failed to perform request due to Hiven internal "
+                        f"server error [Code: {http_resp_code}]"
+                    )
+                elif not data:
+                    if http_resp_code != 204:
+                        raise HTTPReceivedNoDataError(
+                            "Received empty response from the Hiven "
+                            "Servers"
+                        )
+
+                # Loading the data in json => will fail if not json
+                _json_data = json_decoder.loads(data)
+                # Fetching the success item <== bool
+                _success = _json_data.get('success')
+
+                if _success:
+                    logger.debug(
+                        f"[HTTP] {http_resp_code} - "
+                        f"Request was successful and received expected "
+                        f"data"
+                    )
+                    return _resp
+                else:
+                    # If an error occurred the response body will contain
+                    # an error field
+                    _error = _json_data.get('error')
+                    if _error:
+                        err_code = _error.get('code')
+                        err_msg = _error.get('message')
+
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> "
+                            f"'{err_code}': '{err_msg}'"
+                        )
+                    else:
+                        raise HTTPFailedRequestError(
+                            f"Failed HTTP request with {http_resp_code} -> "
+                            f"Response: None "
+                        )
+
     async def raw_request(
             self,
             endpoint: str,
@@ -176,7 +301,8 @@ class HTTP:
             method: Optional[str] = "GET",
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
-            headers: Optional[dict] = None,  # Defaults to an empty header
+            headers: Optional[dict] = None,  # Defaults to an empty header,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> Union[aiohttp.ClientResponse, None]:
         """
@@ -193,98 +319,20 @@ class HTTP:
         :param kwargs: Other parameter for requesting. See
          https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
          for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the aiohttp.ClientResponse object
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
-
-        async def http_request(_endpoint: str,
-                               _method: str,
-                               _json: dict,
-                               _headers: dict,
-                               **_kwargs) -> Union[aiohttp.ClientResponse, None]:
-            """
-            The Function that stores the request and the handling of
-            exceptions! Will be used as a variable so the status of the request
-             can be seen by the asyncio.Task status!
-
-            :param _endpoint: Endpoint of the request
-            :param _method: HTTP method of the request
-            :param _json: Additional JSON Data if it exists
-            :param _headers: Headers that will be sent! Defaults to the ones
-             that were created during initialisation
-            :param _kwargs: Additional Parameter for the aiohttp HTTP Request
-            :return: Returns the aiohttp.ClientResponse object
-            """
-
-            if not self._ready:
-                raise HTTPSessionNotReadyError()
-
-            # Creating a new ClientTimeout Instance which will default to None
-            # since the Timeout was reported to cause errors! Timeouts are
-            # therefore handled in a regular `asyncio.wait_for`
-            _timeout = aiohttp.ClientTimeout(total=None)
-
-            _headers = self.headers if _headers is None else _headers
-            url = f"{self.api_url.human_repr()}{_endpoint}"
-
-            async with self.session.request(
-                    method=_method,
-                    url=url,
-                    headers=_headers,
-                    timeout=_timeout,
-                    json=_json,
-                    **_kwargs
-            ) as _resp:
-                http_resp_code = _resp.status
-                data = await _resp.read()  # Raw response data
-
-                if not data:
-                    if http_resp_code != 204:
-                        raise HTTPReceivedNoDataError(
-                            "Received empty response from the Hiven Servers"
-                        )
-                elif http_resp_code == 404:
-                    raise HTTPNotFoundError()
-                elif http_resp_code >= 500:
-                    raise HTTPInternalServerError(
-                        f"Failed to perform request due to Hiven internal "
-                        f"server error [Code: {http_resp_code}]"
-                    )
-
-                # Loading the data in json => will fail if not json
-                _json_data = json_decoder.loads(data)
-                # Fetching the success item <== bool
-                _success = _json_data.get('success')
-
-                if _success:
-                    logger.debug(
-                        f"[HTTP] {http_resp_code} - "
-                        f"Request was successful and received expected data"
-                    )
-                    return _resp
-                else:
-                    # If an error occurred the response body will contain an
-                    # error field
-                    _error = _json_data.get('error')
-                    if _error:
-                        err_code = _error.get('code')
-                        err_msg = _error.get('message')
-
-                        raise HTTPFailedRequestError(
-                            f"Failed HTTP request with {http_resp_code} -> "
-                            f"'{err_code}': '{err_msg}'"
-                        )
-                    else:
-                        raise HTTPFailedRequestError(
-                            f"Failed HTTP request with {http_resp_code} -> "
-                            f"Response: None "
-                        )
-
         try:
             http_client_response = await asyncio.wait_for(
-                http_request(endpoint, method, json, headers, **kwargs),
+                self.http_request(
+                    endpoint, method, json, headers, retry_on_rate_limit,
+                    **kwargs
+                ),
                 timeout=timeout
             )
-
         except asyncio.CancelledError:
             logger.warning(
                 f"[HTTP] >> Request '{method.upper()}' for endpoint "
@@ -316,6 +364,7 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
@@ -331,8 +380,12 @@ class HTTP:
         :param kwargs: Other parameter for requesting. See
         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
          for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
          returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         return await self.raw_request(
             endpoint,
@@ -340,6 +393,7 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )
 
@@ -350,6 +404,7 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
@@ -365,8 +420,12 @@ class HTTP:
         :param kwargs: Other parameter for requesting. See
          https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
          for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
          returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -383,6 +442,7 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )
 
@@ -393,6 +453,7 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
@@ -408,8 +469,12 @@ class HTTP:
         :param kwargs: Other parameter for requesting. See
          https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
          for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
          returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         return await self.raw_request(
             endpoint,
@@ -417,6 +482,7 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )
 
@@ -427,6 +493,7 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
@@ -435,17 +502,21 @@ class HTTP:
         Similar to post, but multiple requests do not affect performance
 
         :param endpoint: Url place in url format '/../../..' Will be appended
-        to the standard url: 'https://api.hiven.io/{version}'
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
         :param timeout: Time the server has time to respond before the
-        connection timeouts. Defaults to 15
+         connection timeouts. Defaults to 15
         :param headers: Defaults to the normal headers. Note: Changing content
-        type can make the request break. Use with caution!
+         type can make the request break. Use with caution!
         :param kwargs: Other parameter for requesting. See
         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
-        for more info
+         for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
-        returns `None`
+         returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -462,6 +533,7 @@ class HTTP:
             json=json,
             timeout=timeout,
             headers=headers,  # Passing the new header for the request
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )
 
@@ -472,23 +544,28 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
         Wrapped HTTP 'PATCH' for a specified endpoint.
         
         :param endpoint: Url place in url format '/../../..' Will be appended
-        to the standard url: 'https://api.hiven.io/{version}'
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
         :param timeout: Time the server has time to respond before the
-        connection timeouts. Defaults to 15
+         connection timeouts. Defaults to 15
         :param headers: Defaults to the normal headers. Note: Changing content
-        type can make the request break. Use with caution!
+         type can make the request break. Use with caution!
         :param kwargs: Other parameter for requesting. See
         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
-        for more info
+         for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
-        returns `None`
+         returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         # If no custom headers were passed a new one will be created and used
         if headers is None:
@@ -505,6 +582,7 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )
 
@@ -515,6 +593,7 @@ class HTTP:
             json: Optional[dict] = None,
             timeout: Optional[int] = 15,
             headers: Optional[dict] = None,
+            retry_on_rate_limit: bool = True,
             **kwargs
     ) -> aiohttp.ClientResponse:
         """
@@ -523,17 +602,21 @@ class HTTP:
         Requests permission for performing communication with a URL or server
         
         :param endpoint: Url place in url format '/../../..' Will be appended
-        to the standard url: 'https://api.hiven.io/{version}'
+         to the standard url: 'https://api.hiven.io/{version}'
         :param json: JSON format data that will be appended to the request
         :param timeout: Time the server has time to respond before the
-        connection timeouts. Defaults to 15
+         connection timeouts. Defaults to 15
         :param headers: Defaults to the normal headers. Note: Changing content
-        type can make the request break. Use with caution!
+         type can make the request break. Use with caution!
         :param kwargs: Other parameter for requesting. See
-        https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
-        for more info
+         https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
+         for more info
+        :param retry_on_rate_limit: Should the request retry after a rate_limit
+         was received. Defaults to True
         :return: Returns the ClientResponse object if successful and else
-        returns `None`
+         returns `None`
+        :raises HTTPRequestTimeoutError: If the set timeout is hit
+        :raises HTTPError: If any HTTP Error is hit during processing
         """
         return await self.raw_request(
             endpoint,
@@ -541,5 +624,6 @@ class HTTP:
             json=json,
             headers=headers,
             timeout=timeout,
+            retry_on_rate_limit=retry_on_rate_limit,
             **kwargs
         )

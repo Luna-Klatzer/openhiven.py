@@ -167,14 +167,21 @@ class MessageBroker(HivenObject):
         self._cleanup_buffers()
 
     async def run(self) -> None:
-        """ Runs the event_consumer instance which stores the workers for all event_listeners """
-        self.worker_loop = asyncio.create_task(self.event_consumer.run_all_workers())
+        """
+        Runs the event_consumer instance which stores the workers for all
+        event_listeners
+        """
+        self.worker_loop = asyncio.create_task(
+            self.event_consumer.run_all_workers()
+        )
         try:
             await self.worker_loop
         except asyncio.CancelledError:
             logger.debug("Event Consumer stopped! All workers are cancelled!")
         except Exception as e:
-            raise EventConsumerLoopError("The event_consumer process loop failed to be kept alive") from e
+            raise EventConsumerLoopError(
+                "The event_consumer process loop failed to be kept alive"
+            ) from e
 
 
 class Worker(HivenObject):
@@ -194,7 +201,7 @@ class Worker(HivenObject):
     def __repr__(self):
         info = [
             ('event', self.assigned_event),
-            ('done', self.done)
+            ('done', self.done())
         ]
         return '<{} {}>'.format(
             self.__class__.__name__, ' '.join('%s=%s' % t for t in info)
@@ -222,11 +229,11 @@ class Worker(HivenObject):
     def done(self) -> bool:
         """
         Returns whether the process is finished and all tasks finished
-        correctly
+        correctly. If it hasn't started yet it will also return False
         """
         return all([
             self._tasks_done,
-            self._sequence_loop.done(),
+            self._sequence_loop.done() if self._sequence_loop else False,
             self._cancel_called
         ])
 
