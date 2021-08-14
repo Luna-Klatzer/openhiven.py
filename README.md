@@ -34,8 +34,10 @@
 ## Dependencies
 
 [![aiohttp](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/aiohttp/main)](https://docs.aiohttp.org/en/stable/)
-[![asyncio](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/asyncio/main)](https://docs.python.org/3/library/asyncio.html)
-[![typing](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/typing/main)](https://docs.python.org/3/library/typing.html)
+[![python-dotenv](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/python-dotenv/main)](https://docs.python.org/3/library/asyncio.html)
+[![fastjsonschema](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/fastjsonschema/main)](https://docs.python.org/3/library/typing.html)
+[![yarl](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/yarl/main)](https://docs.python.org/3/library/typing.html)
+
 
 ## Installation
 ### Install (PyPi Release)
