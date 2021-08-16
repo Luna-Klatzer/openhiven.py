@@ -199,7 +199,7 @@ twine upload dist/*
 
 ## Contributors
 
-<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
+<a href="https://github.com/Luna-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
 
 ## Copyright and License
 
