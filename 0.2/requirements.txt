@@ -1,0 +1,13 @@
+PyYAML
+pymdown-extensions
+Pygments
+mkdocs
+mike
+markdown
+mkdocs-material<=7.0.7
+mkdocs-material-extensions
+mkdocs-redirects
+mkdocs-htmlproofer-plugin
+mkdocs-git-revision-date-plugin
+requests
+mkdocstrings>=0.15.2
