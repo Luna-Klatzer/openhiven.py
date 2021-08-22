@@ -12,7 +12,7 @@
 | [Entity](#openhivenpy.types.entity.Entity)                                | Represents a Hiven Entity inside a House which can contain Rooms                            |
 | [Feed](#openhivenpy.types.feed.Feed)                                      | Represents the feed that is displayed on Hiven specifically for the user                    |
 | [House](#openhivenpy.types.house.House)                                   | Represents a Hiven House which can contain rooms and entities                               |
-| [LazyHouse](#openhivenpy.house.LazyHouse)                                 | Represents a Hiven House which can contain rooms and entities (Lazy)        
+| [LazyHouse](#openhivenpy.types.house.LazyHouse)                                 | Represents a Hiven House which can contain rooms and entities (Lazy)        
 | [Invite](#openhivenpy.types.invite.Invite)                                | Represents an Invite to a Hiven House                                                       |
 | [Member](#openhivenpy.types.member.Member)                                | Represents a House Member on Hiven which contains the Hiven User, role-data and member-data |
 | [Mention](#openhivenpy.types.mention.Mention)                             | Represents an mention for a user in Hiven                                                   |
