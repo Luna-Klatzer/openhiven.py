@@ -20,7 +20,13 @@ __all__ = ['LazyUser', 'User']
 
 
 class LazyUser(BaseUser):
-    """ Represents the standard Hiven User """
+    """
+    Represents the standard Hiven User
+
+    Note! This class is a lazy class and does not have every available data!
+
+    Consider fetching for more data the regular house object with HivenClient.get_house()
+    """
     json_schema = {
         'type': 'object',
         'properties': {
