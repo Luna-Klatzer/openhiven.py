@@ -1655,12 +1655,53 @@ and <a href="#openhivenpy.events.MultiDispatchEventListener">MultiDispatchEventL
     <div class="doc doc-contents ">
 
       <p>Returns the dispatch function of the class itself</p>
-<p>:param event_data: Data of the received event
-:param args: Args that will be passed to the coroutine
-:param kwargs: Kwargs that will be passed to the coroutine
-:return: The coroutine instance which can be used in an await
- expression or asyncio functions</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_data</code></td>
+        <td><code></code></td>
+        <td><p>Data of the received event</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>args</code></td>
+        <td><code></code></td>
+        <td><p>Args that will be passed to the coroutine</p></td>
+        <td><code>()</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Kwargs that will be passed to the coroutine</p></td>
+        <td><code>{}</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Union[Coroutine, Awaitable]</code></td>
+      <td><p>The coroutine instance which can be used in an await expression or asyncio functions</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Coroutine</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">]:</span>
@@ -1826,12 +1867,26 @@ and <a href="#openhivenpy.events.MultiDispatchEventListener">MultiDispatchEventL
 
       <p>Sets the coroutine of the event_listener, which will be called when
 ws-events are received</p>
-<p>:param awaitable: Awaitable (Coroutine Function). Can NOT be a
- initialised coroutine, since parameters will be passed on Runtime and
- coroutines are limited to a one-time execution. Coroutine functions
- or standard asyncio awaitable functions are defined using the
- <code>async def</code> syntax</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>awaitable</code></td>
+        <td><code>Union[Awaitable, Callable]</code></td>
+        <td><p>Awaitable (Coroutine Function). Can NOT be a initialised coroutine, since parameters will be passed on Runtime and coroutines are limited to a one-time execution. Coroutine functions or standard asyncio awaitable functions are defined using the <code>async def</code> syntax</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_awaitable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awaitable</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1921,9 +1976,32 @@ be called multiple times</p>
 
       <p>Dispatches the EventListener and calls a coroutine if one was passed.
 Does not raise exceptions but silences them!</p>
-<p>:param args: Args that will be passed to the coroutine
-:param kwargs: Kwargs that will be passed to the coroutine</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code></code></td>
+        <td><p>Args that will be passed to the coroutine</p></td>
+        <td><code>()</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Kwargs that will be passed to the coroutine</p></td>
+        <td><code>{}</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2140,10 +2218,47 @@ events data, args and kwargs</p>
     <div class="doc doc-contents ">
 
       <p>Dispatches the EventListener and calls a coroutine if one was passed</p>
-<p>:param args: Args that will be passed to the coroutine
-:param kwargs: Kwargs that will be passed to the coroutine
-:return: Returns the passed event_data</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code></code></td>
+        <td><p>Args that will be passed to the coroutine</p></td>
+        <td><code>()</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Kwargs that will be passed to the coroutine</p></td>
+        <td><code>{}</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>Returns the passed event_data</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2344,8 +2459,26 @@ Is inherited by the HivenClient for easier access.</p>
 
       <p>Adds the listener to the client cache and will create a new list if
  the event_name does not exist yet!</p>
-<p>:param listener: The Listener that will be added</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>listener</code></td>
+        <td><code>DispatchEventListener</code></td>
+        <td><p>The Listener that will be added</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_listener</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listener</span><span class="p">:</span> <span class="n">DispatchEventListener</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2380,12 +2513,47 @@ Is inherited by the HivenClient for easier access.</p>
     <div class="doc doc-contents ">
 
       <p>Adds a new event listener to the list of active listeners</p>
-<p>:param event_name: The key/name of the event the EventListener should
-  be listening to
-:param awaitable: Coroutine that should be called when the
- EventListener was dispatched
-:return: The newly created EventListener</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The key/name of the event the EventListener should be listening to</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>awaitable</code></td>
+        <td><code>Union[Callable, Awaitable]</code></td>
+        <td><p>Coroutine that should be called when the EventListener was dispatched</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>MultiDispatchEventListener</code></td>
+      <td><p>The newly created EventListener</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_multi_listener</span><span class="p">(</span>
@@ -2434,12 +2602,47 @@ Is inherited by the HivenClient for easier access.</p>
 
       <p>Adds a new single dispatch event listener to the list of active
 listeners</p>
-<p>:param event_name: The key/name of the event the EventListener should
- be listening to
-:param awaitable: Coroutine that should be called when the
- EventListener was dispatched
-:return: The newly created EventListener</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The key/name of the event the EventListener should be listening to</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>awaitable</code></td>
+        <td><code>Union[Callable, Coroutine]</code></td>
+        <td><p>Coroutine that should be called when the EventListener was dispatched</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>SingleDispatchEventListener</code></td>
+      <td><p>The newly created EventListener</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_single_listener</span><span class="p">(</span>
@@ -2496,10 +2699,38 @@ args, kwargs passed</p>
 <hr />
 <p>Will run all tasks before returning! Only supposed to be called in
  cases of special events!</p>
-<p>:param event_name: The name of the event that should be triggered
-:param args: Args that will be passed to the coroutines
-:param kwargs: Kwargs that will be passed to the coroutines</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the event that should be triggered</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>tuple</code></td>
+        <td><p>Args that will be passed to the coroutines</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code>dict</code></td>
+        <td><p>Kwargs that will be passed to the coroutines</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">call_listeners</span><span class="p">(</span>
@@ -2577,10 +2808,38 @@ Will return immediately and does not require asyncio unlike
 call_listeners which only calls the listeners;</p>
 <p>Note that this will NOT call the event parsers but manually directly
 pass the args and kwargs to the functions!</p>
-<p>:param event_name: The name of the event that should be triggered
-:param args: Args that will be passed to the coroutines
-:param kwargs: Kwargs that will be passed to the coroutines</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the event that should be triggered</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>tuple</code></td>
+        <td><p>Args that will be passed to the coroutines</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code>dict</code></td>
+        <td><p>Kwargs that will be passed to the coroutines</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">dispatch_event</span><span class="p">(</span>
@@ -2632,8 +2891,26 @@ pass the args and kwargs to the functions!</p>
     <div class="doc doc-contents ">
 
       <p>Decorator used for registering Client Events</p>
-<p>:param awaitable: Function that should be wrapped and registered</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>awaitable</code></td>
+        <td><code>Union[Callable, Coroutine]</code></td>
+        <td><p>Function that should be wrapped and registered</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awaitable</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Coroutine</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
@@ -2684,9 +2961,41 @@ pass the args and kwargs to the functions!</p>
     <div class="doc doc-contents ">
 
       <p>Removes the listener from the client cache</p>
-<p>:param listener: The Listener that will be removed
-:raises KeyError: If the listener does not exist in the cache</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>listener</code></td>
+        <td><code>DispatchEventListener</code></td>
+        <td><p>The Listener that will be removed</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>KeyError</code></td>
+        <td><p>If the listener does not exist in the cache</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_listener</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listener</span><span class="p">:</span> <span class="n">DispatchEventListener</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2725,12 +3034,62 @@ pass the args and kwargs to the functions!</p>
 
       <p>Waits for an event to be triggered and then returns the <em>args and
 </em>*kwargs passed</p>
-<p>:param event_name: Name of the event to wait for
-:param awaitable: Coroutine that can be passed to be additionally
- triggered when received
-:raises UnknownEventError: If the event does not exist
-:return: A tuple of the args and kwargs =&gt; (args, kwargs)</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>event_name</code></td>
+        <td><code>str</code></td>
+        <td><p>Name of the event to wait for</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>awaitable</code></td>
+        <td><code>Union[Callable, Coroutine, None]</code></td>
+        <td><p>Coroutine that can be passed to be additionally triggered when received</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Tuple[tuple, dict]</code></td>
+      <td><p>A tuple of the args and kwargs =&gt; (args, kwargs)</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>UnknownEventError</code></td>
+        <td><p>If the event does not exist</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\__init__.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for</span><span class="p">(</span>

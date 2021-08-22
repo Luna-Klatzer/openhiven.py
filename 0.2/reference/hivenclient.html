@@ -2315,27 +2315,69 @@
 
     <div class="doc doc-contents ">
 
-      <p>:param token: Token that can be passed pre-runtime. If not set, the
- token will need to be passed at run-time. If a token is passed using
- local available environment variables and no other token is passed
- that one will be used.
-:param loop: Loop that will be used to run the Client. If a new one is
- passed on run() that one will be used instead
-:param log_websocket: If set to True will additionally log websocket
- messages and their content
-:param host: The host API endpoint of Hiven. Defaults to api.hiven.io
-:param api_version: The API version that should be used. Defaults to v1
-:param queue_events: If set to True the received events over the
- websocket will be queued and event_listeners will called one after
- another. If set to False all events are directly assigned to the
- asyncio event_loop and executed parallel
-:param heartbeat: Intervals in which the bot will send heartbeats to
- the Websocket. Defaults to the pre-set environment variable heartbeat
- (default at 30000)
-:param close_timeout: Seconds after the websocket will timeout after
- the end handshake didn't complete successfully. Defaults to the pre-set
- environment variable close_timeout (default at 40)</p>
+      
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>token</code></td>
+        <td><code>str</code></td>
+        <td><p>Token that can be passed pre-runtime. If not set, the token will need to be passed at run-time. If a token is passed using local available environment variables and no other token is passed that one will be used.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>loop</code></td>
+        <td><code>AbstractEventLoop</code></td>
+        <td><p>Loop that will be used to run the Client. If a new one is passed on run() that one will be used instead</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>log_websocket</code></td>
+        <td><code>bool</code></td>
+        <td><p>If set to True will additionally log websocket messages and their content</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>host</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The host API endpoint of Hiven. Defaults to api.hiven.io</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>api_version</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The API version that should be used. Defaults to v1</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>queue_events</code></td>
+        <td><code>bool</code></td>
+        <td><p>If set to True the received events over the websocket will be queued and event_listeners will called one after another. If set to False all events are directly assigned to the asyncio event_loop and executed parallel</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>heartbeat</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Intervals in which the bot will send heartbeats to the Websocket. Defaults to the pre-set environment variable heartbeat (default at 30000)</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>close_timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Seconds after the websocket will timeout after the end handshake didn't complete successfully. Defaults to the pre-set environment variable close_timeout (default at 40)</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -2475,14 +2517,32 @@
 
       <p>Closes the Connection to Hiven and stops the running WebSocket and
 the Event Processing Loop</p>
-<p>:param force: If set to True the running event-listener workers will be
- forced closed, which may lead to running code of event-listeners being
- stopped while performing actions. If False the stopping will wait
- for all running event_listeners to finish
-:param remove_listeners: If sett to True, it will remove all listeners
- including the ones created using @client.event(), add_multi_listener()
- and add_single_listener()</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>force</code></td>
+        <td><code>bool</code></td>
+        <td><p>If set to True the running event-listener workers will be forced closed, which may lead to running code of event-listeners being stopped while performing actions. If False the stopping will wait for all running event_listeners to finish</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>remove_listeners</code></td>
+        <td><code>bool</code></td>
+        <td><p>If sett to True, it will remove all listeners including the ones created using @client.event(), add_multi_listener() and add_single_listener()</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span>
@@ -2527,13 +2587,32 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Establishes a connection to Hiven and does not return until finished</p>
-<p>:param token: Token that should be used to connect to Hiven. If none is
- passed it will try to fetch the token in the environment variables
- using os.getenv('HIVEN_TOKEN'). Will overwrite the pre-runtime passed
- token if one was passed
-:param restart: If set to True the Client will restart if an error is
- encountered!</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>token</code></td>
+        <td><code>str</code></td>
+        <td><p>Token that should be used to connect to Hiven. If none is passed it will try to fetch the token in the environment variables using os.getenv('HIVEN_TOKEN'). Will overwrite the pre-runtime passed token if one was passed</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>restart</code></td>
+        <td><code>bool</code></td>
+        <td><p>If set to True the Client will restart if an error is encountered!</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span>
@@ -2621,8 +2700,22 @@ the Event Processing Loop</p>
       <p>Edits the Clients data on Hiven</p>
 <hr />
 <p>Available options: header, icon, bio, location, website, username</p>
-<p>:return: True if the request was successful else False</p>
 
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if the request was successful else False</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -2679,9 +2772,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param entity_id: id of the Entity
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>entity_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the Entity</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2723,9 +2848,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param house_id: id of the House
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>house_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the House</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">house_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2767,9 +2924,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param room_id: id of the PrivateGroupRoom
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the PrivateGroupRoom</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_private_group_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2811,9 +3000,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param room_id: id of the PrivateRoom
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the PrivateRoom</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2855,9 +3076,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param user_id: user-id of the Relationship
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user_id</code></td>
+        <td><code>str</code></td>
+        <td><p>user-id of the Relationship</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2899,9 +3152,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param room_id: id of the Room
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the Room</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2943,9 +3228,41 @@ the Event Processing Loop</p>
       <p>Fetches a dictionary from the cache based on the passed id</p>
 <hr />
 <p>The returned dict is only a copy from the cache</p>
-<p>:param user_id: id of the User
-:return: The cached dict if it exists in the cache else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the User</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The cached dict if it exists in the cache else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
@@ -2989,9 +3306,41 @@ the Event Processing Loop</p>
 <p>The returned data of the instance is only a copy from the cache and if
 changes are made while the instance exists the data will not be
 updated!</p>
-<p>:param entity_id: id of the Entity
-:return: The Entity instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>entity_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the Entity</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.entity.Entity]</code></td>
+      <td><p>The Entity instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">Entity</span><span class="p">]:</span>
@@ -3037,9 +3386,41 @@ updated!</p>
 <p>The returned data of the instance is only a copy from the cache and if
 changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param house_id: id of the House
-:return: The house instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>house_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the House</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.house.House]</code></td>
+      <td><p>The house instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">house_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">House</span><span class="p">]:</span>
@@ -3084,9 +3465,41 @@ the instance exists the data will not be updated!</p>
 <hr />
 <p>The returned data of the instance is only a copy from the cache and if changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param room_id: id of the PrivateGroupRoom
-:return: The PrivateGroupRoom instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the PrivateGroupRoom</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.private_room.PrivateGroupRoom]</code></td>
+      <td><p>The PrivateGroupRoom instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_private_group_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">PrivateGroupRoom</span><span class="p">]:</span>
@@ -3130,9 +3543,41 @@ the instance exists the data will not be updated!</p>
 <hr />
 <p>The returned data of the instance is only a copy from the cache and if changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param room_id: id of the PrivateRoom
-:return: The PrivateRoom instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the PrivateRoom</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.private_room.PrivateRoom]</code></td>
+      <td><p>The PrivateRoom instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">PrivateRoom</span><span class="p">]:</span>
@@ -3176,9 +3621,41 @@ the instance exists the data will not be updated!</p>
 <hr />
 <p>The returned data of the instance is only a copy from the cache and if changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param user_id: user-id of the Relationship
-:return: The Relationship instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user_id</code></td>
+        <td><code>str</code></td>
+        <td><p>user-id of the Relationship</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.relationship.Relationship]</code></td>
+      <td><p>The Relationship instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">Relationship</span><span class="p">]:</span>
@@ -3222,9 +3699,41 @@ the instance exists the data will not be updated!</p>
 <hr />
 <p>The returned data of the instance is only a copy from the cache and if changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param room_id: id of the Room
-:return: The Room instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>room_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the Room</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.textroom.TextRoom]</code></td>
+      <td><p>The Room instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">TextRoom</span><span class="p">]:</span>
@@ -3269,9 +3778,41 @@ the instance exists the data will not be updated!</p>
 <p>The returned data of the instance is only a copy from the cache and if
 changes are made while
 the instance exists the data will not be updated!</p>
-<p>:param user_id: id of the User
-:return: The User instance if it was found else None</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user_id</code></td>
+        <td><code>str</code></td>
+        <td><p>id of the User</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.user.User]</code></td>
+      <td><p>The User instance if it was found else None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">User</span><span class="p">]:</span>
@@ -3313,16 +3854,38 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Standard function for establishing a connection to Hiven</p>
-<p>:param token: Token that should be used to connect to Hiven. If none is
- passed it will try to fetch the token using os.getenv()
-:param loop: Event loop that will be used to execute all async
- functions. Uses 'asyncio.get_event_loop()' to fetch the EventLoop.
- Will create a new one if no one was created yet. If the loop was
- passed during initialisation that one will be used if no loop is
- passed. If a new loop is passed, that one will be used for execution.
-:param restart: If set to True the Client will restart if an error is
- encountered!</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>token</code></td>
+        <td><code>str</code></td>
+        <td><p>Token that should be used to connect to Hiven. If none is passed it will try to fetch the token using os.getenv()</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>loop</code></td>
+        <td><code>Optional[asyncio.events.AbstractEventLoop]</code></td>
+        <td><p>Event loop that will be used to execute all async functions. Uses 'asyncio.get_event_loop()' to fetch the EventLoop. Will create a new one if no one was created yet. If the loop was passed during initialisation that one will be used if no loop is passed. If a new loop is passed, that one will be used for execution.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>restart</code></td>
+        <td><code>bool</code></td>
+        <td><p>If set to True the Client will restart if an error is encountered!</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
@@ -3456,11 +4019,56 @@ so all properties and methods can be used here as well.</p>
     <div class="doc doc-contents ">
 
       <p>Blocks a user on Hiven</p>
-<p>:param user: Int or User Object used for the request
-:return: True if the request was successful
-:raises HTTPError: If the request was unsuccessful and an error was
- encountered</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user</code></td>
+        <td><code></code></td>
+        <td><p>Int or User Object used for the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if the request was successful</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">block_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -3515,13 +4123,60 @@ so all properties and methods can be used here as well.</p>
     <div class="doc doc-contents ">
 
       <p>Cancels an open friend request if it exists</p>
-<p>:param user: Int or User Object used for the request
-:return: True if the request was successful
-:raises TypeError: If the passed user is not one of the types: int or
- types.User
-:raises HTTPError: If the request was unsuccessful and an error was
- encountered</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user</code></td>
+        <td><code></code></td>
+        <td><p>Int or User Object used for the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if the request was successful</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If the passed user is not one of the types: int or types.User</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">cancel_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -3581,8 +4236,22 @@ so all properties and methods can be used here as well.</p>
     <div class="doc doc-contents ">
 
       <p>Fetches all open friend requests on Hiven</p>
-<p>:return: Returns a dict with all active friend requests if successful else it will raise an exception</p>
 
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>Returns a dict with all active friend requests if successful else it will raise an exception</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_current_friend_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
@@ -3644,11 +4313,56 @@ so all properties and methods can be used here as well.</p>
     <div class="doc doc-contents ">
 
       <p>Sends a friend request to a user</p>
-<p>:param user: Int or User Object used for the request
-:return: True if the request was successful
-:raises HTTPError: If the request was unsuccessful and an error was
- encountered</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user</code></td>
+        <td><code></code></td>
+        <td><p>Int or User Object used for the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if the request was successful</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">send_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -3708,11 +4422,56 @@ so all properties and methods can be used here as well.</p>
     <div class="doc doc-contents ">
 
       <p>Unblocks a user if the user is blocked</p>
-<p>:param user: Int or User Object used for the request
-:return: True if the request was successful
-:raises HTTPError: If the request was unsuccessful and an error was
- encountered</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user</code></td>
+        <td><code></code></td>
+        <td><p>Int or User Object used for the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if the request was successful</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">unblock_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

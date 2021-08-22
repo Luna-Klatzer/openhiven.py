@@ -1347,12 +1347,39 @@
 
     <div class="doc doc-contents ">
 
-      <p>:param client: The used HivenClient
-:param host: Url for the API which will be used to interact with Hiven.
- Defaults to the pre-set environment host (api.hiven.io)
-:param api_version: Version string for the API Version. Defaults to the
- pre-set environment version (defaults to v1)</p>
+      
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>client</code></td>
+        <td><code>HivenClient</code></td>
+        <td><p>The used HivenClient</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>host</code></td>
+        <td><code>str</code></td>
+        <td><p>Url for the API which will be used to interact with Hiven. Defaults to the pre-set environment host (api.hiven.io)</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>api_version</code></td>
+        <td><code>str</code></td>
+        <td><p>Version string for the API Version. Defaults to the pre-set environment version (defaults to v1)</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">HivenClient</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -1464,8 +1491,22 @@
     <div class="doc doc-contents ">
 
       <p>Closes the HTTP session that is currently connected to Hiven!</p>
-<p>:return: True if it was successful else False</p>
 
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if it was successful else False</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1509,8 +1550,22 @@
     <div class="doc doc-contents ">
 
       <p>Establishes for the HTTP a connection to Hiven</p>
-<p>:return: The created aiohttp.ClientSession</p>
 
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[aiohttp.ClientSession]</code></td>
+      <td><p>The created aiohttp.ClientSession</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">]:</span>
@@ -1571,23 +1626,90 @@
     <div class="doc doc-contents ">
 
       <p>Wrapped HTTP 'DELETE' for a specified endpoint.</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
- https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span>
@@ -1653,23 +1775,90 @@
     <div class="doc doc-contents ">
 
       <p>Wrapped HTTP 'GET' request for a specified endpoint</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
-https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span>
@@ -1737,23 +1926,102 @@ https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
       <p>The Function that stores the request and the handling of
 exceptions! Will be used as a variable so the status of the request
 can be seen by the asyncio.Task status!</p>
-<p>:param endpoint: Endpoint of the request
-:param method: HTTP method of the request
-:param json: Additional JSON Data if it exists
-:param headers: Headers that will be sent! Defaults to the ones
- that were created during initialisation
-:param kwargs: Additional Parameter for the aiohttp HTTP Request
-:param retry_on_rate_limit: Should the request retry after a
- rate_limit was received.
-:return: Returns the aiohttp.ClientResponse object
-:raises HTTPNotFoundError: If 404 is returned
-:raises HTTPRateLimitError: If a rate-limit is received (429) and
- retry_on_rate_limit is False
-:raises HTTPInternalServerError: If 5** is returned
-:raises HTTPReceivedNoDataError: If no data is returned and the code is
- not 204 (no data)
-:raises HTTPFailedRequestError: If no success object is returned</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Endpoint of the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>method</code></td>
+        <td><code>str</code></td>
+        <td><p>HTTP method of the request</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>dict</code></td>
+        <td><p>Additional JSON Data if it exists</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>dict</code></td>
+        <td><p>Headers that will be sent! Defaults to the ones that were created during initialisation</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Additional Parameter for the aiohttp HTTP Request</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Union[aiohttp.ClientResponse, None]</code></td>
+      <td><p>Returns the aiohttp.ClientResponse object</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPNotFoundError</code></td>
+        <td><p>If 404 is returned</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPRateLimitError</code></td>
+        <td><p>If a rate-limit is received (429) and retry_on_rate_limit is False</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPInternalServerError</code></td>
+        <td><p>If 5** is returned</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPReceivedNoDataError</code></td>
+        <td><p>If no data is returned and the code is not 204 (no data)</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPFailedRequestError</code></td>
+        <td><p>If no success object is returned</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">http_request</span><span class="p">(</span>
@@ -1906,23 +2174,90 @@ can be seen by the asyncio.Task status!</p>
 
       <p>Wrapped HTTP 'OPTIONS' for a specified endpoint.</p>
 <p>Requests permission for performing communication with a URL or server</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
- https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">options</span><span class="p">(</span>
@@ -1990,23 +2325,90 @@ can be seen by the asyncio.Task status!</p>
     <div class="doc doc-contents ">
 
       <p>Wrapped HTTP 'PATCH' for a specified endpoint.</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
-https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">patch</span><span class="p">(</span>
@@ -2081,23 +2483,90 @@ https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
     <div class="doc doc-contents ">
 
       <p>Wrapped HTTP 'POST' for a specified endpoint.</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
- https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">post</span><span class="p">(</span>
@@ -2173,23 +2642,90 @@ https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
 
       <p>Wrapped HTTP 'PUT' for a specified endpoint.</p>
 <p>Similar to post, but multiple requests do not affect performance</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
-https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the ClientResponse object if successful and else
- returns <code>None</code>
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>aiohttp.ClientResponse</code></td>
+      <td><p>Returns the ClientResponse object if successful and else returns <code>None</code></p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">put</span><span class="p">(</span>
@@ -2266,23 +2802,96 @@ https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
     <div class="doc doc-contents ">
 
       <p>Wrapped HTTP request for a specified endpoint.</p>
-<p>:param endpoint: Url place in url format '/../../..' Will be appended
- to the standard url: 'https://api.hiven.io/{version}'
-:param json: JSON format data that will be appended to the request
-:param timeout: Time the server has time to respond before the
- connection timeouts. Defaults to 15
-:param method: HTTP Method that should be used to perform the request
-:param headers: Defaults to the normal headers. Note: Changing content
- type can make the request break. Use with caution!
-:param kwargs: Other parameter for requesting. See
- https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession
- for more info
-:param retry_on_rate_limit: Should the request retry after a rate_limit
- was received. Defaults to True
-:return: Returns the aiohttp.ClientResponse object
-:raises HTTPRequestTimeoutError: If the set timeout is hit
-:raises HTTPError: If any HTTP Error is hit during processing</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>str</code></td>
+        <td><p>Url place in url format '/../../..' Will be appended to the standard url: 'https://api.hiven.io/{version}'</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>json</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>JSON format data that will be appended to the request</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>timeout</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Time the server has time to respond before the connection timeouts. Defaults to 15</p></td>
+        <td><code>15</code></td>
+      </tr>
+      <tr>
+        <td><code>method</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>HTTP Method that should be used to perform the request</p></td>
+        <td><code>&#39;GET&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>headers</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>Defaults to the normal headers. Note: Changing content type can make the request break. Use with caution!</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>kwargs</code></td>
+        <td><code></code></td>
+        <td><p>Other parameter for requesting. See https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession for more info</p></td>
+        <td><code>{}</code></td>
+      </tr>
+      <tr>
+        <td><code>retry_on_rate_limit</code></td>
+        <td><code>bool</code></td>
+        <td><p>Should the request retry after a rate_limit was received. Defaults to True</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Union[aiohttp.ClientResponse, None]</code></td>
+      <td><p>Returns the aiohttp.ClientResponse object</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPRequestTimeoutError</code></td>
+        <td><p>If the set timeout is hit</p></td>
+      </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP Error is hit during processing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\gateway\http.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">raw_request</span><span class="p">(</span>
