@@ -59,7 +59,7 @@ python3 -m pip install -U https://github.com/Luna-Klatzer/openhiven.py/archive/m
 
 ## Documentation
 
-For full documentation visit the documentation our github pages build
+For the full documentation visit the documentation build
 [here](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
 ### Usage Example (v0.2.dev1)
@@ -215,7 +215,7 @@ Mike: https://github.com/jimporter/mike
 
 ## Contributors
 
-<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
+<a href="https://github.com/Luna-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
 
 ## Copyright and License
 
