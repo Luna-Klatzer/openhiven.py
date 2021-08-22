@@ -19,7 +19,7 @@ The user logged successfully into the account, and the data will now be sent bac
     "d": {
         "user": {
             "username": str,
-            "user_flags": str,
+            "flags": str,
             "name": str,
             "id": str,
             "icon": str,
@@ -43,7 +43,7 @@ The user logged successfully into the account, and the data will now be sent bac
                 "user_id": str,
                 "user": {
                     "username": str,
-                    "user_flags": str,
+                    "flags": str,
                     "name": str,
                     "id": str,
                     "icon": str,
@@ -74,7 +74,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "recipients": [{  
                 // User Object
                 "username": str,
-                "user_flags": str,
+                "flags": str,
                 "name": str,
                 "id": str,
                 "icon": str,
@@ -86,7 +86,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "presences": {
             "id": {
               "username": str,
-              "user_flags": str,
+              "flags": str,
               "name": str,
               "id": str,
               "icon": str,
@@ -100,7 +100,7 @@ The user logged successfully into the account, and the data will now be sent bac
                 "user": {
                     // User Object
                     "username": str,
-                    "user_flags": str,
+                    "flags": str,
                     "name": str,
                     "id": str,
                     "icon": str,
@@ -139,7 +139,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "id": str,
         "location": str,
         "name": str,
-        "user_flags": int,
+        "flags": int,
         "username": str
     }
     ```
@@ -154,7 +154,7 @@ The user logged successfully into the account, and the data will now be sent bac
     "d": {
         // User Object
         "username": str,
-        "user_flags": str,
+        "flags": str,
         "name": str,
         "id": str,
         "icon": str,
@@ -176,7 +176,7 @@ The user logged successfully into the account, and the data will now be sent bac
             // User Object
             "website": str,
             "username": str,
-            "user_flags": int,
+            "flags": int,
             "name": str,
             "location": str,
             "id": str,
@@ -203,7 +203,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "mentions": [{
             // Mention object aka. user object
             "username": str,
-            "user_flags": str,
+            "flags": str,
             "name": str,
             "id": str,
             "icon": str,
@@ -217,7 +217,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "user": {
                 // User Object
                 "username": str,
-                "user_flags": str,
+                "flags": str,
                 "name": str,
                 "id": str,
                 "icon": str,
@@ -249,7 +249,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "author": {
             // User Object
             "username": str,
-            "user_flags": str,
+            "flags": str,
             "name": str,
             "id": str,
             "icon": str,
@@ -300,7 +300,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "mentions": [{
             // Mention object aka. user object
             "username": str,
-            "user_flags": str,
+            "flags": str,
             "name": str,
             "id": str,
             "icon": str,
@@ -423,7 +423,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "user": {
                 // User Object
                 "username": str,
-                "user_flags": str,
+                "flags": str,
                 "name": str,
                 "id": str,
                 "icon": str,
@@ -501,7 +501,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "user": {
             "id": str,
             "name": str,
-            "user_flags": str,
+            "flags": str,
             "username": str,
         }
     }
@@ -535,7 +535,7 @@ The user logged successfully into the account, and the data will now be sent bac
             bot: bool,
             id: str,
             name: str,
-            user_flags: str,
+            flags: str,
             username: str,
         },
         user_id: str
@@ -555,7 +555,7 @@ House member went online. Triggers in every house the client, and the user is in
         "user_id": str,
         "user": {
             "username": str,
-            "user_flags": str,
+            "flags": str,
             "name": str,
             "id": str,
             "icon": str,
@@ -610,7 +610,7 @@ House user went offline. Triggers in every house the client, and the user is in 
             // User Object
             "website": str,
             "username": str,
-            "user_flags": int,
+            "flags": int,
             "name": str,
             "location": str,
             "id": str,
@@ -654,7 +654,7 @@ Chunked House Member Update
                 "user_id": str,
                 "user": {
                 "username": str,
-                "user_flags": str,
+                "flags": str,
                 "name": str,
                 "id": strstr
                 "icon": str,
@@ -724,7 +724,7 @@ Chunked House Member Update
                 "user": {
                     // User Object
                     "username": str,
-                    "user_flags": str,
+                    "flags": str,
                     "name": str,
                     "id": str,
                     "icon": str,

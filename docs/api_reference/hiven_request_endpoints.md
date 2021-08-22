@@ -33,7 +33,7 @@ Default user endpoint for accessing the user-data of the owner of the passed tok
                 "username": str,
                 "icon": str,
                 "header": str,
-                "user_flags": int,
+                "flags": int,
                 "bot": bool,
                 "location": str,
                 "website": str,
@@ -91,7 +91,7 @@ Default user endpoint for accessing the user-data of the owner of the passed tok
                 "username": str,
                 "icon": str,
                 "header": str,
-                "user_flags": int,
+                "flags": int,
                 "bot": bool,
                 "location": str,
                 "website": str,
@@ -169,7 +169,7 @@ Endpoint for a specific user based on their username. Will return the user if th
                 "username": str,
                 "icon": str,
                 "header": str,
-                "user_flags": int,
+                "flags": int,
                 "bot": bool,
                 "location": str,
                 "website": str,
@@ -226,7 +226,7 @@ Endpoint for a specific user based on their id. Will return the user if they wer
                 "username": str,
                 "icon": str,
                 "header": str,
-                "user_flags": int,
+                "flags": int,
                 "bot": bool,
                 "location": str,
                 "website": str,
@@ -295,7 +295,7 @@ Endpoint for fetching your mentions in the Houses and rooms of your scope.
                             "username": str,
                             "name": str,
                             "header": str,
-                            "user_flags": str,
+                            "flags": str,
                             "bot": bool
                         }
                         // All mentions in the message
@@ -310,7 +310,7 @@ Endpoint for fetching your mentions in the Houses and rooms of your scope.
                         "username": str,
                         "name": str,
                         "header": str,
-                        "user_flags": str,
+                        "flags": str,
                         "bot": bool
                     }
                 },

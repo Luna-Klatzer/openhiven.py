@@ -60,7 +60,7 @@ Relationship with another Hiven User
     "user_id": str,
     "user": {
         "username": str,
-        "user_flags": str,
+        "flags": str,
         "name": str,
         "id": str,
         "icon": str,

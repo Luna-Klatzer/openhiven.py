@@ -14,6 +14,10 @@
         - [Testing](#testing)
         - [Building](#building)
         - [Uploading to PyPi and testing using `twine`](#uploading-to-pypi-and-testing-using-twine)
+        - [Docs](#docs)
+            - [Deploying and testing docs](#deploying-and-testing-docs)
+            - [Deploying new version to the `gh-pages` branch](#deploying-new-version-to-the-gh-pages-branch)
+            - [Version management](#version-management)
     - [Contributors](#contributors)
     - [Copyright and License](#copyright-and-license)
 
@@ -197,7 +201,10 @@ If everything is fine upload using:
 twine upload dist/*
 ```
 
-### Deploying and testing docs
+
+### Docs
+
+#### Deploying and testing docs
 
 To deploy the docs simply use the python module `mike`, which is used for 
 versioning. The following snippet will run a simple http server and update
@@ -208,6 +215,43 @@ mike serve
 ```
 
 *Note! Install `openhiven.py` locally for the autodoc extension to work*
+
+#### Deploying new version to the `gh-pages` branch
+
+To deploy new changes onto a new version, the `gh-pages` branch is used, which
+contains the docs for all previous versions. To push there you can either 
+manually push changes (not recommended) or use mike to build, push and directly
+deploy using GitHub Pages:
+
+**Pushing new version:**
+
+```bash
+mike deploy --push <version>
+```
+
+*Note! This command can also be used to *overwrite* old documentations*
+
+**Updating the `latest` alias**
+
+*Delete old `latest` alias value*
+
+```bash
+mike delete latest
+```
+
+*Set new `latest` alias value*
+```bash
+mike alias <version> latest 
+```
+
+**Set default version/alias**
+
+*Note! This is already set as default to the `latest` tag, meaning if the latest
+alias is updated, the default does not have to be altered.*
+
+```bash
+mike set-default <version>
+```
 
 #### Version management
 
