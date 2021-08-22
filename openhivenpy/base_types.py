@@ -18,7 +18,7 @@ __all__ = [
 
 class HivenObject(ABC):
     """
-    Base Class for all Hiven Type Classes. Used to signalise it's a
+    Abstract Base Class for all Hiven Type Classes. Used to signalise it's a
     generic type without specification
     """
     ...
@@ -29,6 +29,9 @@ class DataClassObject(HivenObject):
     Data-Class object for the types sub-module of openhivenpy
     """
     _client: HivenClient = None
+
+    def __init__(self):
+        self._json_schema: Optional[dict] = None
 
     @classmethod
     def validate(cls, data, *args, **kwargs) -> dict:
@@ -53,6 +56,11 @@ class DataClassObject(HivenObject):
 
         return '<{} {}>'.format(self.__class__.__name__, ' '.join(
             '%s=%s' % t if t is not None else '' for t in info))
+
+    @property
+    def json_schema(self) -> dict:
+        """ Schema to validate the Data Class using json-validation """
+        return self._json_schema
 
 
 class BaseUser(DataClassObject):

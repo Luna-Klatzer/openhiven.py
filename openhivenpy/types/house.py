@@ -7,8 +7,8 @@ from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import get_compiled_validator, HouseSchema, \
+    LazyHouseSchema
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import InvalidPassedDataError, InitializationError
@@ -28,47 +28,11 @@ class LazyHouse(DataClassObject):
 
     Note! This class is a lazy class and does not have every available data!
 
-    Consider fetching for more data the regular house object with HivenClient.get_house()
+    Consider fetching for more data the regular house object with
+    HivenClient.get_house()
     """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'name': {'type': 'string'},
-            'icon': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-            },
-            'owner_id': {'type': 'string'},
-            'owner': {'default': None},
-            'rooms': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {}
-            },
-            'type': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-            },
-            'client_member': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'string'},
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-            },
-        },
-        'required': ['id', 'name', 'owner_id']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = LazyHouseSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         """
@@ -77,6 +41,7 @@ class LazyHouse(DataClassObject):
         :param data: Data that should be used to create the object
         :param client: The HivenClient
         """
+        super().__init__()
         try:
             self._id = data.get('id')
             self._name = data.get('name')
@@ -103,7 +68,9 @@ class LazyHouse(DataClassObject):
         return '<House {}>'.format(' '.join('%s=%s' % t for t in info))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['houses'][self.id]
 
     @classmethod
@@ -132,7 +99,10 @@ class LazyHouse(DataClassObject):
                 owner_id = None
 
             if owner_id is None:
-                raise InvalidPassedDataError("The passed owner is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed owner is not in the correct format!",
+                    data=data
+                )
             else:
                 data['owner_id'] = owner_id
 
@@ -200,53 +170,8 @@ class LazyHouse(DataClassObject):
 
 class House(LazyHouse):
     """ Represents a Hiven House which can contain rooms and entities """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            **LazyHouse.json_schema['properties'],
-            'entities': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {}
-            },
-            'members': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {}
-            },
-            'roles': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {},
-            },
-            'banner': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None,
-            },
-            'default_permissions': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None,
-            }
-        },
-        'additionalProperties': False,
-        'required': [*LazyHouse.json_schema['required'], 'entities', 'members', 'roles']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = HouseSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         try:

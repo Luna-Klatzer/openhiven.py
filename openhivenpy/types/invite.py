@@ -6,9 +6,8 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
 from . import House
+from .hiven_type_schemas import InviteSchema, get_compiled_validator
 from ..base_types import DataClassObject
 from ..exceptions import InitializationError, InvalidPassedDataError
 
@@ -22,78 +21,11 @@ __all__ = ['Invite']
 
 class Invite(DataClassObject):
     """ Represents an Invite to a Hiven House """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'code': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-            },
-            'url': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-            },
-            'created_at': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'blocked': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'max_age': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'max_uses': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'mfa_enabled': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'type': {
-                'type': 'integer',
-                'default': None
-            },
-            'house_members': {
-                'type': 'integer',
-                'default': None
-            }
-        },
-        'additionalProperties': False,
-        'required': ['code']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = InviteSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._code = data.get('code')
             self._url = data.get('url')

@@ -8,8 +8,7 @@ from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import TextRoomSchema, get_compiled_validator
 from .house import House
 from .message import Message
 from .. import utils
@@ -37,59 +36,11 @@ class TextRoom(DataClassObject):
     1 - Portal
 
     """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'name': {'type': 'string'},
-            'house_id': {'type': 'string'},
-            'position': {'type': 'integer'},
-            'type': {'type': 'integer'},
-            'emoji': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'description': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'last_message_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'house': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-            },
-            'permission_overrides': {'default': None},
-            'default_permission_override': {'default': None},
-            'recipients': {'default': None},
-            'owner_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-        },
-        'additionalProperties': False,
-        'required': ['id', 'name', 'house_id', 'type']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = TextRoomSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._id = data.get('id')
             self._name = data.get('name')
@@ -119,7 +70,9 @@ class TextRoom(DataClassObject):
         return str('<Room {}>'.format(' '.join('%s=%s' % t for t in info)))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['rooms']['house'][self.id]
 
     @classmethod

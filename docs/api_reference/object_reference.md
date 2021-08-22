@@ -115,15 +115,20 @@ Member of a House
 ### Entity
 
 ```json
-    "type": int,
-    "resource_pointers": [{
-        // Resource Pointer
-        "resource_type": str,
-        "resource_id": str
-    } ... ],
-    "position": int,
-    "name": str,
-    "id": str
+{
+  "type": int,
+  "resource_pointers": [
+    {
+      // Resource Pointer
+      "resource_type": str,
+      "resource_id": str
+    }
+    ...
+  ],
+  "position": int,
+  "name": str,
+  "id": str
+}
 ```
 
 ### Role

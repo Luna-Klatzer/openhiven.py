@@ -8,9 +8,8 @@ from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
 from . import message
+from .hiven_type_schemas import PrivateRoomSchema, get_compiled_validator
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import InitializationError, InvalidPassedDataError
@@ -26,60 +25,11 @@ __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 class PrivateGroupRoom(DataClassObject):
     """ Represents a private group chat room with multiple users """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'last_message_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'},
-                ],
-                'default': None
-            },
-            'recipients': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {},
-            },
-            'name': {'default': None},
-            'description': {'default': None},
-            'emoji': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'type': {'type': 'integer'},
-            'permission_overrides': {'default': None},
-            'default_permission_override': {'default': None},
-            'position': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'owner_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'house_id': {'type': 'null'}  # weird hiven bug
-        },
-        'additionalProperties': False,
-        'required': ['id', 'recipients', 'type']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = PrivateRoomSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._id = data.get('id')
             self._last_message_id = data.get('last_message_id')
@@ -242,8 +192,8 @@ class PrivateGroupRoom(DataClassObject):
 
 class PrivateRoom(DataClassObject):
     """ Represents a private chat room with only one user """
-    json_schema = PrivateGroupRoom.json_schema
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = PrivateRoomSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         try:
