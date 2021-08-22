@@ -253,7 +253,7 @@ class HivenClient(HivenEventHandler, HivenObject):
          forced closed, which may lead to running code of event-listeners being
          stopped while performing actions. If False the stopping will wait
          for all running event_listeners to finish
-        :param remove_listeners: If sett to True, it will remove all listeners
+        :param remove_listeners: If set to True, it will remove all listeners
          including the ones created using @client.event(), add_multi_listener()
          and add_single_listener()
         """
