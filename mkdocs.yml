@@ -1,0 +1,133 @@
+# Openhiven.py Mkdocs Customisation
+
+site_name: 'OpenHiven.py Docs'
+site_description: 'Documentation Page for OpenHiven.py'
+site_author: 'Nicolas Klatzer'
+site_url: 'https://openhivenpy.readthedocs.io/en/'
+edit_uri: 'https://github.com/Luna-Klatzer/docs_openhiven.py/edit/main/docs/'
+
+copyright: Copyright &copy; 2020 - 2021 Luna-Klatzer
+
+use_directory_urls: false
+nav:
+  - Home:
+      - Home: index.md
+      - home/contributing.md
+      - home/license.md
+      - home/troubleshooting.md
+      - home/bug_reporting.md
+  - Getting Started:
+      - getting_started/index.md
+      - getting_started/deploying_your_first_bot.md
+      - getting_started/logging.md
+      - getting_started/event_handling.md
+  - Setup:
+      - setup/index.md
+  - Library Reference:
+      - reference/hivenclient.md
+      - reference/http.md
+      - reference/cache.md
+      - reference/events.md
+      - reference/types.md
+  - Hiven API Reference:
+      - Hiven REST API:
+        - api_reference/hiven_restapi.md
+        - api_reference/hiven_request_endpoints.md
+        - api_reference/hiven_exceptions.md
+      - Hiven Swarm (WebSocket):
+        - api_reference/hiven_swarm.md
+        - api_reference/swarm_events.md
+      - Hiven Objects:
+        - api_reference/object_reference.md
+  - Changelog:
+      - changelog.md
+extra_css:
+    - assets/css/index.css
+
+# Github repo
+repo_url: https://github.com/Luna-Klatzer/OpenHiven.py
+repo_name: Luna-Klatzer/OpenHiven.py
+
+# Material theme options
+theme:
+  name: material
+  favicon: ./openhivenpy.ico
+  shortcuts:
+    help: 191    # ?
+    next: 78     # n
+    previous: 80 # p
+    search: 83   # s
+  hljs_languages:
+    - yaml
+    - python
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+  logo: ./assets/images/openhivenpy.png
+  icon:
+    repo: fontawesome/brands/git-alt
+  features:
+    - navigation.tabs
+    - navigation.expand
+    - navigation.sections
+    - navigation.instant
+
+# Plugins
+plugins:
+  - git-revision-date
+  - autorefs
+  - mkdocstrings: # code-gen
+      handlers:
+        python:
+          rendering:
+            show_root_heading: true
+            show_category_heading: true
+            show_if_no_docstring: true
+  - search:
+      lang: en
+      prebuild_index: true
+
+google_analytics:
+  - G-WWRJSVTX2V
+  - auto
+
+# Extensions to the basic mkdocs markdown
+markdown_extensions:
+  - toc:
+      permalink: true
+      toc_depth: 4
+  - pymdownx.tabbed # Nice tabs
+  - pymdownx.superfences # Very cool embed objects
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.tilde
+  - pymdownx.keys
+  - attr_list # => very cool html and css syntax
+  - abbr
+  - pymdownx.snippets # snippet looking sharp!
+  - admonition
+  - meta
+  - admonition # code-gen
+  - codehilite # code-gen\
+  - toc
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      options:
+        custom_icons:
+          - docs/.icons
+
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/FloofyLunafox
+      name: The author on Twitter
+    - icon: fontawesome/brands/github
+      link: https://github.com/Luna-Klatzer/
+      name: The author and manager of the project

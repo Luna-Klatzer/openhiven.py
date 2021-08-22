@@ -197,6 +197,22 @@ If everything is fine upload using:
 twine upload dist/*
 ```
 
+### Deploying and testing docs
+
+To deploy the docs simply use the python module `mike`, which is used for 
+versioning. The following snippet will run a simple http server and update
+the docs when changed:
+
+```bash
+mike serve
+```
+
+*Note! Install `openhiven.py` locally for the autodoc extension to work*
+
+#### Version management
+
+Mike: https://github.com/jimporter/mike
+
 ## Contributors
 
 <a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
