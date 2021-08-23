@@ -1,14 +1,22 @@
 # Changelog
 
----
-
 All notable changes to the Compiler will be documented in this file. Note that
 these changes in this file are specifically for the Compiler. The full summary
 will be in the CHANGELOG.md file the main folder
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+, and this project adheres
+to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.dev2] - 2021-08-23
+
+### Added
+- Full Properties of Class `User` are now added to the `HivenClient`
+- `application` and `account` as new properties to `BaseUser`
+
+### Changed
+- Made `flags` the base property as replacement for `user_flags`. Though 
+  `user_flags` will still exist
 
 ## [v0.2.dev1] - 2021-08-13
 
@@ -193,7 +201,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev1...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev2...v0.2.dev
+
+[v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2
 
 [v0.2.dev1]: https://github.com/Para-C/Para-C/compare/v0.1.3.2...0.2.dev1
 
