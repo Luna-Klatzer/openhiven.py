@@ -1,10 +1,9 @@
 import asyncio
-import datetime
 import logging
 import os
 import sys
 from asyncio import AbstractEventLoop
-from typing import Optional
+from typing import Optional, Union
 
 from .cache import ClientCache
 from .. import types
@@ -88,35 +87,181 @@ class HivenClient(HivenEventHandler, HivenObject):
 
     @property
     def storage(self) -> Optional[ClientCache]:
+        """ Returns the Storage/Cache of the Client """
         return getattr(self, '_storage', None)
 
     @property
     def token(self) -> Optional[str]:
+        """ Returns the token of the Client """
         return self.storage.get('token')
 
     @property
     def client_type(self) -> Optional[str]:
+        """
+        Returns the Client-Type aka. the name of the class used
+
+        Possible options: HivenClient, UserClient, BotClient
+        """
         return self.__class__.__name__
 
     @property
     def log_websocket(self) -> Optional[str]:
+        """
+        Returns whether the run configuration property log_websocket is enabled
+        """
         return self.storage.get('log_websocket', None)
 
     @property
     def http(self) -> Optional[HTTP]:
+        """ Returns the HTTP Client from the Connection object if it exists """
         return getattr(self.connection, 'http', None)
 
     @property
     def connection(self) -> Optional[Connection]:
+        """ Returns the Connection property """
         return getattr(self, '_connection', None)
 
     @property
     def queue_events(self) -> Optional[bool]:
+        """
+        Returns whether the run configuration property queue_events is enabled
+        """
         return getattr(self, '_queue_events', None)
 
     @property
     def loop(self) -> Optional[asyncio.AbstractEventLoop]:
+        """ Returns the Asyncio Event-loop """
         return getattr(self, '_loop', None)
+
+    @property
+    def open(self) -> Optional[bool]:
+        """ Returns whether the Connection is open """
+        return getattr(self.connection, 'open', False)
+
+    @property
+    def connection_status(self) -> Optional[int]:
+        """ Current connection status """
+        return getattr(self.connection, 'connection_status', None)
+
+    @property
+    def startup_time(self) -> Optional[int]:
+        """ Returns the amount of time it took for the bot to startup """
+        return getattr(self.connection, 'startup_time', None)
+
+    @property
+    def message_broker(self) -> Optional[MessageBroker]:
+        """ Returns the Message-Broker handling all incoming events """
+        return getattr(self.connection.ws, 'message_broker', None)
+
+    @property
+    def initialised(self) -> Optional[bool]:
+        """
+        Returns whether the Client is initialised. This does not include
+        the ready state though
+        """
+        return getattr(self.connection.ws, '_open', False)
+
+    @property
+    def client_user(self) -> Optional[types.User]:
+        """ The User Object of this client """
+        # Always prefers to fetch the most recent data
+        if self.storage['client_user']:
+            self._client_user = self.storage.init_client_user_obj()
+            return self._client_user
+        elif getattr(self, '_client_user', None) is not None:
+            return self._client_user
+        else:
+            return None
+
+    @property
+    def username(self) -> Optional[str]:
+        """ Username of the user """
+        return getattr(self.client_user, 'username', None)
+
+    @property
+    def name(self) -> Optional[str]:
+        """ Name of the user """
+        return getattr(self.client_user, 'name', None)
+
+    @property
+    def id(self) -> Optional[str]:
+        """ Unique string id of the user """
+        return getattr(self.client_user, 'id', None)
+
+    @property
+    def bio(self) -> Optional[str]:
+        """ Bio of the user """
+        return getattr(self.client_user, 'bio', None)
+
+    @property
+    def email_verified(self) -> Optional[bool]:
+        """ Returns True if the email is verified """
+        return getattr(self.client_user, 'email_verified', None)
+
+    @property
+    def flags(self) -> Optional[Union[int, str]]:
+        """ User flags represented as an numeric value/str """
+        return getattr(self.client_user, 'flags', None)
+
+    @property
+    def user_flags(self) -> Optional[Union[int, str]]:
+        """ Alias for flags """
+        return getattr(self.client_user, 'user_flags', None)
+
+    @property
+    def icon(self) -> Optional[str]:
+        """ The icon of the user as a link """
+        return getattr(self.client_user, 'icon', None)
+
+    @property
+    def header(self) -> Optional[str]:
+        """ The header of the user as a link """
+        return getattr(self.client_user, 'header', None)
+
+    @property
+    def bot(self) -> Optional[bool]:
+        """ Returns true when the user is a bot """
+        return getattr(self.client_user, 'bot', None)
+
+    @property
+    def account(self) -> Optional[str]:
+        """ Returns the account id/string. Currently client-limited """
+        return getattr(self.client_user, 'account', None)
+
+    @property
+    def application(self) -> Optional[bool]:
+        """ Returns the application string passed. Currently client-limited """
+        return getattr(self.client_user, 'application', None)
+
+    @property
+    def location(self) -> Optional[str]:
+        """ Set location of the user """
+        return getattr(self.client_user, 'location', None)
+
+    @property
+    def website(self) -> Optional[str]:
+        """ Set website of the user"""
+        return getattr(self.client_user, 'website', None)
+
+    @property
+    def presence(self) -> Optional[str]:
+        """ Current presence of the User """
+        return getattr(self.client_user, 'presence', None)
+
+    @property
+    def email(self) -> Optional[str]:
+        """ The e-mail of the user. Client-limited """
+        return getattr(self.client_user, 'email', None)
+
+    @property
+    def blocked(self) -> Optional[bool]:
+        """ Returns whether the user is blocked """
+        return getattr(self.client_user, 'blocked', None)
+
+    @property
+    def mfa_enabled(self) -> Optional[bool]:
+        """ Returns whether mfa is enabled """
+        return getattr(self.client_user, 'mfa_enabled', None)
 
     def run(
             self,
@@ -253,33 +398,13 @@ class HivenClient(HivenEventHandler, HivenObject):
          forced closed, which may lead to running code of event-listeners being
          stopped while performing actions. If False the stopping will wait
          for all running event_listeners to finish
-        :param remove_listeners: If sett to True, it will remove all listeners
+        :param remove_listeners: If set to True, it will remove all listeners
          including the ones created using @client.event(), add_multi_listener()
          and add_single_listener()
         """
         await self.connection.close(force, remove_listeners)
         self.storage.closing_cleanup()
         logger.debug(f"[HIVENCLIENT] Client {repr(self)} was closed")
-
-    @property
-    def open(self) -> Optional[bool]:
-        return getattr(self.connection, 'open', False)
-
-    @property
-    def connection_status(self) -> Optional[int]:
-        return getattr(self.connection, 'connection_status', None)
-
-    @property
-    def startup_time(self) -> Optional[int]:
-        return getattr(self.connection, 'startup_time', None)
-
-    @property
-    def message_broker(self) -> Optional[MessageBroker]:
-        return getattr(self.connection.ws, 'message_broker', None)
-
-    @property
-    def initialised(self) -> Optional[bool]:
-        return getattr(self.connection.ws, '_open', False)
 
     async def edit(self, **kwargs) -> bool:
         """
@@ -312,57 +437,6 @@ class HivenClient(HivenEventHandler, HivenObject):
                 exc_info=sys.exc_info()
             )
             raise
-
-    @property
-    def client_user(self) -> Optional[types.User]:
-        # Always prefers to fetch the most recent data
-        if self.storage['client_user']:
-            self._client_user = self.storage.init_client_user_obj()
-            return self._client_user
-        elif getattr(self, '_client_user', None) is not None:
-            return self._client_user
-        else:
-            return None
-
-    @property
-    def username(self) -> Optional[str]:
-        return getattr(self.client_user, 'username', 'na')
-
-    @property
-    def name(self) -> Optional[str]:
-        return getattr(self.client_user, 'name', 'na')
-
-    @property
-    def id(self) -> Optional[str]:
-        return getattr(self.client_user, 'id', 'na')
-
-    @property
-    def icon(self) -> Optional[str]:
-        return getattr(self.client_user, 'icon', 'na')
-
-    @property
-    def header(self) -> Optional[str]:
-        return getattr(self.client_user, 'header', 'na')
-
-    @property
-    def bot(self) -> Optional[bool]:
-        return getattr(self.client_user, 'bot', 'na')
-
-    @property
-    def location(self) -> Optional[str]:
-        return getattr(self.client_user, 'location', 'na')
-
-    @property
-    def website(self) -> Optional[str]:
-        return getattr(self.client_user, 'website', 'na')
-
-    @property
-    def presence(self) -> Optional[str]:
-        return getattr(self.client_user, 'presence', 'na')
-
-    @property
-    def joined_at(self) -> Optional[datetime.datetime]:
-        return getattr(self.client_user, 'joined_at', 'na')
 
     def get_user(self, user_id: str) -> Optional[types.User]:
         """

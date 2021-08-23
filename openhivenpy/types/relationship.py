@@ -6,8 +6,7 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import RelationshipSchema, get_compiled_validator
 from .user import User
 from .. import utils
 from ..base_types import DataClassObject
@@ -41,26 +40,11 @@ class Relationship(DataClassObject):
     
     5 - Blocked User
     """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'user_id': {'type': 'string'},
-            'user': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-            },
-            'type': {'type': 'integer'},
-            'last_updated_at': {'type': 'string'}
-        },
-        'additionalProperties': False,
-        'required': ['user_id', 'type']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = RelationshipSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._user_id = data.get('user_id')
             self._user = data.get('user')
@@ -82,7 +66,9 @@ class Relationship(DataClassObject):
         return '<Relationship {}>'.format(' '.join('%s=%s' % t for t in info))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['relationships'][self.user_id]
 
     @classmethod
@@ -112,11 +98,17 @@ class Relationship(DataClassObject):
                 user_id = None
 
             if user_id is None:
-                raise InvalidPassedDataError("The passed user is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed user is not in the correct format!",
+                    data=data
+                )
             else:
                 data['user_id'] = user_id
         elif not data.get('user_id') and not data.get('user'):
-            raise InvalidPassedDataError("user_id and user missing from required data", data=data)
+            raise InvalidPassedDataError(
+                "user_id and user missing from required data",
+                data=data
+            )
 
         data['user'] = data['user_id']
         return data

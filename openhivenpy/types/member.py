@@ -7,13 +7,12 @@ from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import MemberSchema, get_compiled_validator
 from .user import User
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InitializationError, HTTPForbiddenError, \
-    InvalidPassedDataError
+from ..exceptions import (InitializationError, HTTPForbiddenError,
+                          InvalidPassedDataError)
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -29,29 +28,8 @@ class Member(User):
     Represents a House Member on Hiven which contains the Hiven User, role-data
     and member-data
     """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            **User.json_schema['properties'],
-            'user_id': {'type': 'string'},
-            'house': {},
-            'house_id': {'type': 'string'},
-            'joined_at': {'type': 'string'},
-            'roles': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'}
-                ],
-                'default': {},
-            },
-            'user': {'type': 'object'},
-            'last_permission_update': {'default': None}
-        },
-        'additionalProperties': False,
-        'required': ['user', 'user_id', 'house_id', 'joined_at']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = MemberSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         super().__init__(data.get('user'), client)

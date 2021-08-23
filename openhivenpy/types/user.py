@@ -6,8 +6,8 @@ from typing import Optional, Union
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import UserSchema, get_compiled_validator, \
+    LazyUserSchema
 from ..base_types import BaseUser
 from ..exceptions import InitializationError
 
@@ -20,70 +20,26 @@ __all__ = ['LazyUser', 'User']
 
 
 class LazyUser(BaseUser):
-    """ Represents the standard Hiven User """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'username': {'type': 'string'},
-            'name': {'type': 'string'},
-            'id': {'type': 'string'},
-            'user_flags': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'bio': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'email_verified': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'header': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'icon': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'bot': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'string'},  # TODO! Needs to be removed when the string bug disappeared
-                    {'type': 'null'}
-                ],
-                'default': False
-            }
-        },
-        'required': ['username', 'name', 'id']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    """
+    Represents the standard Hiven User
+
+    Note! This class is a lazy class and does not have every available data!
+
+    Consider fetching for more data the regular user object with
+    HivenClient.get_user()
+    """
+    _json_schema: dict = LazyUserSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._username = data.get('username')
             self._name = data.get('name')
             self._bio = data.get('bio')
             self._id = data.get('id')
             self._email_verified = data.get('email_verified')
-            self._user_flags = data.get('user_flags')  # ToDo: Discord.py-esque way of user flags
+            self._flags = data.get('flags')  # ToDo: Discord.py-esque way of user flags
             self._icon = data.get('icon')
             self._header = data.get('header')
             self._bot = data.get('bot', False)
@@ -149,9 +105,14 @@ class LazyUser(BaseUser):
         return super().email_verified
 
     @property
-    def user_flags(self) -> Optional[Union[int, str]]:
+    def flags(self) -> Optional[Union[int, str]]:
         """ User flags represented as an numeric value/str """
-        return super().user_flags
+        return super().flags
+
+    @property
+    def user_flags(self) -> Optional[Union[int, str]]:
+        """ Alias for flags """
+        return self.flags
 
     @property
     def icon(self) -> Optional[str]:
@@ -168,60 +129,21 @@ class LazyUser(BaseUser):
         """ Returns true when the user is a bot """
         return super().bot
 
+    @property
+    def account(self) -> Optional[str]:
+        """ Returns the account id/string. Currently client-limited """
+        return super().account
+
+    @property
+    def application(self) -> Optional[bool]:
+        """ Returns the application string passed. Currently client-limited """
+        return super().application
+
 
 class User(LazyUser):
     """ Represents the regular extended Hiven User """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            **LazyUser.json_schema['properties'],
-            'location': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'website': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'presence': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'email': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'blocked': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'mfa_enabled': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-        },
-        'additionalProperties': False,
-        'required': [*LazyUser.json_schema['required']]
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = UserSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         try:
@@ -264,29 +186,37 @@ class User(LazyUser):
         return data
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['users'][self.id]
 
     @property
     def location(self) -> Optional[str]:
+        """ Set location of the user """
         return getattr(self, '_location', None)
 
     @property
     def website(self) -> Optional[str]:
+        """ Set website of the user"""
         return getattr(self, '_website', None)
 
     @property
     def presence(self) -> Optional[str]:
+        """ Current presence of the User """
         return getattr(self, '_presence', None)
 
     @property
     def email(self) -> Optional[str]:
+        """ The e-mail of the user. Client-limited """
         return getattr(self, '_email', None)
 
     @property
     def blocked(self) -> Optional[bool]:
+        """ Returns whether the user is blocked """
         return getattr(self, '_blocked', None)
 
     @property
     def mfa_enabled(self) -> Optional[bool]:
+        """ Returns whether mfa is enabled """
         return getattr(self, '_mfa_enabled', None)

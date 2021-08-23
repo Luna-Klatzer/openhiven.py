@@ -6,8 +6,7 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import EmbedSchema, get_compiled_validator
 from ..base_types import DataClassObject
 from ..exceptions import InitializationError
 
@@ -20,26 +19,14 @@ __all__ = ['Embed']
 
 
 class Embed(DataClassObject):
-    """ Represents an embed message object either customised or from a website """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'url': {'type': 'string', 'default': None},
-            'type': {'type': 'integer'},
-            'title': {'type': 'string'},
-            'image': {'type': 'string', 'default': None},
-            'description': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            }
-        },
-        'additionalProperties': False,
-        'required': ['type', 'title']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    """
+    Represents an embed message object.
+
+    This can represent an either customised embed or fetched embed from a
+    website
+    """
+    _json_schema: dict = EmbedSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         """
@@ -48,6 +35,7 @@ class Embed(DataClassObject):
         :param data: Data that should be used to create the object
         :param client: The HivenClient
         """
+        super().__init__()
         try:
             self._url = data.get('url')
             self._type = data.get('type')

@@ -7,8 +7,7 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import MentionSchema, get_compiled_validator
 from .user import User
 from .. import utils
 from ..base_types import DataClassObject
@@ -24,29 +23,11 @@ __all__ = ['Mention']
 
 class Mention(DataClassObject):
     """ Represents an mention for a user in Hiven """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'timestamp': {'type': 'string'},
-            'user': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-            },
-            'author': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-            },
-        },
-        'additionalProperties': False,
-        'required': ['timestamp', 'user', 'author']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = MentionSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._timestamp = data.get('timestamp')
             self._user = data.get('user')

@@ -27,7 +27,7 @@ class TestCache:
                 'user_id': '175697072878514388',
                 'user': {
                     'username': 'kudo',
-                    'user_flags': '0',
+                    'flags': '0',
                     'name': 'The lovely Kudo',
                     'id': '175697072878514388',
                     'icon': '7b33d7197e7a7f4cdf5e8b0ec3e0a1fcd0620b06.png',

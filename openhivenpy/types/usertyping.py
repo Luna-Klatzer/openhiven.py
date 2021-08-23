@@ -24,6 +24,7 @@ class UserTyping(DataClassObject):
     """ Represents a Hiven User typing in a room """
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._author = data.get('author')
             self._room = data.get('room')

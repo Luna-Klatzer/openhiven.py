@@ -14,6 +14,10 @@
         - [Testing](#testing)
         - [Building](#building)
         - [Uploading to PyPi and testing using `twine`](#uploading-to-pypi-and-testing-using-twine)
+        - [Docs](#docs)
+            - [Deploying and testing docs](#deploying-and-testing-docs)
+            - [Deploying new version to the `gh-pages` branch](#deploying-new-version-to-the-gh-pages-branch)
+            - [Version management](#version-management)
     - [Contributors](#contributors)
     - [Copyright and License](#copyright-and-license)
 
@@ -34,8 +38,10 @@
 ## Dependencies
 
 [![aiohttp](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/aiohttp/main)](https://docs.aiohttp.org/en/stable/)
-[![asyncio](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/asyncio/main)](https://docs.python.org/3/library/asyncio.html)
-[![typing](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/typing/main)](https://docs.python.org/3/library/typing.html)
+[![python-dotenv](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/python-dotenv/main)](https://docs.python.org/3/library/asyncio.html)
+[![fastjsonschema](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/fastjsonschema/main)](https://docs.python.org/3/library/typing.html)
+[![yarl](https://img.shields.io/github/pipenv/locked/dependency-version/Luna-Klatzer/openhiven.py/yarl/main)](https://docs.python.org/3/library/typing.html)
+
 
 ## Installation
 ### Install (PyPi Release)
@@ -195,9 +201,65 @@ If everything is fine upload using:
 twine upload dist/*
 ```
 
+
+### Docs
+
+#### Deploying and testing docs
+
+To deploy the docs simply use the python module `mike`, which is used for 
+versioning. The following snippet will run a simple http server and update
+the docs when changed:
+
+```bash
+mike serve
+```
+
+*Note! Install `openhiven.py` locally for the autodoc extension to work*
+
+#### Deploying new version to the `gh-pages` branch
+
+To deploy new changes onto a new version, the `gh-pages` branch is used, which
+contains the docs for all previous versions. To push there you can either 
+manually push changes (not recommended) or use mike to build, push and directly
+deploy using GitHub Pages:
+
+**Pushing new version:**
+
+```bash
+mike deploy --push <version>
+```
+
+*Note! This command can also be used to *overwrite* old documentations*
+
+**Updating the `latest` alias**
+
+*Delete old `latest` alias value*
+
+```bash
+mike delete latest
+```
+
+*Set new `latest` alias value*
+```bash
+mike alias <version> latest 
+```
+
+**Set default version/alias**
+
+*Note! This is already set as default to the `latest` tag, meaning if the latest
+alias is updated, the default does not have to be altered.*
+
+```bash
+mike set-default <version>
+```
+
+#### Version management
+
+Mike: https://github.com/jimporter/mike
+
 ## Contributors
 
-<a href="https://github.com/Nicolas-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
+<a href="https://github.com/Luna-Klatzer/openhiven.py/graphs/contributors"><image src="https://contributors-img.web.app/image?repo=Nicolas-Klatzer/openhiven.py"></a>
 
 ## Copyright and License
 

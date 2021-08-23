@@ -18,7 +18,7 @@ __all__ = [
 
 class HivenObject(ABC):
     """
-    Base Class for all Hiven Type Classes. Used to signalise it's a
+    Abstract Base Class for all Hiven Type Classes. Used to signalise it's a
     generic type without specification
     """
     ...
@@ -29,6 +29,9 @@ class DataClassObject(HivenObject):
     Data-Class object for the types sub-module of openhivenpy
     """
     _client: HivenClient = None
+
+    def __init__(self):
+        self._json_schema: Optional[dict] = None
 
     @classmethod
     def validate(cls, data, *args, **kwargs) -> dict:
@@ -53,6 +56,11 @@ class DataClassObject(HivenObject):
 
         return '<{} {}>'.format(self.__class__.__name__, ' '.join(
             '%s=%s' % t if t is not None else '' for t in info))
+
+    @property
+    def json_schema(self) -> dict:
+        """ Schema to validate the Data Class using json-validation """
+        return self._json_schema
 
 
 class BaseUser(DataClassObject):
@@ -90,9 +98,15 @@ class BaseUser(DataClassObject):
 
     @property
     @abstractmethod
-    def user_flags(self) -> Optional[Union[int, str]]:
+    def flags(self) -> Optional[Union[int, str]]:
         """ User flags represented as an numeric value/str """
-        return getattr(self, '_user_flags', None)
+        return getattr(self, '_flags', None)
+
+    @property
+    @abstractmethod
+    def user_flags(self) -> Optional[Union[int, str]]:
+        """ Alias for flags """
+        return self.flags
 
     @property
     @abstractmethod
@@ -119,3 +133,16 @@ class BaseUser(DataClassObject):
     def bot(self) -> Optional[bool]:
         """ Returns true when the user is a bot """
         return getattr(self, '_bot', None)
+
+    @property
+    @abstractmethod
+    def account(self) -> Optional[str]:
+        """ Returns the account id/string. Currently client-limited """
+        _ = getattr(self, '_account', None)
+        return str(_) if type(_) is int else _
+
+    @property
+    @abstractmethod
+    def application(self) -> Optional[bool]:
+        """ Returns the application string passed. Currently client-limited """
+        return getattr(self, '_application', None)

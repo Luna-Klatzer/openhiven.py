@@ -5,8 +5,7 @@ import logging
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import AttachmentSchema, get_compiled_validator
 from ..base_types import DataClassObject
 from ..exceptions import InitializationError
 
@@ -20,20 +19,8 @@ __all__ = ['Attachment']
 
 class Attachment(DataClassObject):
     """ Represents a Hiven Message Attachment containing a file """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'filename': {'type': 'string'},
-            'media_url': {'type': 'string'},
-            'raw': {
-                'type': 'object',
-                'default': {}
-            },
-        },
-        'additionalProperties': False,
-        'required': ['filename', 'media_url']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = AttachmentSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         """
@@ -42,6 +29,7 @@ class Attachment(DataClassObject):
         :param data: Data that should be used to create the object
         :param client: The HivenClient
         """
+        super().__init__()
         try:
             self._filename = data.get('filename')
             self._media_url = data.get('media_url')

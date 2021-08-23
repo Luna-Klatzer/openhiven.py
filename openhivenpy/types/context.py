@@ -7,8 +7,7 @@ from typing import Optional
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import ContextSchema, get_compiled_validator
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import InvalidPassedDataError, InitializationError
@@ -23,29 +22,12 @@ __all__ = ['Context']
 
 
 class Context(DataClassObject):
-    """ Represents a Command Context for a triggered command that was registered prior """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'room': {'type': 'object'},
-            'author': {'type': 'object'},
-            'timestamp': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ],
-            },
-            'house': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ]
-            },
-        },
-        'additionalProperties': False,
-        'required': ['room', 'author', 'timestamp']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    """
+    Represents a Command Context for a triggered command that was registered
+    prior
+    """
+    _json_schema: dict = ContextSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         """
@@ -55,6 +37,7 @@ class Context(DataClassObject):
         :param data: Data that should be used to create the object
         :param client: The HivenClient
         """
+        super().__init__()
         try:
             self._room = data.get('room')
             self._author = data.get('author')

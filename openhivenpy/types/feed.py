@@ -16,10 +16,12 @@ __all__ = ['Feed']
 
 
 class Feed(DataClassObject):
-    """ Represents the feed that is displayed on Hiven specifically for the user """
+    """
+    Represents the feed that is displayed on Hiven specifically for the user
+    """
 
     def __init__(self, data: dict, client: HivenClient):
-        ...
+        super().__init__()
 
     def __str__(self) -> str:
         return repr(self)

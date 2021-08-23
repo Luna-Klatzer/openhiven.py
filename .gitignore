@@ -6,3 +6,4 @@ venv
 .dist
 /venv/
 .idea/
+workspace.xml

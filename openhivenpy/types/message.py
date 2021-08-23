@@ -9,8 +9,8 @@ from typing import Optional, List, Union
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import MessageSchema, get_compiled_validator, \
+    DeletedMessageSchema
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import InvalidPassedDataError, InitializationError, \
@@ -32,25 +32,11 @@ __all__ = ['DeletedMessage', 'Message']
 
 class DeletedMessage(DataClassObject):
     """ Represents a Deleted Message in a Room """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'message_id': {'type': 'string'},
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'room_id': {'type': 'string'}
-        },
-        'additionalProperties': False,
-        'required': ['message_id', 'room_id']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = DeletedMessageSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._message_id = data.get('message_id')
             self._house_id = data.get('house_id')
@@ -94,83 +80,11 @@ class DeletedMessage(DataClassObject):
 
 class Message(DataClassObject):
     """ Represents a standard Hiven message sent by a user """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'author': {'type': 'object'},
-            'author_id': {'type': 'string'},
-            'attachment': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': {},
-            },
-            'content': {'type': 'string'},
-            'timestamp': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'}
-                ],
-            },
-            'edited_at': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'mentions': {
-                'type': 'array',
-                'default': []
-            },
-            'type': {'type': 'integer'},
-            'exploding': {
-                'anyOf': [
-                    {'type': 'boolean'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'house_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'room_id': {'type': 'string'},
-            'embed': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'bucket': {
-                'anyOf': [
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'device_id': {
-                'anyOf': [
-                    {'type': 'string'},
-                    {'type': 'integer'},
-                    {'type': 'null'}
-                ],
-                'default': None
-            },
-            'exploding_age': {'default': None}
-        },
-        'additionalProperties': False,
-        'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = MessageSchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
+        super().__init__()
         try:
             self._id = data.get('id')
             self._author = data.get('author')

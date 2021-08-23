@@ -6,8 +6,7 @@ from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-import fastjsonschema
-
+from .hiven_type_schemas import get_compiled_validator, EntitySchema
 from ..base_types import DataClassObject
 from ..exceptions import InvalidPassedDataError, InitializationError
 
@@ -22,34 +21,8 @@ __all__ = ['Entity']
 
 class Entity(DataClassObject):
     """ Represents a Hiven Entity inside a House which can contain Rooms """
-    json_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'name': {'type': 'string'},
-            'type': {'type': 'integer', 'default': 1},
-            'resource_pointers': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'array'},
-                    {'type': 'null'},
-                ],
-                'default': []
-            },
-            'house_id': {'type': 'string'},
-            'house': {
-                'anyOf': [
-                    {'type': 'object'},
-                    {'type': 'string'},
-                    {'type': 'null'},
-                ]
-            },
-            'position': {'type': 'integer'}
-        },
-        'additionalProperties': False,
-        'required': ['id', 'name', 'position', 'resource_pointers', 'house_id']
-    }
-    json_validator = fastjsonschema.compile(json_schema)
+    _json_schema: dict = EntitySchema
+    json_validator = get_compiled_validator(_json_schema)
 
     def __init__(self, data: dict, client: HivenClient):
         """
@@ -58,6 +31,7 @@ class Entity(DataClassObject):
         :param data: Data that should be used to create the object
         :param client: The HivenClient
         """
+        super().__init__()
         try:
             super().__init__()
             self._type = data.get('type')
