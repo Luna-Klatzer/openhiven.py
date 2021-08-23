@@ -83,7 +83,7 @@ Relationship with another Hiven User
         "presence": str | None
     },
     "type": int,
-    "last_updated_at": str
+    "last_updated_at": str | None
 }
 ```
 
@@ -102,7 +102,7 @@ Member of a House
     "roles": [
         // List of roles
     ],
-    "last_permission_update": str,
+    "last_permission_update": str | None,
     "joined_at": str,
     "house_id": str
 }

@@ -51,7 +51,7 @@ The user logged successfully into the account, and the data will now be sent bac
                     "presence": str | None
                 },
                 "type": int,
-                "last_updated_at": str
+                "last_updated_at": str | None
             },
         },
         "read_state": {
@@ -108,7 +108,7 @@ The user logged successfully into the account, and the data will now be sent bac
                     "presence": str | None
                 },
                 "roles": [],
-                "last_permission_update": str,
+                "last_permission_update": str | None,
                 "joined_at": str,
                 "house_id": str,
             }
@@ -234,7 +234,7 @@ The user logged successfully into the account, and the data will now be sent bac
                 "color": str,
                 "allow": bits
             } ... ],
-            "last_permission_update": str,
+            "last_permission_update": str | None,
             "joined_at": str,
             "house_id": str
         },
@@ -439,7 +439,7 @@ The user logged successfully into the account, and the data will now be sent bac
                 "color": str,
                 "allow": bits
             ],
-            "last_permission_update": str,
+            "last_permission_update": str | None,
             "joined_at": str,
             "house_id": str
         }],
@@ -671,7 +671,7 @@ Chunked House Member Update
                 "color": str,
                 "allow": bits 
             } ... ],
-            "last_permission_update": str,
+            "last_permission_update": str | None,
             "joined_at": str,
             "house_id": str
             }
@@ -741,7 +741,7 @@ Chunked House Member Update
                     "color": str,
                     "allow": bits
                 } ... ],
-                "last_permission_update": str,
+                "last_permission_update": str | None,
                 "joined_at": str,
                 "house_id": str
             }
