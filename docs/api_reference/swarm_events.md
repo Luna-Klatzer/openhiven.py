@@ -19,12 +19,12 @@ The user logged successfully into the account, and the data will now be sent bac
     "d": {
         "user": {
             "username": str,
-            "flags": str,
+            "flags": str | int | None,
             "name": str,
             "id": str,
-            "icon": str,
-            "header": str,
-            "presence": str
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
         },
         "settings": {
             "user_id": str,
@@ -43,12 +43,12 @@ The user logged successfully into the account, and the data will now be sent bac
                 "user_id": str,
                 "user": {
                     "username": str,
-                    "flags": str,
+                    "flags": str | int | None,
                     "name": str,
                     "id": str,
-                    "icon": str,
-                    "header": str,
-                    "presence": str
+                    "icon": str | None,
+                    "header": str | None,
+                    "presence": str | None
                 },
                 "type": int,
                 "last_updated_at": str
@@ -63,10 +63,10 @@ The user logged successfully into the account, and the data will now be sent bac
         "private_rooms": [{
             "default_permission_override": None,
             "description": str,
-            "emoji": object,
+            "emoji": object | None,
             "house_id": None,
             "id": str,
-            "last_message_id": str,
+            "last_message_id": str | None,
             "name": str,
             "owner_id": str,
             "permission_overrides": None,
@@ -74,24 +74,24 @@ The user logged successfully into the account, and the data will now be sent bac
             "recipients": [{  
                 // User Object
                 "username": str,
-                "flags": str,
+                "flags": str | int | None,
                 "name": str,
                 "id": str,
-                "icon": str,
-                "header": str,
-                "presence": str
+                "icon": str | None,
+                "header": str | None,
+                "presence": str | None
             } ... ],
             "type": int
         } ... ],
         "presences": {
             "id": {
               "username": str,
-              "flags": str,
+              "flags": str | int | None,
               "name": str,
               "id": str,
-              "icon": str,
-              "header": str,
-              "presence": str
+              "icon": str | None,
+              "header": str | None,
+              "presence": str | None
             }
         },
         "house_memberships": [{
@@ -100,12 +100,12 @@ The user logged successfully into the account, and the data will now be sent bac
                 "user": {
                     // User Object
                     "username": str,
-                    "flags": str,
+                    "flags": str | int | None,
                     "name": str,
                     "id": str,
-                    "icon": str,
-                    "header": str,
-                    "presence": str
+                    "icon": str | None,
+                    "header": str | None,
+                    "presence": str | None
                 },
                 "roles": [],
                 "last_permission_update": str,
@@ -132,10 +132,10 @@ The user logged successfully into the account, and the data will now be sent bac
     "d": {
         // User Object
         "bio": str,
-        "bot": bool,
+        "bot": bool | None,
         "email_verified": bool,
-        "header": str,
-        "icon": str,
+        "header": str | None,
+        "icon": str | None,
         "id": str,
         "location": str,
         "name": str,
@@ -154,12 +154,12 @@ The user logged successfully into the account, and the data will now be sent bac
     "d": {
         // User Object
         "username": str,
-        "flags": str,
+        "flags": str | int | None,
         "name": str,
         "id": str,
-        "icon": str,
-        "header": str,
-        "presence": str
+        "icon": str | None,
+        "header": str | None,
+        "presence": str | None
     }
     ```
 
@@ -180,7 +180,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "name": str,
             "location": str,
             "id": str,
-            "icon": str,
+            "icon": str | None,
             "bio": str
         },
         "type": int,
@@ -203,13 +203,13 @@ The user logged successfully into the account, and the data will now be sent bac
         "mentions": [{
             // Mention object aka. user object
             "username": str,
-            "flags": str,
+            "flags": str | int | None,
             "name": str,
             "id": str,
-            "icon": str,
-            "header": str,
-            "presence": str,
-            "bot": bool
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None,
+            "bot": bool | None
         } ... ],
         "member": {
             // Member Object
@@ -217,12 +217,12 @@ The user logged successfully into the account, and the data will now be sent bac
             "user": {
                 // User Object
                 "username": str,
-                "flags": str,
+                "flags": str | int | None,
                 "name": str,
                 "id": str,
-                "icon": str,
-                "header": str,
-                "presence": str
+                "icon": str | None,
+                "header": str | None,
+                "presence": str | None
             },
             "roles": [{
                 // Role Object
@@ -249,12 +249,12 @@ The user logged successfully into the account, and the data will now be sent bac
         "author": {
             // User Object
             "username": str,
-            "flags": str,
+            "flags": str | int | None,
             "name": str,
             "id": str,
-            "icon": str,
-            "header": str,
-            "presence": str
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
         }
         "attachment": {
             // Attachment Object
@@ -300,12 +300,12 @@ The user logged successfully into the account, and the data will now be sent bac
         "mentions": [{
             // Mention object aka. user object
             "username": str,
-            "flags": str,
+            "flags": str | int | None,
             "name": str,
             "id": str,
-            "icon": str,
-            "header": str,
-            "presence": str
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
         }, ...],
         "id": str,
         "house_id": str,
@@ -398,10 +398,10 @@ The user logged successfully into the account, and the data will now be sent bac
             "permission_overrides": bits,
             "owner_id": str,
             "name": str,
-            "last_message_id": str,
+            "last_message_id": str | None,
             "id": str,
             "house_id": str,
-            "emoji": object,
+            "emoji": object | None,
             "description": str,
             "default_permission_override": int
         }, ...],
@@ -423,12 +423,12 @@ The user logged successfully into the account, and the data will now be sent bac
             "user": {
                 // User Object
                 "username": str,
-                "flags": str,
+                "flags": str | int | None,
                 "name": str,
                 "id": str,
-                "icon": str,
-                "header": str,
-                "presence": str
+                "icon": str | None,
+                "header": str | None,
+                "presence": str | None
             },
             "roles": [
                 "position": int,
@@ -444,7 +444,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "house_id": str
         }],
         "id": str,
-        "icon": str,
+        "icon": str | None,
         "entities": [{
             // Entity Object
             "type": int,
@@ -501,7 +501,7 @@ The user logged successfully into the account, and the data will now be sent bac
         "user": {
             "id": str,
             "name": str,
-            "flags": str,
+            "flags": str | int | None,
             "username": str,
         }
     }
@@ -555,11 +555,11 @@ House member went online. Triggers in every house the client, and the user is in
         "user_id": str,
         "user": {
             "username": str,
-            "flags": str,
+            "flags": str | int | None,
             "name": str,
             "id": str,
-            "icon": str,
-            "bot": bool,
+            "icon": str | None,
+            "bot": bool | None,
         },
         "roles": [{
             // Role Object
@@ -571,7 +571,7 @@ House member went online. Triggers in every house the client, and the user is in
             "color": str,
             "allow": bits 
         } ... ],
-        "presence": str,
+        "presence": str | None,
         "last_permission_update": null or str,
         "joined_at": str,
         "id": str,
@@ -614,10 +614,10 @@ House user went offline. Triggers in every house the client, and the user is in 
             "name": str,
             "location": str,
             "id": str,
-            "icon": str,
-            "header": str,
+            "icon": str | None,
+            "header": str | None,
             "email_verified": bool,
-            "bot": bool,
+            "bot": bool | None,
             "bio": str
         },
         "roles": [{
@@ -630,7 +630,7 @@ House user went offline. Triggers in every house the client, and the user is in 
             "color": str,
             "allow": bits 
         } ... ],
-        "presence": str,
+        "presence": str | None,
         "last_permission_update": unknown,
         "joined_at": str,
         "id": str,
@@ -654,12 +654,12 @@ Chunked House Member Update
                 "user_id": str,
                 "user": {
                 "username": str,
-                "flags": str,
+                "flags": str | int | None,
                 "name": str,
                 "id": strstr
-                "icon": str,
-                "header": str,
-                "presence": str
+                "icon": str | None,
+                "header": str | None,
+                "presence": str | None
             },
             "roles": [{
                 // Role Object
@@ -724,12 +724,12 @@ Chunked House Member Update
                 "user": {
                     // User Object
                     "username": str,
-                    "flags": str,
+                    "flags": str | int | None,
                     "name": str,
                     "id": str,
-                    "icon": str,
-                    "header": str,
-                    "presence": str
+                    "icon": str | None,
+                    "header": str | None,
+                    "presence": str | None
                 },
                 "roles": [{
                     // Role Object

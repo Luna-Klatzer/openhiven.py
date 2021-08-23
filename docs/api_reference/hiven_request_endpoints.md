@@ -31,10 +31,10 @@ Default user endpoint for accessing the user-data of the owner of the passed tok
                 "id": str,
                 "name": str,
                 "username": str,
-                "icon": str,
-                "header": str,
+                "icon": str | None,
+                "header": str | None,
                 "flags": int,
-                "bot": bool,
+                "bot": bool | None,
                 "location": str,
                 "website": str,
                 "bio": str,
@@ -89,10 +89,10 @@ Default user endpoint for accessing the user-data of the owner of the passed tok
                 "id": str,
                 "name": str,
                 "username": str,
-                "icon": str,
-                "header": str,
+                "icon": str | None,
+                "header": str | None,
                 "flags": int,
-                "bot": bool,
+                "bot": bool | None,
                 "location": str,
                 "website": str,
                 "bio": str,
@@ -167,10 +167,10 @@ Endpoint for a specific user based on their username. Will return the user if th
                 "id": str,
                 "name": str,
                 "username": str,
-                "icon": str,
-                "header": str,
+                "icon": str | None,
+                "header": str | None,
                 "flags": int,
-                "bot": bool,
+                "bot": bool | None,
                 "location": str,
                 "website": str,
                 "bio": str,
@@ -224,10 +224,10 @@ Endpoint for a specific user based on their id. Will return the user if they wer
                 "id": str,
                 "name": str,
                 "username": str,
-                "icon": str,
-                "header": str,
+                "icon": str | None,
+                "header": str | None,
                 "flags": int,
-                "bot": bool,
+                "bot": bool | None,
                 "location": str,
                 "website": str,
                 "bio": str,
@@ -290,13 +290,13 @@ Endpoint for fetching your mentions in the Houses and rooms of your scope.
                     "mentions": [
                         {
                             // User object
-                            "icon": str,
+                            "icon": str | None,
                             "id": str,
                             "username": str,
                             "name": str,
-                            "header": str,
-                            "flags": str,
-                            "bot": bool
+                            "header": str | None,
+                            "flags": str | int | None,
+                            "bot": bool | None
                         }
                         // All mentions in the message
                     ],
@@ -305,13 +305,13 @@ Endpoint for fetching your mentions in the Houses and rooms of your scope.
                     "type": int,
                     "author": {
                         // User object
-                        "icon": str,
+                        "icon": str | None,
                         "id": str,
                         "username": str,
                         "name": str,
-                        "header": str,
-                        "flags": str,
-                        "bot": bool
+                        "header": str | None,
+                        "flags": str | int | None,
+                        "bot": bool | None
                     }
                 },
                 ...

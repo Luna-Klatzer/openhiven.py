@@ -8,6 +8,21 @@
 
 ## User
 
+```json
+{
+    "username": str,
+    "name": str,
+    "id": str,
+    "flags": str | int | None,
+    "user_flags": str | int | None,
+    "bio": str | None,
+    "email_verified": bool | None,
+    "header": str | None,
+    "icon": str  | None,
+    "bot": bool | None
+}
+```
+
 ## Client-User
 
 ### PrivateRoom
@@ -22,10 +37,10 @@ PrivateRoom for interacting with a Hiven user or users outside a House
 {
     "default_permission_override": int,
     "description": str,
-    "emoji": object,
+    "emoji": object | None,
     "house_id": str,
     "id": str,
-    "last_message_id": str,
+    "last_message_id": str | None,
     "name": str,
     "owner_id": str,
     "permission_overrides": int,
@@ -60,12 +75,12 @@ Relationship with another Hiven User
     "user_id": str,
     "user": {
         "username": str,
-        "flags": str,
+        "flags": str | int | None | int ,
         "name": str,
         "id": str,
-        "icon": str,
-        "header": str,
-        "presence": str
+        "icon": str | None,
+        "header": str | None,
+        "presence": str | None
     },
     "type": int,
     "last_updated_at": str
@@ -103,10 +118,10 @@ Member of a House
     "permission_overrides": int,
     "owner_id": str,
     "name": str,
-    "last_message_id": str,
+    "last_message_id": str | None,
     "id": str,
     "house_id": str,
-    "emoji": object,
+    "emoji": object | None,
     "description": str,
     "default_permission_override": int
 }
