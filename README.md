@@ -66,7 +66,7 @@ python3 -m pip install -U https://github.com/Luna-Klatzer/openhiven.py/archive/m
 For the full documentation visit the documentation build
 [here](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
-### Usage Example (v0.2.dev1)
+### Usage Example (v0.2.dev2)
 
 *The following listeners will not pass args to the listener until 0.2.dev2:*
 
