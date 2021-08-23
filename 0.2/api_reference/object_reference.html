@@ -1135,6 +1135,19 @@
 <p><strong>This documentation page is not finished and due to Hiven being not stable yet, changes will and can occur</strong></p>
 </div>
 <h2 id="user">User<a class="headerlink" href="#user" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;user_flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;bio&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;email_verified&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>  <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;bot&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="client-user">Client-User<a class="headerlink" href="#client-user" title="Permanent link">&para;</a></h2>
 <h3 id="privateroom">PrivateRoom<a class="headerlink" href="#privateroom" title="Permanent link">&para;</a></h3>
 <p>PrivateRoom for interacting with a Hiven user or users outside a House</p>
@@ -1145,10 +1158,10 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;default_permission_override&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
     <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;emoji&quot;</span><span class="p">:</span> <span class="err">objec</span><span class="kc">t</span><span class="p">,</span>
+    <span class="nt">&quot;emoji&quot;</span><span class="p">:</span> <span class="err">objec</span><span class="kc">t</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;last_message_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;last_message_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;owner_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;permission_overrides&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
@@ -1186,15 +1199,15 @@
     <span class="nt">&quot;user_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="p">,</span>
         <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
         <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
+        <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
     <span class="p">},</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
-    <span class="nt">&quot;last_updated_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
+    <span class="nt">&quot;last_updated_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="house">House<a class="headerlink" href="#house" title="Permanent link">&para;</a></h2>
@@ -1208,7 +1221,7 @@
     <span class="nt">&quot;roles&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="err">//</span> <span class="err">Lis</span><span class="kc">t</span> <span class="err">o</span><span class="kc">f</span> <span class="err">roles</span>
     <span class="p">],</span>
-    <span class="nt">&quot;last_permission_update&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;last_permission_update&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;joined_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
 <span class="p">}</span>
@@ -1221,10 +1234,10 @@
     <span class="nt">&quot;permission_overrides&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
     <span class="nt">&quot;owner_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;last_message_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;last_message_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;emoji&quot;</span><span class="p">:</span> <span class="err">objec</span><span class="kc">t</span><span class="p">,</span>
+    <span class="nt">&quot;emoji&quot;</span><span class="p">:</span> <span class="err">objec</span><span class="kc">t</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;default_permission_override&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span>
 <span class="p">}</span>
@@ -1268,7 +1281,7 @@
 <div class="md-source-date">
   <small>
     
-      Last update: 2021-08-22
+      Last update: 2021-08-23
     
   </small>
 </div>

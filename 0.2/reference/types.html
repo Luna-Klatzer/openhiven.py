@@ -2446,6 +2446,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.User-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.user.User.blocked" class="md-nav__link">
     blocked
   </a>
@@ -2484,6 +2492,11 @@
   <a href="#openhivenpy.types.user.User.website" class="md-nav__link">
     website
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2557,6 +2570,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.account" class="md-nav__link">
+    account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.application" class="md-nav__link">
+    application
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.user.LazyUser.bio" class="md-nav__link">
     bio
   </a>
@@ -2615,6 +2642,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.types.user.LazyUser.raw" class="md-nav__link">
     raw
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.user_flags" class="md-nav__link">
+    user_flags
   </a>
   
 </li>
@@ -4832,6 +4866,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.User-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.user.User.blocked" class="md-nav__link">
     blocked
   </a>
@@ -4870,6 +4912,11 @@
   <a href="#openhivenpy.types.user.User.website" class="md-nav__link">
     website
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -4943,6 +4990,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.account" class="md-nav__link">
+    account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.application" class="md-nav__link">
+    application
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.user.LazyUser.bio" class="md-nav__link">
     bio
   </a>
@@ -5001,6 +5062,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.types.user.LazyUser.raw" class="md-nav__link">
     raw
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.user.LazyUser.user_flags" class="md-nav__link">
+    user_flags
   </a>
   
 </li>
@@ -13239,7 +13307,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
 
 
-
+<h3 id="openhivenpy.types.user.User-attributes">Attributes<a href="#openhivenpy.types.user.User-attributes" class="headerlink" title="Permanent link">&para;</a></h3>
 
   <div class="doc doc-object doc-attribute">
 
@@ -13257,6 +13325,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>Returns whether the user is blocked </p>
     </div>
 
   </div>
@@ -13279,6 +13348,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>The e-mail of the user. Client-limited </p>
     </div>
 
   </div>
@@ -13301,6 +13371,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>Set location of the user </p>
     </div>
 
   </div>
@@ -13323,6 +13394,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>Returns whether mfa is enabled </p>
     </div>
 
   </div>
@@ -13345,6 +13417,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>Current presence of the User </p>
     </div>
 
   </div>
@@ -13367,6 +13440,7 @@ are also available in the standard <a href="##openhivenpy.types.user.User"><code
 
     <div class="doc doc-contents ">
 
+      <p>Set website of the user</p>
     </div>
 
   </div>
@@ -13539,12 +13613,14 @@ required for the creation of an instance.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Fetches the most recent data from the cache based on the instance id </p>
+      <p>Fetches the most recent data from the cache based on the instance id</p>
 
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\user.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_cached_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Fetches the most recent data from the cache based on the instance id &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches the most recent data from the cache based on the instance id</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;users&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 </code></pre></div>
         </details>
@@ -13610,6 +13686,52 @@ HivenClient.get_user()</p>
 
 
 <h3 id="openhivenpy.types.user.LazyUser-attributes">Attributes<a href="#openhivenpy.types.user.LazyUser-attributes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="openhivenpy.types.user.LazyUser.account" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">account</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.user.LazyUser.account" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the account id/string. Currently client-limited </p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="openhivenpy.types.user.LazyUser.application" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">application</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.user.LazyUser.application" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the application string passed. Currently client-limited </p>
+    </div>
+
+  </div>
+
+
 
   <div class="doc doc-object doc-attribute">
 
@@ -13811,6 +13933,29 @@ HivenClient.get_user()</p>
 
     <div class="doc doc-contents ">
 
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="openhivenpy.types.user.LazyUser.user_flags" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">user_flags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.user.LazyUser.user_flags" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Alias for flags </p>
     </div>
 
   </div>
