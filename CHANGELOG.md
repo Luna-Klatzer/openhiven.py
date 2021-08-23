@@ -13,8 +13,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Full Properties of Class `User` are now added to the `HivenClient`
+- `application` and `account` as new properties to `BaseUser`
 
 ### Changed
+- Made `flags` the base property as replacement for `user_flags`. Though 
+  `user_flags` will still exist
 
 ### Removed
 

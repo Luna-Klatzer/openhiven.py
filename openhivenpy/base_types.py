@@ -104,6 +104,12 @@ class BaseUser(DataClassObject):
 
     @property
     @abstractmethod
+    def user_flags(self) -> Optional[Union[int, str]]:
+        """ Alias for flags """
+        return self.flags
+
+    @property
+    @abstractmethod
     def icon(self) -> Optional[str]:
         """ The icon of the user as a link """
         if getattr(self, '_icon', None):
@@ -127,3 +133,16 @@ class BaseUser(DataClassObject):
     def bot(self) -> Optional[bool]:
         """ Returns true when the user is a bot """
         return getattr(self, '_bot', None)
+
+    @property
+    @abstractmethod
+    def account(self) -> Optional[str]:
+        """ Returns the account id/string. Currently client-limited """
+        _ = getattr(self, '_account', None)
+        return str(_) if type(_) is int else _
+
+    @property
+    @abstractmethod
+    def application(self) -> Optional[bool]:
+        """ Returns the application string passed. Currently client-limited """
+        return getattr(self, '_application', None)

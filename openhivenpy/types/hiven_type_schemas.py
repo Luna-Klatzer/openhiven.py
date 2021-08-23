@@ -499,6 +499,14 @@ LazyUserSchema: dict = {
             ],
             'default': None
         },
+        'user_flags': {
+            'anyOf': [
+                {'type': 'string'},
+                {'type': 'integer'},
+                {'type': 'null'}
+            ],
+            'default': None
+        },
         'bio': {
             'anyOf': [
                 {'type': 'string'},
@@ -534,6 +542,19 @@ LazyUserSchema: dict = {
                 {'type': 'null'}
             ],
             'default': False
+        },
+        'account': {
+            'anyOf': [
+                {'type': 'string'},
+                {'type': 'integer'},
+                {'type': 'null'}
+            ],
+        },
+        'application': {
+            'anyOf': [
+                {'type': 'string'},
+                {'type': 'null'}
+            ],
         }
     },
     'required': ['username', 'name', 'id']

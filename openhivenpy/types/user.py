@@ -110,6 +110,11 @@ class LazyUser(BaseUser):
         return super().flags
 
     @property
+    def user_flags(self) -> Optional[Union[int, str]]:
+        """ Alias for flags """
+        return self.flags
+
+    @property
     def icon(self) -> Optional[str]:
         """ The icon of the user as a link """
         return super().icon
@@ -123,6 +128,16 @@ class LazyUser(BaseUser):
     def bot(self) -> Optional[bool]:
         """ Returns true when the user is a bot """
         return super().bot
+
+    @property
+    def account(self) -> Optional[str]:
+        """ Returns the account id/string. Currently client-limited """
+        return super().account
+
+    @property
+    def application(self) -> Optional[bool]:
+        """ Returns the application string passed. Currently client-limited """
+        return super().application
 
 
 class User(LazyUser):
@@ -171,29 +186,37 @@ class User(LazyUser):
         return data
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id
+        """
         return self._client.storage['users'][self.id]
 
     @property
     def location(self) -> Optional[str]:
+        """ Set location of the user """
         return getattr(self, '_location', None)
 
     @property
     def website(self) -> Optional[str]:
+        """ Set website of the user"""
         return getattr(self, '_website', None)
 
     @property
     def presence(self) -> Optional[str]:
+        """ Current presence of the User """
         return getattr(self, '_presence', None)
 
     @property
     def email(self) -> Optional[str]:
+        """ The e-mail of the user. Client-limited """
         return getattr(self, '_email', None)
 
     @property
     def blocked(self) -> Optional[bool]:
+        """ Returns whether the user is blocked """
         return getattr(self, '_blocked', None)
 
     @property
     def mfa_enabled(self) -> Optional[bool]:
+        """ Returns whether mfa is enabled """
         return getattr(self, '_mfa_enabled', None)
