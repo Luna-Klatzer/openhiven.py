@@ -10,7 +10,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 *Note that Documentation changes should not appear here!*
 
-## [Unreleased]
+## Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
+## [v0.2.dev2] - 2021-08-23
 
 ### Added
 - Full Properties of Class `User` are now added to the `HivenClient`
@@ -19,8 +27,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - Made `flags` the base property as replacement for `user_flags`. Though 
   `user_flags` will still exist
-
-### Removed
 
 ## [v0.2.dev1] - 2021-08-13
 
@@ -205,7 +211,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev1...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev2...v0.2.dev
+
+[v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2
 
 [v0.2.dev1]: https://github.com/Para-C/Para-C/compare/v0.1.3.2...0.2.dev1
 
