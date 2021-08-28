@@ -8,12 +8,7 @@ functionality for the Hiven Swarm and Hiven API. </h2>
 
     Due to this version still being in development, the following listeners
     are not fully supported (no arguments passed when received):
-    
-    - `house_join`
-    - `house_remove`
-    - `house_update`
-    - `house_delete`
-    - `house_downtime`
+
     - `room_create`
     - `room_update`
     - `room_delete`
