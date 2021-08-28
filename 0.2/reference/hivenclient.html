@@ -696,6 +696,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.house_ids" class="md-nav__link">
+    house_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.http" class="md-nav__link">
     http
   </a>
@@ -1491,6 +1498,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.house_ids" class="md-nav__link">
+    house_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.http" class="md-nav__link">
     http
   </a>
@@ -2201,6 +2215,29 @@
     <div class="doc doc-contents ">
 
       <p>The header of the user as a link </p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="openhivenpy.client.hivenclient.HivenClient.house_ids" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">house_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.client.hivenclient.HivenClient.house_ids" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the list of all the ids for all houses available from the cache</p>
     </div>
 
   </div>
@@ -3007,11 +3044,11 @@ the Event Processing Loop</p>
     <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
         <span class="k">pass</span>
 
-    <span class="k">except</span> <span class="p">(</span><span class="n">InvalidTokenError</span><span class="p">,</span> <span class="n">WebSocketFailedError</span><span class="p">):</span>
-        <span class="k">raise</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">InvalidTokenError</span><span class="p">,</span> <span class="n">WebSocketFailedError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">e</span>
 
-    <span class="k">except</span> <span class="n">SessionCreateError</span><span class="p">:</span>
-        <span class="k">raise</span>
+    <span class="k">except</span> <span class="n">SessionCreateError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">e</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
@@ -3046,7 +3083,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Edits the Clients data on Hiven</p>
-<hr />
 <p>Available options: header, icon, bio, location, website, username</p>
 
 <p><strong>Returns:</strong></p>
@@ -3070,7 +3106,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Edits the Clients data on Hiven</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    Available options: header, icon, bio, location, website, username</span>
 
@@ -3085,9 +3120,10 @@ the Event Processing Loop</p>
                 <span class="p">)</span>
 
                 <span class="k">return</span> <span class="kc">True</span>
-
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;The passed value does not exist in the Client!&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span>
+                    <span class="s2">&quot;The passed value does not exist in the Client!&quot;</span>
+                <span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -3118,7 +3154,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3161,7 +3196,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3194,7 +3228,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3237,7 +3270,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3270,7 +3302,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3313,7 +3344,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3346,7 +3376,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3389,7 +3418,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3422,7 +3450,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3465,7 +3492,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3498,7 +3524,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3541,7 +3566,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3574,7 +3598,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a dictionary from the cache based on the passed id</p>
-<hr />
 <p>The returned dict is only a copy from the cache</p>
 
 <p><strong>Parameters:</strong></p>
@@ -3617,7 +3640,6 @@ the Event Processing Loop</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a dictionary from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned dict is only a copy from the cache</span>
 
@@ -3650,7 +3672,6 @@ the Event Processing Loop</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a Entity instance from the cache based on the passed id</p>
-<hr />
 <p>The returned data of the instance is only a copy from the cache and if
 changes are made while the instance exists the data will not be
 updated!</p>
@@ -3695,7 +3716,6 @@ updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a Entity instance from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
 <span class="sd">    changes are made while the instance exists the data will not be</span>
@@ -3730,10 +3750,8 @@ updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a House from the cache based on the passed id</p>
-<hr />
 <p>The returned data of the instance is only a copy from the cache and if
-changes are made while
-the instance exists the data will not be updated!</p>
+changes are made while the instance exists the data will not be updated!</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3775,11 +3793,9 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a House from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
-<span class="sd">    changes are made while</span>
-<span class="sd">    the instance exists the data will not be updated!</span>
+<span class="sd">    changes are made while the instance exists the data will not be updated!</span>
 
 <span class="sd">    :param house_id: id of the House</span>
 <span class="sd">    :return: The house instance if it was found else None</span>
@@ -3810,9 +3826,8 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a multi PrivateGroupRoom from the cache based on the passed id</p>
-<hr />
-<p>The returned data of the instance is only a copy from the cache and if changes are made while
-the instance exists the data will not be updated!</p>
+<p>The returned data of the instance is only a copy from the cache and if
+changes are made while the instance exists the data will not be updated!</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3854,10 +3869,9 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a multi PrivateGroupRoom from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
-<span class="sd">    The returned data of the instance is only a copy from the cache and if changes are made while</span>
-<span class="sd">    the instance exists the data will not be updated!</span>
+<span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
+<span class="sd">    changes are made while the instance exists the data will not be updated!</span>
 
 <span class="sd">    :param room_id: id of the PrivateGroupRoom</span>
 <span class="sd">    :return: The PrivateGroupRoom instance if it was found else None</span>
@@ -3888,9 +3902,9 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a single PrivateRoom from the cache based on the passed id</p>
-<hr />
-<p>The returned data of the instance is only a copy from the cache and if changes are made while
-the instance exists the data will not be updated!</p>
+<p>The returned data of the instance is only a copy from the cache and if 
+changes are made while the instance exists the data will not be
+updated!</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3932,10 +3946,10 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a single PrivateRoom from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
-<span class="sd">    The returned data of the instance is only a copy from the cache and if changes are made while</span>
-<span class="sd">    the instance exists the data will not be updated!</span>
+<span class="sd">    The returned data of the instance is only a copy from the cache and if </span>
+<span class="sd">    changes are made while the instance exists the data will not be</span>
+<span class="sd">    updated!</span>
 
 <span class="sd">    :param room_id: id of the PrivateRoom</span>
 <span class="sd">    :return: The PrivateRoom instance if it was found else None</span>
@@ -3966,9 +3980,8 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a Relationship instance from the cache based on the passed id</p>
-<hr />
-<p>The returned data of the instance is only a copy from the cache and if changes are made while
-the instance exists the data will not be updated!</p>
+<p>The returned data of the instance is only a copy from the cache and if
+changes are made while the instance exists the data will not be updated!</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -4010,10 +4023,9 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a Relationship instance from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
-<span class="sd">    The returned data of the instance is only a copy from the cache and if changes are made while</span>
-<span class="sd">    the instance exists the data will not be updated!</span>
+<span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
+<span class="sd">    changes are made while the instance exists the data will not be updated!</span>
 
 <span class="sd">    :param user_id: user-id of the Relationship</span>
 <span class="sd">    :return: The Relationship instance if it was found else None</span>
@@ -4044,9 +4056,8 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a Room from the cache based on the passed id</p>
-<hr />
-<p>The returned data of the instance is only a copy from the cache and if changes are made while
-the instance exists the data will not be updated!</p>
+<p>The returned data of the instance is only a copy from the cache and if
+changes are made while the instance exists the data will not be updated!</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -4088,10 +4099,9 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a Room from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
-<span class="sd">    The returned data of the instance is only a copy from the cache and if changes are made while</span>
-<span class="sd">    the instance exists the data will not be updated!</span>
+<span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
+<span class="sd">    changes are made while the instance exists the data will not be updated!</span>
 
 <span class="sd">    :param room_id: id of the Room</span>
 <span class="sd">    :return: The Room instance if it was found else None</span>
@@ -4122,7 +4132,6 @@ the instance exists the data will not be updated!</p>
     <div class="doc doc-contents ">
 
       <p>Fetches a User instance from the cache based on the passed id</p>
-<hr />
 <p>The returned data of the instance is only a copy from the cache and if
 changes are made while
 the instance exists the data will not be updated!</p>
@@ -4167,7 +4176,6 @@ the instance exists the data will not be updated!</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a User instance from the cache based on the passed id</span>
 
-<span class="sd">    ---</span>
 
 <span class="sd">    The returned data of the instance is only a copy from the cache and if</span>
 <span class="sd">    changes are made while</span>

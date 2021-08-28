@@ -822,18 +822,25 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#user" class="md-nav__link">
-    User
+  <a href="#default-user" class="md-nav__link">
+    Default User
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#client-user" class="md-nav__link">
-    Client-User
+  <a href="#lazy-user" class="md-nav__link">
+    Lazy User
   </a>
   
-    <nav class="md-nav" aria-label="Client-User">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objects-for-the-client-user" class="md-nav__link">
+    Objects for the Client-User
+  </a>
+  
+    <nav class="md-nav" aria-label="Objects for the Client-User">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1010,18 +1017,25 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#user" class="md-nav__link">
-    User
+  <a href="#default-user" class="md-nav__link">
+    Default User
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#client-user" class="md-nav__link">
-    Client-User
+  <a href="#lazy-user" class="md-nav__link">
+    Lazy User
   </a>
   
-    <nav class="md-nav" aria-label="Client-User">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objects-for-the-client-user" class="md-nav__link">
+    Objects for the Client-User
+  </a>
+  
+    <nav class="md-nav" aria-label="Objects for the Client-User">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1134,21 +1148,36 @@
 <p class="admonition-title">Warning</p>
 <p><strong>This documentation page is not finished and due to Hiven being not stable yet, changes will and can occur</strong></p>
 </div>
-<h2 id="user">User<a class="headerlink" href="#user" title="Permanent link">&para;</a></h2>
+<h2 id="default-user">Default User<a class="headerlink" href="#default-user" title="Permanent link">&para;</a></h2>
+<p>Full possible data of a User. <em>Usually</em> only visible to the client!</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;account&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-    <span class="nt">&quot;user_flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;user_flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span> <span class="err">//</span> <span class="err">depreca</span><span class="kc">te</span><span class="err">d</span><span class="p">,</span> <span class="err">rarely</span> <span class="err">available</span>
     <span class="nt">&quot;bio&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;email_verified&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-    <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-    <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>  <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-    <span class="nt">&quot;bot&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
+    <span class="err">header</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">emp</span><span class="kc">t</span><span class="err">y</span> <span class="err">whe</span><span class="kc">n</span> <span class="kc">n</span><span class="err">o</span><span class="kc">t</span> <span class="kc">f</span><span class="err">illed</span>
+    <span class="err">ico</span><span class="kc">n</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">emp</span><span class="kc">t</span><span class="err">y</span> <span class="err">whe</span><span class="kc">n</span> <span class="kc">n</span><span class="err">o</span><span class="kc">t</span> <span class="kc">f</span><span class="err">illed</span>
+    <span class="nt">&quot;bot&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;application&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
-<h2 id="client-user">Client-User<a class="headerlink" href="#client-user" title="Permanent link">&para;</a></h2>
+<h2 id="lazy-user">Lazy User<a class="headerlink" href="#lazy-user" title="Permanent link">&para;</a></h2>
+<p>Base User that is available to everyone.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="err">accou</span><span class="kc">nt</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="kc">fla</span><span class="err">gs</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="err">header</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">emp</span><span class="kc">t</span><span class="err">y</span> <span class="err">whe</span><span class="kc">n</span> <span class="kc">n</span><span class="err">o</span><span class="kc">t</span> <span class="kc">f</span><span class="err">illed</span>
+    <span class="err">ico</span><span class="kc">n</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">emp</span><span class="kc">t</span><span class="err">y</span> <span class="err">whe</span><span class="kc">n</span> <span class="kc">n</span><span class="err">o</span><span class="kc">t</span> <span class="kc">f</span><span class="err">illed</span>
+    <span class="err">id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="kc">na</span><span class="err">me</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="err">user</span><span class="kc">na</span><span class="err">me</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="objects-for-the-client-user">Objects for the Client-User<a class="headerlink" href="#objects-for-the-client-user" title="Permanent link">&para;</a></h2>
 <h3 id="privateroom">PrivateRoom<a class="headerlink" href="#privateroom" title="Permanent link">&para;</a></h3>
 <p>PrivateRoom for interacting with a Hiven user or users outside a House</p>
 <div class="admonition note">
@@ -1265,8 +1294,9 @@
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;level&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;deny&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span><span class="p">,</span>
-    <span class="nt">&quot;color&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;color&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">hex</span>
     <span class="nt">&quot;allow&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1281,7 +1311,7 @@
 <div class="md-source-date">
   <small>
     
-      Last update: 2021-08-23
+      Last update: 2021-08-28
     
   </small>
 </div>

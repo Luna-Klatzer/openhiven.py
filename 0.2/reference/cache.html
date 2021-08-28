@@ -699,6 +699,48 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_entity" class="md-nav__link">
+    remove_entity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_house" class="md-nav__link">
+    remove_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_private_room" class="md-nav__link">
+    remove_private_room()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_relationship" class="md-nav__link">
+    remove_relationship()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_room" class="md-nav__link">
+    remove_room()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_user" class="md-nav__link">
+    remove_user()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.update_client_user" class="md-nav__link">
     update_client_user()
   </a>
@@ -1102,6 +1144,48 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_entity" class="md-nav__link">
+    remove_entity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_house" class="md-nav__link">
+    remove_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_private_room" class="md-nav__link">
+    remove_private_room()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_relationship" class="md-nav__link">
+    remove_relationship()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_room" class="md-nav__link">
+    remove_room()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_user" class="md-nav__link">
+    remove_user()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.update_client_user" class="md-nav__link">
     update_client_user()
   </a>
@@ -1224,7 +1308,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a entity to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a entity to the cache and updates the storage
+appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1245,7 +1330,8 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a entity to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a entity to the cache and updates the storage</span>
+<span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the Entity class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1265,7 +1351,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1286,7 +1374,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a house to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a house to the cache and updates the storage
+appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1307,7 +1396,8 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a house to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a house to the cache and updates the storage</span>
+<span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the House class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1334,6 +1424,12 @@ cache more easily and use functions for better readability.</p>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;client_member&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;client_user&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Checking whether id does not already exist</span>
+            <span class="c1"># On init house_ids is already populated using the event</span>
+            <span class="c1"># INIT_STATE, though HOUSE_JOIN triggers this function, meaning</span>
+            <span class="c1"># we have to avoid creating duplicates on initialisation</span>
+            <span class="k">if</span> <span class="n">id_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
             <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">id_</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">id_</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -1345,7 +1441,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1366,7 +1464,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a private room to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a private room to the cache and updates the storage
+appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1387,9 +1486,11 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a private room to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a private room to the cache and updates the storage</span>
+<span class="sd">    appropriately</span>
 
-<span class="sd">    :return: The validated data using `format_obj_data` of the Private_*Room class</span>
+<span class="sd">    :return: The validated data using `format_obj_data` of the</span>
+<span class="sd">    Private_*Room class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1417,7 +1518,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1438,7 +1541,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a client relationship to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a client relationship to the cache and updates the
+storage appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1459,9 +1563,11 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a client relationship to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a client relationship to the cache and updates the</span>
+<span class="sd">    storage appropriately</span>
 
-<span class="sd">    :return: The validated data using `format_obj_data` of the Relationship class</span>
+<span class="sd">    :return: The validated data using `format_obj_data` of the Relationship</span>
+<span class="sd">     class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1483,7 +1589,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1504,7 +1612,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a room to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a room to the cache and updates the storage
+appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1525,7 +1634,8 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a room to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a room to the cache and updates the storage</span>
+<span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the Room class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1545,7 +1655,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1566,7 +1678,8 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a user to the cache and updates the storage appropriately</p>
+      <p>Adds or Updates a user to the cache and updates the storage
+appropriately</p>
 
 <p><strong>Returns:</strong></p>
 <table>
@@ -1587,7 +1700,8 @@ cache more easily and use functions for better readability.</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a user to the cache and updates the storage appropriately</span>
+<span class="sd">    Adds or Updates a user to the cache and updates the storage</span>
+<span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the User class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1611,7 +1725,9 @@ cache more easily and use functions for better readability.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span><span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -1641,7 +1757,7 @@ cache more easily and use functions for better readability.</p>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;client_user&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data Updates require a initialised Hiven Client!&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Updates require an initialised Hiven Client!&quot;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -1705,6 +1821,185 @@ method!</p>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">init_client_user_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">User</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Initialises the client user based on the cached data &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;client_user&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_entity" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_entity" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes an entity from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes an entity from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;entities&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_house" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_house" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a house from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a house from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+
+    <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]:</span> <span class="nb">list</span>
+    <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_private_room" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_private_room" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a private-room from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a private-room from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;group&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">_id</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;group&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+            <span class="k">return</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;single&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">_id</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;single&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_relationship" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_relationship" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a relationship from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a relationship from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;relationships&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_room" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_room" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a room from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a room from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;house&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_user" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_user" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a user from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a user from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;users&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
 </code></pre></div>
         </details>
     </div>
@@ -1801,10 +2096,9 @@ method!</p>
 <span class="sd">     - All Relationships of the user</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">item_data</span><span class="p">)</span>
-    <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_memberships&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;house_memberships&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;house_ids&#39;</span><span class="p">,</span> <span class="p">[])</span>
     <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;settings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;settings&#39;</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;read_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;read_state&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;init_read_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;read_state&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">update_client_user</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;private_rooms&#39;</span><span class="p">,</span> <span class="p">[]):</span>
