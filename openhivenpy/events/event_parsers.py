@@ -145,7 +145,7 @@ class HivenParsers(HivenObject):
             self.storage.remove_house(data['house_id'])
 
         # Parameter that will be passed to the assigned listener
-        args: Tuple = (data['house_id'])
+        args: Tuple = tuple([data['house_id']])
         kwargs: Dict = {}
         buffer.add_new_event(data, args, kwargs)
         return args, kwargs
@@ -155,7 +155,7 @@ class HivenParsers(HivenObject):
         self.storage.remove_house(data['house_id'])
 
         # Parameter that will be passed to the assigned listener
-        args: Tuple = (data['house_id'])
+        args: Tuple = tuple([data['house_id']])
         kwargs: Dict = {}
 
         buffer = self._get_from_client_buffer('house_leave')

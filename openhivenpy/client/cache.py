@@ -157,7 +157,12 @@ class ClientCache(dict, HivenObject):
             data['client_member'] = data['members'][self['client_user']['id']]
 
             if self['houses'].get(id_) is None:
-                self['house_ids'].append(id_)
+                # Checking whether id does not already exist
+                # On init house_ids is already populated using the event
+                # INIT_STATE, though HOUSE_JOIN triggers this function, meaning
+                # we have to avoid creating duplicates on initialisation
+                if id_ not in self['house_ids']:
+                    self['house_ids'].append(id_)
                 self['houses'][id_] = data
             else:
                 self['houses'][id_].update(data)

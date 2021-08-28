@@ -1,4 +1,6 @@
+import asyncio
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -150,7 +152,7 @@ class TestListeners:
             print("\non_ready was called!")
 
             _ = _client.storage['houses']
-            _id = _.get(_.keys()[0])["id"]
+            _id = _.get(list(_.keys())[0])["id"]
 
             await _client.parsers.dispatch(
                 'house_down', {
@@ -179,15 +181,21 @@ class TestListeners:
         _client.run(token_)
 
     def test_on_house_update(self):
+        data = read_config_file().get("house_data")
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
 
-            _ = _client.storage['houses']
-            first_item_id = _.keys()[0]["id"]
-            new_data: dict = _.get(first_item_id)
+            await _client.parsers.dispatch(
+                'house_join', data
+            )
+
+            while data['id'] not in _client.house_ids:
+                await asyncio.sleep(0.05)
+
+            new_data: dict = deepcopy(data)
             new_data.update({"name": "test"})  # changing the name
             await _client.parsers.dispatch('house_update', new_data)
 
@@ -195,6 +203,7 @@ class TestListeners:
         async def on_house_update(old, new):
             assert old.id == new.id
             assert new.name == "test"
+            assert data["name"] != "test"
             await _client.close()
 
         _client.run(token_)
@@ -207,7 +216,7 @@ class TestListeners:
             print("\non_ready was called!")
 
             _ = _client.storage['houses']
-            first_item_id = _.keys()[0]["id"]
+            first_item_id = list(_.keys())[0]
             await _client.parsers.dispatch(
                 'house_leave', {
                     "id": _client.id,
