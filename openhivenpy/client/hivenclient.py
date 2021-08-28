@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 from asyncio import AbstractEventLoop
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from .cache import ClientCache
 from .. import types
@@ -263,6 +263,13 @@ class HivenClient(HivenEventHandler, HivenObject):
         """ Returns whether mfa is enabled """
         return getattr(self.client_user, 'mfa_enabled', None)
 
+    @property
+    def house_ids(self) -> Optional[List[str]]:
+        """
+        Returns the list of all the ids for all houses available from the cache
+        """
+        return self.storage.get('house_ids')
+
     def run(
             self,
             token: str = None,
@@ -371,11 +378,11 @@ class HivenClient(HivenEventHandler, HivenObject):
         except KeyboardInterrupt:
             pass
 
-        except (InvalidTokenError, WebSocketFailedError):
-            raise
+        except (InvalidTokenError, WebSocketFailedError) as e:
+            raise e
 
-        except SessionCreateError:
-            raise
+        except SessionCreateError as e:
+            raise e
 
         except Exception as e:
             utils.log_traceback(
@@ -410,7 +417,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Edits the Clients data on Hiven
 
-        ---
 
         Available options: header, icon, bio, location, website, username
 
@@ -425,9 +431,10 @@ class HivenClient(HivenEventHandler, HivenObject):
                     )
 
                     return True
-
                 else:
-                    raise NameError("The passed value does not exist in the Client!")
+                    raise NameError(
+                        "The passed value does not exist in the Client!"
+                    )
 
         except Exception as e:
             keys = "".join(str(key + " ") for key in kwargs.keys())
@@ -442,7 +449,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a User instance from the cache based on the passed id
 
-        ---
 
         The returned data of the instance is only a copy from the cache and if
         changes are made while
@@ -461,7 +467,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -478,11 +483,9 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a House from the cache based on the passed id
 
-        ---
 
         The returned data of the instance is only a copy from the cache and if
-        changes are made while
-        the instance exists the data will not be updated!
+        changes are made while the instance exists the data will not be updated!
 
         :param house_id: id of the House
         :return: The house instance if it was found else None
@@ -497,7 +500,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -514,7 +516,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a Entity instance from the cache based on the passed id
 
-        ---
 
         The returned data of the instance is only a copy from the cache and if
         changes are made while the instance exists the data will not be
@@ -533,7 +534,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -550,10 +550,9 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a Room from the cache based on the passed id
 
-        ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
-        the instance exists the data will not be updated!
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while the instance exists the data will not be updated!
 
         :param room_id: id of the Room
         :return: The Room instance if it was found else None
@@ -568,7 +567,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -585,10 +583,10 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a single PrivateRoom from the cache based on the passed id
 
-        ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
-        the instance exists the data will not be updated!
+        The returned data of the instance is only a copy from the cache and if 
+        changes are made while the instance exists the data will not be
+        updated!
 
         :param room_id: id of the PrivateRoom
         :return: The PrivateRoom instance if it was found else None
@@ -603,7 +601,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -620,10 +617,9 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a multi PrivateGroupRoom from the cache based on the passed id
 
-        ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
-        the instance exists the data will not be updated!
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while the instance exists the data will not be updated!
 
         :param room_id: id of the PrivateGroupRoom
         :return: The PrivateGroupRoom instance if it was found else None
@@ -638,7 +634,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 
@@ -655,10 +650,9 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a Relationship instance from the cache based on the passed id
 
-        ---
 
-        The returned data of the instance is only a copy from the cache and if changes are made while
-        the instance exists the data will not be updated!
+        The returned data of the instance is only a copy from the cache and if
+        changes are made while the instance exists the data will not be updated!
 
         :param user_id: user-id of the Relationship
         :return: The Relationship instance if it was found else None
@@ -673,7 +667,6 @@ class HivenClient(HivenEventHandler, HivenObject):
         """
         Fetches a dictionary from the cache based on the passed id
 
-        ---
 
         The returned dict is only a copy from the cache
 

@@ -1,8 +1,7 @@
 import asyncio
 import json
 import os
-
-import pkg_resources
+from pathlib import Path
 
 import openhivenpy
 
@@ -12,6 +11,12 @@ token_ = ""
 def test_start(token):
     global token_
     TestHivenClient.token = token
+
+
+def read_config_file():
+    """ Reads the data from the config file """
+    with open(Path("./test_data.json"), 'r') as file:
+        return json.load(file)
 
 
 class TestHivenClient:
@@ -146,13 +151,9 @@ class TestHivenClient:
 
         client.run(self.token)
 
-    def _read_config_file(self):
-        with open(pkg_resources.resource_filename(__name__, "test_data.json"), 'r') as file:
-            return json.load(file)
-
     def test_find(self):
         client = openhivenpy.HivenClient()
-        _data = self._read_config_file()
+        _data = read_config_file()
         house_data = _data['house_data']
         relationship_data = _data['relationship_data']
         private_room_data = _data['private_room_data']

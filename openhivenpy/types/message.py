@@ -132,7 +132,6 @@ class Message(DataClassObject):
         required for the creation of an
         instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 

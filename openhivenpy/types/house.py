@@ -79,7 +79,6 @@ class LazyHouse(DataClassObject):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
         Only exceptions are member objects which are unique in every house
@@ -196,7 +195,6 @@ class House(LazyHouse):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 

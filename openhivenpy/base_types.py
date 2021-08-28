@@ -122,7 +122,7 @@ class BaseUser(DataClassObject):
     @abstractmethod
     def header(self) -> Optional[str]:
         """ The header of the user as a link """
-        if getattr(self, '_header', None):
+        if getattr(self, '_header', ''):  # can not be empty or None
             return f"https://media.hiven.io/v1/users/" \
                    f"{getattr(self, '_id')}/headers/{getattr(self, '_header')}"
         else:

@@ -66,7 +66,6 @@ class Entity(DataClassObject):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 

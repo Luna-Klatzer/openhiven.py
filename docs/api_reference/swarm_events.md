@@ -30,7 +30,7 @@ The user logged successfully into the account, and the data will now be sent bac
             "user_id": str,
             "theme": None,
             "room_overrides": {
-                // room preferences mapped to their id
+                // room preferences mapped to their idz
                 "id": { 
                     "notification_preference": int 
                 }
@@ -230,8 +230,9 @@ The user logged successfully into the account, and the data will now be sent bac
                 "name": str,
                 "level": int,
                 "id": str,
+                "house_id": str,
                 "deny": bits,
-                "color": str,
+                "color": str, // hex
                 "allow": bits
             } ... ],
             "last_permission_update": str | None,
@@ -411,8 +412,9 @@ The user logged successfully into the account, and the data will now be sent bac
             "name": str,
             "level": int,
             "id": str,
+            "house_id": str,
             "deny": bits,
-            "color": str,
+            "color": str, // hex
             "allow": bits
         }],
         "owner_id": str,
@@ -435,8 +437,9 @@ The user logged successfully into the account, and the data will now be sent bac
                 "name": str,
                 "level": int,
                 "id": str,
+                "house_id": str,
                 "deny": bits,
-                "color": str,
+                "color": str, // hex
                 "allow": bits
             ],
             "last_permission_update": str | None,
@@ -458,7 +461,90 @@ The user logged successfully into the account, and the data will now be sent bac
             "id": str
         } ... ],
         "default_permissions": int,
-        "banner": str
+        "banner": str | None
+    }
+    ```
+
+## `HOUSE_UPDATE`
+[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
+[Docs · `on_house_update()`]()
+
+??? abstract "Expected json-data"
+
+    ```json
+    "op": 0,
+    "d": {
+        "rooms": [{
+            // Room Object
+            "type": int,
+            "recipients": None,
+            "position": int,
+            "permission_overrides": bits,
+            "owner_id": str,
+            "name": str,
+            "last_message_id": str | None,
+            "id": str,
+            "house_id": str,
+            "emoji": object | None,
+            "description": str,
+            "default_permission_override": int
+        }, ...],
+        "roles": [{
+            // Role Object
+            "position": int,
+            "name": str,
+            "level": int,
+            "id": str,
+            "house_id": str,
+            "deny": bits,
+            "color": str, // hex
+            "allow": bits
+        }],
+        "owner_id": str,
+        "name": str,
+        "members": [{
+            // Member Object
+            "user_id": str,
+            "user": {
+                // User Object
+                "username": str,
+                "flags": str | int | None,
+                "name": str,
+                "id": str,
+                "icon": str | None,
+                "header": str | None,
+                "presence": str | None
+            },
+            "roles": [
+                "position": int,
+                "name": str,
+                "level": int,
+                "id": str,
+                "house_id": str,
+                "deny": bits,
+                "color": str, // hex
+                "allow": bits
+            ],
+            "last_permission_update": str | None,
+            "joined_at": str,
+            "house_id": str
+        }],
+        "id": str,
+        "icon": str | None,
+        "entities": [{
+            // Entity Object
+            "type": int,
+            "resource_pointers": [{
+                // Resource Pointer
+                "resource_type": str,
+                "resource_id": str
+            } ... ],
+            "position": int,
+            "name": str,
+            "id": str
+        } ... ],
+        "default_permissions": int,
+        "banner": str | None
     }
     ```
 
@@ -493,8 +579,9 @@ The user logged successfully into the account, and the data will now be sent bac
             "name": str,
             "level": int,
             "id": str,
+            "house_id": str,
             "deny": bits,
-            "color": str,
+            "color": str, // hex
             "allow": bits 
         } ... ],
         "length": int
@@ -527,8 +614,9 @@ The user logged successfully into the account, and the data will now be sent bac
             "name": str,
             "level": int,
             "id": str,
+            "house_id": str,
             "deny": bits,
-            "color": str,
+            "color": str, // hex
             "allow": bits 
         } ... ],
         user: { 
@@ -567,8 +655,9 @@ House member went online. Triggers in every house the client, and the user is in
             "name": str,
             "level": int,
             "id": str,
+            "house_id": str,
             "deny": bits,
-            "color": str,
+            "color": str, // hex
             "allow": bits 
         } ... ],
         "presence": str | None,
@@ -627,7 +716,7 @@ House user went offline. Triggers in every house the client, and the user is in 
             "level": int,
             "id": str,
             "deny": bits,
-            "color": str,
+            "color": str, // hex
             "allow": bits 
         } ... ],
         "presence": str | None,
@@ -667,8 +756,9 @@ Chunked House Member Update
                 "name": str,
                 "level": int,
                 "id": str,
+                "house_id": str,
                 "deny": bits,
-                "color": str,
+                "color": str, // hex
                 "allow": bits 
             } ... ],
             "last_permission_update": str | None,
@@ -737,8 +827,9 @@ Chunked House Member Update
                     "name": str,
                     "level": int,
                     "id": str,
+                    "house_id": str,
                     "deny": bits,
-                    "color": str,
+                    "color": str, // hex
                     "allow": bits
                 } ... ],
                 "last_permission_update": str | None,
@@ -884,3 +975,22 @@ If the given variable `unavailable` is `True`, the house with that id is current
         "room_id": str
     }
     ```
+
+## `ROLE_UPDATE`
+[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
+[Docs · `missing`]()
+
+??? abstract "Expected json-data"
+
+    ```json
+    "op": 0,
+    "d": {
+        "position": int, 
+        "name": str,
+        "level": int,
+        "id": str,
+        "house_id": str,
+        "deny": int,
+        "color": str, // hex
+        "allow": int
+    }

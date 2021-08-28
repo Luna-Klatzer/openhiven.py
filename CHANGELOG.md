@@ -13,10 +13,24 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+- Event Parsers for events: `HOUSE_JOIN`, `HOUSE_UPDATE`, `HOUSE_LEAVE` and `HOUSE_DOWN` (both for py-events 
+  `house_down` and `house_delete`)
+- Update functionality for `house_ids` property in `ClientCache`, which
+  always return the current available ids for the houses.
+- `house_ids` Property in `HivenClient`
+- Removal functions in `ClientCache`: `remove_house`, `remove_user`, `remove_room`,
+  `remove_entity`, `remove_private_room` adn `remove_relationship`
 
 ### Changed
+- Renamed py-event `house_downtime` to `house_down`
+- Fixed wrong naming of `HOUSE_REMOVE` to `HOUSE_LEAVE`
+- Renamed property `read_state` in `ClientCache` to `init_read_state`, due to the
+  property not being updated yet!
+- Fixed data issue in `HivenParsers.dispatch()`, which modifies original data
+  as well. Using `deepcopy` now to avoid this issue.
 
 ### Removed
+- `house_memberships` property in Cache
 
 ## [v0.2.dev2] - 2021-08-23
 

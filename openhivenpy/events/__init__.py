@@ -56,8 +56,7 @@ logger = logging.getLogger(__name__)
 
 EVENTS = [
     'init', 'ready', 'user_update',
-    'house_join', 'house_remove', 'house_update', 'house_delete',
-    'house_downtime',
+    'house_join', 'house_leave', 'house_update', 'house_delete', 'house_down',
     'room_create', 'room_update', 'room_delete',
     'house_member_join', 'house_member_leave', 'house_member_enter',
     'house_member_exit', 'house_member_update',
@@ -345,7 +344,6 @@ class HivenEventHandler(HivenObject):
         Does not call the parsers but the function directly and requires the
         args, kwargs passed
 
-        ---
 
         Will run all tasks before returning! Only supposed to be called in
          cases of special events!

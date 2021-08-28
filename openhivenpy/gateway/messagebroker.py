@@ -64,9 +64,9 @@ class DynamicEventBuffer(list, HivenObject):
          to the event listeners
         """
         if kwargs is None:
-            kwargs = {}
+            kwargs: Dict = {}
         if args is None:
-            args = ()
+            args: Tuple = ()
         self.append(
             {
                 'data': data,
@@ -133,9 +133,9 @@ class MessageBroker(HivenObject):
         :return: The fetched or newly created buffer instance
         """
         if kwargs is None:
-            kwargs = {}
+            kwargs: Dict = {}
         if args is None:
-            args = ()
+            args: Tuple = ()
 
         buffer = self.event_buffers.get(event)
         if buffer is not None:
@@ -316,7 +316,7 @@ class Worker(HivenObject):
             if not listeners:
                 return
 
-            args = event['args']  # args to pass to the coro
+            args: Tuple = event['args']  # args to pass to the coro
             kwargs = event['kwargs']  # kwargs to pass to the coro
 
             try:

@@ -42,10 +42,9 @@ def _create_default_dict(log_websocket: bool) -> dict:
         },
         'entities': dict(),
         'relationships': dict(),
-        'house_memberships': dict(),
         'house_ids': list(),
         'settings': dict(),
-        'read_state': dict()
+        'init_read_state': dict()
     }
 
 
@@ -87,7 +86,7 @@ class ClientCache(dict, HivenObject):
         if self.get('client_user'):
             return True
         else:
-            raise ValueError("Data Updates require a initialised Hiven Client!")
+            raise ValueError("Updates require an initialised Hiven Client!")
 
     def update_primary_data(self, item_data: dict) -> None:
         """
@@ -100,10 +99,9 @@ class ClientCache(dict, HivenObject):
          - All Relationships of the user
         """
         data = deepcopy(item_data)
-        self['house_memberships'] = data.get('house_memberships', {})
         self['house_ids'] = data.get('house_ids', [])
         self['settings'] = data.get('settings', {})
-        self['read_state'] = data.get('read_state', {})
+        self['init_read_state'] = data.get('read_state', {})
         self.update_client_user(data.get('user'))
 
         for r in data.get('private_rooms', []):
@@ -131,7 +129,8 @@ class ClientCache(dict, HivenObject):
 
     def add_or_update_house(self, item_data: dict) -> dict:
         """
-        Adds or Updates a house to the cache and updates the storage appropriately
+        Adds or Updates a house to the cache and updates the storage
+        appropriately
 
         :return: The validated data using `format_obj_data` of the House class
         """
@@ -158,6 +157,7 @@ class ClientCache(dict, HivenObject):
             data['client_member'] = data['members'][self['client_user']['id']]
 
             if self['houses'].get(id_) is None:
+                self['house_ids'].append(id_)
                 self['houses'][id_] = data
             else:
                 self['houses'][id_].update(data)
@@ -169,11 +169,22 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_house(self, _id: str) -> None:
+        """ Removes a house from the cache """
+        self.check_if_initialised()
+        del self['houses'][_id]
+
+        self['house_ids']: list
+        self['house_ids'].remove(_id)
 
     def add_or_update_user(self, item_data: dict) -> dict:
         """
-        Adds or Updates a user to the cache and updates the storage appropriately
+        Adds or Updates a user to the cache and updates the storage
+        appropriately
 
         :return: The validated data using `format_obj_data` of the User class
         """
@@ -197,11 +208,19 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_user(self, _id: str) -> None:
+        """ Removes a user from the cache """
+        self.check_if_initialised()
+        del self['users'][_id]
 
     def add_or_update_room(self, item_data: dict) -> dict:
         """
-        Adds or Updates a room to the cache and updates the storage appropriately
+        Adds or Updates a room to the cache and updates the storage
+        appropriately
 
         :return: The validated data using `format_obj_data` of the Room class
         """
@@ -221,11 +240,19 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_room(self, _id: str) -> None:
+        """ Removes a room from the cache """
+        self.check_if_initialised()
+        del self['rooms']['house'][_id]
 
     def add_or_update_entity(self, item_data: dict) -> dict:
         """
-        Adds or Updates a entity to the cache and updates the storage appropriately
+        Adds or Updates a entity to the cache and updates the storage
+        appropriately
 
         :return: The validated data using `format_obj_data` of the Entity class
         """
@@ -245,13 +272,22 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_entity(self, _id: str) -> None:
+        """ Removes an entity from the cache """
+        self.check_if_initialised()
+        del self['entities'][_id]
 
     def add_or_update_private_room(self, item_data: dict) -> dict:
         """
-        Adds or Updates a private room to the cache and updates the storage appropriately
+        Adds or Updates a private room to the cache and updates the storage
+        appropriately
 
-        :return: The validated data using `format_obj_data` of the Private_*Room class
+        :return: The validated data using `format_obj_data` of the
+        Private_*Room class
         """
         self.check_if_initialised()
         try:
@@ -279,13 +315,30 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_private_room(self, _id: str) -> None:
+        """ Removes a private-room from the cache """
+        self.check_if_initialised()
+
+        for i in self['rooms']['private']['group']:
+            if i.get('id') == _id:
+                del self['rooms']['private']['group'][_id]
+                return
+
+        for i in self['rooms']['private']['single']:
+            if i.get('id') == _id:
+                del self['rooms']['private']['single'][_id]
 
     def add_or_update_relationship(self, item_data: dict) -> dict:
         """
-        Adds or Updates a client relationship to the cache and updates the storage appropriately
+        Adds or Updates a client relationship to the cache and updates the
+        storage appropriately
 
-        :return: The validated data using `format_obj_data` of the Relationship class
+        :return: The validated data using `format_obj_data` of the Relationship
+         class
         """
         self.check_if_initialised()
         try:
@@ -307,4 +360,11 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError("Failed to update the cache due to an exception occurring") from e
+            raise InitializationError(
+                "Failed to update the cache due to an exception occurring"
+            ) from e
+
+    def remove_relationship(self, _id: str) -> None:
+        """ Removes a relationship from the cache """
+        self.check_if_initialised()
+        del self['relationships'][_id]
