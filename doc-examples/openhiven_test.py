@@ -24,4 +24,4 @@ async def on_message_create():
 
 
 if __name__ == '__main__':
-    client.run("y9JvliBe8fbOmmSAmS09sHvWk6FVV2ZdOtVenZAsoN0xH3OwXmJZIooTh3PuKyECp0UUDDfuS6gT6MbaBDYecryEky4HS2LMq1Sp3WM5u7jakITMON5QXk9NseiL3Syr", )
+    client.run("Insert token")

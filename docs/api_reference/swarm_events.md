@@ -994,3 +994,4 @@ If the given variable `unavailable` is `True`, the house with that id is current
         "color": str, // hex
         "allow": int
     }
+    ```
