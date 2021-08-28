@@ -1,0 +1,1612 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation Page for OpenHiven.py">
+      
+      
+      
+        <meta name="author" content="Nicolas Klatzer">
+      
+      
+        <link rel="canonical" href="https://openhivenpy.readthedocs.io/en/0.2.dev/changelog.html">
+      
+      <link rel="icon" href="openhivenpy.ico">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.6">
+    
+    
+      
+        <title>Changelog - OpenHiven.py Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.2c0c5eaf.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.7fa14f5b.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="assets/css/index.css">
+    
+    
+      
+        
+<script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","G-WWRJSVTX2V","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})})</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="OpenHiven.py Docs" class="md-header__button md-logo" aria-label="OpenHiven.py Docs" data-md-component="logo">
+      
+  <img src="assets/images/openhivenpy.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            OpenHiven.py Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="md-header__options">
+      
+    </div>
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/Luna-Klatzer/OpenHiven.py/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Luna-Klatzer/OpenHiven.py
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="index.html" class="md-tabs__link">
+        Home
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="getting_started/index.html" class="md-tabs__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="setup/index.html" class="md-tabs__link">
+        Setup
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="reference/hivenclient.html" class="md-tabs__link">
+        Library Reference
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="api_reference/hiven_restapi.html" class="md-tabs__link">
+        Hiven API Reference
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="changelog.html" class="md-tabs__link md-tabs__link--active">
+        Changelog
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="OpenHiven.py Docs" class="md-nav__button md-logo" aria-label="OpenHiven.py Docs" data-md-component="logo">
+      
+  <img src="assets/images/openhivenpy.png" alt="logo">
+
+    </a>
+    OpenHiven.py Docs
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/Luna-Klatzer/OpenHiven.py/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Luna-Klatzer/OpenHiven.py
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_1" data-md-state="indeterminate" type="checkbox" id="__nav_1" checked>
+      
+      <label class="md-nav__link" for="__nav_1">
+        Home
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Home" data-md-level="1">
+        <label class="md-nav__title" for="__nav_1">
+          <span class="md-nav__icon md-icon"></span>
+          Home
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="home/contributing.html" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="home/license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="home/troubleshooting.html" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="home/bug_reporting.html" class="md-nav__link">
+        Bug-Reporting
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" data-md-state="indeterminate" type="checkbox" id="__nav_2" checked>
+      
+      <label class="md-nav__link" for="__nav_2">
+        Getting Started
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/index.html" class="md-nav__link">
+        Quickstart
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/deploying_your_first_bot.html" class="md-nav__link">
+        Deploying your first Hiven-Bot
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/logging.html" class="md-nav__link">
+        Logging and Debugging
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/event_handling.html" class="md-nav__link">
+        Event Handling
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" data-md-state="indeterminate" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        Setup
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Setup" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Setup
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="setup/index.html" class="md-nav__link">
+        Setup of a Bot
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" data-md-state="indeterminate" type="checkbox" id="__nav_4" checked>
+      
+      <label class="md-nav__link" for="__nav_4">
+        Library Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Library Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Library Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/hivenclient.html" class="md-nav__link">
+        WebSocket Clients
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/http.html" class="md-nav__link">
+        HTTP Client
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/cache.html" class="md-nav__link">
+        Client Cache
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/events.html" class="md-nav__link">
+        HivenEventHandler and Listeners
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/types.html" class="md-nav__link">
+        Hiven Types
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" data-md-state="indeterminate" type="checkbox" id="__nav_5" checked>
+      
+      <label class="md-nav__link" for="__nav_5">
+        Hiven API Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Hiven API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Hiven API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_1" data-md-state="indeterminate" type="checkbox" id="__nav_5_1" checked>
+      
+      <label class="md-nav__link" for="__nav_5_1">
+        Hiven REST API
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Hiven REST API" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_1">
+          <span class="md-nav__icon md-icon"></span>
+          Hiven REST API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/hiven_restapi.html" class="md-nav__link">
+        Using the REST API
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/hiven_request_endpoints.html" class="md-nav__link">
+        API Request Endpoints
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/hiven_exceptions.html" class="md-nav__link">
+        Request Exceptions
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" data-md-state="indeterminate" type="checkbox" id="__nav_5_2" checked>
+      
+      <label class="md-nav__link" for="__nav_5_2">
+        Hiven Swarm (WebSocket)
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Hiven Swarm (WebSocket)" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          Hiven Swarm (WebSocket)
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/hiven_swarm.html" class="md-nav__link">
+        Using the Hiven Swarm
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/swarm_events.html" class="md-nav__link">
+        Hiven Swarm Events
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_3" data-md-state="indeterminate" type="checkbox" id="__nav_5_3" checked>
+      
+      <label class="md-nav__link" for="__nav_5_3">
+        Hiven Objects
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Hiven Objects" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Hiven Objects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_reference/object_reference.html" class="md-nav__link">
+        JSON Object Reference
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+      
+      <label class="md-nav__link" for="__nav_6">
+        Changelog
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Changelog" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Changelog
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Changelog
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="changelog.html" class="md-nav__link md-nav__link--active">
+        Changelog
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v02dev2-2021-08-23" class="md-nav__link">
+    v0.2.dev2 - 2021-08-23
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.dev2 - 2021-08-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v02dev1-2021-08-13" class="md-nav__link">
+    v0.2.dev1 - 2021-08-13
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.dev1 - 2021-08-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v0132-2021-04-09" class="md-nav__link">
+    v0.1.3.2 - 2021-04-09
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3.2 - 2021-04-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v0131-2021-04-09" class="md-nav__link">
+    v0.1.3.1 - 2021-04-09
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3.1 - 2021-04-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_2" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v013-2021-02-16" class="md-nav__link">
+    v0.1.3 - 2021-02-16
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3 - 2021-02-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_3" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v012-2021-02-03" class="md-nav__link">
+    v0.1.2 - 2021-02-03
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.2 - 2021-02-03">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_4" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v02dev2-2021-08-23" class="md-nav__link">
+    v0.2.dev2 - 2021-08-23
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.dev2 - 2021-08-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v02dev1-2021-08-13" class="md-nav__link">
+    v0.2.dev1 - 2021-08-13
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.dev1 - 2021-08-13">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v0132-2021-04-09" class="md-nav__link">
+    v0.1.3.2 - 2021-04-09
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3.2 - 2021-04-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v0131-2021-04-09" class="md-nav__link">
+    v0.1.3.1 - 2021-04-09
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3.1 - 2021-04-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_2" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v013-2021-02-16" class="md-nav__link">
+    v0.1.3 - 2021-02-16
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.3 - 2021-02-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_3" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v012-2021-02-03" class="md-nav__link">
+    v0.1.2 - 2021-02-03
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.1.2 - 2021-02-03">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_4" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/Luna-Klatzer/docs_openhiven.py/edit/main/docs/changelog.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<p>All notable changes to the Compiler will be documented in this file. Note that
+these changes in this file are specifically for the Compiler. The full summary
+will be in the CHANGELOG.md file the main folder</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>
+, and this project adheres
+to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="v02dev2-2021-08-23"><a href="https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2">v0.2.dev2</a> - 2021-08-23<a class="headerlink" href="#v02dev2-2021-08-23" title="Permanent link">&para;</a></h2>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Full Properties of Class <code>User</code> are now added to the <code>HivenClient</code></li>
+<li><code>application</code> and <code>account</code> as new properties to <code>BaseUser</code></li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Made <code>flags</code> the base property as replacement for <code>user_flags</code>. Though 
+  <code>user_flags</code> will still exist</li>
+</ul>
+<h2 id="v02dev1-2021-08-13"><a href="https://github.com/Para-C/Para-C/compare/v0.1.3.2...0.2.dev1">v0.2.dev1</a> - 2021-08-13<a class="headerlink" href="#v02dev1-2021-08-13" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Rewrite of the base structure. Not all changes will be noted here, but main
+  ones!</li>
+</ul>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Message-Broker for handling incoming events and distribute them to the
+  listeners.</li>
+<li>Event-Buffers, which store the events and will one by one execute the events/
+  call its listeners. This can be changed by setting queue_events in the client
+  to False, which means all tasks are immediately sent to the event-loop and
+  executed in the next cycle if possible.</li>
+<li>New event_parsers file with a new execution schema, where calling the
+  function will simply add the event with its data, args and kwargs to the
+  buffer.</li>
+<li>Added <code>HivenEventHandler</code> as a class and interface for listeners and
+  functions related to that.</li>
+<li>Implementation of <code>SingleDispatchEventListener</code>, which will listen for an
+  event once and execute an assigned coroutine when the event is received. This
+  can be done dynamically using <code>HivenEventHandler.add_single_listener()</code></li>
+<li>Implementation of <code>MultiDispatchEventListener</code>, which will listen for an
+  event until the bot is stopped. Will call a coroutine every time the event is
+  received. Creating one can be done dynamically using
+  <code>HivenEventHandler.add_multi_listener()</code></li>
+<li><code>wait_for</code> function in <code>HivenEventHandler</code>, which will dynamically wait for
+  an event. This will under the hood create a
+  simple <code>SingleDispatchEventListener</code>. It will return the data passed to the
+  function as well.</li>
+<li><code>dispatch_event</code> function in <code>HivenEventHandler</code>, which will dynamically add
+  a new event to the buffer with the args and kwargs passed.</li>
+<li><code>call_listeners</code> to call all listeners for an event based on the passed args
+  and kwargs. This will call them directly and not utilise the message-broker
+  unlike <code>dispatch_event</code></li>
+<li><code>HTTPRateLimitError</code> for receiving http rate-limits (429) and parameter
+  retry_on_rate_limit to raw_request()</li>
+<li>Parameter <code>remove_listeners</code> to <code>HivenClient.close()</code>, which will, if set to
+  True, remove all listeners created using @client.event(),
+  add_multi_listener() and add_single_listener()</li>
+</ul>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Rewrite of the base structure</li>
+<li>Proper WebSocket structure, with init handling that will delay all other
+  incoming events until the Bot is ready. This means when the Bot enters ready
+  state all cached events are sent to the event-buffer.</li>
+<li>Base Types for referencing general types in the library</li>
+<li>Cache implementation using cache.py, which will hold and store values and
+  provide functions for generating data and update the cache correctly. This
+  will remove implementations in the data classes itself.</li>
+<li>Dot-Env Handling, which will now load the openhivenpy.env file on default and
+  update all variables based on the given input. This will avoid None values
+  when an .env file only updates a few values</li>
+</ul>
+<h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Old structure (everything not mentioned in changed or added is likely gone)</li>
+</ul>
+<h2 id="v0132-2021-04-09"><a href="https://github.com/Para-C/Para-C/compare/v0.1.2.1...v0.1.3.2">v0.1.3.2</a> - 2021-04-09<a class="headerlink" href="#v0132-2021-04-09" title="Permanent link">&para;</a></h2>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Updated validation
+  traceback <a href="https://github.com/Luna-Klatzer/openhiven.py/issues/69">#69</a></li>
+<li>Updated presence to be a string and removed the deprecated and unneeded class</li>
+</ul>
+<h3 id="changed_2">Changed<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Small code enhancements before v0.2 rewrite</li>
+</ul>
+<h3 id="removed_1">Removed<a class="headerlink" href="#removed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Unneeded exception log inside the exception strings and replaced it
+  with <code>from e</code> to have a cleaner traceback</li>
+</ul>
+<h2 id="v0131-2021-04-09"><a href="https://github.com/Para-C/Para-C/compare/v0.1.3...v0.1.3.1">v0.1.3.1</a> - 2021-04-09<a class="headerlink" href="#v0131-2021-04-09" title="Permanent link">&para;</a></h2>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Error-messages for ValidationError in from_dict() inside type classes</li>
+</ul>
+<h3 id="changed_3">Changed<a class="headerlink" href="#changed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Updated MANIFEST.in</li>
+<li><a href="https://github.com/Luna-Klatzer/openhiven.py/issues/68">#68</a> Fixed with
+  removal of name parameter in <code>asyncio.create_task()</code> which is unsupported in
+  3.7</li>
+</ul>
+<h3 id="removed_2">Removed<a class="headerlink" href="#removed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Old licensing of FrostbyteSpace and updated the URLs to the latest changes</li>
+</ul>
+<h2 id="v013-2021-02-16"><a href="https://github.com/Para-C/Para-C/compare/v0.1.2...v0.1.3">v0.1.3</a> - 2021-02-16<a class="headerlink" href="#v013-2021-02-16" title="Permanent link">&para;</a></h2>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>HivenObject</code> as Base for Type Classes</li>
+<li>more TypeHinting using the module <code>typing</code></li>
+<li>ObjectValidation as in #46 using an integration of a <code>@classmethod</code> for
+  object creation as explained in #37. Will likely switch from <code>marshmallow</code> to
+  another library for the sake of speed and more efficiency (or possibly own
+  implementation using <code>@dataclass</code></li>
+<li><code>wait_for_initialisation()</code> and <code>wait_for_ready()</code> to the WebSocket to wait
+  for the initialisation or ready state to be fired</li>
+<li>op-code constants to the WebSocket</li>
+<li>Missing Schemas and fully implemented the Validation process</li>
+<li><code>client_user</code> to <code>PrivateRoom</code> and <code>PrivateGroupRoom</code></li>
+<li><code>bucket</code>, <code>author_id</code>, <code>exploding_age</code> and <code>device_id</code> to the Message Class</li>
+<li>Missing <code>CLOSED</code> and <code>CLOSING</code> handlers to the WebSocket</li>
+<li>Event <code>USER_UPDATE</code> as event and its corresponding
+  event_handler <code>on_user_update</code></li>
+<li>Exceptions to object initialisation and validation</li>
+</ul>
+<h3 id="changed_4">Changed<a class="headerlink" href="#changed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed <code>HivenClient.close()</code> for closing the HivenClient Connection</li>
+<li>Updated current docstrings as in #36</li>
+<li>Fixed circular Import errors and fixed some Type Errors</li>
+<li>Fixed WebSocket bug causing events to be fired before the initialisation was
+  successful</li>
+<li>Fixed bug causing <code>last_message_id</code> sometimes to be a string and not an
+  integer</li>
+<li>Fixed multiple WebSocket and Instance Construction bugs</li>
+</ul>
+<h3 id="removed_3">Removed<a class="headerlink" href="#removed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Deprecated <code>timeout_handler</code> and replaced it with a
+  standard <code>asyncio.wait_for()</code></li>
+</ul>
+<h2 id="v012-2021-02-03"><a href="https://github.com/Para-C/Para-C/releases/tag/v0.1.2">v0.1.2</a> - 2021-02-03<a class="headerlink" href="#v012-2021-02-03" title="Permanent link">&para;</a></h2>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Traceback to in-code exceptions for easier debugging and testing</li>
+<li>Proper docs to the HTTP Class, and it's methods</li>
+<li><code>json</code> and <code>header</code> with default <code>None</code> as parameters to the HTTP method
+  requests. If they are not overwritten by a passed parameter:</li>
+<li>param json: Will not get passed to the requests to allow a <code>data</code> field of
+    any type</li>
+<li>param headers: Will be overwritten by the default headers, and the passed
+    as an argument to the request</li>
+<li><code>on_house_delete</code> and <code>on_house_member_leave</code> as events and added correct
+  handling</li>
+<li><code>username</code> option for <code>Client.edit(**kwargs)</code></li>
+<li><code>create_private_group_room</code> as method in the class <code>HivenClient</code></li>
+<li>Until now missing entity object to the event <code>on_house_entity_update</code></li>
+</ul>
+<h3 id="changed_5">Changed<a class="headerlink" href="#changed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Rewrite of core Websocket Event Handling:</li>
+<li>Moved handler methods from <code>response_handler</code> to the websocket object
+    itself (Will be changed in the Websocket Rewrite and EventHandling Update)</li>
+<li>Renamed <code>EventHandler</code> event-function names and changed name prefix
+  to <code>dispatch_{event_name}</code></li>
+<li>Rewrote restart handler and moved the instantiation of the loop from
+  <code>Connection.connect()</code> to <code>HivenClient.run()</code> and <code>HivenClient.connect()</code> to
+  not be dependent on the connection object itself. This will avoid that the
+  restart handler is also affected when the connection fails due to an
+  exception.</li>
+<li>Fixed <code>Client.edit(**kwargs)</code> bug causing issues with data being passed as
+  json without correct formatting. Caused by <code>HTTP.patch()</code> faulty param
+  passing to <code>HTTP.raw_request()</code></li>
+<li>Fixed <code>room_create</code> as event and added group room creation</li>
+<li>Fixed cache lists reference error caused by prior commits (houses, rooms,
+  users etc.)</li>
+<li>Rewrote <code>create_private_room</code> in <code>HivenClient</code> to take only the <code>user</code>
+  parameter instead of <code>user_id</code> and <code>user</code></li>
+<li>Fixed attribute <code>joined_at</code> in the class <code>Member</code></li>
+<li>Renamed object <code>Category</code> to <code>Entity</code> to be equivalent to the Hiven API</li>
+<li>Fixed <code>fetch_invite()</code> and <code>Invite</code> Object Creation bug</li>
+<li><code>on_house_member_exit</code> to <code>on_house_member_offline</code>
+  and <code>on_house_member_enter</code> to <code>on_house_member_online</code></li>
+<li>Fixed <code>HOUSE_MEMBER_EXIT</code> bug causing members to be removed from houses
+  instead of being set offline</li>
+<li>Added better traceback for exceptions, including event_listener methods to
+  avoid that asyncio exceptions are thrown and
+  added <code>log_traceback(level='error', msg='Traceback: ', suffix=None)</code> as
+  function to utils</li>
+<li>Fixed <code>room_create</code> as event and added group room creation</li>
+</ul>
+<h3 id="removed_4">Removed<a class="headerlink" href="#removed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>joined_at</code> from <code>User</code></li>
+<li><code>ping</code> from the HivenClient (Will be added back later but with better
+  implementation)</li>
+</ul>
+                
+                  
+                    
+
+<hr>
+<div class="md-source-date">
+  <small>
+    
+      Last update: 2021-08-23
+    
+  </small>
+</div>
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="api_reference/object_reference.html" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              JSON Object Reference
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; 2020 - 2021 Luna-Klatzer
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+      <a href="https://twitter.com/FloofyLunafox" target="_blank" rel="noopener" title="The author on Twitter" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+      <a href="https://github.com/Luna-Klatzer/" target="_blank" rel="noopener" title="The author and manager of the project" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.expand", "navigation.sections", "navigation.instant"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "assets/javascripts/workers/search.fb4a9340.min.js", "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.a1c7c35e.min.js"></script>
+      
+    
+  </body>
+</html>
