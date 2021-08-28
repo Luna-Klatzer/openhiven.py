@@ -9,7 +9,7 @@
         - [Install (PyPi Specific Version)](#install-pypi-specific-version)
         - [Install (Github Build)](#install-github-build)
     - [Documentation](#documentation)
-        - [Usage Example (v0.1.3.2)](#usage-example-v0132)
+        - [Usage Example (v0.2.dev3)](#usage-example-v02dev3)
     - [Development](#development)
         - [Testing](#testing)
         - [Building](#building)
