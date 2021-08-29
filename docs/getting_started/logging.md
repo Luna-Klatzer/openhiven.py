@@ -2,7 +2,7 @@
 
 ---
 
-OpenHiven.py uses to log and report issues and problems the built-in
+openhiven.py uses to log and report issues and problems the built-in
 [logging](https://docs.python.org/3/library/logging.html#module-logging) module of Python.
 With logging can you can easily specify how  to log errors and customize the output.
 
@@ -55,7 +55,7 @@ Here, the initialization was successful, and the HivenClient connected itself to
 
 !!! Info
 
-    `DEBUG` is excellent for tracing back issues in the program and also seeing how OpenHiven.py works in the 
+    `DEBUG` is excellent for tracing back issues in the program and also seeing how openhiven.py works in the 
     background. `INFO` is, on the other hand, handy for deployment and usage where the
     HivenClient should log only errors and vital information. We recommend sticking to one of these two, since 
     higher levels can possibly hide very important information that you might need later if a bug occurs!

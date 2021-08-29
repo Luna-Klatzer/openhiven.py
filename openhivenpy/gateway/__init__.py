@@ -1,6 +1,6 @@
 """
 
-Module for the OpenHiven.py Gateway and Connection to Hiven
+Module for the openhiven.py Gateway and Connection to Hiven
 
 ---
 

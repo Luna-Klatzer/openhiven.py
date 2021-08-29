@@ -51,7 +51,7 @@ PrivateRoom for interacting with a Hiven user or users outside a House
 
 !!! Note
 
-    OpenHiven.py splits the rooms into single and group rooms for easier differentiation 
+    openhiven.py splits the rooms into single and group rooms for easier differentiation 
 
 ```json
 {

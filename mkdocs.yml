@@ -45,8 +45,8 @@ extra_css:
     - assets/css/index.css
 
 # Github repo
-repo_url: https://github.com/Luna-Klatzer/OpenHiven.py
-repo_name: Luna-Klatzer/OpenHiven.py
+repo_url: https://github.com/Luna-Klatzer/openhiven.py
+repo_name: Luna-Klatzer/openhiven.py
 
 # Material theme options
 theme:

@@ -13,7 +13,7 @@
 
 ## Issues Downloading the Module
 
-If you encounter issues or warnings with downloading OpenHiven.py, there can be multiple reasons for that.
+If you encounter issues or warnings with downloading openhiven.py, there can be multiple reasons for that.
 Here is a small list of known issues and possible solutions to solve them:
 
 - ??? error "Failed to build wheel" 
@@ -46,7 +46,7 @@ Here is a small list of known issues and possible solutions to solve them:
 ## Unexpected behavior
 
 If you encounter unexpected behavior and functionality that is not working like wanted this can either be of a bug of
-OpenHiven.py, Connection Problem, Hiven Server error or an issue due to the configuration. 
+openhiven.py, Connection Problem, Hiven Server error or an issue due to the configuration. 
 
 If you receive results different from those in the documentation, we first 
 recommend you looking into the logs and activate `DEBUG` mode to see extended 

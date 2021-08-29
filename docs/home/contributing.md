@@ -10,15 +10,15 @@
 Welcome to the Contributing page! 
 
 If you are here to search for options to share your work and maybe
-ideas for OpenHiven.py, we are delighted to hear that!
+ideas for openhiven.py, we are delighted to hear that!
 
-Since OpenHiven.py is a "free time" project of Developers, it is heavily dependent on user-feedback,
+Since openhiven.py is a "free time" project of Developers, it is heavily dependent on user-feedback,
 bug reports and also contributions of other users, so it can steadily improve and also stays up-to-date, since Hiven
 can change very quickly and therefore, the library needs to also apply promptly to these new changes.
 
 ## Using Github
 
-It is relatively easy to contribute if you do it the right way. OpenHiven.py, in this case, uses Github to host it's the
+It is relatively easy to contribute if you do it the right way. openhiven.py, in this case, uses Github to host it's the
 repository and manage the project. Therefore, contributions need to be made on Github since else the Developers are not 
 able to correctly integrate your new changes.
 
@@ -27,7 +27,7 @@ If you need a guide for Github, go to the [github-guides for git and github.](ht
 ### Issue-Page
 
 The issue-page is where you can easily report issues and bugs, share your ideas, and ask questions to the developers and
-other people who also use OpenHiven.py. So, if you want to contribute, that's the place to go to. Just keep in mind
+other people who also use openhiven.py. So, if you want to contribute, that's the place to go to. Just keep in mind
 trying to give as much information as possible when reporting something, so the developers who read it can understand 
 the issue or contribution.
 

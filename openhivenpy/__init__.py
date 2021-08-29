@@ -1,6 +1,6 @@
 """
 
-OpenHiven.py - The OpenSource Python API Wrapper for Hiven
+openhiven.py - The OpenSource Python API Wrapper for Hiven
 
 ---
 
