@@ -95,7 +95,7 @@ Relationship with another Hiven User
     "user_id": str,
     "user": {
         "username": str,
-        "flags": str | int | None | int ,
+        "flags": str | int | None,
         "name": str,
         "id": str,
         "icon": str | None,
