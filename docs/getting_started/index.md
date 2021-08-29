@@ -140,7 +140,7 @@ Exception!
 
     === "Regular"
 
-        Note that using a decorator will also automatically add the function as a method to the [Event Handler](https://openhivenpy.readthedocs.io/en/latest/)
+        Note that using a decorator will also automatically add the function as a method to the [Event Handler](../reference/events.html)
         instance itself so it can call it directly from the Event Handler and it doesn't need to reference the origin!
 
         ```python
@@ -216,4 +216,4 @@ your own requests for fetching the data and having to update the objects accordi
 For each possible request OpenHiven.py already ships a pre-made method to the 
 class which automatically changes data and returns configured objects if that specific methods returns data.
 
-For detailed documentation see [Data Models](https://openhivenpy.readthedocs.io/en/latest/)
+For detailed documentation see [Data Types](../reference/types.html)

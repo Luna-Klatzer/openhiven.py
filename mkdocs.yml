@@ -1,10 +1,10 @@
 # Openhiven.py Mkdocs Customisation
 
-site_name: 'OpenHiven.py Docs'
-site_description: 'Documentation Page for OpenHiven.py'
-site_author: 'Nicolas Klatzer'
-site_url: 'https://openhivenpy.readthedocs.io/en/'
-edit_uri: 'https://github.com/Luna-Klatzer/docs_openhiven.py/edit/main/docs/'
+site_name: 'openhiven.py Docs'
+site_description: 'Documentation for the pypi module openhiven.py'
+site_author: 'Luna Klatzer'
+site_url: 'https://luna-klatzer.github.io/openhiven.py/'
+edit_uri: 'https://github.com/Luna-Klatzer/openhiven.py/edit/main/docs/'
 
 copyright: Copyright &copy; 2020 - 2021 Luna-Klatzer
 

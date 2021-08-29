@@ -21,7 +21,7 @@ Current API access-point:
 ---
 
 The Hiven API uses a classic header authorization where your auth-token is passed as a parameter in the header of the
-request. If you do not have your token yet, getting it is discussed in the docs page [Getting a User-token](https://openhivenpy.readthedocs.io/en/mkdocs-material-rewrite/getting_started/deploying_your_first_bot.html#getting-a-user-token)
+request. If you do not have your token yet, getting it is discussed in the docs page [Getting a User-token](../getting_started/deploying_your_first_bot.html#getting-a-user-token)
 
 If you already have one and want to make a request to Hiven simply put it as following into the header:
 ```json

@@ -20,8 +20,8 @@ Full possible data of a User. *Usually* only visible to the client!
     "user_flags": str | int | None, // deprecated, rarely available
     "bio": str | None,
     "email_verified": bool | None,
-    header: str, // empty when not filled
-    icon: str, // empty when not filled
+    "header": str, // empty when not filled
+    "icon": str, // empty when not filled
     "bot": bool | None,
     "application": str | int | None,
 }
@@ -33,13 +33,13 @@ Base User that is available to everyone.
 
 ```json
 {
-    account: str | int | None,
-    flags: str | int | None,
-    header: str, // empty when not filled
-    icon: str, // empty when not filled
-    id: str,
-    name: str,
-    username: str
+    "account": str | int | None,
+    "flags": str | int | None,
+    "header": str, // empty when not filled
+    "icon": str, // empty when not filled
+    "id": str,
+    "name": str,
+    "username": str
 }
 ```
 
