@@ -20,7 +20,7 @@
     
     
       
-        <title>HivenParsers - openhiven.py Docs</title>
+        <title>Hiven Parsers - openhiven.py Docs</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#hivenparsers" class="md-skip">
+        <a href="#hiven-parsers" class="md-skip">
           Skip to content
         </a>
       
@@ -103,7 +103,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              HivenParsers
+              Hiven Parsers
             
           </span>
         </div>
@@ -627,12 +627,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          HivenParsers
+          Hiven Parsers
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="hiven_parsers.html" class="md-nav__link md-nav__link--active">
-        HivenParsers
+        Hiven Parsers
       </a>
       
         
@@ -1390,7 +1390,7 @@
                   </a>
                 
                 
-                <h1 id="hivenparsers">HivenParsers<a class="headerlink" href="#hivenparsers" title="Permanent link">&para;</a></h1>
+                <h1 id="hiven-parsers">Hiven Parsers<a class="headerlink" href="#hiven-parsers" title="Permanent link">&para;</a></h1>
 <hr />
 
 
@@ -1583,7 +1583,8 @@ event loop will run it as soon as the</p>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_batch_house_member_update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: BATCH_HOUSE_MEMBER_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: BATCH_HOUSE_MEMBER_UPDATE</span>
 
 <span class="sd">    LISTENER: on_batch_house_member_update</span>
 
@@ -1625,7 +1626,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_DOWN</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_DOWN</span>
 
 <span class="sd">    LISTENER: Both for py-events house_down and house_delete.</span>
 <span class="sd">    If property &#39;unavailable&#39; of the dictionary is *false* it&#39;s</span>
@@ -1671,7 +1673,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_entity_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_ENTITY_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_ENTITY_UPDATE</span>
 
 <span class="sd">    LISTENER: on_house_entity_update</span>
 
@@ -1711,7 +1714,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_JOIN</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_JOIN</span>
 
 <span class="sd">    LISTENER: on_house_join</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1756,7 +1760,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_leave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_LEAVE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_LEAVE</span>
 
 <span class="sd">    LISTENER: on_house_leave</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1798,7 +1803,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_CHUNK</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_CHUNK</span>
 
 <span class="sd">    LISTENER: on_house_member_chunk</span>
 
@@ -1839,7 +1845,8 @@ house_delete</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_enter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_ENTER</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_ENTER</span>
 
 <span class="sd">    LISTENER: on_house_member_online</span>
 
@@ -1882,7 +1889,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_EXIT</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_EXIT</span>
 
 <span class="sd">    LISTENER: on_house_member_offline</span>
 
@@ -1926,7 +1934,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_JOIN</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_JOIN</span>
 
 <span class="sd">    LISTENER: on_house_member_join</span>
 
@@ -1967,7 +1976,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_leave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_LEAVE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_LEAVE</span>
 
 <span class="sd">    LISTENER: on_house_member_leave</span>
 
@@ -2005,7 +2015,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">on_house_member_offline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coroutine</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_EXIT</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_EXIT</span>
 
 <span class="sd">    LISTENER: on_house_member_offline</span>
 
@@ -2038,7 +2049,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">on_house_member_online</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coroutine</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_ENTER</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_ENTER</span>
 
 <span class="sd">    LISTENER: on_house_member_online</span>
 
@@ -2074,7 +2086,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_member_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_MEMBER_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_MEMBER_UPDATE</span>
 
 <span class="sd">    LISTENER: on_house_member_update</span>
 
@@ -2114,7 +2127,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_house_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: HOUSE_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: HOUSE_UPDATE</span>
 
 <span class="sd">    LISTENER: on_house_update</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2160,7 +2174,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_message_create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: MESSAGE_CREATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: MESSAGE_CREATE</span>
 
 <span class="sd">    LISTENER: on_message_create</span>
 
@@ -2201,7 +2216,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_message_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: MESSAGE_DELETE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: MESSAGE_DELETE</span>
 
 <span class="sd">    LISTENER: on_message_delete</span>
 
@@ -2242,7 +2258,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_message_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: MESSAGE_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: MESSAGE_UPDATE</span>
 
 <span class="sd">    LISTENER: on_message_update</span>
 
@@ -2283,7 +2300,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_presence_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: PRESENCE_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: PRESENCE_UPDATE</span>
 
 <span class="sd">    LISTENER: on_presence_update</span>
 
@@ -2324,7 +2342,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_relationship_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: RELATIONSHIP_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: RELATIONSHIP_UPDATE</span>
 
 <span class="sd">    LISTENER: on_relationship_update</span>
 
@@ -2365,7 +2384,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_room_create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: ROOM_CREATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: ROOM_CREATE</span>
 
 <span class="sd">    LISTENER: on_room_create</span>
 
@@ -2406,7 +2426,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_room_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: ROOM_DELETE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: ROOM_DELETE</span>
 
 <span class="sd">    LISTENER: on_room_delete</span>
 
@@ -2447,7 +2468,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_room_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: ROOM_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: ROOM_UPDATE</span>
 
 <span class="sd">    LISTENER: on_room_update</span>
 
@@ -2488,7 +2510,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_typing_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: TYPING_START</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: TYPING_START</span>
 
 <span class="sd">    LISTENER: on_typing_start</span>
 
@@ -2528,7 +2551,8 @@ and the user is in the event</p>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\events\event_parsers.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">on_user_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; EVENT: USER_UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    EVENT: USER_UPDATE</span>
 
 <span class="sd">    LISTENER: on_user_update</span>
 <span class="sd">    &quot;&quot;&quot;</span>
