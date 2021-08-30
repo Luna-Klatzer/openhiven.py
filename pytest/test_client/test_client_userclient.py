@@ -1,12 +1,6 @@
 import openhivenpy
 import test_hivenclient
 
-token_ = ""
-
-
-def test_start(token):
-    global token_
-    TestUserClient.token = token
 
 
 class TestUserClient(test_hivenclient.TestHivenClient):

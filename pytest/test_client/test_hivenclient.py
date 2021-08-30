@@ -5,29 +5,28 @@ from pathlib import Path
 
 import openhivenpy
 
-token_ = ""
-
-
-def test_start(token):
-    global token_
-    TestHivenClient.token = token
-
 
 def read_config_file():
-    """ Reads the data from the config file """
-    with open(Path("./test_data.json"), 'r') as file:
+    """
+    Reads the data from the config file - duplicate to avoid import troubles
+    """
+    path = Path("../test_data.json").resolve()
+    if not os.path.exists(path):
+        path = Path("./test_data.json").resolve()
+        if not os.path.exists(path):
+            raise RuntimeError("Cannot locate test_data.json")
+
+    with open(path, 'r') as file:
         return json.load(file)
 
 
 class TestHivenClient:
-    token = token_
-
-    def test_init(self):
+    def test_init(self, token):
         client = openhivenpy.HivenClient()
 
         @client.event()
         async def on_init():
-            assert client.token == self.token
+            assert client.token == token
             print("\non_init was called!")
 
         @client.event()
@@ -35,14 +34,14 @@ class TestHivenClient:
             print("\non_ready was called!")
             await client.close()
 
-        client.run(self.token)
+        client.run(token)
 
-    def test_force(self):
+    def test_force(self, token):
         client = openhivenpy.HivenClient()
 
         @client.event()
         async def on_init():
-            assert client.token == self.token
+            assert client.token == token
             print("\non_init was called!")
 
         @client.event()
@@ -50,9 +49,9 @@ class TestHivenClient:
             print("\non_ready was called!")
             await client.close(force=True)
 
-        client.run(self.token)
+        client.run(token)
 
-    def test_run_twice(self):
+    def test_run_twice(self, token):
         client = openhivenpy.HivenClient()
 
         @client.event()
@@ -60,8 +59,8 @@ class TestHivenClient:
             print("\non_ready was called!")
             await client.close(remove_listeners=False)
 
-        client.run(self.token)
-        client.run(self.token)
+        client.run(token)
+        client.run(token)
 
     def test_run_with_env_token(self):
         openhivenpy.env.load_env()
