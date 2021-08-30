@@ -58,8 +58,10 @@ EVENTS = [
     'init', 'ready', 'user_update',
     'house_join', 'house_leave', 'house_update', 'house_delete', 'house_down',
     'room_create', 'room_update', 'room_delete',
-    'house_member_join', 'house_member_leave', 'house_member_enter',
-    'house_member_exit', 'house_member_update',
+    'house_member_join', 'house_member_leave',
+    'house_member_online',
+    'house_member_offline',
+    'house_member_update',
     'house_member_chunk', 'batch_house_member_update',
     'house_entity_update',
     'relationship_update',
@@ -344,9 +346,8 @@ class HivenEventHandler(HivenObject):
         Does not call the parsers but the function directly and requires the
         args, kwargs passed
 
-
         Will run all tasks before returning! Only supposed to be called in
-         cases of special events!
+        cases of special events!
 
         :param event_name: The name of the event that should be triggered
         :param args: Args that will be passed to the coroutines

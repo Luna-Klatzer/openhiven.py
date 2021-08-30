@@ -29,6 +29,7 @@ nav:
       - reference/cache.md
       - reference/events.md
       - reference/types.md
+      - reference/hiven_parsers.md
   - Hiven API Reference:
       - Hiven REST API:
         - api_reference/hiven_restapi.md

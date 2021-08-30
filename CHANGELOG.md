@@ -28,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   property not being updated yet!
 - Fixed data issue in `HivenParsers.dispatch()`, which modifies original data
   as well. Using `deepcopy` now to avoid this issue.
+- Fixed minor issue with `on_house_member_online` and `on_house_member_offline`
 
 ### Removed
 - `house_memberships` property in Cache

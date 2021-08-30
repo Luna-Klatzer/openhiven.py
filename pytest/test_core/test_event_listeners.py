@@ -277,6 +277,42 @@ class TestListeners:
 
         _client.run(token_)
 
+    @pytest.mark.parametrize(
+        'name', ('house_member_online', 'house_member_enter')
+    )
+    def test_on_house_member_online(self, name):
+        _client = openhivenpy.UserClient()
+
+        @_client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await _client.parsers.dispatch(name, {})
+
+        @_client.event()
+        async def on_house_member_online(*args, **kwargs):
+            print("Received")
+            await _client.close()
+
+        _client.run(token_)
+
+    @pytest.mark.parametrize(
+        'name', ('house_member_offline', 'house_member_exit')
+    )
+    def test_on_house_member_offline(self, name):
+        _client = openhivenpy.UserClient()
+
+        @_client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await _client.parsers.dispatch(name, {})
+
+        @_client.event()
+        async def on_house_member_offline(*args, **kwargs):
+            print("Received")
+            await _client.close()
+
+        _client.run(token_)
+
     def test_on_house_member_join(self):
         _client = openhivenpy.UserClient()
 
@@ -307,21 +343,6 @@ class TestListeners:
 
         _client.run(token_)
 
-    def test_on_house_member_enter(self):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_enter', {})
-
-        @_client.event()
-        async def on_house_member_enter(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token_)
-
     def test_on_house_member_update(self):
         _client = openhivenpy.UserClient()
 
@@ -332,21 +353,6 @@ class TestListeners:
 
         @_client.event()
         async def on_house_member_update(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token_)
-
-    def test_on_house_member_exit(self):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_exit', {})
-
-        @_client.event()
-        async def on_house_member_exit(*args, **kwargs):
             print("Received")
             await _client.close()
 

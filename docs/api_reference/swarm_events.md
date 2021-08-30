@@ -7,10 +7,16 @@
     **This documentation page is not finished and due to Hiven being not stable yet, changes will and can occur**
 
 ## `INIT_STATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_init()`]()
+Docs · `on_init()`
 
-The user logged successfully into the account, and the data will now be sent back to initialise the client-side.
+!!! note
+
+    Unique event which does not have a parser! Though a listener is available for simple initialisation.
+    
+    If something listens for this event, the client will wait for it to finish (includes also multiple listeners).
+    Meaning initialisation WILL NOT be done while this listener method has not returned.
+
+The user logged successfully into the account, and the init data is sent with it to initialise the client-side (openhiven.py).
 
 ??? abstract "Expected json-data"
 
@@ -123,8 +129,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `USER_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_user_update()`]()
+[Docs · `on_user_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_user_update)
 
 ??? abstract "Expected json-data"
     ```json
@@ -145,7 +150,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `PRESENCE_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
+[Docs · `on_presence_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_presence_update)
 
 ??? abstract "Expected json-data"
 
@@ -164,8 +169,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `RELATIONSHIP_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_relationship_update()`]()
+[Docs · `on_relationship_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_relationship_update)
 
 ??? abstract "Expected json-data"
 
@@ -190,8 +194,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `MESSAGE_CREATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_message_create()`]()
+[Docs · `on_message_create()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_create)
 
 ??? abstract "Expected json-data"
 
@@ -271,8 +274,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `MESSAGE_DELETE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_message_delete()`]()
+[Docs · `on_message_delete()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_delete)
 
 ??? abstract "Expected json-data"
 
@@ -286,8 +288,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `MESSAGE_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_message_update()`]()
+[Docs · `on_message_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_update)
 
 ??? abstract "Expected json-data"
 
@@ -334,8 +335,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `ROOM_CREATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_room_create()`]()
+[Docs · `on_room_create()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_create)
 
 ??? abstract "Expected json-data"
 
@@ -351,8 +351,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `ROOM_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_room_update)`]()
+[Docs · `on_room_update)`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_update)
 
 ??? abstract "Expected json-data"
 
@@ -368,8 +367,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `ROOM_DELETE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_room_update)`]()
+[Docs · `on_room_update)`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_update)
 
 ??? abstract "Expected json-data"
 
@@ -383,8 +381,7 @@ The user logged successfully into the account, and the data will now be sent bac
 
 
 ## `HOUSE_JOIN`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_join()`]()
+[Docs · `on_house_join()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_join)
 
 ??? abstract "Expected json-data"
 
@@ -466,8 +463,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `HOUSE_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_update()`]()
+[Docs · `on_house_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_update)
 
 ??? abstract "Expected json-data"
 
@@ -549,8 +545,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `HOUSE_LEAVE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_remove()`]()
+[Docs · `on_house_remove()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_remove)
 
 ??? abstract "Expected json-data"
 
@@ -563,8 +558,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `HOUSE_MEMBER_JOIN`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_member_join()`]()
+[Docs · `on_house_member_join()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_join)
 
 ??? abstract "Expected json-data"
 
@@ -595,8 +589,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `HOUSE_MEMBER_LEAVE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_member_leave()`]()
+[Docs · `on_house_member_leave()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_leave)
 
 ??? abstract "Expected json-data"
 
@@ -631,7 +624,7 @@ The user logged successfully into the account, and the data will now be sent bac
     ```
 
 ## `HOUSE_MEMBER_ENTER`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
+[Docs · `on_house_member_online()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_online)
 
 House member went online. Triggers in every house the client, and the user is in the event!
 
@@ -670,8 +663,7 @@ House member went online. Triggers in every house the client, and the user is in
 
 
 ## `HOUSE_MEMBER_EXIT`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_member_offline()`]()
+[Docs · `on_house_member_offline()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_offline)
 
 House user went offline. Triggers in every house the client, and the user is in the event
 
@@ -686,8 +678,7 @@ House user went offline. Triggers in every house the client, and the user is in 
     ```
 
 ## `HOUSE_MEMBER_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_member_update()`]()
+[Docs · `on_member_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_member_update)
 
 ??? abstract "Expected json-data"
 
@@ -728,8 +719,7 @@ House user went offline. Triggers in every house the client, and the user is in 
     ```
 
 ## `HOUSE_MEMBERS_CHUNK`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_member_chunk()`]()
+[Docs · `on_house_member_chunk()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_chunk)
 
 Chunked House Member Update
 
@@ -771,8 +761,7 @@ Chunked House Member Update
     ```
 
 ## `HOUSE_ENTITIES_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_entity_update()`]()
+[Docs · `on_house_entity_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update)
 
 ??? abstract "Expected json-data"
 
@@ -795,8 +784,7 @@ Chunked House Member Update
     ```
 
 ## `BATCH_HOUSE_MEMBER_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_batch_house_member_update()`]()
+[Docs · `on_batch_house_member_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_batch_house_member_update)
 
 ??? abstract "Expected json-data"
 
@@ -841,8 +829,7 @@ Chunked House Member Update
     ```
 
 ## `HOUSE_ENTITY_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_house_entity_update()`]()
+[Docs · `on_house_entity_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update)
 
 ??? abstract "Expected json-data"
 
@@ -866,9 +853,8 @@ Chunked House Member Update
     ```
 
 ## `HOUSE_DOWN`
-[:octicons-file-code-24: Source Code · Docs](https://github.com/Luna-Klatzer/openhiven.py/)
-[`on_house_down`](../getting_started/event_handling.html) [/ `on_house_delete`](../getting_started/event_handling.html) 
-[· `on_house_down()`]() [ · `on_house_delete()`]()
+Docs · [`on_house_down`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_down) 
+[/ `on_house_delete`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_delete)
 
 `HOUSE_DOWN` represents two types of events:
 
@@ -888,8 +874,7 @@ If the given variable `unavailable` is `True`, the house with that id is current
     ```
 
 ## `TYPING_START`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `on_typing_start()`]()
+[Docs · `on_typing_start()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_typing_start)
 
 ??? abstract "Expected json-data"
 
@@ -919,8 +904,7 @@ If the given variable `unavailable` is `True`, the house with that id is current
     ```
 
 ## `CALL_CREATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `missing`]()
+[Docs · `missing`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers)
 
 ??? abstract "Expected json-data"
 
@@ -937,8 +921,7 @@ If the given variable `unavailable` is `True`, the house with that id is current
     ```
 
 ## `CALL_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `missing`]()
+[Docs · `missing`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers)
 
 ??? abstract "Expected json-data"
 
@@ -964,8 +947,7 @@ If the given variable `unavailable` is `True`, the house with that id is current
     ```
 
 ## `CALL_DELETE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `missing`]()
+[Docs · `missing`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers)
 
 ??? abstract "Expected json-data"
 
@@ -977,8 +959,7 @@ If the given variable `unavailable` is `True`, the house with that id is current
     ```
 
 ## `ROLE_UPDATE`
-[:octicons-file-code-24: Source Code · ](https://github.com/Luna-Klatzer/openhiven.py/)
-[Docs · `missing`]()
+[Docs · `missing`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers)
 
 ??? abstract "Expected json-data"
 

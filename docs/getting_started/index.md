@@ -197,11 +197,6 @@ functionality on Hiven. Therefore, it's usage is very similar to the UserClient,
 and functions related to text-commands and will likely receive in future versions more updates specifically adding that 
 functionality.
 
-!!! Warning
-    **The current release v0.1.3.2 the BotClient lacks major optimisation and functionality. 
-    Therefore, bugs are likely to occur! If you encounter such bugs, please report them!**
-
-
 ## Hiven-Types
 [:octicons-file-code-24: Source Code · `openhivenpy.types`](https://github.com/Luna-Klatzer/openhiven.py/blob/main/openhivenpy/types/)
 
