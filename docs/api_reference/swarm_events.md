@@ -11,7 +11,7 @@ Docs · `on_init()`
 
 !!! note
 
-    Unique event which does not have a parser! Though a listener is available for simple initialisation.
+    This a unique event which does not have a parser! Though a listener is available for simple initialisation.
     
     If something listens for this event, the client will wait for it to finish (includes also multiple listeners).
     Meaning initialisation WILL NOT be done while this listener method has not returned.
