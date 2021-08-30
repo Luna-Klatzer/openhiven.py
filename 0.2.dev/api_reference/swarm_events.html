@@ -1335,9 +1335,14 @@
 <p><strong>This documentation page is not finished and due to Hiven being not stable yet, changes will and can occur</strong></p>
 </div>
 <h2 id="init_state"><code>INIT_STATE</code><a class="headerlink" href="#init_state" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_init()</code></a></p>
-<p>The user logged successfully into the account, and the data will now be sent back to initialise the client-side.</p>
+<p>Docs · <code>on_init()</code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unique event which does not have a parser! Though a listener is available for simple initialisation.</p>
+<p>If something listens for this event, the client will wait for it to finish (includes also multiple listeners).
+Meaning initialisation WILL NOT be done while this listener method has not returned.</p>
+</div>
+<p>The user logged successfully into the account, and the init data is sent with it to initialise the client-side (openhiven.py).</p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1446,8 +1451,7 @@
 </code></pre></div>
 </details>
 <h2 id="user_update"><code>USER_UPDATE</code><a class="headerlink" href="#user_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_user_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_user_update">Docs · <code>on_user_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="err">//</span> <span class="err">User</span> <span class="err">Objec</span><span class="kc">t</span>
@@ -1465,7 +1469,7 @@
 </code></pre></div>
 </details>
 <h2 id="presence_update"><code>PRESENCE_UPDATE</code><a class="headerlink" href="#presence_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_presence_update">Docs · <code>on_presence_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="err">//</span> <span class="err">User</span> <span class="err">Objec</span><span class="kc">t</span>
@@ -1480,8 +1484,7 @@
 </code></pre></div>
 </details>
 <h2 id="relationship_update"><code>RELATIONSHIP_UPDATE</code><a class="headerlink" href="#relationship_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_relationship_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_relationship_update">Docs · <code>on_relationship_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1502,8 +1505,7 @@
 </code></pre></div>
 </details>
 <h2 id="message_create"><code>MESSAGE_CREATE</code><a class="headerlink" href="#message_create" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_message_create()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_create">Docs · <code>on_message_create()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;timestamp&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
@@ -1579,8 +1581,7 @@
 </code></pre></div>
 </details>
 <h2 id="message_delete"><code>MESSAGE_DELETE</code><a class="headerlink" href="#message_delete" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_message_delete()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_delete">Docs · <code>on_message_delete()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;room_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1590,8 +1591,7 @@
 </code></pre></div>
 </details>
 <h2 id="message_update"><code>MESSAGE_UPDATE</code><a class="headerlink" href="#message_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_message_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_update">Docs · <code>on_message_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
@@ -1634,8 +1634,7 @@
 </code></pre></div>
 </details>
 <h2 id="room_create"><code>ROOM_CREATE</code><a class="headerlink" href="#room_create" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_room_create()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_create">Docs · <code>on_room_create()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1647,8 +1646,7 @@
 </code></pre></div>
 </details>
 <h2 id="room_update"><code>ROOM_UPDATE</code><a class="headerlink" href="#room_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_room_update)</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_update">Docs · <code>on_room_update)</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1660,8 +1658,7 @@
 </code></pre></div>
 </details>
 <h2 id="room_delete"><code>ROOM_DELETE</code><a class="headerlink" href="#room_delete" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_room_update)</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_room_update">Docs · <code>on_room_update)</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1670,8 +1667,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_join"><code>HOUSE_JOIN</code><a class="headerlink" href="#house_join" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_join()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_join">Docs · <code>on_house_join()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;rooms&quot;</span><span class="p">:</span> <span class="p">[{</span>
@@ -1749,8 +1745,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_update"><code>HOUSE_UPDATE</code><a class="headerlink" href="#house_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_update">Docs · <code>on_house_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;rooms&quot;</span><span class="p">:</span> <span class="p">[{</span>
@@ -1828,8 +1823,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_leave"><code>HOUSE_LEAVE</code><a class="headerlink" href="#house_leave" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_remove()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_remove">Docs · <code>on_house_remove()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
   <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1838,8 +1832,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_member_join"><code>HOUSE_MEMBER_JOIN</code><a class="headerlink" href="#house_member_join" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_member_join()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_join">Docs · <code>on_house_member_join()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1866,8 +1859,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_member_leave"><code>HOUSE_MEMBER_LEAVE</code><a class="headerlink" href="#house_member_leave" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_member_leave()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_leave">Docs · <code>on_house_member_leave()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="err">house_id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1898,8 +1890,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_member_enter"><code>HOUSE_MEMBER_ENTER</code><a class="headerlink" href="#house_member_enter" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_member_online()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_online">Docs · <code>on_house_member_online()</code></a></p>
 <p>House member went online. Triggers in every house the client, and the user is in the event!</p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1932,8 +1923,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_member_exit"><code>HOUSE_MEMBER_EXIT</code><a class="headerlink" href="#house_member_exit" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_member_offline()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_offline">Docs · <code>on_house_member_offline()</code></a></p>
 <p>House user went offline. Triggers in every house the client, and the user is in the event</p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1943,8 +1933,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_member_update"><code>HOUSE_MEMBER_UPDATE</code><a class="headerlink" href="#house_member_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_member_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_member_update">Docs · <code>on_member_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;user_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1981,8 +1970,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_members_chunk"><code>HOUSE_MEMBERS_CHUNK</code><a class="headerlink" href="#house_members_chunk" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_member_chunk()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_chunk">Docs · <code>on_house_member_chunk()</code></a></p>
 <p>Chunked House Member Update</p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -2019,8 +2007,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_entities_update"><code>HOUSE_ENTITIES_UPDATE</code><a class="headerlink" href="#house_entities_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_entity_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update">Docs · <code>on_house_entity_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -2039,8 +2026,7 @@
 </code></pre></div>
 </details>
 <h2 id="batch_house_member_update"><code>BATCH_HOUSE_MEMBER_UPDATE</code><a class="headerlink" href="#batch_house_member_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_batch_house_member_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_batch_house_member_update">Docs · <code>on_batch_house_member_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -2081,8 +2067,7 @@
 </code></pre></div>
 </details>
 <h2 id="house_entity_update"><code>HOUSE_ENTITY_UPDATE</code><a class="headerlink" href="#house_entity_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_house_entity_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update">Docs · <code>on_house_entity_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;entities&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -2102,8 +2087,8 @@
 </code></pre></div>
 </details>
 <h2 id="house_down"><code>HOUSE_DOWN</code><a class="headerlink" href="#house_down" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · Docs</a>
-<a href=""><code>on_house_down</code></a> <a href="">/ <code>on_house_delete</code></a></p>
+<p>Docs · <a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_down"><code>on_house_down</code></a> 
+<a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_delete">/ <code>on_house_delete</code></a></p>
 <p><code>HOUSE_DOWN</code> represents two types of events:</p>
 <ul>
 <li>House Deletion - A House was entirely deleted.</li>
@@ -2118,8 +2103,7 @@
 </code></pre></div>
 </details>
 <h2 id="typing_start"><code>TYPING_START</code><a class="headerlink" href="#typing_start" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>on_typing_start()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_typing_start">Docs · <code>on_typing_start()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><p>Hiven separates the <code>TYPING_START</code> event into two classifications: </p>
 <p><strong>House Typing:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -2141,8 +2125,7 @@
 </code></pre></div></p>
 </details>
 <h2 id="call_create"><code>CALL_CREATE</code><a class="headerlink" href="#call_create" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>missing</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers">Docs · <code>missing</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;join_token&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -2155,8 +2138,7 @@
 </code></pre></div>
 </details>
 <h2 id="call_update"><code>CALL_UPDATE</code><a class="headerlink" href="#call_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>missing</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers">Docs · <code>missing</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;join_token&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -2178,8 +2160,7 @@
 </code></pre></div>
 </details>
 <h2 id="call_delete"><code>CALL_DELETE</code><a class="headerlink" href="#call_delete" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>missing</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers">Docs · <code>missing</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;room_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
@@ -2187,8 +2168,7 @@
 </code></pre></div>
 </details>
 <h2 id="role_update"><code>ROLE_UPDATE</code><a class="headerlink" href="#role_update" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/Luna-Klatzer/openhiven.py/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0V3zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5z"/><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45z"/></svg></span> Source Code · </a>
-<a href="">Docs · <code>missing</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers">Docs · <code>missing</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span> 
