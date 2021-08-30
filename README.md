@@ -1,4 +1,4 @@
-![openhiven.py](https://socialify.git.ci/Luna-Klatzer/openhiven.py/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2FLuna-Klatzer%2Fdocs_openhiven.py%2Fmain%2Fdocs%2Fassets%2Fimages%2Fopenhivenpy.png&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Light)
+![openhiven.py](https://socialify.git.ci/Luna-Klatzer/openhiven.py/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2FLuna-Klatzer%2Fopenhiven.py%2Fmain%2Fdocs%2Fassets%2Fimages%2Fopenhivenpy.png&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Light)
 
 # [Content](#content)
 
@@ -9,7 +9,7 @@
         - [Install (PyPi Specific Version)](#install-pypi-specific-version)
         - [Install (Github Build)](#install-github-build)
     - [Documentation](#documentation)
-        - [Usage Example (v0.1.3.2)](#usage-example-v0132)
+        - [Usage Example (v0.2.dev2)](#usage-example-v02dev2)
     - [Development](#development)
         - [Testing](#testing)
         - [Building](#building)
