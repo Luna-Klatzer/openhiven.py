@@ -88,23 +88,23 @@ class TestHivenClient:
         # Resetting to default
         openhivenpy.env.load_env(search_other=False)
 
-    def test_pre_configured_token(self):
-        client = openhivenpy.HivenClient(token=self.token)
+    def test_pre_configured_token(self, token):
+        client = openhivenpy.HivenClient(token=token)
 
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
             await client.close()
 
-        assert client.token == self.token
+        assert client.token == token
         client.run()
 
-    def test_connect(self):
+    def test_connect(self, token):
         client = openhivenpy.HivenClient()
 
         @client.event()
         async def on_init():
-            assert client.token == self.token
+            assert client.token == token
             print("\non_init was called!")
 
         @client.event()
@@ -112,14 +112,14 @@ class TestHivenClient:
             print("\non_ready was called!")
             await client.close()
 
-        asyncio.run(client.connect(self.token))
+        asyncio.run(client.connect(token))
 
-    def test_queuing(self):
+    def test_queuing(self, token):
         client = openhivenpy.HivenClient(queue_events=True)
 
         @client.event()
         async def on_init():
-            assert client.token == self.token
+            assert client.token == token
             print("\non_init was called!")
 
         @client.event()
@@ -132,9 +132,9 @@ class TestHivenClient:
             print("Received message")
             await client.close()
 
-        client.run(self.token)
+        client.run(token)
 
-    def test_long_run(self):
+    def test_long_run(self, token):
         client = openhivenpy.HivenClient()
 
         @client.event()
@@ -148,7 +148,7 @@ class TestHivenClient:
             await asyncio.sleep(10)
             await client.close()
 
-        client.run(self.token)
+        client.run(token)
 
     def test_find(self):
         client = openhivenpy.HivenClient()
