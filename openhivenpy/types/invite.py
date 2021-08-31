@@ -1,3 +1,30 @@
+"""
+Invite File which implements the Hiven Invite type
+
+---
+
+Under MIT License
+
+Copyright © 2020 - 2021 Luna Klatzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
@@ -9,7 +36,8 @@ from typing import TYPE_CHECKING
 from . import House
 from .hiven_type_schemas import InviteSchema, get_compiled_validator
 from ..base_types import DataClassObject
-from ..exceptions import InitializationError, InvalidPassedDataError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -24,23 +52,19 @@ class Invite(DataClassObject):
     _json_schema: dict = InviteSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Invite')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._code = data.get('code')
-            self._url = data.get('url')
-            self._created_at = data.get('created_at')
-            self._house_id = data.get('house_id')
-            self._max_age = data.get('max_age')
-            self._max_uses = data.get('max_uses')
-            self._type = data.get('type')
-            self._house = data.get('house')
-            self._house_members = data.get('house_members')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._code = data.get('code')
+        self._url = data.get('url')
+        self._created_at = data.get('created_at')
+        self._house_id = data.get('house_id')
+        self._max_age = data.get('max_age')
+        self._max_uses = data.get('max_uses')
+        self._type = data.get('type')
+        self._house = data.get('house')
+        self._house_members = data.get('house_members')
+        self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -60,7 +84,6 @@ class Invite(DataClassObject):
         Validates the data and appends data if it is missing that would be
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 
@@ -90,7 +113,10 @@ class Invite(DataClassObject):
                 house_id = None
 
             if house_id is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed house is not in the correct format!",
+                    data=data
+                )
             else:
                 data['house_id'] = house_id
 

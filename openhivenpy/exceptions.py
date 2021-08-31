@@ -1,5 +1,5 @@
 """
-Exceptions used specifically for the module OpenHiven.py
+Exceptions used specifically for the module openhiven.py
 
 ---
 

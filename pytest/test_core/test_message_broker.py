@@ -2,13 +2,6 @@ import asyncio
 
 import openhivenpy
 
-token_ = ""
-
-
-def test_start(token):
-    global token_
-    token_ = token
-
 
 class TestDynamicEventBuffer:
     def test_init(self):
@@ -84,7 +77,7 @@ class TestWorker:
         assert repr(worker) == \
                f'<Worker event={worker.assigned_event} done=False>'
 
-    def test_run_one_sequence(self):
+    def test_run_one_sequence(self, token):
         client = openhivenpy.UserClient()
 
         @client.event()
@@ -105,9 +98,9 @@ class TestWorker:
             print("Received message")
             await client.close()
 
-        client.run(token_)
+        client.run(token)
 
-    def test_failure_run_one_sequence(self):
+    def test_failure_run_one_sequence(self, token):
         client = openhivenpy.UserClient()
 
         @client.event()
@@ -129,4 +122,4 @@ class TestWorker:
             print("Received message")
             await client.close()
 
-        client.run(token_)
+        client.run(token)

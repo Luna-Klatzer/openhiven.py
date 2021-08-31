@@ -1,6 +1,6 @@
 """
 
-OpenHiven.py - The OpenSource Python API Wrapper for Hiven
+openhiven.py - The OpenSource Python API Wrapper for Hiven
 
 ---
 
@@ -31,7 +31,7 @@ SOFTWARE.
 __title__ = "openhiven.py"
 __author__ = "Luna Klatzer"
 __license__ = "MIT"
-__version__ = "0.2.dev2"
+__version__ = "0.2.dev3"
 __copyright__ = "Luna Klatzer"
 
 import logging

@@ -1,3 +1,32 @@
+"""
+Context Class for managing command call context instances.
+
+This is experimental and not usable!
+
+---
+
+Under MIT License
+
+Copyright © 2020 - 2021 Luna Klatzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
@@ -10,7 +39,8 @@ from typing import TYPE_CHECKING
 from .hiven_type_schemas import ContextSchema, get_compiled_validator
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from . import House, User, TextRoom
@@ -29,6 +59,7 @@ class Context(DataClassObject):
     _json_schema: dict = ContextSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Context')
     def __init__(self, data: dict, client: HivenClient):
         """
         Represents a Command Context for a triggered command that was
@@ -38,16 +69,11 @@ class Context(DataClassObject):
         :param client: The HivenClient
         """
         super().__init__()
-        try:
-            self._room = data.get('room')
-            self._author = data.get('author')
-            self._house = data.get('house')
-            self._timestamp = data.get('timestamp')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._room = data.get('room')
+        self._author = data.get('author')
+        self._house = data.get('house')
+        self._timestamp = data.get('timestamp')
+        self._client = client
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -55,7 +81,6 @@ class Context(DataClassObject):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 
@@ -115,6 +140,7 @@ class Context(DataClassObject):
 
     @property
     def house(self) -> Optional[House]:
+        """ House object of the Context Class """
         from . import House
         if type(self._house) is str:
             data = self._client.storage['houses'].get(self._house)
@@ -131,6 +157,7 @@ class Context(DataClassObject):
 
     @property
     def room(self) -> Optional[TextRoom]:
+        """ Room object of the Context Class """
         from . import TextRoom
         if type(self._room) is str:
             data = self._client.storage['rooms']['house'].get(self._room)
@@ -147,6 +174,7 @@ class Context(DataClassObject):
 
     @property
     def author(self) -> Optional[User]:
+        """ Author object of the Context Class """
         from . import User
         if type(self._author) is str:
             data = self._client.storage['users'].get(self._author)
@@ -163,9 +191,12 @@ class Context(DataClassObject):
 
     @property
     def timestamp(self) -> Optional[datetime.datetime]:
+        """ Time-stamp of the message - when the command was received"""
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
-            self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
+            self._timestamp = datetime.datetime.fromtimestamp(
+                utils.safe_convert(int, self._timestamp) / 1000
+            )
             return self._timestamp
         elif type(self._timestamp) is datetime.datetime:
             return self._timestamp

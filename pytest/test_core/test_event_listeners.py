@@ -1,17 +1,32 @@
+import asyncio
+import json
+import os
+from copy import deepcopy
+from pathlib import Path
+
 import pytest
 
 import openhivenpy
+from openhivenpy import House
 
-token_ = ""
 
+def read_config_file():
+    """
+    Reads the data from the config file - duplicate to avoid import troubles
+    """
+    path = Path("../test_data.json").resolve()
+    if not os.path.exists(path):
+        path = Path("./test_data.json").resolve()
+        if not os.path.exists(path):
+            raise RuntimeError("Cannot locate test_data.json")
 
-def test_start(token):
-    global token_
-    token_ = token
+    with open(path, 'r') as file:
+        return json.load(file)
 
 
 class TestListeners:
-    def test_on_init(self):
+
+    def test_on_init(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -19,9 +34,9 @@ class TestListeners:
             print("\non_init was called!")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_ready(self):
+    def test_on_ready(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -29,7 +44,7 @@ class TestListeners:
             print("\non_ready was called!")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
     @pytest.mark.parametrize(
         "old,new", [
@@ -87,7 +102,7 @@ class TestListeners:
             )
         ]
     )
-    def test_on_user_update(self, old: dict, new: dict):
+    def test_on_user_update(self, old: dict, new: dict, token):
         _client = openhivenpy.UserClient()
 
         _client.storage['users']['123456789123456789'] = dict(old)
@@ -107,86 +122,119 @@ class TestListeners:
             assert old_user.id == new_user.id
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
     # Empty tests due to missing implementation
 
-    def test_on_house_join(self):
+    def test_on_house_join(self, token):
+        data = read_config_file().get("house_data")
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('house_join', {})
+            await _client.parsers.dispatch(
+                'house_join', data
+            )
 
         @_client.event()
-        async def on_house_join(*args, **kwargs):
-            print("Received")
+        async def on_house_join(house):
+            assert type(house) is House
+            assert house.name == data.get("name")
+            assert house.id == data.get("id")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_remove(self):
+    def test_on_house_down_and_delete(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('house_remove', {})
+
+            _ = _client.storage['houses']
+            _id = _.get(list(_.keys())[0])["id"]
+
+            await _client.parsers.dispatch(
+                'house_down', {
+                    "unavailable": True,
+                    "house_id": _id
+                }
+            )
+
+            await _client.parsers.dispatch(
+                'house_down', {
+                    "unavailable": False,
+                    "house_id": _id
+                }
+            )
 
         @_client.event()
-        async def on_house_remove(*args, **kwargs):
-            print("Received")
+        async def on_house_down(house_id):
+            assert house_id
+
+        @_client.event()
+        async def on_house_delete(house_id):
+            assert house_id
+            assert house_id not in _client.house_ids
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_update(self):
+    def test_on_house_update(self, token):
+        data = read_config_file().get("house_data")
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('house_update', {})
+
+            await _client.parsers.dispatch(
+                'house_join', data
+            )
+
+            while data['id'] not in _client.house_ids:
+                await asyncio.sleep(0.05)
+
+            new_data: dict = deepcopy(data)
+            new_data.update({"name": "test"})  # changing the name
+            await _client.parsers.dispatch('house_update', new_data)
 
         @_client.event()
-        async def on_house_update(*args, **kwargs):
-            print("Received")
+        async def on_house_update(old, new):
+            assert old.id == new.id
+            assert new.name == "test"
+            assert data["name"] != "test"
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_delete(self):
+    def test_on_house_leave(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('house_delete', {})
+
+            _ = _client.storage['houses']
+            first_item_id = list(_.keys())[0]
+            await _client.parsers.dispatch(
+                'house_leave', {
+                    "id": _client.id,
+                    "house_id": first_item_id
+                }
+            )
 
         @_client.event()
-        async def on_house_delete(*args, **kwargs):
-            print("Received")
+        async def on_house_leave(house_id):
+            assert house_id
+            assert house_id not in _client.house_ids
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_downtime(self):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_downtime', {})
-
-        @_client.event()
-        async def on_house_downtime(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token_)
-
-    def test_on_room_create(self):
+    def test_on_room_create(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -199,9 +247,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_room_update(self):
+    def test_on_room_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -214,9 +262,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_room_delete(self):
+    def test_on_room_delete(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -229,9 +277,45 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_member_join(self):
+    @pytest.mark.parametrize(
+        'name', ('house_member_online', 'house_member_enter')
+    )
+    def test_on_house_member_online(self, name, token):
+        _client = openhivenpy.UserClient()
+
+        @_client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await _client.parsers.dispatch(name, {})
+
+        @_client.event()
+        async def on_house_member_online(*args, **kwargs):
+            print("Received")
+            await _client.close()
+
+        _client.run(token)
+
+    @pytest.mark.parametrize(
+        'name', ('house_member_offline', 'house_member_exit')
+    )
+    def test_on_house_member_offline(self, name, token):
+        _client = openhivenpy.UserClient()
+
+        @_client.event()
+        async def on_ready():
+            print("\non_ready was called!")
+            await _client.parsers.dispatch(name, {})
+
+        @_client.event()
+        async def on_house_member_offline(*args, **kwargs):
+            print("Received")
+            await _client.close()
+
+        _client.run(token)
+
+    def test_on_house_member_join(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -244,9 +328,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_member_leave(self):
+    def test_on_house_member_leave(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -259,24 +343,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_member_enter(self):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_enter', {})
-
-        @_client.event()
-        async def on_house_member_enter(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token_)
-
-    def test_on_house_member_update(self):
+    def test_on_house_member_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -289,24 +358,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_house_member_exit(self):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_exit', {})
-
-        @_client.event()
-        async def on_house_member_exit(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token_)
-
-    def test_on_house_member_chunk(self):
+    def test_on_house_member_chunk(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -319,9 +373,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_relationship_update(self):
+    def test_on_relationship_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -334,9 +388,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_presence_update(self):
+    def test_on_presence_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -349,9 +403,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_message_create(self):
+    def test_on_message_create(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -364,9 +418,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_message_update(self):
+    def test_on_message_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -379,9 +433,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_message_delete(self):
+    def test_on_message_delete(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -394,9 +448,9 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)
 
-    def test_on_typing_start(self):
+    def test_on_typing_start(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
@@ -409,4 +463,4 @@ class TestListeners:
             print("Received")
             await _client.close()
 
-        _client.run(token_)
+        _client.run(token)

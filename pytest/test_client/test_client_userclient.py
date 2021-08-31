@@ -1,16 +1,9 @@
 import openhivenpy
 import test_hivenclient
 
-token_ = ""
-
-
-def test_start(token):
-    global token_
-    TestUserClient.token = token
-
 
 class TestUserClient(test_hivenclient.TestHivenClient):
-    def test_init(self):
+    def test_init(self, token):
         client = openhivenpy.UserClient()
         assert client.client_type == 'UserClient'
         assert client.connection.heartbeat == 30000
@@ -18,7 +11,7 @@ class TestUserClient(test_hivenclient.TestHivenClient):
 
         @client.event()
         async def on_init():
-            assert client.token == self.token
+            assert client.token == token
             print("\non_init was called!")
 
         @client.event()
@@ -26,4 +19,4 @@ class TestUserClient(test_hivenclient.TestHivenClient):
             print("\non_ready was called!")
             await client.close()
 
-        client.run(self.token)
+        client.run(token)

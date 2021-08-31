@@ -6,24 +6,44 @@
 
     **This documentation page is not finished and due to Hiven being not stable yet, changes will and can occur**
 
-## User
+## Default User
+
+Full possible data of a User. *Usually* only visible to the client!
 
 ```json
 {
+    "account": str | int | None,
     "username": str,
     "name": str,
     "id": str,
     "flags": str | int | None,
-    "user_flags": str | int | None,
+    "user_flags": str | int | None, // deprecated, rarely available
     "bio": str | None,
     "email_verified": bool | None,
-    "header": str | None,
-    "icon": str  | None,
-    "bot": bool | None
+    "header": str, // empty when not filled
+    "icon": str, // empty when not filled
+    "bot": bool | None,
+    "application": str | int | None,
 }
 ```
 
-## Client-User
+## Lazy User
+
+Base User that is available to everyone.
+
+```json
+{
+    "account": str | int | None,
+    "flags": str | int | None,
+    "header": str, // empty when not filled
+    "icon": str, // empty when not filled
+    "id": str,
+    "name": str,
+    "username": str
+}
+```
+
+## Objects for the Client-User
 
 ### PrivateRoom
 
@@ -31,7 +51,7 @@ PrivateRoom for interacting with a Hiven user or users outside a House
 
 !!! Note
 
-    OpenHiven.py splits the rooms into single and group rooms for easier differentiation 
+    openhiven.py splits the rooms into single and group rooms for easier differentiation 
 
 ```json
 {
@@ -75,7 +95,7 @@ Relationship with another Hiven User
     "user_id": str,
     "user": {
         "username": str,
-        "flags": str | int | None | int ,
+        "flags": str | int | None,
         "name": str,
         "id": str,
         "icon": str | None,
@@ -156,8 +176,9 @@ Role of a House that can be assigned to a Member
     "name": str,
     "level": int,
     "id": str,
+    "house_id": str,
     "deny": bits,
-    "color": str,
+    "color": str, // hex
     "allow": bits
 }
 ```

@@ -1,3 +1,30 @@
+"""
+WebSocket file for managing the Hiven Swarm and connection
+
+---
+
+Under MIT License
+
+Copyright © 2020 - 2021 Luna Klatzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
@@ -39,6 +66,7 @@ def extract_event(msg: dict) -> Tuple[int, str, dict]:
 
 
 class KeepAlive(HivenObject):
+    """ Keep-Alive class managing the heartbeat """
     def __init__(self, ws):
         self.ws: HivenWebSocket = ws
         self._heartbeat: int = ws.heartbeat
@@ -47,10 +75,16 @@ class KeepAlive(HivenObject):
 
     @property
     def active(self) -> Optional[bool]:
+        """
+        Returns whether the KeepAlive class is actively sending heartbeats
+        """
         return getattr(self, '_active', False)
 
     @property
     def task(self) -> Optional[asyncio.Task]:
+        """
+        The task where the heartbeat is currently located and being sent
+        """
         return getattr(self, '_task', None)
 
     async def _heartbeat_and_sleep(self) -> None:
@@ -85,6 +119,10 @@ class KeepAlive(HivenObject):
 
 
 class HivenWebSocket(HivenObject):
+    """
+    WebSocket instance, which establishes, manages and handles the Hiven Swarm
+    and its incoming messages and events.
+    """
     def __init__(
             self,
             socket: aiohttp.ClientWebSocketResponse,
@@ -145,6 +183,7 @@ class HivenWebSocket(HivenObject):
         return ws
 
     class OPCode(IntEnum):
+        """ OP-Codes in the Hiven Swarm """
         EVENT = 0
         CONNECTION_START = 1
         AUTH = 2
@@ -152,62 +191,88 @@ class HivenWebSocket(HivenObject):
 
     @property
     def token(self) -> str:
+        """ The token used to connect to the Hiven-Endpoint """
         return getattr(self, '_token', None)
 
     @property
     def socket(self) -> aiohttp.ClientWebSocketResponse:
+        """ Returns the aiohttp Socket instance """
         return getattr(self, '_socket', None)
 
     @property
     def client(self) -> HivenClient:
+        """ Returns the HivenClient used to initialise this instance """
         return getattr(self, '_client', None)
 
     @property
     def parsers(self) -> HivenParsers:
+        """
+        Returns the instance of the Hiven-Parsers which manage and update
+        data based on incoming Swarm events
+        """
         return getattr(self, '_parsers', None)
 
     @property
     def message_broker(self) -> MessageBroker:
+        """ Returns the Message-Broker managing incoming messages """
         return getattr(self, '_message_broker', None)
 
     @property
     def keep_alive(self) -> KeepAlive:
+        """ Returns the KeepAlive Object instance """
         return getattr(self, '_keep_alive', None)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
+        """ Returns the Asyncio Event-loop """
         return getattr(self, '_loop', None)
 
     @property
-    def startup_time(self) -> int:
+    def startup_time(self) -> Optional[int]:
+        """
+        Returns the startup time - how long it took from calling to an active
+        working connection
+        """
         return getattr(self, '_startup_time', None)
 
     @property
-    def connection_start(self) -> int:
+    def connection_start(self) -> Optional[int]:
+        """
+        Returns the unix-timestamp (seconds) when the connection started
+        """
         return getattr(self, '_connection_start', None)
 
     @property
-    def connection_status(self) -> int:
+    def connection_status(self) -> Optional[str]:
+        """ Returns the connection status as a string """
         return getattr(self.client.connection, 'connection_status', None)
 
     @property
     def closing(self) -> bool:
+        """
+        Returns whether the connection is currently closing.
+        Not True if already closed!
+        """
         return getattr(self.client.connection, '_closing', None)
 
     @property
     def open(self) -> bool:
+        """ Returns whether the connection is open """
         return getattr(self, '_open', None)
 
     @property
     def ready(self) -> bool:
+        """ Returns whether the Web-Socket has initialised and is ready """
         return getattr(self, '_ready', None)
 
     @property
-    def heartbeat(self) -> int:
+    def heartbeat(self) -> Optional[int]:
+        """ Heartbeat in ms """
         return getattr(self, '_heartbeat', None)
 
     @property
-    def close_timeout(self) -> int:
+    def close_timeout(self) -> Optional[int]:
+        """ Set Close-Timeout, which if exceeded will cancel the connection """
         return getattr(self, '_close_timeout', None)
 
     async def listening_loop(self) -> None:
@@ -269,8 +334,13 @@ class HivenWebSocket(HivenObject):
                 raise RestartSessionError()
 
         elif msg.type == aiohttp.WSMsgType.ERROR:
-            logger.error(f"[WEBSOCKET] Encountered an Exception in the Websocket! {msg.extra}")
-            raise WebSocketFailedError("[WEBSOCKET] Encountered an Exception in the Websocket")
+            logger.error(
+                f"[WEBSOCKET] Encountered an Exception in the Websocket! "
+                f"{msg.extra}"
+            )
+            raise WebSocketFailedError(
+                "[WEBSOCKET] Encountered an Exception in the Websocket"
+            )
 
     async def _received_message(self, msg: aiohttp.WSMessage) -> None:
         """ Awaits a new incoming message and handles it """
@@ -345,8 +415,9 @@ class HivenWebSocket(HivenObject):
         await self.client.call_listeners('ready', (), {})
         self._ready = True
 
-    async def _received_init_event(self,
-                                   msg: aiohttp.WSMessage) -> aiohttp.WSMessage:
+    async def _received_init_event(
+            self, msg: aiohttp.WSMessage
+    ) -> aiohttp.WSMessage:
         """
         Only intended for the purpose of initialising the Client!
         Will be called by `received_init` on startup

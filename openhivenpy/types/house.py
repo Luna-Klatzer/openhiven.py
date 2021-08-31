@@ -1,3 +1,30 @@
+"""
+House File which implements the Hiven House type and its methods (endpoints)
+
+---
+
+Under MIT License
+
+Copyright © 2020 - 2021 Luna Klatzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
@@ -11,7 +38,8 @@ from .hiven_type_schemas import get_compiled_validator, HouseSchema, \
     LazyHouseSchema
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from . import Member, TextRoom, Entity, Invite
@@ -34,6 +62,7 @@ class LazyHouse(DataClassObject):
     _json_schema: dict = LazyHouseSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('LazyHouse')
     def __init__(self, data: dict, client: HivenClient):
         """
         Represents a Hiven House which can contain rooms and entities
@@ -42,19 +71,14 @@ class LazyHouse(DataClassObject):
         :param client: The HivenClient
         """
         super().__init__()
-        try:
-            self._id = data.get('id')
-            self._name = data.get('name')
-            self._icon = data.get('icon')
-            self._owner_id = data.get('owner_id')
-            self._owner = data.get('owner')
-            self._rooms = data.get('rooms')
-            self._type = data.get('type')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._id = data.get('id')
+        self._name = data.get('name')
+        self._icon = data.get('icon')
+        self._owner_id = data.get('owner_id')
+        self._owner = data.get('owner')
+        self._rooms = data.get('rooms')
+        self._type = data.get('type')
+        self._client = client
 
     def __str__(self):
         return self.name
@@ -69,7 +93,10 @@ class LazyHouse(DataClassObject):
 
     def get_cached_data(self) -> Optional[dict]:
         """
-        Fetches the most recent data from the cache based on the instance id
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
         """
         return self._client.storage['houses'][self.id]
 
@@ -79,7 +106,6 @@ class LazyHouse(DataClassObject):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
         Only exceptions are member objects which are unique in every house
@@ -131,18 +157,22 @@ class LazyHouse(DataClassObject):
 
     @property
     def id(self) -> Optional[str]:
+        """ Id of the House """
         return getattr(self, '_id', None)
 
     @property
     def name(self) -> Optional[str]:
+        """ Name of the House """
         return getattr(self, '_name', None)
 
     @property
     def type(self) -> Optional[int]:
+        """ Type of the House """
         return getattr(self, '_type', None)
 
     @property
     def icon(self) -> Optional[str]:
+        """ URL to the ICON of this house. None if it doesn't exist """
         if getattr(self, '_icon', None):
             return "https://media.hiven.io/v1/houses/{}/icons/{}".format(self.id, self._icon)
         else:
@@ -150,10 +180,12 @@ class LazyHouse(DataClassObject):
 
     @property
     def owner_id(self) -> Optional[int]:
+        """ Owner user-id of this House """
         return getattr(self, '_owner_id', None)
 
     @property
     def rooms(self) -> Optional[list]:
+        """ List of all rooms in the house """
         from . import TextRoom
         if type(self._rooms) is list:
             if type(self._rooms[0]) is str:
@@ -173,21 +205,18 @@ class House(LazyHouse):
     _json_schema: dict = HouseSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('House')
     def __init__(self, data: dict, client: HivenClient):
-        try:
-            self._roles = data.get('roles')
-            self._roles_data = self._roles
-            self._entities: list = data.get('entities')
-            self._default_permissions = data.get('default_permissions')
-            self._members: dict = data.get('members')
-            self._member_data = self._members
-            self._client_member = data.get('client_member')
-            self._banner = data.get('banner')
-            self._owner = data.get('owner')
-            self._client = client
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
+        self._roles = data.get('roles')
+        self._roles_data = self._roles
+        self._entities: list = data.get('entities')
+        self._default_permissions = data.get('default_permissions')
+        self._members: dict = data.get('members')
+        self._member_data = self._members
+        self._client_member = data.get('client_member')
+        self._banner = data.get('banner')
+        self._owner = data.get('owner')
+        self._client = client
         super().__init__(data, client)
 
     @classmethod
@@ -196,7 +225,6 @@ class House(LazyHouse):
         Validates the data and appends data if it is missing that would be 
         required for the creation of an instance.
 
-        ---
 
         Does NOT contain other objects and only their ids!
 
@@ -210,6 +238,7 @@ class House(LazyHouse):
 
     @property
     def owner(self) -> Optional[Member]:
+        """ Owner Object of this House """
         from . import Member
         if type(self._owner) is str:
             data = self.get_cached_data()['members'].get(self._owner)
@@ -227,18 +256,23 @@ class House(LazyHouse):
 
     @property
     def client_member(self) -> Optional[Member]:
+        """ The logged-in client as the member object """
+        # TODO! Create proper Member object
         return getattr(self, '_client_member', None)
 
     @property
     def banner(self) -> Optional[str]:
+        """ The banner of the House """
         return getattr(self, '_banner', None)
 
     @property
     def roles(self) -> Optional[list]:
+        """ A list of the roles in this House """
         return getattr(self, '_roles', None)
 
     @property
     def entities(self) -> Optional[List[Entity]]:
+        """ A list of the enitities in this House """
         from . import Entity
         if type(self._entities) is list:
             if type(self._entities[0]) is str:
@@ -254,14 +288,16 @@ class House(LazyHouse):
 
     @property
     def users(self) -> Optional[List[Member]]:
-        return getattr(self, 'members')
+        """ A list of members in this house. Alias for members """
+        return self.members
 
     @property
     def members(self) -> Optional[List[Member]]:
+        """ A list of members in this house """
         from . import Member
         if type(self._members) is dict:
             entities = []
-            for d in dict(self._members).values():
+            for d in dict(getattr(self, '_members')).values():
                 member_data = Member.format_obj_data(dict(d))
                 member_data['user'] = self._client.storage['users'][dict(d)['user_id']]
                 entities.append(Member(member_data, client=self._client))
@@ -275,6 +311,7 @@ class House(LazyHouse):
 
     @property
     def default_permissions(self) -> Optional[int]:
+        """ Returns the default permissions for this House """
         return getattr(self, '_default_permissions', None)
 
     def get_member(self, member_id: str) -> Optional[Member]:
@@ -468,10 +505,14 @@ class House(LazyHouse):
                     )
                     return True
                 else:
-                    raise NameError("The passed value does not exist in the House!")
+                    raise NameError(
+                        "The passed value does not exist in the House!"
+                    )
 
         except Exception as e:
-            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
+            keys = "".join(
+                key + " " for key in kwargs.keys()
+            ) if kwargs != {} else ''
             utils.log_traceback(
                 brief=f"Failed edit request of values '{keys}' in house {repr(self)}:",
                 exc_info=sys.exc_info()

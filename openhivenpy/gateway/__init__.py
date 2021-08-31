@@ -1,6 +1,5 @@
 """
-
-Module for the OpenHiven.py Gateway and Connection to Hiven
+Module for the openhiven.py Gateway and Connection to Hiven
 
 ---
 
@@ -105,6 +104,10 @@ class Connection(HivenObject):
 
     @property
     def ready(self) -> bool:
+        """
+        Returns whether both the Web-Socket and the HTTP Client have
+        initialised and are ready.
+        """
         return all((
             getattr(self.http, 'ready', False),
             getattr(self.ws, 'ready', False)
@@ -112,46 +115,60 @@ class Connection(HivenObject):
 
     @property
     def loop(self) -> Optional[asyncio.AbstractEventLoop]:
+        """ Returns the Asyncio Event-loop """
         return getattr(self.client, 'loop', None)
 
     @property
     def host(self) -> Optional[str]:
+        """ Returns the Hiven host url """
         return getattr(self, '_host', None)
 
     @property
     def api_version(self) -> Optional[str]:
+        """ Returns the currently used Hiven API-version """
         return getattr(self, '_api_version', None)
 
     @property
     def connection_status(self) -> Optional[str]:
+        """ Returns the connection status as a string """
         return getattr(self, '_connection_status', None)
 
     @property
     def endpoint(self) -> Optional[URL]:
+        """ Returns the endpoint as an URL object """
         return getattr(self, '_endpoint', None)
 
     @property
     def startup_time(self) -> Optional[int]:
+        """
+        Returns the startup time - how long it took from calling to an active
+        working connection
+        """
         return getattr(self.ws, '_startup_time', None)
 
     @property
     def ws(self) -> Optional[HivenWebSocket]:
+        """ Returns the WebSocket instance if it exists """
         return getattr(self, '_ws', None)
 
     @property
     def keep_alive(self) -> Optional[KeepAlive]:
+        """ Returns the KeepAlive Object instance """
         return getattr(self.ws, 'keep_alive', None)
 
     @property
     def message_broker(self) -> Optional[MessageBroker]:
+        """ Returns the Message-Broker managing incoming messages """
         return getattr(self.ws, 'message_broker', None)
 
     @property
     def heartbeat(self) -> Optional[int]:
+        """ Heartbeat in ms """
         return getattr(self, '_heartbeat', None)
 
     @property
     def close_timeout(self) -> Optional[int]:
+        """ Set Close-Timeout, which if exceeded will cancel the connection """
         return getattr(self, '_close_timeout', None)
 
     @property

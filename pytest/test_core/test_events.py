@@ -5,13 +5,7 @@ import pytest
 
 import openhivenpy
 
-token_ = ""
 client = openhivenpy.HivenClient()
-
-
-def test_start(token):
-    global token_
-    token_ = token
 
 
 class TestSingleDispatchEventListener:
@@ -84,16 +78,20 @@ class TestMultiDispatchEventListener:
         asyncio.run(coro)
 
     def test_get_attribute(self):
-        listener = openhivenpy.events.MultiDispatchEventListener(client, 'test', self.example)
+        listener = openhivenpy.events.MultiDispatchEventListener(
+            client, 'test', self.example
+        )
 
         assert listener.awaitable == self.example
         assert listener.event_name == 'test'
         assert listener._client == client
-        assert openhivenpy.utils.get(client._active_listeners['test'], awaitable=self.example) is not None
+        assert openhivenpy.utils.get(
+            client._active_listeners['test'], awaitable=self.example
+        ) is not None
 
 
 class TestHivenEventHandler:
-    def test_init(self):
+    def test_init(self, token):
         # Creating a new Client to avoid possible different results by using
         # older ones
         global client
@@ -106,7 +104,7 @@ class TestHivenEventHandler:
 
         assert len(client._active_listeners['ready']) == 1
 
-        client.run(token_)
+        client.run(token)
 
     @pytest.mark.parametrize(
         "args,kwargs", [
@@ -115,7 +113,7 @@ class TestHivenEventHandler:
             (("1", "2"), {})
         ]
     )
-    def test_dispatch_event(self, args: tuple, kwargs: dict):
+    def test_dispatch_event(self, args: tuple, kwargs: dict, token):
         global client
         client = openhivenpy.UserClient()
 
@@ -132,9 +130,9 @@ class TestHivenEventHandler:
             )
             assert client.message_broker.get_buffer("message_create")
 
-        client.run(token_)
+        client.run(token)
 
-    def test_dispatch_event_wrong_event(self):
+    def test_dispatch_event_wrong_event(self, token):
         global client
         client = openhivenpy.UserClient()
 
@@ -149,7 +147,7 @@ class TestHivenEventHandler:
             else:
                 assert False, "Expected exception"
 
-        client.run(token_)
+        client.run(token)
 
     def test_wait_for(self):
         async def on_ready():

@@ -13,16 +13,41 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+### Changed
+### Removed
+
+## [v0.2.dev3] - 2021-08-31
+
+### Added
+- Event Parsers for events: `HOUSE_JOIN`, `HOUSE_UPDATE`, `HOUSE_LEAVE` and `HOUSE_DOWN` (both for py-events 
+  `house_down` and `house_delete`)
+- Update functionality for `house_ids` property in `ClientCache`, which
+  always return the current available ids for the houses.
+- `house_ids` Property in `HivenClient`
+- Removal functions in `ClientCache`: `remove_house`, `remove_user`, `remove_room`,
+  `remove_entity`, `remove_private_room` adn `remove_relationship`
+- `is_house_message` to type `House`
+- `is_house_typing` to type `UserTyping`
 
 ### Changed
+- Renamed py-event `house_downtime` to `house_down`
+- Fixed wrong naming of `HOUSE_REMOVE` to `HOUSE_LEAVE`
+- Renamed property `read_state` in `ClientCache` to `init_read_state`, due to the
+  property not being updated yet!
+- Fixed data issue in `HivenParsers.dispatch()`, which modifies original data
+  as well. Using `deepcopy` now to avoid this issue.
+- Fixed minor issue with `on_house_member_online` and `on_house_member_offline`
 
 ### Removed
+- `house_memberships` property in Cache
 
 ## [v0.2.dev2] - 2021-08-23
 
 ### Added
 - Full Properties of Class `User` are now added to the `HivenClient`
 - `application` and `account` as new properties to `BaseUser`
+- Decorator `log_type_exception` for logging exceptions in `__init__` methods
+- `get_cached_data` to type Class `User`, instead of property `raw`
 
 ### Changed
 - Made `flags` the base property as replacement for `user_flags`. Though 
@@ -211,7 +236,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev2...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev3...v0.2.dev
+
+[v0.2.dev3]: https://github.com/Para-C/Para-C/compare/0.2.dev2...0.2.dev3
 
 [v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2
 

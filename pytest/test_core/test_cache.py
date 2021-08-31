@@ -78,7 +78,6 @@ class TestCache:
         assert cache['houses'] == {}
         assert cache['house_ids'] == []
         assert cache['settings'] == {}
-        assert cache['read_state'] == {}
 
     def test_update_client_user(self):
         data: dict = self.test_house_args['members'][0]['user']
