@@ -238,7 +238,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev3...v0.2.dev
 
-[v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev2...0.2.dev3
+[v0.2.dev3]: https://github.com/Para-C/Para-C/compare/0.2.dev2...0.2.dev3
 
 [v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2
 
