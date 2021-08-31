@@ -1,6 +1,9 @@
 """
-Module that stores the EventListeners Methods and Classes for listening to WebSocket Events
+Module that stores the EventListeners Methods, Parsers and Classes for
+listening and reacting to WebSocket Events
+
 ---
+
 Under MIT License
 
 Copyright © 2020 - 2021 Luna Klatzer

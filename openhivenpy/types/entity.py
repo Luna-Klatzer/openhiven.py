@@ -1,3 +1,30 @@
+"""
+Entity File which implements the Hiven Entity type and its methods (endpoints)
+
+---
+
+Under MIT License
+
+Copyright © 2020 - 2021 Luna Klatzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
@@ -84,7 +111,10 @@ class Entity(DataClassObject):
                 house_id = None
 
             if house_id is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed house is not in the correct format!",
+                    data=data
+                )
             else:
                 data['house_id'] = house_id
 
@@ -94,13 +124,18 @@ class Entity(DataClassObject):
 
     @property
     def type(self) -> Optional[int]:
+        """ Type of the entity """
         return getattr(self, '_type', None)
 
     @property
     def resource_pointers(self) -> Optional[List[TextRoom, dict]]:
-        """ Objects contained inside the entity. If dict is returned it's a type that is not yet included in the lib """
+        """
+        Objects contained inside the entity. If dict is returned it's a type
+        that is not yet included in the lib
+        """
         from . import TextRoom
-        if type(self._resource_pointers) is list and len(self._resource_pointers) > 0:
+        if type(self._resource_pointers) is list \
+                and len(self._resource_pointers) > 0:
             resources_created = False
             for _ in self._resource_pointers:
                 if type(_) is not dict:
@@ -122,23 +157,28 @@ class Entity(DataClassObject):
             return None
 
     @property
-    def name(self) -> str:
+    def name(self) -> Optional[str]:
+        """ Name of the entity """
         return getattr(self, '_name', None)
 
     @property
-    def id(self) -> str:
+    def id(self) -> Optional[str]:
+        """ ID of the entity """
         return getattr(self, '_id', None)
 
     @property
-    def house_id(self) -> str:
+    def house_id(self) -> Optional[str]:
+        """ ID of the House parent of the Entity """
         return getattr(self, '_house_id', None)
 
     @property
-    def position(self) -> int:
+    def position(self) -> Optional[int]:
+        """ Position on the sidebar of the Room """
         return getattr(self, '_position', None)
 
     @property
     def house(self) -> Optional[House]:
+        """ House object of the entity """
         from . import House
         if type(self._house) is str:
             house_id = self._house

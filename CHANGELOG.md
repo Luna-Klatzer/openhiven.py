@@ -26,6 +26,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `house_ids` Property in `HivenClient`
 - Removal functions in `ClientCache`: `remove_house`, `remove_user`, `remove_room`,
   `remove_entity`, `remove_private_room` adn `remove_relationship`
+- `is_house_message` to type `House`
+- `is_house_typing` to type `UserTyping`
 
 ### Changed
 - Renamed py-event `house_downtime` to `house_down`
