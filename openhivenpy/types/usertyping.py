@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from . import House, TextRoom, User
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InitializationError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -23,23 +23,17 @@ __all__ = ['UserTyping']
 class UserTyping(DataClassObject):
     """ Represents a Hiven User typing in a room """
 
+    @log_type_exception('UserTyping')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._author = data.get('author')
-            self._room = data.get('room')
-            self._house = data.get('house')
-            self._author_id = data.get('author_id')
-            self._house_id = data.get('house_id')
-            self._room_id = data.get('room_id')
-            self._timestamp = data.get('timestamp')
-
-        except Exception as e:
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__}"
-            ) from e
-        else:
-            self._client = client
+        self._author = data.get('author')
+        self._room = data.get('room')
+        self._house = data.get('house')
+        self._author_id = data.get('author_id')
+        self._house_id = data.get('house_id')
+        self._room_id = data.get('room_id')
+        self._timestamp = data.get('timestamp')
+        self._client = client
 
     def __repr__(self) -> str:
         info = [

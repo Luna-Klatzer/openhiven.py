@@ -13,8 +13,8 @@ from .hiven_type_schemas import MessageSchema, get_compiled_validator, \
     DeletedMessageSchema
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError, \
-    HTTPForbiddenError
+from ..exceptions import InvalidPassedDataError, HTTPForbiddenError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .embed import Embed
@@ -35,17 +35,13 @@ class DeletedMessage(DataClassObject):
     _json_schema: dict = DeletedMessageSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('DeletedMessage')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._message_id = data.get('message_id')
-            self._house_id = data.get('house_id')
-            self._room_id = data.get('room_id')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._message_id = data.get('message_id')
+        self._house_id = data.get('house_id')
+        self._room_id = data.get('room_id')
+        self._client = client
 
     def __str__(self):
         return f"Deleted message in room {self.room_id}"
@@ -67,14 +63,17 @@ class DeletedMessage(DataClassObject):
 
     @property
     def message_id(self) -> Optional[str]:
+        """ ID of the original message """
         return getattr(self, '_message_id')
 
     @property
     def house_id(self) -> Optional[str]:
+        """ ID of the original house (None if it does not exist) """
         return getattr(self, '_house_id')
 
     @property
     def room_id(self) -> Optional[str]:
+        """ ID of the original room (can be private) """
         return getattr(self, '_room_id')
 
 
@@ -83,32 +82,28 @@ class Message(DataClassObject):
     _json_schema: dict = MessageSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Message')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._id = data.get('id')
-            self._author = data.get('author')
-            self._author_id = data.get('author_id')
-            self._attachment: Union[dict, Attachment] = data.get('attachment')
-            self._content = data.get('content')
-            self._timestamp = data.get('timestamp')
-            self._edited_at = data.get('edited_at')
-            self._mentions = data.get('mentions')
-            self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
-            self._exploding = data.get('exploding')
-            self._house_id = data.get('house_id')
-            self._house = data.get('house')
-            self._room_id = data.get('room_id')
-            self._room = data.get('room')
-            self._embed = data.get('embed')
-            self._bucket = data.get('bucket')
-            self._device_id = data.get('device_id')
-            self._exploding_age = data.get('exploding_age')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._id = data.get('id')
+        self._author = data.get('author')
+        self._author_id = data.get('author_id')
+        self._attachment: Union[dict, Attachment] = data.get('attachment')
+        self._content = data.get('content')
+        self._timestamp = data.get('timestamp')
+        self._edited_at = data.get('edited_at')
+        self._mentions = data.get('mentions')
+        self._type = data.get('type')  # I believe, 0 = normal message, 1 = system.
+        self._exploding = data.get('exploding')
+        self._house_id = data.get('house_id')
+        self._house = data.get('house')
+        self._room_id = data.get('room_id')
+        self._room = data.get('room')
+        self._embed = data.get('embed')
+        self._bucket = data.get('bucket')
+        self._device_id = data.get('device_id')
+        self._exploding_age = data.get('exploding_age')
+        self._client = client
 
     def __str__(self) -> str:
         return f"<Message id='{self.id}' from '{self.author.name}'>"

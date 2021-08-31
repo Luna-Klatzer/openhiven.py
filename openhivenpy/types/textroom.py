@@ -13,7 +13,8 @@ from .house import House
 from .message import Message
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -30,32 +31,26 @@ class TextRoom(DataClassObject):
     ---
 
     Possible Types:
+            0 - Text
 
-    0 - Text
-
-    1 - Portal
-
+            1 - Portal
     """
     _json_schema: dict = TextRoomSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('TextRoom')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._id = data.get('id')
-            self._name = data.get('name')
-            self._house_id = data.get('house_id')
-            self._position = data.get('position')
-            self._type = data.get('type')
-            self._emoji = data.get('emoji')
-            self._description = data.get('description')
-            self._last_message_id = data.get('last_message_id')
-            self._house = data.get('house')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._id = data.get('id')
+        self._name = data.get('name')
+        self._house_id = data.get('house_id')
+        self._position = data.get('position')
+        self._type = data.get('type')
+        self._emoji = data.get('emoji')
+        self._description = data.get('description')
+        self._last_message_id = data.get('last_message_id')
+        self._house = data.get('house')
+        self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -71,7 +66,10 @@ class TextRoom(DataClassObject):
 
     def get_cached_data(self) -> Optional[dict]:
         """
-        Fetches the most recent data from the cache based on the instance id
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
         """
         return self._client.storage['rooms']['house'][self.id]
 
@@ -95,7 +93,10 @@ class TextRoom(DataClassObject):
                 house_id = None
 
             if house_id is None:
-                raise InvalidPassedDataError("The passed house is not in the correct format!", data=data)
+                raise InvalidPassedDataError(
+                    "The passed house is not in the correct format!",
+                    data=data
+                )
             else:
                 data['house_id'] = house_id
 
@@ -105,18 +106,22 @@ class TextRoom(DataClassObject):
 
     @property
     def id(self) -> Optional[str]:
+        """ ID of the Room """
         return getattr(self, '_id', None)
 
     @property
     def name(self) -> Optional[str]:
+        """ Name of the Room """
         return getattr(self, '_name', None)
 
     @property
     def house_id(self) -> Optional[str]:
+        """ The ID of the parent house """
         return getattr(self, '_house_id', None)
 
     @property
     def house(self) -> Optional[House]:
+        """ The parent house object """
         from . import House
         if type(self._house) is str:
             house_id = self._house
@@ -140,18 +145,22 @@ class TextRoom(DataClassObject):
 
     @property
     def position(self) -> Optional[int]:
+        """ Position on the sidebar of the Room """
         return getattr(self, '_position', None)
 
     @property
     def type(self) -> Optional[int]:
+        """ Type of the Room (always 0 for TextRoom)"""
         return getattr(self, '_type', None)
 
     @property
     def emoji(self) -> Optional[str]:
+        """ The assigned emoji of the room """
         return getattr(self, '_emoji', None)
 
     @property
     def description(self) -> Optional[str]:
+        """ The description of the Room """
         return getattr(self, '_description', None)
 
     async def send(self, content: str, delay: float = None) -> Optional[Message]:
@@ -195,16 +204,22 @@ class TextRoom(DataClassObject):
         try:
             for key in kwargs.keys():
                 if key in ['emoji', 'name', 'description']:
-                    await self._client.http.patch(f"/rooms/{self.id}", json={key: kwargs.get(key)})
+                    await self._client.http.patch(
+                        f"/rooms/{self.id}", json={key: kwargs.get(key)}
+                    )
 
                     return True
                 else:
-                    raise NameError("The passed value does not exist in the Room!")
+                    raise NameError(
+                        "The passed value does not exist in the Room!"
+                    )
 
         except Exception as e:
-            keys = "".join(key + " " for key in kwargs.keys()) if kwargs != {} else ''
+            keys = "".join(
+                key + " " for key in kwargs.keys()
+            ) if kwargs != {} else ''
             utils.log_traceback(
-                brief=f"Failed to change the values {keys} in room {repr(self)}: ",
+                brief=f"Failed to change the values {keys} in room {repr(self)}",
                 exc_info=sys.exc_info()
             )
             # TODO! Raise exception
@@ -233,7 +248,8 @@ class TextRoom(DataClassObject):
         """
         Gets the recent messages from the current room
             
-        :return: A list of all messages in form of Message instances if successful.
+        :return: A list of all messages in form of Message instances if
+        successful.
         """
         try:
             raw_data = await self._client.http.get(f"/rooms/{self.id}/messages")

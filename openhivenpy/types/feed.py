@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from ..base_types import DataClassObject
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -20,6 +21,7 @@ class Feed(DataClassObject):
     Represents the feed that is displayed on Hiven specifically for the user
     """
 
+    @log_type_exception('Feed')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
 

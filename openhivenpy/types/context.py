@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING
 from .hiven_type_schemas import ContextSchema, get_compiled_validator
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from . import House, User, TextRoom
@@ -29,6 +30,7 @@ class Context(DataClassObject):
     _json_schema: dict = ContextSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Context')
     def __init__(self, data: dict, client: HivenClient):
         """
         Represents a Command Context for a triggered command that was
@@ -38,16 +40,11 @@ class Context(DataClassObject):
         :param client: The HivenClient
         """
         super().__init__()
-        try:
-            self._room = data.get('room')
-            self._author = data.get('author')
-            self._house = data.get('house')
-            self._timestamp = data.get('timestamp')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._room = data.get('room')
+        self._author = data.get('author')
+        self._house = data.get('house')
+        self._timestamp = data.get('timestamp')
+        self._client = client
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:

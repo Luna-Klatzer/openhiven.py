@@ -12,7 +12,8 @@ from . import message
 from .hiven_type_schemas import PrivateRoomSchema, get_compiled_validator
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InitializationError, InvalidPassedDataError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from . import User, Message
@@ -28,26 +29,18 @@ class PrivateGroupRoom(DataClassObject):
     _json_schema: dict = PrivateRoomSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('PrivateGroupRoom')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._id = data.get('id')
-            self._last_message_id = data.get('last_message_id')
-            self._recipients = data.get('recipients')
-            self._name = data.get('name')
-            self._description = data.get('description')
-            self._emoji = data.get('emoji')
-            self._type = data.get('type')
-            self._client_user = client.client_user
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to initialise {self.__class__.__name__}:",
-                exc_info=sys.exc_info()
-            )
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._id = data.get('id')
+        self._last_message_id = data.get('last_message_id')
+        self._recipients = data.get('recipients')
+        self._name = data.get('name')
+        self._description = data.get('description')
+        self._emoji = data.get('emoji')
+        self._type = data.get('type')
+        self._client_user = client.client_user
+        self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -60,7 +53,10 @@ class PrivateGroupRoom(DataClassObject):
 
     def get_cached_data(self) -> Optional[dict]:
         """
-        Fetches the most recent data from the cache based on the instance id
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
         """
         return self._client.storage['rooms']['private']['group'][self.id]
 
@@ -194,22 +190,18 @@ class PrivateRoom(DataClassObject):
     _json_schema: dict = PrivateRoomSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('PrivateRoom')
     def __init__(self, data: dict, client: HivenClient):
-        try:
-            self._id = data.get('id')
-            self._last_message_id = data.get('last_message_id')
-            self._recipient = data.get('recipient')
-            self._recipient_id = data.get('recipient_id')
-            self._name = data.get('name')
-            self._description = data.get('description')
-            self._emoji = data.get('emoji')
-            self._type = data.get('type')
-            self._client_user = client.client_user
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        super().__init__()
+        self._id = data.get('id')
+        self._last_message_id = data.get('last_message_id')
+        self._recipient = data.get('recipient')
+        self._recipient_id = data.get('recipient_id')
+        self._name = data.get('name')
+        self._description = data.get('description')
+        self._emoji = data.get('emoji')
+        self._type = data.get('type')
+        self._client_user = client.client_user
 
     def __repr__(self) -> str:
         info = [
@@ -221,7 +213,12 @@ class PrivateRoom(DataClassObject):
         return '<PrivateRoom {}>'.format(' '.join('%s=%s' % t for t in info))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
+        """
         return self._client.storage['rooms']['private']['single'][self.id]
 
     @classmethod
@@ -259,8 +256,8 @@ class PrivateRoom(DataClassObject):
 
         data['recipient'] = data['recipient_id']
 
-        # If the passed recipient object does not contain the name parameter it will be fetched later from the client
-        # based on the id
+        # If the passed recipient object does not contain the name parameter
+        # it will be fetched later from the client based on the id
         if name:
             data['name'] = f"Private chat with {name}"
         else:

@@ -11,7 +11,8 @@ from .hiven_type_schemas import MentionSchema, get_compiled_validator
 from .user import User
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InitializationError, InvalidPassedDataError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -26,19 +27,15 @@ class Mention(DataClassObject):
     _json_schema: dict = MentionSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Mention')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._timestamp = data.get('timestamp')
-            self._user = data.get('user')
-            self._user_id = data.get('user_id')
-            self._author = data.get('author')
-            self._author_id = data.get('author_id')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._timestamp = data.get('timestamp')
+        self._user = data.get('user')
+        self._user_id = data.get('user_id')
+        self._author = data.get('author')
+        self._author_id = data.get('author_id')
+        self._client = client
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:

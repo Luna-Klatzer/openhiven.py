@@ -11,8 +11,9 @@ from .hiven_type_schemas import MemberSchema, get_compiled_validator
 from .user import User
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import (InitializationError, HTTPForbiddenError,
+from ..exceptions import (HTTPForbiddenError,
                           InvalidPassedDataError)
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -31,20 +32,15 @@ class Member(User):
     _json_schema: dict = MemberSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Member')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__(data.get('user'), client)
-        try:
-            data = {**data.get('user'), **data}
-            self._user_id = data.get('user_id')
-            self._house_id = data.get('house_id')
-            self._joined_at = data.get('joined_at')
-            self._roles = data.get('roles')
-            self._house = data.get('house')
-
-        except Exception as e:
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__}"
-            ) from e
+        data = {**data.get('user'), **data}
+        self._user_id = data.get('user_id')
+        self._house_id = data.get('house_id')
+        self._joined_at = data.get('joined_at')
+        self._roles = data.get('roles')
+        self._house = data.get('house')
 
     def __repr__(self) -> str:
         info = [

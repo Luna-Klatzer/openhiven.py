@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 
 from .hiven_type_schemas import get_compiled_validator, EntitySchema
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, InitializationError
+from ..exceptions import InvalidPassedDataError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from . import House, TextRoom
@@ -24,6 +25,7 @@ class Entity(DataClassObject):
     _json_schema: dict = EntitySchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('Entity')
     def __init__(self, data: dict, client: HivenClient):
         """
         Represents a Hiven Entity inside a House which can contain Rooms
@@ -32,20 +34,14 @@ class Entity(DataClassObject):
         :param client: The HivenClient
         """
         super().__init__()
-        try:
-            super().__init__()
-            self._type = data.get('type')
-            self._position = data.get('position')
-            self._resource_pointers = data.get('resource_pointers')
-            self._name = data.get('name')
-            self._id = data.get('id')
-            self._house_id = data.get('house_id')
-            self._house = data.get('house')
-
-        except Exception as e:
-            raise InitializationError(f"Failed to initialise {self.__class__.__name__}") from e
-        else:
-            self._client = client
+        self._type = data.get('type')
+        self._position = data.get('position')
+        self._resource_pointers = data.get('resource_pointers')
+        self._name = data.get('name')
+        self._id = data.get('id')
+        self._house_id = data.get('house_id')
+        self._house = data.get('house')
+        self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -57,7 +53,12 @@ class Entity(DataClassObject):
         return '<Entity {}>'.format(' '.join('%s=%s' % t for t in info))
 
     def get_cached_data(self) -> Optional[dict]:
-        """ Fetches the most recent data from the cache based on the instance id """
+        """
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
+        """
         return self._client.storage['entities'].get(self.id)
 
     @classmethod

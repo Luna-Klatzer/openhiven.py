@@ -9,7 +9,30 @@ from types import TracebackType
 from typing import (Union, Awaitable, Callable, Any, Optional, NoReturn, Type,
                     Tuple, Iterable)
 
+from .exceptions import InitializationError
+
 logger = logging.getLogger(__name__)
+
+
+def log_type_exception(obj_type=None):
+    """ Logs an exception when received during type initialisation """
+    def _actual_decorator(func):
+        @wraps(func)
+        def _decorated(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                log_traceback(
+                    brief=f"Failed to initialise {obj_type}:",
+                    exc_info=sys.exc_info()
+                )
+                raise InitializationError(
+                    f"Failed to initialise {obj_type}"
+                ) from e
+
+        return _decorated
+
+    return _actual_decorator
 
 
 def deprecated(instead=None):
@@ -18,9 +41,9 @@ def deprecated(instead=None):
     be used anymore
     """
 
-    def actual_decorator(func):
+    def _actual_decorator(func):
         @wraps(func)
-        def decorated(*args, **kwargs):
+        def _decorated(*args, **kwargs):
             # turn off filter
             warnings.simplefilter('always', DeprecationWarning)
             if instead:
@@ -37,9 +60,9 @@ def deprecated(instead=None):
             warnings.simplefilter('default', DeprecationWarning)
             return func(*args, **kwargs)
 
-        return decorated
+        return _decorated
 
-    return actual_decorator
+    return _actual_decorator
 
 
 def fetch_func(obj: object, func_name: str) -> Union[Awaitable, Callable, None]:

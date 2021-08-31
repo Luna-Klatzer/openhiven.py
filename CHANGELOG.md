@@ -38,6 +38,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Full Properties of Class `User` are now added to the `HivenClient`
 - `application` and `account` as new properties to `BaseUser`
+- Decorator `log_type_exception` for logging exceptions in `__init__` methods
+- `get_cached_data` to type Class `User`, instead of property `raw`
 
 ### Changed
 - Made `flags` the base property as replacement for `user_flags`. Though 

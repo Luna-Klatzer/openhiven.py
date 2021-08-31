@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from .hiven_type_schemas import UserSchema, get_compiled_validator, \
     LazyUserSchema
 from ..base_types import BaseUser
-from ..exceptions import InitializationError
+from ..utils import log_type_exception
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -31,25 +31,19 @@ class LazyUser(BaseUser):
     _json_schema: dict = LazyUserSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('LazyUser')
     def __init__(self, data: dict, client: HivenClient):
         super().__init__()
-        try:
-            self._username = data.get('username')
-            self._name = data.get('name')
-            self._bio = data.get('bio')
-            self._id = data.get('id')
-            self._email_verified = data.get('email_verified')
-            self._flags = data.get('flags')  # ToDo: Discord.py-esque way of user flags
-            self._icon = data.get('icon')
-            self._header = data.get('header')
-            self._bot = data.get('bot', False)
-
-        except Exception as e:
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__}"
-            ) from e
-        else:
-            self._client = client
+        self._username = data.get('username')
+        self._name = data.get('name')
+        self._bio = data.get('bio')
+        self._id = data.get('id')
+        self._email_verified = data.get('email_verified')
+        self._flags = data.get('flags')  # ToDo: Discord.py-esque way of user flags
+        self._icon = data.get('icon')
+        self._header = data.get('header')
+        self._bot = data.get('bot', False)
+        self._client = client
 
     def __repr__(self) -> str:
         info = [
@@ -62,8 +56,13 @@ class LazyUser(BaseUser):
         ]
         return '<LazyUser {}>'.format(' '.join('%s=%s' % t for t in info))
 
-    @property
-    def raw(self) -> Optional[dict]:
+    def get_cached_data(self) -> Optional[dict]:
+        """
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
+        """
         return self._client.storage['users'][self.id]
 
     @classmethod
@@ -145,20 +144,15 @@ class User(LazyUser):
     _json_schema: dict = UserSchema
     json_validator = get_compiled_validator(_json_schema)
 
+    @log_type_exception('User')
     def __init__(self, data: dict, client: HivenClient):
-        try:
-            super().__init__(data, client)
-            self._location = data.get('location')
-            self._website = data.get('website')
-            self._blocked = data.get('blocked')
-            self._presence = data.get('presence')
-            self._email = data.get('email')
-            self._mfa_enabled = data.get('mfa_enabled')
-
-        except Exception as e:
-            raise InitializationError(
-                f"Failed to initialise {self.__class__.__name__}"
-            ) from e
+        super().__init__(data, client)
+        self._location = data.get('location')
+        self._website = data.get('website')
+        self._blocked = data.get('blocked')
+        self._presence = data.get('presence')
+        self._email = data.get('email')
+        self._mfa_enabled = data.get('mfa_enabled')
 
     def __repr__(self) -> str:
         info = [
@@ -187,7 +181,10 @@ class User(LazyUser):
 
     def get_cached_data(self) -> Optional[dict]:
         """
-        Fetches the most recent data from the cache based on the instance id
+        Fetches the most recent data from the cache based on the instance id.
+
+        If updated while the object exists, the data might differentiate, due
+        to the object not being updated unlike the cache.
         """
         return self._client.storage['users'][self.id]
 
