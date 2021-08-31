@@ -13,6 +13,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+### Changed
+### Removed
+
+## [v0.2.dev3] - 2021-08-31
+
+### Added
 - Event Parsers for events: `HOUSE_JOIN`, `HOUSE_UPDATE`, `HOUSE_LEAVE` and `HOUSE_DOWN` (both for py-events 
   `house_down` and `house_delete`)
 - Update functionality for `house_ids` property in `ClientCache`, which
@@ -228,7 +234,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev2...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev3...v0.2.dev
+
+[v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev2...0.2.dev3
 
 [v0.2.dev2]: https://github.com/Para-C/Para-C/compare/0.2.dev1...0.2.dev2
 
