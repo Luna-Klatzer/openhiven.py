@@ -23,4 +23,4 @@ async def on_message_create(message):
         await message.room.send(":table_tennis_paddle_and_ball:!")
 
 if __name__ == '__main__':
-    bot.run("Insert token", )
+    bot.run("Insert token")
