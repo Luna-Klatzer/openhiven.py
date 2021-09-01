@@ -14,7 +14,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 ### Changed
+- Moved cleanup from `HivenClient.close()` to `HivenClient.connect()` to
+  clean up even when the Client closes unexpectedly or due to an issue.
+- Moved `Connection` class initialisation to `HivenClient.connect()` and added
+  deletion after the HivenClient closed to allow for a full-recreation if 
+  the client reconnects.
+- Moved value configuration of `host`, `api_version`, `heartbeat` and 
+  `close_timeout` to `HivenClient.__init__()`
 ### Removed
+- unnecessary reset of Client-User and the call of `init_client_user_obj` in
+  `ClientCache.closing_cleanup()`
+- `log_websocket` from the `ClientCache`  
 
 ## [v0.2.dev3] - 2021-08-31
 

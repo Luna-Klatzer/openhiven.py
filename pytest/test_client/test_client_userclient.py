@@ -6,8 +6,8 @@ class TestUserClient(test_hivenclient.TestHivenClient):
     def test_init(self, token):
         client = openhivenpy.UserClient()
         assert client.client_type == 'UserClient'
-        assert client.connection.heartbeat == 30000
-        assert client.connection.close_timeout == 60
+        assert client.heartbeat == 30000
+        assert client.close_timeout == 60
 
         @client.event()
         async def on_init():

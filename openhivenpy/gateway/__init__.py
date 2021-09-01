@@ -25,12 +25,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+# Used for type hinting and not having to use annotations for the objects
+from __future__ import annotations
 
 import asyncio
 import logging
 import os
 import sys
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from yarl import URL
 
@@ -43,6 +45,10 @@ from ..exceptions import (RestartSessionError, WebSocketClosedError,
                           WebSocketFailedError, SessionCreateError,
                           KeepAliveError)
 
+if TYPE_CHECKING:
+    from .. import HivenClient
+    from .http import HTTP
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,24 +60,12 @@ class Connection(HivenObject):
 
     def __init__(
             self,
-            client,
-            *,
-            host: Optional[str] = None,
-            api_version: Optional[str] = None,
-            heartbeat: Optional[int] = None,
-            close_timeout: Optional[int] = None
+            client: HivenClient
     ):
-        self.client = client
-        self.http = None
-        self._host = host if host is not None else os.getenv("HIVEN_HOST")
-        self._api_version = api_version if api_version is not None else \
-            os.getenv("HIVEN_API_VERSION")
-        self._heartbeat = heartbeat if heartbeat is not None else \
-            int(os.getenv("WS_HEARTBEAT"))
-        self._close_timeout = close_timeout if close_timeout is not None else \
-            int(os.getenv("WS_CLOSE_TIMEOUT"))
+        # Connection Configuration
         self._endpoint = URL(os.getenv("WS_ENDPOINT"))
 
+        # Values set by the Connection class
         self._connection_status = "CLOSED"
         self._ready = False
         self._closing = False
@@ -79,7 +73,14 @@ class Connection(HivenObject):
         self._force_closing = False
         self._ws = None
 
-    def _set_default_properties(self):
+        self._client: HivenClient = client
+        self._http: HTTP = HTTP(
+            self.client,
+            host=self.host,
+            api_version=self.api_version
+        )
+
+    def set_default_properties(self):
         """ Sets the default properties for the Connection class """
         self._connection_status = "CLOSED"
         self._ready = False
@@ -103,6 +104,18 @@ class Connection(HivenObject):
         return '<Connection {}>'.format(' '.join('%s=%s' % t for t in info))
 
     @property
+    def client(self) -> Optional[HivenClient]:
+        """
+        Returns the Client instance used to initialise the Connection class
+        """
+        return getattr(self, '_client', None)
+
+    @property
+    def http(self) -> Optional[HTTP]:
+        """ Returns the HTTP Instance """
+        return getattr(self, '_http', None)
+
+    @property
     def ready(self) -> bool:
         """
         Returns whether both the Web-Socket and the HTTP Client have
@@ -119,16 +132,6 @@ class Connection(HivenObject):
         return getattr(self.client, 'loop', None)
 
     @property
-    def host(self) -> Optional[str]:
-        """ Returns the Hiven host url """
-        return getattr(self, '_host', None)
-
-    @property
-    def api_version(self) -> Optional[str]:
-        """ Returns the currently used Hiven API-version """
-        return getattr(self, '_api_version', None)
-
-    @property
     def connection_status(self) -> Optional[str]:
         """ Returns the connection status as a string """
         return getattr(self, '_connection_status', None)
@@ -137,6 +140,26 @@ class Connection(HivenObject):
     def endpoint(self) -> Optional[URL]:
         """ Returns the endpoint as an URL object """
         return getattr(self, '_endpoint', None)
+
+    @property
+    def host(self) -> Optional[str]:
+        """ Returns the Hiven host url """
+        return self.client.host
+
+    @property
+    def api_version(self) -> Optional[str]:
+        """ Returns the currently used Hiven API-version """
+        return self.client.api_version
+
+    @property
+    def heartbeat(self) -> Optional[int]:
+        """ Heartbeat in ms """
+        return self.client.heartbeat
+
+    @property
+    def close_timeout(self) -> Optional[int]:
+        """ Set Close-Timeout, which if exceeded will cancel the connection """
+        return self.client.close_timeout
 
     @property
     def startup_time(self) -> Optional[int]:
@@ -152,6 +175,11 @@ class Connection(HivenObject):
         return getattr(self, '_ws', None)
 
     @property
+    def closed(self) -> Optional[bool]:
+        """ Returns True if the connection is closed """
+        return getattr(self, '_closed', None)
+
+    @property
     def keep_alive(self) -> Optional[KeepAlive]:
         """ Returns the KeepAlive Object instance """
         return getattr(self.ws, 'keep_alive', None)
@@ -162,21 +190,8 @@ class Connection(HivenObject):
         return getattr(self.ws, 'message_broker', None)
 
     @property
-    def heartbeat(self) -> Optional[int]:
-        """ Heartbeat in ms """
-        return getattr(self, '_heartbeat', None)
-
-    @property
-    def close_timeout(self) -> Optional[int]:
-        """ Set Close-Timeout, which if exceeded will cancel the connection """
-        return getattr(self, '_close_timeout', None)
-
-    @property
-    def closed(self) -> Optional[bool]:
-        return getattr(self, '_closed', None)
-
-    @property
     def socket_closed(self) -> Optional[bool]:
+        """ Returns whether the Websocket aiohttp Socket is closed """
         return getattr(getattr(self.ws, 'socket', None), 'closed', True)
 
     async def connect(self, restart: bool) -> None:
@@ -187,11 +202,6 @@ class Connection(HivenObject):
         """
         try:
             self._connection_status = "OPENING"
-            self.http = HTTP(
-                self.client,
-                host=self.host,
-                api_version=self.api_version
-            )
             await self.http.connect()
 
             while self.connection_status == "OPENING":
@@ -222,8 +232,8 @@ class Connection(HivenObject):
                         exc_info=sys.exc_info()
                     )
                     logger.warning(
-                        "[CONNECTION] The websocket exceeded the timeout limit!"
-                        " Connection will be restarted!"
+                        "[CONNECTION] The websocket exceeded the timeout "
+                        "limit! Connection will be restarted!"
                     )
 
                 except RestartSessionError:
@@ -244,8 +254,8 @@ class Connection(HivenObject):
                         )
                     else:
                         utils.log_traceback(
-                            brief="[CONNECTION] Encountered an exception while "
-                                  "running the core modules ",
+                            brief="[CONNECTION] Encountered an exception "
+                                  "while running the core modules ",
                             exc_info=sys.exc_info()
                         )
 
@@ -292,7 +302,7 @@ class Connection(HivenObject):
             await self._wait_until_ws_finished()
             del self._ws
 
-            self._set_default_properties()
+            self.set_default_properties()
             self._closing = False
 
     def _reset_status(self, connection_status: str):

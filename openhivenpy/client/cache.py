@@ -47,16 +47,15 @@ from ..exceptions import InitializationError
 if TYPE_CHECKING:
     from .. import HivenClient
 
-__all__ = ['ClientCache']
+__all__ = ['ClientCache', 'create_default_cache']
 
 logger = logging.getLogger(__name__)
 
 
-def _create_default_dict(log_websocket: bool) -> dict:
+def create_default_cache() -> dict:
     """ Creates the default dictionary format used inside the cache """
     return {
         'token': 'undefined',
-        'log_websocket': log_websocket,
         'client_user': dict(),
         'houses': dict(),
         'users': dict(),
@@ -82,14 +81,14 @@ class ClientCache(dict, HivenObject):
     cache more easily and use functions for better readability.
     """
 
-    def __init__(self, client: HivenClient, log_websocket: bool, **kwargs):
+    def __init__(self, client: HivenClient, **kwargs):
         super(ClientCache, self).__init__(**kwargs)
         self.client = client
         self.update(
             # Updating the passed dict as well to avoid data being overwritten
             # that were passed with args or kwargs
             utils.update_and_return(
-                _create_default_dict(log_websocket), **kwargs
+                create_default_cache(), **kwargs
             )
         )
 
@@ -100,16 +99,18 @@ class ClientCache(dict, HivenObject):
         Not supposed to be called outside of the intended HivenClient.close()
         method!
         """
-        self.update(_create_default_dict(self['log_websocket']))
-        self['client_user'] = {}
-        self.init_client_user_obj()
+        self.update(create_default_cache())
 
     def init_client_user_obj(self) -> types.User:
         """ Initialises the client user based on the cached data """
         return types.User(self['client_user'], self.client)
 
     def check_if_initialised(self) -> bool:
-        """ Checks whether the client has initialised """
+        """
+        Checks whether the client has initialised
+
+        :raises ValueError: If the client_user is not initialised
+        """
         if self.get('client_user'):
             return True
         else:

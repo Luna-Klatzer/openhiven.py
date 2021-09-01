@@ -1,6 +1,7 @@
 import asyncio
 
 import openhivenpy
+from openhivenpy.gateway import Connection
 
 
 class TestDynamicEventBuffer:
@@ -44,6 +45,10 @@ class TestMessageBroker:
             await asyncio.sleep(.5)
             client.connection._closing = True
 
+        # Force initialising the Connection to also set the connection_status
+        # to enable the Workers automatically, due to them waiting until
+        # the connection is fully open and enabled
+        client._connection = Connection(client=client)
         client.connection._connection_status = "OPEN"
         await asyncio.gather(message_broker.run(), asyncio.wait_for(test(), 3))
 
