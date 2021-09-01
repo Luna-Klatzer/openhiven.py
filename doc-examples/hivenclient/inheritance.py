@@ -23,18 +23,6 @@ class Bot(hiven.UserClient):
     async def on_message_create(self, msg):
         print(f"{msg.author.name} wrote in {msg.room.name}: {msg.content}")
 
-    async def on_house_member_join(self, member, house):
-        print(f"{member.name} joined {house.name}")
-
-    async def on_member_update(self, old, new, house):
-        print(f"Member {old.name} of house {house.name} updated their account")
-
-    async def on_message_update(self, msg):
-        print(f"{msg.author.name} updated their message to: {msg.content}")
-
-    async def on_room_create(self, room):
-        print(f"{repr(room)} was created")
-
 
 if __name__ == '__main__':
     client = Bot()

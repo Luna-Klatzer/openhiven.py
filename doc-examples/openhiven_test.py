@@ -2,6 +2,7 @@
 import logging
 
 import openhivenpy
+from openhivenpy import Message
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("openhivenpy")
@@ -19,8 +20,8 @@ async def on_ready():
 
 
 @client.event()
-async def on_message_create():
-    print(f"Message was created")
+async def on_message_create(msg: Message):
+    print(f"Message was created - {msg.content}")
 
 
 if __name__ == '__main__':

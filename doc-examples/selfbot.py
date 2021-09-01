@@ -1,6 +1,7 @@
 import logging
 
 import openhivenpy
+from openhivenpy import Message
 
 logger = logging.getLogger("openhivenpy")
 logger.setLevel(logging.DEBUG)
@@ -17,7 +18,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_message_create(message):
+async def on_message_create(message: Message):
     # Until theres a command handler, might as well go old-school discord.py
     if message.content == ".ping":
         await message.room.send(":table_tennis_paddle_and_ball:!")
