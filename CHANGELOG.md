@@ -13,6 +13,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+- Added parsers for events `on_message_create` and `on_message_delete`
+- Added new property `room_ids` to `HivenClient`
 ### Changed
 - Moved cleanup from `HivenClient.close()` to `HivenClient.connect()` to
   clean up even when the Client closes unexpectedly or due to an issue.
@@ -21,6 +23,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the client reconnects.
 - Moved value configuration of `host`, `api_version`, `heartbeat` and 
   `close_timeout` to `HivenClient.__init__()`
+- Fixed `rooms` and `entities` property in `House`
+- Fixed `mentions`, `author`, `house` and `attachment` property in `Message`
 ### Removed
 - unnecessary reset of Client-User and the call of `init_client_user_obj` in
   `ClientCache.closing_cleanup()`
@@ -47,7 +51,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed data issue in `HivenParsers.dispatch()`, which modifies original data
   as well. Using `deepcopy` now to avoid this issue.
 - Fixed minor issue with `on_house_member_online` and `on_house_member_offline`
-
 ### Removed
 - `house_memberships` property in Cache
 

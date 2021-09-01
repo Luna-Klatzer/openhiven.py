@@ -303,6 +303,20 @@ class HivenClient(HivenEventHandler, HivenObject):
         return getattr(self.client_user, 'mfa_enabled', None)
 
     @property
+    def room_ids(self) -> Optional[List[str]]:
+        """
+        Returns the list of all the ids for all rooms available from the cache.
+
+        This includes both house rooms and private rooms
+        """
+        rooms = {
+            **self.storage['rooms']['house'],
+            **self.storage['rooms']['private']['single'],
+            **self.storage['rooms']['private']['group']
+        }
+        return list(rooms.keys())
+
+    @property
     def house_ids(self) -> Optional[List[str]]:
         """
         Returns the list of all the ids for all houses available from the cache

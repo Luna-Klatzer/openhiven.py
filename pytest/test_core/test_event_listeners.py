@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 import openhivenpy
-from openhivenpy import House
+from openhivenpy import House, Message
 
 
 def read_config_file():
@@ -411,10 +411,15 @@ class TestListeners:
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('message_create', {})
+
+            # TODO! Change with Mock API
+            house = _client.get_house("276672055112364464")
+            room = house.get_room("285087212549176390")
+            await room.send("Test message from openhiven.py")
 
         @_client.event()
-        async def on_message_create(*args, **kwargs):
+        async def on_message_create(msg: Message):
+            await msg.delete()
             print("Received")
             await _client.close()
 
@@ -441,10 +446,22 @@ class TestListeners:
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('message_delete', {})
+
+            # TODO! Change with Mock API
+            house = _client.get_house("276672055112364464")
+            room = house.get_room("285087212549176390")
+            await room.send("Test message from openhiven.py")
 
         @_client.event()
-        async def on_message_delete(*args, **kwargs):
+        async def on_message_create(msg: Message):
+            await msg.delete()
+
+        @_client.event()
+        async def on_message_delete(msg_id: str, room_id: str, house_id: str):
+            assert msg_id
+            assert room_id in _client.room_ids
+            assert house_id in _client.house_ids
+
             print("Received")
             await _client.close()
 

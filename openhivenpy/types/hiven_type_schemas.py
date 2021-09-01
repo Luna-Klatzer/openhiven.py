@@ -315,11 +315,30 @@ MessageSchema: dict = {
             ],
             'default': None
         },
+        'member': {
+            'anyOf': [
+                {'type': 'object'},
+                {'type': 'null'}
+            ],
+            'default': None
+        },
+        'metadata': {
+            'default': None
+        },
         'mentions': {
-            'type': 'array',
+            'anyOf': [
+                {'type': 'array'},
+                {'type': 'null'}
+            ],
             'default': []
         },
-        'type': {'type': 'integer'},
+        'type': {
+            'anyOf': [
+                {'type': 'boolean'},
+                {'type': 'null'}
+            ],
+            'default': None
+        },
         'exploding': {
             'anyOf': [
                 {'type': 'boolean'},
@@ -360,7 +379,17 @@ MessageSchema: dict = {
         'exploding_age': {'default': None}
     },
     'additionalProperties': False,
-    'required': ['id', 'author', 'author_id', 'content', 'timestamp', 'type', 'mentions', 'room_id']
+    'required': [
+        'id',
+        'author',
+        'author_id',
+        'content',
+        'timestamp',
+        'type',
+        'mentions',
+        'room_id',
+        'bucket'
+    ]
 }
 
 

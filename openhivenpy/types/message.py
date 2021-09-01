@@ -244,6 +244,7 @@ class Message(DataClassObject):
     @property
     def author(self) -> Optional[User]:
         """ Returns the Author parent object instance """
+        from .user import User
         if type(self._author) is str:
             author_id = self._author
         elif type(self.author_id) is str:
@@ -252,7 +253,7 @@ class Message(DataClassObject):
             author_id = None
 
         if type(author_id) is str:
-            data = self._client.storage['authors'].get(author_id)
+            data = self._client.storage['users'].get(author_id)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -315,6 +316,7 @@ class Message(DataClassObject):
         """
         Returns the House parent object, if the message was sent inside a House
         """
+        from .house import House
         if type(self._house) is str:
             data = self._client.storage['houses'].get(self._house)
             if data:
@@ -331,6 +333,7 @@ class Message(DataClassObject):
     @property
     def attachment(self) -> Optional[Attachment]:
         """ Returns the Attachment of the message, if it has one """
+        from .attachment import Attachment
         if type(self._attachment) is dict:
             self._attachment: Union[Attachment, dict] = Attachment(
                 data=self._attachment, client=self._client
@@ -349,20 +352,25 @@ class Message(DataClassObject):
     @property
     def mentions(self) -> Optional[List[Mention]]:
         """ Returns the mentions of the message """
-        from . import Mention
+        from .mention import Mention
         if type(self._mentions) is list:
-            if type(self._mentions[0]) is dict:
-                mentions = []
-                for d in self._mentions:
-                    dict_ = {
-                        'timestamp': self.timestamp,
-                        'author': self.author,
-                        'user': d
-                    }
-                    mention_data = Mention.format_obj_data(dict_)
-                    mentions.append(Mention(mention_data, client=self._client))
+            if len(self._mentions) > 0:
+                if type(self._mentions[0]) is dict:
+                    mentions = []
+                    for d in self._mentions:
+                        dict_ = {
+                            'timestamp': self.timestamp,
+                            'author': self.author,
+                            'user': d
+                        }
+                        mention_data = Mention.format_obj_data(dict_)
+                        mentions.append(
+                            Mention(mention_data, client=self._client)
+                        )
 
-                self._mentions = mentions
+                    self._mentions = mentions
+            else:
+                return []
             return self._mentions
         else:
             return None

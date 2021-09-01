@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import asyncio
 import json as json_decoder
+import json as json_module
 import logging
 import sys
 import time
@@ -297,8 +298,23 @@ class HTTP:
                             "Servers"
                         )
 
-                # Loading the data in json => will fail if not json
-                _json_data = json_decoder.loads(data)
+                try:
+                    # Loading the data in json => will fail if not json
+                    _json_data = json_decoder.loads(data)
+
+                # empty data
+                except json_module.JSONDecodeError as e:
+                    # Success but no data
+                    if http_resp_code == 200:
+                        logger.debug(
+                            f"[HTTP] {http_resp_code} - "
+                            "Request was successful "
+                            "(Received no response though success-code)"
+                        )
+                        return _resp
+                    else:
+                        raise e
+
                 # Fetching the success item <== bool
                 _success = _json_data.get('success')
 
