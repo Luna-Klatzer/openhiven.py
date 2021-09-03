@@ -13,8 +13,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
-- Added parsers for events `on_message_create` and `on_message_delete`
-- Added new property `room_ids` to `HivenClient`
+- Parsers for events `on_message_create` and `on_message_delete`
+- New property `room_ids` to `HivenClient`
+- Default coroutine behaviour for `wait_for`, which by default adds a new empty
+  coro, so that the args and kwargs can be accessed as returns.
 ### Changed
 - Moved cleanup from `HivenClient.close()` to `HivenClient.connect()` to
   clean up even when the Client closes unexpectedly or due to an issue.
@@ -26,7 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed `rooms` and `entities` property in `House`
 - Fixed `mentions`, `author`, `house` and `attachment` property in `Message`
 ### Removed
-- unnecessary reset of Client-User and the call of `init_client_user_obj` in
+- Unnecessary reset of Client-User and the call of `init_client_user_obj` in
   `ClientCache.closing_cleanup()`
 - `log_websocket` from the `ClientCache`  
 

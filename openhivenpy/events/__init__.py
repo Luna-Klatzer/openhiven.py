@@ -143,14 +143,13 @@ class DispatchEventListener(HivenObject):
          or standard asyncio awaitable functions are defined using the
          `async def` syntax
         """
-        if inspect.iscoroutine(awaitable):
-            raise RuntimeError(
-                "Coroutine are not allowed as event_listener awaitable")
-        elif inspect.isawaitable(awaitable) or inspect.iscoroutinefunction(
-                awaitable):
+        if inspect.isawaitable(awaitable) \
+                or inspect.iscoroutinefunction(awaitable):
             self._awaitable = awaitable
         else:
-            raise RuntimeError(f"Expected awaitable, but got {type(awaitable)}")
+            raise RuntimeError(
+                f"Expected awaitable, but got {type(awaitable)}"
+            )
 
     async def dispatch(self) -> None:
         ...
@@ -176,7 +175,9 @@ class SingleDispatchEventListener(DispatchEventListener):
             ('dispatched', self.dispatched),
             ('awaitable', getattr(self, 'awaitable', None))
         ]
-        return '<SingleDispatchEventListener {}>'.format(' '.join('%s=%s' % t for t in info))
+        return '<SingleDispatchEventListener {}>'.format(
+            ' '.join('%s=%s' % t for t in info)
+        )
 
     @property
     def dispatched(self) -> bool:
@@ -208,7 +209,10 @@ class SingleDispatchEventListener(DispatchEventListener):
                 brief=f"[EVENTS] Ignoring exception in {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            raise RuntimeError(f"Failed to execute assigned coroutine '{self.awaitable.__name__}'") from e
+            raise RuntimeError(
+                f"Failed to execute assigned coroutine "
+                f"'{self.awaitable.__name__}'"
+            ) from e
         self._dispatched = True
         self.client.remove_listener(self)
 
@@ -383,6 +387,12 @@ class HivenEventHandler(HivenObject):
             raise UnknownEventError(
                 "The passed event type is invalid/does not exist"
             )
+
+        if awaitable is None:
+            async def _empty(*args, **kwargs):
+                ...
+            
+            awaitable = _empty
 
         listener = self.add_single_listener(event_name, awaitable)
         while not listener.dispatched:
