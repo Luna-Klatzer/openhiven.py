@@ -2160,8 +2160,23 @@ can be seen by the asyncio.Task status!</p>
                         <span class="s2">&quot;Servers&quot;</span>
                     <span class="p">)</span>
 
-            <span class="c1"># Loading the data in json =&gt; will fail if not json</span>
-            <span class="n">_json_data</span> <span class="o">=</span> <span class="n">json_decoder</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Loading the data in json =&gt; will fail if not json</span>
+                <span class="n">_json_data</span> <span class="o">=</span> <span class="n">json_decoder</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="c1"># empty data</span>
+            <span class="k">except</span> <span class="n">json_decoder</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># Success but no data</span>
+                <span class="k">if</span> <span class="n">http_resp_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;[HTTP] </span><span class="si">{</span><span class="n">http_resp_code</span><span class="si">}</span><span class="s2"> - &quot;</span>
+                        <span class="s2">&quot;Request was successful &quot;</span>
+                        <span class="s2">&quot;(Received no response though success-code)&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">_resp</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">e</span>
+
             <span class="c1"># Fetching the success item &lt;== bool</span>
             <span class="n">_success</span> <span class="o">=</span> <span class="n">_json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">)</span>
 
