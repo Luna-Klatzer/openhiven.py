@@ -2165,7 +2165,7 @@ can be seen by the asyncio.Task status!</p>
                 <span class="n">_json_data</span> <span class="o">=</span> <span class="n">json_decoder</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
             <span class="c1"># empty data</span>
-            <span class="k">except</span> <span class="n">json_module</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">json_decoder</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="c1"># Success but no data</span>
                 <span class="k">if</span> <span class="n">http_resp_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
