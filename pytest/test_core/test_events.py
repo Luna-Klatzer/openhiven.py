@@ -149,7 +149,7 @@ class TestHivenEventHandler:
 
         client.run(token)
 
-    def test_wait_for(self):
+    def test_wait_for_simple_coroutine(self):
         async def on_ready():
             print("\non_ready was called!")
             return

@@ -60,7 +60,7 @@ class DataClassObject(HivenObject):
     @property
     def json_schema(self) -> dict:
         """ Schema to validate the Data Class using json-validation """
-        return self._json_schema
+        return getattr(self, '_json_schema')
 
 
 class BaseUser(DataClassObject):

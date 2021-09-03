@@ -51,8 +51,8 @@ class HivenClient(HivenEventHandler, HivenObject):
 
     def __init__(
             self,
-            *,
             token: str = None,
+            *,
             loop: AbstractEventLoop = None,
             log_websocket: bool = False,
             queue_events: bool = False,
@@ -83,17 +83,29 @@ class HivenClient(HivenEventHandler, HivenObject):
          the end handshake didn't complete successfully. Defaults to the pre-set
          environment variable close_timeout (default at 40)
         """
-        self._token = token
-        self._loop = loop
-        self._log_websocket = log_websocket
-        self._queue_events = queue_events
-        self._client_user = None
-        self._storage = ClientCache(client=self, log_websocket=log_websocket,
-                                    token=self._token)
-        self._connection = Connection(
-            self, api_version=api_version, host=host, heartbeat=heartbeat,
-            close_timeout=close_timeout
+        self._token: str = token
+        self._loop: asyncio.AbstractEventLoop = loop
+        self._client_user: Optional[types.User] = None
+        self._connection: Optional[Connection] = None
+        self._storage: ClientCache = ClientCache(
+            client=self,
+            token=self._token
         )
+
+        self._log_websocket: bool = log_websocket
+        self._queue_events: bool = queue_events
+        self._host: Optional[str] = host \
+            if host is not None \
+            else os.getenv("HIVEN_HOST")
+        self._api_version: Optional[str] = api_version \
+            if api_version is not None \
+            else os.getenv("HIVEN_API_VERSION")
+        self._heartbeat: Optional[int] = heartbeat \
+            if heartbeat is not None \
+            else int(os.getenv("WS_HEARTBEAT"))
+        self._close_timeout: Optional[int] = close_timeout \
+            if close_timeout is not None \
+            else int(os.getenv("WS_CLOSE_TIMEOUT"))
 
         # Inheriting the HivenEventHandler class that will call and trigger
         # the parsers for events
@@ -291,11 +303,45 @@ class HivenClient(HivenEventHandler, HivenObject):
         return getattr(self.client_user, 'mfa_enabled', None)
 
     @property
+    def room_ids(self) -> Optional[List[str]]:
+        """
+        Returns the list of all the ids for all rooms available from the cache.
+
+        This includes both house rooms and private rooms
+        """
+        rooms = {
+            **self.storage['rooms']['house'],
+            **self.storage['rooms']['private']['single'],
+            **self.storage['rooms']['private']['group']
+        }
+        return list(rooms.keys())
+
+    @property
     def house_ids(self) -> Optional[List[str]]:
         """
         Returns the list of all the ids for all houses available from the cache
         """
         return self.storage.get('house_ids')
+
+    @property
+    def host(self) -> Optional[str]:
+        """ Returns the Hiven host url """
+        return getattr(self, '_host', None)
+
+    @property
+    def api_version(self) -> Optional[str]:
+        """ Returns the currently used Hiven API-version """
+        return getattr(self, '_api_version', None)
+
+    @property
+    def heartbeat(self) -> Optional[int]:
+        """ Heartbeat in ms """
+        return getattr(self, '_heartbeat', None)
+
+    @property
+    def close_timeout(self) -> Optional[int]:
+        """ Set Close-Timeout, which if exceeded will cancel the connection """
+        return getattr(self, '_close_timeout', None)
 
     def run(
             self,
@@ -317,49 +363,31 @@ class HivenClient(HivenEventHandler, HivenObject):
         :param restart: If set to True the Client will restart if an error is
          encountered!
         """
-        try:
-            if token is None:
-                token = os.getenv('HIVEN_TOKEN')
+        if token is None:
+            token = os.getenv('HIVEN_TOKEN')
 
-            if self._loop is not None:
-                self._loop = loop if loop is not None else self._loop
-            else:
-                try:
-                    self._loop = loop if loop is not None else asyncio.get_event_loop()
-                except RuntimeError as e:
-                    # If the function is called outside of the main thread a
-                    # new event_loop must be created, so that the process can
-                    # still be run. This will raise an exception though if the
-                    # user tries to start the client while another loop already
-                    # is running! Therefore run() should only be used when no
-                    # event_loop was created yet that could interfere with the
-                    # process, else connect() is available
-                    if "There is no current event loop in thread" in str(e):
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        self._loop = asyncio.get_event_loop()
-                    else:
-                        raise
+        if self._loop is not None:
+            self._loop = loop if loop is not None else self._loop
+        else:
+            try:
+                self._loop = loop if loop is not None \
+                    else asyncio.get_event_loop()
+            except RuntimeError as e:
+                # If the function is called outside of the main thread a
+                # new event_loop must be created, so that the process can
+                # still be run. This will raise an exception though if the
+                # user tries to start the client while another loop already
+                # is running! Therefore run() should only be used when no
+                # event_loop was created yet that could interfere with the
+                # process, else connect() is available
+                if "There is no current event loop in thread" in str(e):
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    self._loop = asyncio.get_event_loop()
+                else:
+                    raise
 
-            self.loop.run_until_complete(self.connect(token, restart=restart))
-
-        except KeyboardInterrupt:
-            pass
-
-        except (InvalidTokenError, WebSocketFailedError):
-            raise
-
-        except SessionCreateError:
-            raise
-
-        except Exception as e:
-            utils.log_traceback(
-                level='critical',
-                brief=f"Failed to keep alive connection to Hiven:",
-                exc_info=sys.exc_info()
-            )
-            raise HivenConnectionError(
-                "Failed to keep alive connection to Hiven") from e
+        self.loop.run_until_complete(self.connect(token, restart=restart))
 
     async def connect(
             self,
@@ -400,6 +428,7 @@ class HivenClient(HivenEventHandler, HivenObject):
                 logger.critical(f"[HIVENCLIENT] Invalid Token was passed")
                 raise InvalidTokenError("Invalid Token was passed")
 
+            self._connection = Connection(client=self)
             await self.connection.connect(restart=restart)
 
         except KeyboardInterrupt:
@@ -420,6 +449,12 @@ class HivenClient(HivenEventHandler, HivenObject):
             raise HivenConnectionError(
                 f"Failed to keep alive connection to Hiven"
             ) from e
+        finally:
+            del self._connection
+            self._connection = None
+
+            # Cleaning up the storage
+            self.storage.closing_cleanup()
 
     async def close(
             self, force: bool = False, remove_listeners: bool = True
@@ -437,7 +472,6 @@ class HivenClient(HivenEventHandler, HivenObject):
          and add_single_listener()
         """
         await self.connection.close(force, remove_listeners)
-        self.storage.closing_cleanup()
         logger.debug(f"[HIVENCLIENT] Client {repr(self)} was closed")
 
     async def edit(self, **kwargs) -> bool:

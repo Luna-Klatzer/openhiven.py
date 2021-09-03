@@ -188,13 +188,16 @@ class LazyHouse(DataClassObject):
         """ List of all rooms in the house """
         from . import TextRoom
         if type(self._rooms) is list:
-            if type(self._rooms[0]) is str:
-                rooms = []
-                for d in self._rooms:
-                    room_data = self._client.storage['rooms']['house'][d]
-                    rooms.append(TextRoom(room_data, client=self._client))
+            if len(self._rooms) > 0:
+                if type(self._rooms[0]) is str:
+                    rooms = []
+                    for d in self._rooms:
+                        room_data = self._client.storage['rooms']['house'][d]
+                        rooms.append(TextRoom(room_data, client=self._client))
 
-                self._rooms = rooms
+                    self._rooms = rooms
+            else:
+                return []
             return self._rooms
         else:
             return None
@@ -272,16 +275,19 @@ class House(LazyHouse):
 
     @property
     def entities(self) -> Optional[List[Entity]]:
-        """ A list of the enitities in this House """
+        """ A list of the entities in this House """
         from . import Entity
         if type(self._entities) is list:
-            if type(self._entities[0]) is str:
-                entities = []
-                for d in self._entities:
-                    entity_data = self._client.storage['entities'][d]
-                    entities.append(Entity(entity_data, client=self._client))
+            if len(self._entities) > 0:
+                if type(self._entities[0]) is str:
+                    entities = []
+                    for d in self._entities:
+                        entity_data = self._client.storage['entities'][d]
+                        entities.append(Entity(entity_data, client=self._client))
 
-                self._entities = entities
+                    self._entities = entities
+            else:
+                return []
             return self._entities
         else:
             return None

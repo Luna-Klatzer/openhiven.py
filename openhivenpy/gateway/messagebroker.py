@@ -191,8 +191,9 @@ class MessageBroker(HivenObject):
 
         else:
             await _wait_until_done(self.worker_loop)
-            # Despite not being force_closed all tasks and workers will still be removed and a cleanup started, but
-            # only after all workers have finished to avoid destroying event_listeners in their execution
+            # Despite not being force_closed all tasks and workers will still
+            # be removed and a cleanup started, but only after all workers have
+            # finished to avoid destroying event_listeners in their execution
             await self.event_consumer.close()
 
         self._cleanup_buffers()
@@ -253,7 +254,8 @@ class Worker(HivenObject):
         """ Returns whether force_closing is enabled in the message_broker """
         return getattr(self.message_broker, '_force_closing', False)
 
-    async def _gather_tasks(self, tasks: List[Coroutine]) -> None:
+    @staticmethod
+    async def _gather_tasks(tasks: List[Coroutine]) -> None:
         """ Executes all passed event_listener tasks parallel """
         await asyncio.gather(*tasks)
 

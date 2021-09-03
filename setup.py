@@ -8,7 +8,7 @@ with open("requirements.txt") as file:
 
 setuptools.setup(
     name="openhivenpy",
-    version="0.2.dev3",
+    version="0.2.dev4",
     author="Luna Klatzer",
     author_email="luna.klatzer@gmail.com",
     description="The OpenSource Python API Wrapper and Bot-Framework for Hiven",
@@ -17,10 +17,10 @@ setuptools.setup(
     license="MIT",
     url="https://github.com/Luna-Klatzer/openhiven.py",
     project_urls={
-        "Docs": "https://luna-klatzer.github.io/docs_openhiven.py/latest/",
-        "Hiven API Docs": "https://luna-klatzer.github.io/docs_openhiven.py/latest/api_reference/",
+        "Docs": "https://luna-klatzer.github.io/openhiven.py/latest/",
+        "Hiven API Docs": "https://luna-klatzer.github.io/openhiven.py/latest/api_reference/hiven_restapi.html",
         "Issue-Page": "https://github.com/Luna-Klatzer/openhiven.py/issues/",
-        "Changelog": "https://luna-klatzer.github.io/docs_openhiven.py/latest/changelog.html"
+        "Changelog": "https://luna-klatzer.github.io/openhiven.py/latest/changelog.html"
     },
     packages=setuptools.find_packages(),
     classifiers=[

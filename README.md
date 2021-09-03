@@ -168,6 +168,9 @@ pytest -q --token=<HIVEN_TOKEN>
 they can run successfully. More
 info [here](https://luna-klatzer.github.io/docs_openhiven.py/latest/getting_started/deploying_your_first_bot.html#getting-a-user-token)*
 
+*You need to be registered on Hiven and inside the openhiven.py house for
+correctly running the tests*
+
 ### Building
 
 Building the module to be able to install it can be done using the `build`
