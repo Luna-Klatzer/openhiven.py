@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import asyncio
 import json as json_decoder
-import json as json_module
 import logging
 import sys
 import time
@@ -303,7 +302,7 @@ class HTTP:
                     _json_data = json_decoder.loads(data)
 
                 # empty data
-                except json_module.JSONDecodeError as e:
+                except json_decoder.decoder.JSONDecodeError as e:
                     # Success but no data
                     if http_resp_code == 200:
                         logger.debug(

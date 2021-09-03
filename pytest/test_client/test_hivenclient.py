@@ -125,11 +125,13 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await client.parsers.dispatch('message_create', {})
+            await client.parsers.dispatch(
+                'presence_update', {}
+            )
 
         @client.event()
-        async def on_message_create():
-            print("Received message")
+        async def on_presence_update(*args, **kwargs):
+            print("Received")
             await client.close()
 
         client.run(token)

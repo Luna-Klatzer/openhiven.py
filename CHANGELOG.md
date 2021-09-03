@@ -13,6 +13,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+### Changed
+### Removed
+
+## [v0.2.dev4] - 2021-09-03
+
+### Added
 - Parsers for events `on_message_create` and `on_message_delete`
 - New property `room_ids` to `HivenClient`
 - Default coroutine behaviour for `wait_for`, which by default adds a new empty
@@ -23,6 +29,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Moved `Connection` class initialisation to `HivenClient.connect()` and added
   deletion after the HivenClient closed to allow for a full-recreation if 
   the client reconnects.
+- Fixed HTTP `json.JSONDecodeError` on empty responses for success returns `200`
 - Moved value configuration of `host`, `api_version`, `heartbeat` and 
   `close_timeout` to `HivenClient.__init__()`
 - Fixed `rooms` and `entities` property in `House`
@@ -251,7 +258,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev3...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev4...v0.2.dev
+
+[v0.2.dev4]: https://github.com/Para-C/Para-C/compare/0.2.dev3...0.2.dev4
 
 [v0.2.dev3]: https://github.com/Para-C/Para-C/compare/0.2.dev2...0.2.dev3
 
