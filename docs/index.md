@@ -22,7 +22,5 @@ functionality for the Hiven Swarm and Hiven API. </h2>
     - `house_entity_update`
     - `relationship_update`
     - `presence_update`
-    - `message_create`
     - `message_update`
-    - `message_delete`
     - `typing_start`
