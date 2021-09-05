@@ -98,7 +98,7 @@ class LazyHouse(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['houses'][self.id]
+        return self._client.find_house(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -191,9 +191,16 @@ class LazyHouse(DataClassObject):
             if len(self._rooms) > 0:
                 if type(self._rooms[0]) is str:
                     rooms = []
-                    for d in self._rooms:
-                        room_data = self._client.storage['rooms']['house'][d]
-                        rooms.append(TextRoom(room_data, client=self._client))
+                    for _id in self._rooms:
+                        room_data = self._client.find_room(str(_id))
+                        if room_data:
+                            rooms.append(
+                                TextRoom(room_data, client=self._client)
+                            )
+                        else:
+                            logger.warning(
+                                f"Unable to locate room {_id}"
+                            )
 
                     self._rooms = rooms
             else:
@@ -243,10 +250,10 @@ class House(LazyHouse):
     def owner(self) -> Optional[Member]:
         """ Owner Object of this House """
         from . import Member
-        if type(self._owner) is str:
+        if type(self._owner) is str and self._owner:
             data = self.get_cached_data()['members'].get(self._owner)
             if data:
-                data['user'] = self._client.storage['users'][data['user_id']]
+                data['user'] = self._client.find_user(data['user_id'])
                 self._owner = Member(data=data, client=self._client)
                 return self._owner
             else:
@@ -281,9 +288,16 @@ class House(LazyHouse):
             if len(self._entities) > 0:
                 if type(self._entities[0]) is str:
                     entities = []
-                    for d in self._entities:
-                        entity_data = self._client.storage['entities'][d]
-                        entities.append(Entity(entity_data, client=self._client))
+                    for _id in self._entities:
+                        entity_data = self._client.find_entity(str(_id))
+                        if _id:
+                            entities.append(
+                                Entity(entity_data, client=self._client)
+                            )
+                        else:
+                            logger.warning(
+                                f"Unable to locate entity {_id}"
+                            )
 
                     self._entities = entities
             else:
@@ -301,14 +315,16 @@ class House(LazyHouse):
     def members(self) -> Optional[List[Member]]:
         """ A list of members in this house """
         from . import Member
-        if type(self._members) is dict:
-            entities = []
+        if type(self._members) is dict and self._members:
+            members = []
             for d in dict(getattr(self, '_members')).values():
                 member_data = Member.format_obj_data(dict(d))
-                member_data['user'] = self._client.storage['users'][dict(d)['user_id']]
-                entities.append(Member(member_data, client=self._client))
+                member_data['user'] = self._client.find_user(
+                    dict(d)['user_id']
+                )
+                members.append(Member(member_data, client=self._client))
 
-            self._members = entities
+            self._members = members
             return self._members
         if type(self._members) is list:
             return self._members
@@ -412,7 +428,7 @@ class House(LazyHouse):
         :param entity_id: The id of the entity which should be fetched
         :return: The data in the cache if it was found
         """
-        return self._client.storage['entities'].get(entity_id)
+        return self._client.find_entity(entity_id)
 
     async def create_room(self, name: str, parent_entity_id: Optional[int] = None) -> Optional[TextRoom]:
         """

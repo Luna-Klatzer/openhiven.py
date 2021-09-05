@@ -145,15 +145,15 @@ class Member(User):
     def house(self) -> Optional[House]:
         """ Parent House object instance of this class """
         from . import House
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
             house_id = self._house
-        elif type(self.house_id) is str:
+        elif type(self.house_id) is str and self.house_id:
             house_id = self.house_id
         else:
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'].get(house_id)
+            data = self._client.find_house(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house

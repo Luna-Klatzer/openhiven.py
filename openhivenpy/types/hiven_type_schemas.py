@@ -376,7 +376,13 @@ MessageSchema: dict = {
             ],
             'default': None
         },
-        'exploding_age': {'default': None}
+        'exploding_age': {
+            'default': None
+        },
+        "recipient_ids": {
+            'type': 'object',
+            'default': None
+        }
     },
     'additionalProperties': False,
     'required': [
@@ -387,6 +393,8 @@ MessageSchema: dict = {
         'timestamp',
         'type',
         'mentions',
+        'exploding',
+        'exploding_age',
         'room_id',
         'bucket'
     ]

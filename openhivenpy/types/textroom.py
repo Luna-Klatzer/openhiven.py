@@ -98,7 +98,7 @@ class TextRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['house'][self.id]
+        return self._client.find_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -150,9 +150,9 @@ class TextRoom(DataClassObject):
     def house(self) -> Optional[House]:
         """ The parent house object """
         from . import House
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
             house_id = self._house
-        elif type(self.house_id) is str:
+        elif type(self.house_id) is str and self.house_id:
             house_id = self.house_id
         else:
             house_id = None

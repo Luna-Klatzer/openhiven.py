@@ -13,7 +13,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+- Support for private rooms and private group rooms in other type objects.
+  (Added proper checking of the existence of the id and finding)
+- `recipient_ids` in the object `Message`
+- Property `room_id`, `house_id` and `author_id` to the `Context` class   
 ### Changed
+- Integrated usage of the `HivenClient.find_*` methods, instead of direct
+  access of the storage in the type properties.
 ### Removed
 
 ## [v0.2.dev4] - 2021-09-03

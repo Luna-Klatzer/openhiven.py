@@ -91,7 +91,7 @@ class LazyUser(BaseUser):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['users'][self.id]
+        return self._client.find_user(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -206,15 +206,6 @@ class User(LazyUser):
         data = LazyUser.format_obj_data(data)
         data = cls.validate(data)
         return data
-
-    def get_cached_data(self) -> Optional[dict]:
-        """
-        Fetches the most recent data from the cache based on the instance id.
-
-        If updated while the object exists, the data might differentiate, due
-        to the object not being updated unlike the cache.
-        """
-        return self._client.storage['users'][self.id]
 
     @property
     def location(self) -> Optional[str]:

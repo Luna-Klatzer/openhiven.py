@@ -196,7 +196,7 @@ The user logged successfully into the account, and the init data is sent with it
 ## `MESSAGE_CREATE`
 [Docs · `on_message_create()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_create)
 
-??? abstract "Expected json-data"
+??? abstract "Expected json-data - HOUSE MESSAGE "
 
     ```json
     "op": 0,
@@ -244,7 +244,7 @@ The user logged successfully into the account, and the init data is sent with it
         },
         "id": str,
         "house_id": str,
-        "exploding_age": int,
+        "exploding_age": int | None,
         "exploding": bool,
         "device_id": str,
         "content": str,
@@ -270,6 +270,46 @@ The user logged successfully into the account, and the init data is sent with it
                 "height": int
             }
         }
+    }
+    ```
+
+??? abstract "Expected json-data - HOUSE MESSAGE "
+
+    ```json
+    {
+        "author": {
+            // User Object
+            "username": str,
+            "flags": str | int | None,
+            "name": str,
+            "id": str,
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
+        },
+        "author_id": str,
+        "bucket": int,
+        "content": str,
+        "device_id": str,
+        "exploding": bool,
+        "exploding_age": int | None,
+        "id": str,
+        "mentions": [{
+            // Mention object aka. user object
+            "username": str,
+            "flags": str | int | None,
+            "name": str,
+            "id": str,
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None,
+            "bot": bool | None
+        } ... ],
+        "recipient_ids": [
+            // List of user ids - str
+        ],
+        "room_id": str,
+        "timestamp": int
     }
     ```
 
@@ -311,7 +351,7 @@ The user logged successfully into the account, and the init data is sent with it
         }, ...],
         "id": str,
         "house_id": str,
-        "exploding_age": int,
+        "exploding_age": int | None,
         "exploding": bool,
         "embed": {
             // Embed Object

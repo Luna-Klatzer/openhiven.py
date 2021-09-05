@@ -86,7 +86,7 @@ class Entity(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['entities'].get(self.id)
+        return self._client.find_entity(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -145,8 +145,15 @@ class Entity(DataClassObject):
                 resource_pointers = []
                 for d in self._resource_pointers:
                     if d['resource_type'] == "room":
-                        data = self._client.storage['rooms']['house'][d['resource_id']]
-                        resource_pointers.append(TextRoom(data, client=self._client))
+                        data = self._client.find_room(d['resource_id'])
+                        if data:
+                            resource_pointers.append(
+                                TextRoom(data, client=self._client)
+                            )
+                        else:
+                            logger.warning(
+                                f"Unable to locate room {d['resource_id']}"
+                            )
                     else:
                         resource_pointers.append(d)
 
@@ -180,15 +187,15 @@ class Entity(DataClassObject):
     def house(self) -> Optional[House]:
         """ House object of the entity """
         from . import House
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
             house_id = self._house
-        elif type(self.house_id) is str:
+        elif type(self.house_id) is str and self.house_id:
             house_id = self.house_id
         else:
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'].get(house_id)
+            data = self._client.find_house(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house

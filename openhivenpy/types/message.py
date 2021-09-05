@@ -132,6 +132,7 @@ class Message(DataClassObject):
         self._bucket = data.get('bucket')
         self._device_id = data.get('device_id')
         self._exploding_age = data.get('exploding_age')
+        self._recipient_ids = data.get('recipient_ids')
         self._client = client
 
     def __str__(self) -> str:
@@ -245,15 +246,15 @@ class Message(DataClassObject):
     def author(self) -> Optional[User]:
         """ Returns the Author parent object instance """
         from .user import User
-        if type(self._author) is str:
+        if type(self._author) is str and self._author:
             author_id = self._author
-        elif type(self.author_id) is str:
+        elif type(self.author_id) is str and self.author_id:
             author_id = self.author_id
         else:
             author_id = None
 
-        if type(author_id) is str:
-            data = self._client.storage['users'].get(author_id)
+        if author_id:
+            data = self._client.find_house(author_id)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -290,6 +291,13 @@ class Message(DataClassObject):
         return getattr(self, '_exploding', None)
 
     @property
+    def recipient_ids(self) -> Optional[List[str]]:
+        """
+        A list of all recipients in the room - unique for the private rooms
+        """
+        return getattr(self, '_exploding', None)
+
+    @property
     def edited_at(self) -> Optional[str]:
         """ Returns the date the message was edited (unix-timestamp) """
         return getattr(self, '_edited_at', None)
@@ -298,8 +306,23 @@ class Message(DataClassObject):
     def room(self) -> Optional[TextRoom]:
         """ Returns the Room parent object the message was sent in """
         from . import TextRoom
-        if type(self._room) is str:
-            data = self._client.storage['rooms']['house'].get(self._room)
+        if type(self._room) is str and self._room:
+            room_id = self._room
+        elif type(self.room_id) is str and self.room_id:
+            room_id = self.room_id
+        else:
+            room_id = None
+
+        if room_id:
+            if self.recipient_ids is not None:
+                # Private room msg
+                data = self._client.find_private_room(room_id)
+                if not data:
+                    # Private group room msg
+                    data = self._client.find_private_group_room(room_id)
+            else:
+                # House msg
+                data = self._client.find_room(room_id)
             if data:
                 self._room = TextRoom(data=data, client=self._client)
                 return self._room
@@ -317,8 +340,8 @@ class Message(DataClassObject):
         Returns the House parent object, if the message was sent inside a House
         """
         from .house import House
-        if type(self._house) is str:
-            data = self._client.storage['houses'].get(self._house)
+        if type(self._house) is str and self._house:
+            data = self._client.find_house(self.house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
@@ -334,7 +357,7 @@ class Message(DataClassObject):
     def attachment(self) -> Optional[Attachment]:
         """ Returns the Attachment of the message, if it has one """
         from .attachment import Attachment
-        if type(self._attachment) is dict:
+        if type(self._attachment) is dict and self._attachment:
             self._attachment: Union[Attachment, dict] = Attachment(
                 data=self._attachment, client=self._client
             )

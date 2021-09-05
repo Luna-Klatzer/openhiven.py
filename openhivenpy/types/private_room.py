@@ -88,7 +88,7 @@ class PrivateGroupRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['private']['group'][self.id]
+        return self._client.find_private_group_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -277,7 +277,7 @@ class PrivateRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['private']['single'][self.id]
+        return self._client.find_private_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
