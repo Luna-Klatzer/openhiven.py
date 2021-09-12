@@ -85,19 +85,19 @@ class TestEmbed:
             assert False
 
     def test_format_obj_data(self):
-        input = {
+        _input = {
             'url': "https://link-image/stuff",
             'type': 2,
             'image': "https://link-image/stuff.png",
             'description': "Description",
             'title': "Test"
         }
-        data = Embed.format_obj_data(input)
-        assert data['url'] == input['url']
-        assert data['type'] == input['type']
-        assert data['image'] == input['image']
-        assert data['description'] == input['description']
-        assert data['title'] == input['title']
+        data = Embed.format_obj_data(_input)
+        assert data['url'] == _input['url']
+        assert data['type'] == _input['type']
+        assert data['image'] == _input['image']
+        assert data['description'] == _input['description']
+        assert data['title'] == _input['title']
 
         client = openhivenpy.UserClient()
         obj = Embed(data, client)

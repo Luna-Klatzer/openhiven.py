@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import os
 from copy import deepcopy
@@ -7,7 +8,10 @@ from pathlib import Path
 import pytest
 
 import openhivenpy
-from openhivenpy import House, Message
+from openhivenpy import House, Message, User, TextRoom
+
+OPENHIVENPY_TEST_HOUSE_ID = "276672055112364464"
+OPENHIVENPY_TEST_ROOM_ID = "285087212549176390"
 
 
 def read_config_file():
@@ -234,169 +238,17 @@ class TestListeners:
 
         _client.run(token)
 
-    def test_on_room_create(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('room_create', {})
-
-        @_client.event()
-        async def on_room_create(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_room_update(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('room_update', {})
-
-        @_client.event()
-        async def on_room_update(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_room_delete(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('room_delete', {})
-
-        @_client.event()
-        async def on_room_delete(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    @pytest.mark.parametrize(
-        'name', ('house_member_online', 'house_member_enter')
-    )
-    def test_on_house_member_online(self, name, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch(name, {})
-
-        @_client.event()
-        async def on_house_member_online(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    @pytest.mark.parametrize(
-        'name', ('house_member_offline', 'house_member_exit')
-    )
-    def test_on_house_member_offline(self, name, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch(name, {})
-
-        @_client.event()
-        async def on_house_member_offline(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_house_member_join(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_join', {})
-
-        @_client.event()
-        async def on_house_member_join(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_house_member_leave(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_leave', {})
-
-        @_client.event()
-        async def on_house_member_leave(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_house_member_update(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_update', {})
-
-        @_client.event()
-        async def on_house_member_update(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_house_member_chunk(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('house_member_chunk', {})
-
-        @_client.event()
-        async def on_house_member_chunk(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
-    def test_on_relationship_update(self, token):
-        _client = openhivenpy.UserClient()
-
-        @_client.event()
-        async def on_ready():
-            print("\non_ready was called!")
-            await _client.parsers.dispatch('relationship_update', {})
-
-        @_client.event()
-        async def on_relationship_update(*args, **kwargs):
-            print("Received")
-            await _client.close()
-
-        _client.run(token)
-
     def test_on_presence_update(self, token):
         _client = openhivenpy.UserClient()
 
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('presence_update', {})
+
+            user = list(_client.storage['users'].values())[0]
+            await _client.parsers.dispatch(
+                'presence_update', user
+            )
 
         @_client.event()
         async def on_presence_update(*args, **kwargs):
@@ -413,8 +265,8 @@ class TestListeners:
             print("\non_ready was called!")
 
             # TODO! Change with Mock API
-            house = _client.get_house("276672055112364464")
-            room = house.get_room("285087212549176390")
+            house = _client.get_house(OPENHIVENPY_TEST_HOUSE_ID)
+            room = house.get_room(OPENHIVENPY_TEST_ROOM_ID)
             await room.send("Test message from openhiven.py")
 
         @_client.event()
@@ -431,10 +283,15 @@ class TestListeners:
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('message_update', {})
+
+            house = _client.get_house(OPENHIVENPY_TEST_HOUSE_ID)
+            room = house.get_room(OPENHIVENPY_TEST_ROOM_ID)
+            msg = await room.send("Test message from openhiven.py")
+            await msg.edit("Test message from openhiven.py (edited)")
 
         @_client.event()
-        async def on_message_update(*args, **kwargs):
+        async def on_message_update(msg: Message):
+            assert msg
             print("Received")
             await _client.close()
 
@@ -448,8 +305,8 @@ class TestListeners:
             print("\non_ready was called!")
 
             # TODO! Change with Mock API
-            house = _client.get_house("276672055112364464")
-            room = house.get_room("285087212549176390")
+            house = _client.get_house(OPENHIVENPY_TEST_HOUSE_ID)
+            room = house.get_room(OPENHIVENPY_TEST_ROOM_ID)
             await room.send("Test message from openhiven.py")
 
         @_client.event()
@@ -473,10 +330,18 @@ class TestListeners:
         @_client.event()
         async def on_ready():
             print("\non_ready was called!")
-            await _client.parsers.dispatch('typing_start', {})
+
+            room = _client.get_room(OPENHIVENPY_TEST_ROOM_ID)
+            await room.start_typing()
 
         @_client.event()
-        async def on_typing_start(*args, **kwargs):
+        async def on_typing_start(
+                user: User, room: TextRoom, timestamp: datetime.datetime
+        ):
+            assert user
+            assert room
+            assert timestamp
+
             print("Received")
             await _client.close()
 

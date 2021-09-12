@@ -41,7 +41,7 @@ from .hiven_type_schemas import MessageSchema, get_compiled_validator, \
     DeletedMessageSchema
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, HTTPForbiddenError
+from ..exceptions import InvalidPassedDataError
 from ..utils import log_type_exception
 
 if TYPE_CHECKING:
@@ -436,13 +436,13 @@ class Message(DataClassObject):
         """ Returns the exploding age of the message """
         return getattr(self, '_exploding_age', None)
 
-    async def mark_as_read(self, delay: float = None) -> bool:
+    async def mark_as_read(self, delay: float = None) -> None:
         """
         Marks the message as read. This doesn't need to be done for bot
         clients.
         
         :param delay: Delay until marking the message as read (in seconds)
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if delay is not None:
@@ -450,58 +450,51 @@ class Message(DataClassObject):
             await self._client.http.post(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack"
             )
-            return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to mark message as read {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
+            raise e
 
-    async def delete(self, delay: float = None) -> bool:
+    async def delete(self, delay: float = None) -> None:
         """
         Deletes the message. Raises Forbidden if not allowed.
         
         :param delay: Delay until deleting the message as read (in seconds)
-        :return: A DeletedMessage object if successful
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if delay is not None:
                 await asyncio.sleep(delay=delay)
 
-            resp = await self._client.http.delete(
+            await self._client.http.delete(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}"
             )
-
-            if not resp.status < 300:
-                raise HTTPForbiddenError()
-            else:
-                return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to delete the message {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
+            raise e
 
-    async def edit(self, content: str) -> bool:
+    async def edit(self, content: str) -> None:
         """
         Edits a message on Hiven
             
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             await self._client.http.patch(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
                 json={'content': content}
             )
-            return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to edit message {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            return False
+            raise e

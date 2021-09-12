@@ -42,7 +42,7 @@ from typing import TYPE_CHECKING
 from .. import types
 from .. import utils
 from ..base_types import HivenObject
-from ..exceptions import InitializationError
+from ..exceptions import InvalidPassedDataError
 
 if TYPE_CHECKING:
     from .. import HivenClient
@@ -155,9 +155,54 @@ class ClientCache(dict, HivenObject):
 
         return client_user
 
+    def add_or_update_house_member(self, item_data: dict) -> dict:
+        """
+        Adds or updates a member inside a House storage
+        
+        :return: The validated data using `format_obj_data` of the Member class
+        """
+        self.check_if_initialised()
+        try:
+            # If not dict -> User property was replaced -
+            # house.format_obj_data() replaced it with the ids of the
+            # corresponding users
+            if type(item_data['user']) is not dict:
+                item_data['user'] = self.client.find_user(item_data['user'])
+
+            member = types.Member.format_obj_data(item_data)
+
+            mem_id = item_data['user_id'] if item_data.get('user_id') \
+                else item_data.get('user', {}).get('id')
+            house_id = item_data['house_id']
+
+            if mem_id in self['houses'][house_id]['members'].keys():
+                self['houses'][house_id]['members'][mem_id].update(member)
+            else:
+                self['houses'][house_id]['members'][mem_id] = member
+
+            user = types.User.format_obj_data(item_data['user'])
+            self.add_or_update_user(user)
+
+            return member
+
+        except Exception as e:
+            utils.log_traceback(
+                brief=f"Failed to add a new member to the Client cache:",
+                exc_info=sys.exc_info()
+            )
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
+            ) from e
+
+    def remove_house_member(self, member_id: str, house_id: str) -> None:
+        """ Removes a house from the cache """
+        self.check_if_initialised()
+        del self['houses'][house_id]['members'][member_id]
+
     def add_or_update_house(self, item_data: dict) -> dict:
         """
-        Adds or Updates a house to the cache and updates the storage
+        Adds or updates a house to the cache and updates the storage
         appropriately
 
         :return: The validated data using `format_obj_data` of the House class
@@ -168,17 +213,17 @@ class ClientCache(dict, HivenObject):
             id_ = data['id']
             for room in data['rooms']:
                 room['house_id'] = id_
-                room = types.TextRoom.format_obj_data(room)
                 self.add_or_update_room(room)
 
             for member in data['members']:
                 member['house_id'] = id_
+
+                # Adding the users already
                 user = types.User.format_obj_data(member['user'])
                 self.add_or_update_user(user)
 
             for entity in data['entities']:
                 entity['house_id'] = id_
-                entity = types.Entity.format_obj_data(entity)
                 self.add_or_update_entity(entity)
 
             data = types.House.format_obj_data(data)
@@ -195,6 +240,10 @@ class ClientCache(dict, HivenObject):
             else:
                 self['houses'][id_].update(data)
 
+            # After the House was created altering the cached data
+            for member in data['members'].values():
+                self.add_or_update_house_member(member)
+
             return data
 
         except Exception as e:
@@ -202,21 +251,30 @@ class ClientCache(dict, HivenObject):
                 brief=f"Failed to add a new house to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_house(self, _id: str) -> None:
         """ Removes a house from the cache """
         self.check_if_initialised()
-        del self['houses'][_id]
 
+        for room in self['houses'][_id]['rooms']:
+            room: str
+            self.remove_room(room)
+
+        for entity in self['houses'][_id]['entities']:
+            entity: str
+            self.remove_entity(entity)
+
+        del self['houses'][_id]
         self['house_ids']: list
         self['house_ids'].remove(_id)
 
     def add_or_update_user(self, item_data: dict) -> dict:
         """
-        Adds or Updates a user to the cache and updates the storage
+        Adds or updates a user to the cache and updates the storage
         appropriately
 
         :return: The validated data using `format_obj_data` of the User class
@@ -238,11 +296,12 @@ class ClientCache(dict, HivenObject):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to add a new house to the Client cache:",
+                brief=f"Failed to add a new user to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_user(self, _id: str) -> None:
@@ -252,7 +311,7 @@ class ClientCache(dict, HivenObject):
 
     def add_or_update_room(self, item_data: dict) -> dict:
         """
-        Adds or Updates a room to the cache and updates the storage
+        Adds or updates a room to the cache and updates the storage
         appropriately
 
         :return: The validated data using `format_obj_data` of the Room class
@@ -270,11 +329,12 @@ class ClientCache(dict, HivenObject):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to add a new house to the Client cache:",
+                brief=f"Failed to add a new room to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_room(self, _id: str) -> None:
@@ -284,7 +344,7 @@ class ClientCache(dict, HivenObject):
 
     def add_or_update_entity(self, item_data: dict) -> dict:
         """
-        Adds or Updates a entity to the cache and updates the storage
+        Adds or updates a entity to the cache and updates the storage
         appropriately
 
         :return: The validated data using `format_obj_data` of the Entity class
@@ -302,11 +362,12 @@ class ClientCache(dict, HivenObject):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to add a new house to the Client cache:",
+                brief=f"Failed to add a new entity to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_entity(self, _id: str) -> None:
@@ -316,7 +377,7 @@ class ClientCache(dict, HivenObject):
 
     def add_or_update_private_room(self, item_data: dict) -> dict:
         """
-        Adds or Updates a private room to the cache and updates the storage
+        Adds or updates a private room to the cache and updates the storage
         appropriately
 
         :return: The validated data using `format_obj_data` of the
@@ -345,11 +406,12 @@ class ClientCache(dict, HivenObject):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to add a new house to the Client cache:",
+                brief=f"Failed to add a new private room to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_private_room(self, _id: str) -> None:
@@ -367,7 +429,7 @@ class ClientCache(dict, HivenObject):
 
     def add_or_update_relationship(self, item_data: dict) -> dict:
         """
-        Adds or Updates a client relationship to the cache and updates the
+        Adds or updates a client relationship to the cache and updates the
         storage appropriately
 
         :return: The validated data using `format_obj_data` of the Relationship
@@ -376,7 +438,19 @@ class ClientCache(dict, HivenObject):
         self.check_if_initialised()
         try:
             data = deepcopy(item_data)
-            id_ = data['user_id']
+
+            if 'user_id' in data.keys():
+                id_ = data['user_id']
+            elif 'id' in data.keys():
+                id_ = data['id']
+            elif data.get('user'):
+                id_ = data['user']['id']
+            else:
+                raise InvalidPassedDataError(
+                    "The data does not contain any correct id item"
+                    " or user field",
+                    data=data
+                )  # how?
 
             if data.get('user'):
                 self.add_or_update_user(data['user'])
@@ -390,11 +464,12 @@ class ClientCache(dict, HivenObject):
 
         except Exception as e:
             utils.log_traceback(
-                brief=f"Failed to add a new house to the Client cache:",
+                brief=f"Failed to add a new relationship to the Client cache:",
                 exc_info=sys.exc_info()
             )
-            raise InitializationError(
-                "Failed to update the cache due to an exception occurring"
+            raise InvalidPassedDataError(
+                "Failed to update the cache due to faulty data being passed",
+                data=item_data
             ) from e
 
     def remove_relationship(self, _id: str) -> None:

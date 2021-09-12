@@ -160,7 +160,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   handling
 - `username` option for `Client.edit(**kwargs)`
 - `create_private_group_room` as method in the class `HivenClient`
-- Until now missing entity object to the event `on_house_entity_update`
+- Until now missing entity object to the event `on_house_entities_update`
 
 ### Changed
 

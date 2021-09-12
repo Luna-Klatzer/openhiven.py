@@ -136,8 +136,11 @@ class LazyHouse(DataClassObject):
             members = data['members']
             data['members'] = {}
             for member_ in members:
-                id_ = member_['user_id'] if member_.get('user_id') else member_.get('user', {}).get('id')
-                data['members'][id_] = utils.update_and_return(member_, user=id_)
+                id_ = member_['user_id'] if member_.get('user_id') \
+                    else member_.get('user', {}).get('id')
+                data['members'][id_] = utils.update_and_return(
+                    member_, user=id_  # replacing the object with an id ref
+                )
 
         if type(data.get('roles')) is list:
             roles = data['roles']
@@ -174,7 +177,9 @@ class LazyHouse(DataClassObject):
     def icon(self) -> Optional[str]:
         """ URL to the ICON of this house. None if it doesn't exist """
         if getattr(self, '_icon', None):
-            return "https://media.hiven.io/v1/houses/{}/icons/{}".format(self.id, self._icon)
+            return "https://media.hiven.io/v1/houses/{}/icons/{}".format(
+                self.id, self._icon
+            )
         else:
             return None
 
@@ -314,15 +319,13 @@ class House(LazyHouse):
     @property
     def members(self) -> Optional[List[Member]]:
         """ A list of members in this house """
-        from . import Member
+
         if type(self._members) is dict and self._members:
             members = []
             for d in dict(getattr(self, '_members')).values():
-                member_data = Member.format_obj_data(dict(d))
-                member_data['user'] = self._client.find_user(
-                    dict(d)['user_id']
-                )
-                members.append(Member(member_data, client=self._client))
+                members.append(self._client.get_house_member(
+                    d['user'], house_id=self.id
+                ))
 
             self._members = members
             return self._members
@@ -336,37 +339,27 @@ class House(LazyHouse):
         """ Returns the default permissions for this House """
         return getattr(self, '_default_permissions', None)
 
-    def get_member(self, member_id: str) -> Optional[Member]:
+    def get_member(
+            self, member_id: str
+    ) -> Optional[Member]:
         """
         Fetches a member from the cache based on the id
 
+        :param member_id: The id of the Member which should be fetched
         :return: The Member Instance if it exists else returns None
         """
-        try:
-            from . import Member
+        return self._client.get_house_member(member_id, self.id)
 
-            cached_member = self.find_member(member_id)
-            if cached_member:
-                return Member(cached_member, self._client)
-
-            return None
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to get the member with id {member_id}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            raise
-
-    def find_member(self, member_id: str) -> Optional[dict]:
+    def find_member(
+            self, member_id: str
+    ) -> Optional[dict]:
         """
         Fetches the raw data of a member
 
-        :param member_id: The id of the member which should be fetched
-        :return: The data in the cache if it was found
+        :param member_id: The id of the Member which should be fetched
+        :return: The dictionary of the member if it was found
         """
-        return self._member_data.get(member_id)
+        return self._client.find_house_member(member_id, self.id)
 
     def get_room(self, room_id: str) -> Optional[TextRoom]:
         """
@@ -374,21 +367,7 @@ class House(LazyHouse):
 
         :return: The Room Instance if it exists else returns None
         """
-        try:
-            from . import TextRoom
-            cached_room = self.find_room(room_id)
-            if cached_room:
-                return TextRoom(cached_room, self._client)
-
-            return None
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to get the room with id {room_id} in house {repr(self)}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return None
+        return self._client.get_room(room_id)
 
     def find_room(self, room_id: str) -> Optional[dict]:
         """
@@ -397,7 +376,7 @@ class House(LazyHouse):
         :param room_id: The id of the room which should be fetched
         :return: The data in the cache if it was found
         """
-        return self._client.storage['rooms']['house'].get(room_id)
+        return self._client.find_room(room_id)
 
     def get_entity(self, entity_id: str) -> Optional[Entity]:
         """
@@ -405,21 +384,7 @@ class House(LazyHouse):
 
         :return: The Entity Instance if it exists else returns None
         """
-        try:
-            from . import Entity
-            cached_entity = self.find_entity(entity_id)
-            if cached_entity:
-                return Entity(cached_entity, self._client)
-
-            return None
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to get the member with id {entity_id}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return None
+        return self._client.get_entity(entity_id)
 
     def find_entity(self, entity_id: str) -> Optional[dict]:
         """
@@ -430,11 +395,15 @@ class House(LazyHouse):
         """
         return self._client.find_entity(entity_id)
 
-    async def create_room(self, name: str, parent_entity_id: Optional[int] = None) -> Optional[TextRoom]:
+    async def create_room(
+            self, name: str, parent_entity_id: Optional[int] = None
+    ) -> Optional[TextRoom]:
         """
         Creates a Room in the house with the specified name. 
         
-        :return: A Room Instance for the Hiven Room that was created if successful else None
+        :return: A Room Instance for the Hiven Room that was created if
+         successful
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             from . import TextRoom
@@ -445,7 +414,9 @@ class House(LazyHouse):
             }
 
             # Creating the room using the api
-            resp = await self._client.http.post(f"/houses/{self._id}/rooms", json=json)
+            resp = await self._client.http.post(
+                f"/houses/{self._id}/rooms", json=json
+            )
             raw_data = await resp.json()
 
             data = TextRoom.format_obj_data(raw_data.get('data'))
@@ -456,8 +427,7 @@ class House(LazyHouse):
                 brief=f"Failed to create room '{name}' in house {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e
 
     async def create_entity(self, name: str) -> Optional[Entity]:
         """
@@ -472,7 +442,6 @@ class House(LazyHouse):
                 json={'name': name, 'type': 1}
             )
             raw_data = await resp.json()
-
             data = raw_data.get('data')
 
             # Fetching all existing ids
@@ -490,34 +459,33 @@ class House(LazyHouse):
                 brief=f"Failed to create category '{name}' in house {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e
 
-    async def leave(self) -> bool:
+    async def leave(self) -> None:
         """
         Leaves the house
-        
-        :return: True if it was successful else False
+
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
-            await self._client.http.delete(endpoint=f"/users/@me/houses/{self.id}")
-            return True
+            await self._client.http.delete(
+                endpoint=f"/users/@me/houses/{self.id}"
+            )
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to leave {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return False
+            raise e
 
-    async def edit(self, **kwargs) -> bool:
+    async def edit(self, **kwargs) -> None:
         """
         Changes the houses data on Hiven.
 
         Available options: name, icon(base64)
 
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             for key, data in kwargs.items():
@@ -525,7 +493,6 @@ class House(LazyHouse):
                     await self._client.http.patch(
                         endpoint=f"/houses/{self.id}", json={key: data}
                     )
-                    return True
                 else:
                     raise NameError(
                         "The passed value does not exist in the House!"
@@ -539,8 +506,7 @@ class House(LazyHouse):
                 brief=f"Failed edit request of values '{keys}' in house {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return False
+            raise e
 
     async def create_invite(self, max_uses: int) -> Optional[Invite]:
         """
@@ -548,6 +514,7 @@ class House(LazyHouse):
 
         :param max_uses: Maximal uses for the invite code
         :return: The invite url if successful.
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             from . import Invite
@@ -566,23 +533,20 @@ class House(LazyHouse):
                 brief=f"Failed to create invite for house {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e
 
-    async def delete(self) -> Optional[str]:
+    async def delete(self) -> None:
         """
         Deletes the house if permissions are sufficient!
         
-        :return: The house ID if successful else None
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             await self._client.http.delete(f"/houses/{self.id}")
-            return self.id
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to delete House {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e

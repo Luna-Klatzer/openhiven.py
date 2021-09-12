@@ -246,7 +246,7 @@ def safe_convert(
 ) -> Union[Any, None]:
     """
     Converts the passed value. If the conversion fails or the value is None
-    it will simply return the default if it not (the default) MISSING. If
+    it will simply return the default if it is not (the default) MISSING. If
     that's the case:
     - if it failed due to conversion error it will reraise the Exception.
     - else if the value was None it will return None as well.

@@ -125,12 +125,14 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
+            user = list(client.storage['users'].values())[0]
             await client.parsers.dispatch(
-                'presence_update', {}
+                'presence_update', user
             )
 
         @client.event()
-        async def on_presence_update(*args, **kwargs):
+        async def on_presence_update(user):
+            assert user
             print("Received")
             await client.close()
 
@@ -142,11 +144,15 @@ class TestHivenClient:
         @client.event()
         async def on_ready():
             print("\non_ready was called!")
-            client.message_broker.get_buffer("message_create").add_new_event(
-                {}, (), {})
+            user = list(client.storage['users'].values())[0]
+            await client.parsers.dispatch(
+                'presence_update', user
+            )
 
         @client.event()
-        async def on_message_create():
+        async def on_presence_update(user):
+            assert user
+            print("Received")
             await asyncio.sleep(10)
             await client.close()
 

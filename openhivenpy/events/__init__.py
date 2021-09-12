@@ -65,7 +65,7 @@ EVENTS = [
     'house_member_online',
     'house_member_offline',
     'house_member_update',
-    'house_member_chunk', 'batch_house_member_update',
+    'house_members_chunk', 'batch_house_member_update',
     'house_entity_update',
     'relationship_update',
     'presence_update',

@@ -38,9 +38,9 @@ __all__ = [
     'WebSocketFailedError', 'WebSocketClosedError', 'RestartSessionError',
 
     'HTTPError', 'HTTPSessionNotReadyError', 'HTTPRequestTimeoutError',
-    'HTTPFailedRequestError', 'HTTPForbiddenError', 'HTTPResponseError',
-    'HTTPReceivedNoDataError', 'HTTPNotFoundError', 'HTTPInternalServerError',
-    'HTTPRateLimitError',
+    'HTTPFailedRequestError', 'HTTPInvalidRequest', 'HTTPForbiddenError',
+    'HTTPResponseError', 'HTTPReceivedNoDataError', 'HTTPNotFoundError',
+    'HTTPInternalServerError', 'HTTPRateLimitError',
 
     'APIError',
 
@@ -186,7 +186,9 @@ class HTTPError(HivenGatewayError):
 
 
 class HTTPRequestTimeoutError(HTTPError):
-    """ The sent request did not finish in time and raised a timeout exception """
+    """
+    The sent request did not finish in time and raised a timeout exception
+    """
     error_msg = "Failed to perform request in time!"
 
     def __init__(self, *args):
@@ -203,20 +205,32 @@ class HTTPFailedRequestError(HTTPError):
 
 
 class HTTPNotFoundError(HTTPError):
-    """ Failed to reach the specified endpoint """
+    """
+    Failed to reach the specified endpoint
+
+    Possible response codes: 404
+    """
     error_msg = "Failed to reach the specified endpoint [Code: 404]"
 
 
 class HTTPRateLimitError(HTTPError):
-    """ Received a RateLimit which blocks the request from performing """
+    """
+    Received a RateLimit which blocks the request from performing
+
+    Possible response codes: 429
+    """
     error_msg = "Failed to reach the specified endpoint due to rate-limit " \
                 "[Code: 429]"
 
 
 class HTTPInternalServerError(HTTPError):
-    """ Failed to reach the specified endpoint """
+    """
+    Failed to reach the specified endpoint
+
+    Possible response codes: 500 - 511
+    """
     error_msg = "Failed to perform request due to Hiven internal server " \
-                "error [Code: 5**]"
+                "error [Code: 500-511]"
 
 
 class HTTPSessionNotReadyError(HTTPError):
@@ -224,10 +238,24 @@ class HTTPSessionNotReadyError(HTTPError):
     error_msg = "HTTP-Client not initialised"
 
 
+class HTTPInvalidRequest(HTTPError):
+    """
+    The client failed to perform the request due to an error
+
+    Possible response codes: 400-451 (except 401, 403 and 404)
+    """
+    error_msg = "The client failed to perform the request due to an error!" \
+                "[Code: 400-451]"
+
+
 class HTTPForbiddenError(HTTPFailedRequestError):
-    """ The client was forbidden to perform a Request """
+    """
+    The client was forbidden to perform a Request
+
+    Possible response codes: 401 and 403
+    """
     error_msg = "The client was forbidden to execute a certain task or " \
-                "function!"
+                "function! [Code: 401/403]"
 
 
 class HTTPResponseError(HTTPError):

@@ -37,8 +37,8 @@ from .. import types
 from .. import utils
 from ..base_types import HivenObject
 from ..events import HivenParsers, HivenEventHandler
-from ..exceptions import (SessionCreateError, InvalidTokenError,
-                          WebSocketFailedError, HivenConnectionError)
+from ..exceptions import (InvalidTokenError,
+                          HivenConnectionError)
 from ..gateway import Connection, HTTP, MessageBroker
 
 __all__ = ['HivenClient']
@@ -385,7 +385,7 @@ class HivenClient(HivenEventHandler, HivenObject):
                     asyncio.set_event_loop(loop)
                     self._loop = asyncio.get_event_loop()
                 else:
-                    raise
+                    raise e
 
         self.loop.run_until_complete(self.connect(token, restart=restart))
 
@@ -434,13 +434,21 @@ class HivenClient(HivenEventHandler, HivenObject):
         except KeyboardInterrupt:
             pass
 
-        except (InvalidTokenError, WebSocketFailedError) as e:
-            raise e
-
-        except SessionCreateError as e:
+        except InvalidTokenError as e:
             raise e
 
         except Exception as e:
+            try:
+                await self.close()
+            except Exception:
+                ...  # ignoring, since this errors is too big for all of us
+
+            del self._connection
+            self._connection = None
+
+            # Cleaning up the storage
+            self.storage.closing_cleanup()
+
             utils.log_traceback(
                 level='critical',
                 brief=f"Failed to keep alive connection to Hiven:",
@@ -449,12 +457,6 @@ class HivenClient(HivenEventHandler, HivenObject):
             raise HivenConnectionError(
                 f"Failed to keep alive connection to Hiven"
             ) from e
-        finally:
-            del self._connection
-            self._connection = None
-
-            # Cleaning up the storage
-            self.storage.closing_cleanup()
 
     async def close(
             self, force: bool = False, remove_listeners: bool = True
@@ -474,14 +476,13 @@ class HivenClient(HivenEventHandler, HivenObject):
         await self.connection.close(force, remove_listeners)
         logger.debug(f"[HIVENCLIENT] Client {repr(self)} was closed")
 
-    async def edit(self, **kwargs) -> bool:
+    async def edit(self, **kwargs) -> None:
         """
         Edits the Clients data on Hiven
 
-
         Available options: header, icon, bio, location, website, username
 
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             for key in kwargs.keys():
@@ -490,8 +491,6 @@ class HivenClient(HivenEventHandler, HivenObject):
                     await self.http.patch(
                         endpoint="/users/@me", json={key: kwargs.get(key)}
                     )
-
-                    return True
                 else:
                     raise NameError(
                         "The passed value does not exist in the Client!"
@@ -504,7 +503,7 @@ class HivenClient(HivenEventHandler, HivenObject):
                 brief=f"Failed change the values {keys}:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e
 
     def get_user(self, user_id: str) -> Optional[types.User]:
         """
@@ -739,3 +738,34 @@ class HivenClient(HivenEventHandler, HivenObject):
             return dict(raw_data)
         else:
             return None
+
+    def get_house_member(
+            self, member_id: str, house_id: str
+    ) -> Optional[types.Member]:
+        """
+        Fetches a member from the cache based on the id
+
+        :param member_id: The id of the Member which should be fetched
+        :param house_id: The id of the House the Member is in
+        :return: The Member Instance if it exists else returns None
+        """
+        cached_member = self.find_house_member(member_id, house_id)
+        if cached_member:
+            return types.Member(cached_member, self._client)
+
+        return None
+
+    def find_house_member(
+            self, member_id: str, house_id: str
+    ) -> Optional[dict]:
+        """
+        Fetches the raw data of a member
+
+        :param member_id: The id of the Member which should be fetched
+        :param house_id: The id of the House the Member is in
+        :return: The dictionary of the member if it was found
+        """
+        return self.storage['houses']\
+            .get(house_id, {})\
+            .get('members', {})\
+            .get(member_id)

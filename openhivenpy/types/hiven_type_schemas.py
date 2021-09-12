@@ -457,6 +457,8 @@ RelationshipSchema: dict = {
     'type': 'object',
     'properties': {
         'user_id': {'type': 'string'},
+        'recipient_id': {'type': 'string'},
+        'id': {'type': 'string'},
         'user': {
             'anyOf': [
                 {'type': 'string'},
@@ -468,7 +470,7 @@ RelationshipSchema: dict = {
         'last_updated_at': {'type': 'string'}
     },
     'additionalProperties': False,
-    'required': ['user_id', 'type']
+    'required': ['type']
 }
 
 TextRoomSchema: dict = {
@@ -668,5 +670,5 @@ MemberSchema: dict = {
         'last_permission_update': {'default': None}
     },
     'additionalProperties': False,
-    'required': ['user', 'user_id', 'house_id', 'joined_at']
+    'required': ['user', 'house_id', 'joined_at']
 }

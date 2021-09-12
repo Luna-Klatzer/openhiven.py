@@ -79,15 +79,15 @@ class TestAttachment:
             assert False
 
     def test_format_obj_data(self):
-        input = {
+        _input = {
             'filename': 'test',
             'media_url': 'test',
             'raw': {},
         }
-        data = Attachment.format_obj_data(input)
+        data = Attachment.format_obj_data(_input)
         assert data['raw'].get('raw', None) is None
         assert data == {
-            **input,
+            **_input,
             'raw': {
                 'filename': 'test',
                 'media_url': 'test',
@@ -96,5 +96,5 @@ class TestAttachment:
 
         client = openhivenpy.UserClient()
         obj = Attachment(data, client)
-        assert obj.filename == input['filename']
-        assert obj.media_url == input['media_url']
+        assert obj.filename == _input['filename']
+        assert obj.media_url == _input['media_url']
