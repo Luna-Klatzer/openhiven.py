@@ -940,6 +940,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.find_house_member" class="md-nav__link">
+    find_house_member()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.find_private_group_room" class="md-nav__link">
     find_private_group_room()
   </a>
@@ -984,6 +991,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.get_house" class="md-nav__link">
     get_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.get_house_member" class="md-nav__link">
+    get_house_member()
   </a>
   
 </li>
@@ -1789,6 +1803,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.find_house_member" class="md-nav__link">
+    find_house_member()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.find_private_group_room" class="md-nav__link">
     find_private_group_room()
   </a>
@@ -1833,6 +1854,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.client.hivenclient.HivenClient.get_house" class="md-nav__link">
     get_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.hivenclient.HivenClient.get_house_member" class="md-nav__link">
+    get_house_member()
   </a>
   
 </li>
@@ -3254,13 +3282,21 @@ the Event Processing Loop</p>
     <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
         <span class="k">pass</span>
 
-    <span class="k">except</span> <span class="p">(</span><span class="n">InvalidTokenError</span><span class="p">,</span> <span class="n">WebSocketFailedError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">e</span>
-
-    <span class="k">except</span> <span class="n">SessionCreateError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">InvalidTokenError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">e</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="o">...</span>  <span class="c1"># ignoring, since this errors is too big for all of us</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connection</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Cleaning up the storage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">closing_cleanup</span><span class="p">()</span>
+
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">level</span><span class="o">=</span><span class="s1">&#39;critical&#39;</span><span class="p">,</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to keep alive connection to Hiven:&quot;</span><span class="p">,</span>
@@ -3269,12 +3305,6 @@ the Event Processing Loop</p>
         <span class="k">raise</span> <span class="n">HivenConnectionError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Failed to keep alive connection to Hiven&quot;</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connection</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_connection</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># Cleaning up the storage</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">closing_cleanup</span><span class="p">()</span>
 </code></pre></div>
         </details>
     </div>
@@ -3301,7 +3331,7 @@ the Event Processing Loop</p>
       <p>Edits the Clients data on Hiven</p>
 <p>Available options: header, icon, bio, location, website, username</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -3310,22 +3340,21 @@ the Event Processing Loop</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Edits the Clients data on Hiven</span>
 
-
 <span class="sd">    Available options: header, icon, bio, location, website, username</span>
 
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -3334,8 +3363,6 @@ the Event Processing Loop</p>
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
                     <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;/users/@me&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)}</span>
                 <span class="p">)</span>
-
-                <span class="k">return</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span>
                     <span class="s2">&quot;The passed value does not exist in the Client!&quot;</span>
@@ -3348,7 +3375,7 @@ the Event Processing Loop</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed change the values </span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -3497,6 +3524,84 @@ the Event Processing Loop</p>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.hivenclient.HivenClient.find_house_member" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">find_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">,</span> <span class="n">house_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.hivenclient.HivenClient.find_house_member" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Fetches the raw data of a member</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>member_id</code></td>
+        <td><code>str</code></td>
+        <td><p>The id of the Member which should be fetched</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>house_id</code></td>
+        <td><code>str</code></td>
+        <td><p>The id of the House the Member is in</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[dict]</code></td>
+      <td><p>The dictionary of the member if it was found</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_house_member</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">house_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches the raw data of a member</span>
+
+<span class="sd">    :param member_id: The id of the Member which should be fetched</span>
+<span class="sd">    :param house_id: The id of the House the Member is in</span>
+<span class="sd">    :return: The dictionary of the member if it was found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">]</span>\
+        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">house_id</span><span class="p">,</span> <span class="p">{})</span>\
+        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;members&#39;</span><span class="p">,</span> <span class="p">{})</span>\
+        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -4033,6 +4138,85 @@ changes are made while the instance exists the data will not be updated!</p>
 
 
 
+<h4 id="openhivenpy.client.hivenclient.HivenClient.get_house_member" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">,</span> <span class="n">house_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.hivenclient.HivenClient.get_house_member" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Fetches a member from the cache based on the id</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>member_id</code></td>
+        <td><code>str</code></td>
+        <td><p>The id of the Member which should be fetched</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>house_id</code></td>
+        <td><code>str</code></td>
+        <td><p>The id of the House the Member is in</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[openhivenpy.types.member.Member]</code></td>
+      <td><p>The Member Instance if it exists else returns None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\hivenclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_house_member</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">house_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">Member</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches a member from the cache based on the id</span>
+
+<span class="sd">    :param member_id: The id of the Member which should be fetched</span>
+<span class="sd">    :param house_id: The id of the House the Member is in</span>
+<span class="sd">    :return: The Member Instance if it exists else returns None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cached_member</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_house_member</span><span class="p">(</span><span class="n">member_id</span><span class="p">,</span> <span class="n">house_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cached_member</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Member</span><span class="p">(</span><span class="n">cached_member</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
 <h4 id="openhivenpy.client.hivenclient.HivenClient.get_private_group_room" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_private_group_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_id</span><span class="p">)</span></code>
 
@@ -4502,7 +4686,7 @@ the instance exists the data will not be updated!</p>
                 <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span>
+                <span class="k">raise</span> <span class="n">e</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="n">restart</span><span class="p">))</span>
 </code></pre></div>
@@ -4593,21 +4777,6 @@ so all properties and methods can be used here as well.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful</p></td>
-    </tr>
-  </tbody>
-</table>
 <p><strong>Exceptions:</strong></p>
 <table>
   <thead>
@@ -4619,20 +4788,18 @@ so all properties and methods can be used here as well.</p>
   <tbody>
       <tr>
         <td><code>HTTPError</code></td>
-        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">block_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">block_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Blocks a user on Hiven</span>
 
 <span class="sd">    :param user: Int or User Object used for the request</span>
-<span class="sd">    :return: True if the request was successful</span>
-<span class="sd">    :raises HTTPError: If the request was unsuccessful and an error was</span>
-<span class="sd">     encountered</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
@@ -4642,9 +4809,7 @@ so all properties and methods can be used here as well.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected User or int! Not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/blocked/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/blocked/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">user_id</span> <span class="o">=</span> <span class="n">user</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -4652,7 +4817,7 @@ so all properties and methods can be used here as well.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to block user with id </span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -4697,21 +4862,6 @@ so all properties and methods can be used here as well.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful</p></td>
-    </tr>
-  </tbody>
-</table>
 <p><strong>Exceptions:</strong></p>
 <table>
   <thead>
@@ -4727,22 +4877,20 @@ so all properties and methods can be used here as well.</p>
       </tr>
       <tr>
         <td><code>HTTPError</code></td>
-        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">cancel_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">cancel_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cancels an open friend request if it exists</span>
 
 <span class="sd">    :param user: Int or User Object used for the request</span>
-<span class="sd">    :return: True if the request was successful</span>
 <span class="sd">    :raises TypeError: If the passed user is not one of the types: int or</span>
 <span class="sd">     types.User</span>
-<span class="sd">    :raises HTTPError: If the request was unsuccessful and an error was</span>
-<span class="sd">     encountered</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
@@ -4754,10 +4902,9 @@ so all properties and methods can be used here as well.</p>
                 <span class="sa">f</span><span class="s2">&quot;Expected openhivenpy.types.User or int! Not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">user_id</span> <span class="o">=</span> <span class="n">user</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -4765,7 +4912,7 @@ so all properties and methods can be used here as well.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to cancel the friend request of a user with id </span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -4802,8 +4949,23 @@ so all properties and methods can be used here as well.</p>
   <tbody>
     <tr>
       <td><code>Optional[dict]</code></td>
-      <td><p>Returns a dict with all active friend requests if successful else it will raise an exception</p></td>
+      <td><p>Returns a dict with all active friend requests if successful</p></td>
     </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
@@ -4812,10 +4974,11 @@ so all properties and methods can be used here as well.</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches all open friend requests on Hiven</span>
 
-<span class="sd">    :return: Returns a dict with all active friend requests if successful else it will raise an exception</span>
+<span class="sd">    :return: Returns a dict with all active friend requests if successful</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests&quot;</span><span class="p">)</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests&quot;</span><span class="p">)</span>
         <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
@@ -4842,7 +5005,7 @@ so all properties and methods can be used here as well.</p>
             <span class="n">brief</span><span class="o">=</span><span class="s2">&quot;Failed to fetch the current open friend requests:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -4887,21 +5050,6 @@ so all properties and methods can be used here as well.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful</p></td>
-    </tr>
-  </tbody>
-</table>
 <p><strong>Exceptions:</strong></p>
 <table>
   <thead>
@@ -4913,20 +5061,18 @@ so all properties and methods can be used here as well.</p>
   <tbody>
       <tr>
         <td><code>HTTPError</code></td>
-        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">send_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">send_friend_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends a friend request to a user</span>
 
 <span class="sd">    :param user: Int or User Object used for the request</span>
-<span class="sd">    :return: True if the request was successful</span>
-<span class="sd">    :raises HTTPError: If the request was unsuccessful and an error was</span>
-<span class="sd">     encountered</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
@@ -4936,14 +5082,10 @@ so all properties and methods can be used here as well.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected User or int! Not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/friend-requests&quot;</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
         <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">HTTPFailedRequestError</span><span class="p">()</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">user_id</span> <span class="o">=</span> <span class="n">user</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -4951,7 +5093,7 @@ so all properties and methods can be used here as well.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to send a friend request a user with id </span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -4996,21 +5138,6 @@ so all properties and methods can be used here as well.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful</p></td>
-    </tr>
-  </tbody>
-</table>
 <p><strong>Exceptions:</strong></p>
 <table>
   <thead>
@@ -5022,20 +5149,18 @@ so all properties and methods can be used here as well.</p>
   <tbody>
       <tr>
         <td><code>HTTPError</code></td>
-        <td><p>If the request was unsuccessful and an error was encountered</p></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\client\userclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">unblock_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">unblock_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Unblocks a user if the user is blocked</span>
 
 <span class="sd">    :param user: Int or User Object used for the request</span>
-<span class="sd">    :return: True if the request was successful</span>
-<span class="sd">    :raises HTTPError: If the request was unsuccessful and an error was</span>
-<span class="sd">     encountered</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
@@ -5045,8 +5170,9 @@ so all properties and methods can be used here as well.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected User or int! Not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/relationships/@me/blocked/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;/relationships/@me/blocked/</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">user_id</span> <span class="o">=</span> <span class="n">user</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -5054,7 +5180,7 @@ so all properties and methods can be used here as well.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to unblock a user with id </span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>

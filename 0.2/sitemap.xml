@@ -1,95 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/index.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/home/contributing.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/home/license.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/home/troubleshooting.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/home/bug_reporting.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/getting_started/index.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/getting_started/deploying_your_first_bot.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/getting_started/logging.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/getting_started/event_handling.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/setup/index.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/hivenclient.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/http.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/cache.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/events.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/types.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/reference/hiven_parsers.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/hiven_restapi.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/hiven_request_endpoints.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/hiven_exceptions.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/hiven_swarm.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/swarm_events.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/api_reference/object_reference.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://luna-klatzer.github.io/openhiven.py/0.2/changelog.html</loc>
-     <lastmod>2021-09-03</lastmod>
+     <lastmod>2021-09-12</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>

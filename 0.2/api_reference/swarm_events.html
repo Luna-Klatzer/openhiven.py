@@ -1506,7 +1506,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
 </details>
 <h2 id="message_create"><code>MESSAGE_CREATE</code><a class="headerlink" href="#message_create" title="Permanent link">&para;</a></h2>
 <p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_create">Docs · <code>on_message_create()</code></a></p>
-<details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<details class="abstract"><summary>Expected json-data - HOUSE MESSAGE </summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;timestamp&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
     <span class="nt">&quot;room_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1551,7 +1551,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
     <span class="p">},</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;exploding_age&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
+    <span class="nt">&quot;exploding_age&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;exploding&quot;</span><span class="p">:</span> <span class="err">bool</span><span class="p">,</span>
     <span class="nt">&quot;device_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;content&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1577,6 +1577,43 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
             <span class="nt">&quot;height&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span>
         <span class="p">}</span>
     <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</details>
+<details class="abstract"><summary>Expected json-data - HOUSE MESSAGE </summary><div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;author&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="err">//</span> <span class="err">User</span> <span class="err">Objec</span><span class="kc">t</span>
+        <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;author_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;bucket&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
+    <span class="nt">&quot;content&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;device_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;exploding&quot;</span><span class="p">:</span> <span class="err">bool</span><span class="p">,</span>
+    <span class="nt">&quot;exploding_age&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;mentions&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="err">//</span> <span class="err">Me</span><span class="kc">nt</span><span class="err">io</span><span class="kc">n</span> <span class="err">objec</span><span class="kc">t</span> <span class="err">aka.</span> <span class="err">user</span> <span class="err">objec</span><span class="kc">t</span>
+        <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;bot&quot;</span><span class="p">:</span> <span class="err">bool</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
+    <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
+    <span class="nt">&quot;recipient_ids&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="err">//</span> <span class="err">Lis</span><span class="kc">t</span> <span class="err">o</span><span class="kc">f</span> <span class="err">user</span> <span class="err">ids</span> <span class="mi">-</span> <span class="err">s</span><span class="kc">tr</span>
+    <span class="p">],</span>
+    <span class="nt">&quot;room_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;timestamp&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span>
 <span class="p">}</span>
 </code></pre></div>
 </details>
@@ -1610,7 +1647,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
     <span class="p">},</span> <span class="err">...</span><span class="p">],</span>
     <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="nt">&quot;exploding_age&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
+    <span class="nt">&quot;exploding_age&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
     <span class="nt">&quot;exploding&quot;</span><span class="p">:</span> <span class="err">bool</span><span class="p">,</span>
     <span class="nt">&quot;embed&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="err">//</span> <span class="err">Embed</span> <span class="err">Objec</span><span class="kc">t</span>
@@ -1850,10 +1887,13 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
     <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
     <span class="nt">&quot;length&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span>
     <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
         <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+        <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+        <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1862,12 +1902,12 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
 <p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_member_leave">Docs · <code>on_house_member_leave()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="err">house_id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="err">id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="err">joi</span><span class="kc">ne</span><span class="err">d_a</span><span class="kc">t</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="err">las</span><span class="kc">t</span><span class="err">_permissio</span><span class="kc">n</span><span class="err">_upda</span><span class="kc">te</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="err">prese</span><span class="kc">n</span><span class="err">ce</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-    <span class="err">roles</span><span class="p">:</span> <span class="p">[{</span>
+    <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;joined_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;last_permission_update&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+    <span class="nt">&quot;roles&quot;</span><span class="p">:</span> <span class="p">[{</span>
         <span class="err">//</span> <span class="err">Role</span> <span class="err">Objec</span><span class="kc">t</span>
         <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
         <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -1878,14 +1918,14 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
         <span class="nt">&quot;color&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">hex</span>
         <span class="nt">&quot;allow&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span> 
     <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
-    <span class="err">user</span><span class="p">:</span> <span class="p">{</span> 
+    <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span> 
         <span class="err">bo</span><span class="kc">t</span><span class="p">:</span> <span class="err">bool</span><span class="p">,</span>
         <span class="err">id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
         <span class="kc">na</span><span class="err">me</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
         <span class="kc">fla</span><span class="err">gs</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
         <span class="err">user</span><span class="kc">na</span><span class="err">me</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="err">user_id</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
+    <span class="nt">&quot;user_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
 <span class="p">}</span>
 </code></pre></div>
 </details>
@@ -1978,28 +2018,28 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
         <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="nt">&quot;user_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
             <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-            <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-            <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">trstr</span>
-            <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-            <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-            <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
-        <span class="p">},</span>
-        <span class="nt">&quot;roles&quot;</span><span class="p">:</span> <span class="p">[{</span>
-            <span class="err">//</span> <span class="err">Role</span> <span class="err">Objec</span><span class="kc">t</span>
-            <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-            <span class="nt">&quot;level&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
-            <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-            <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-            <span class="nt">&quot;deny&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span><span class="p">,</span>
-            <span class="nt">&quot;color&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">hex</span>
-            <span class="nt">&quot;allow&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span> 
-        <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
-        <span class="nt">&quot;last_permission_update&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
-        <span class="nt">&quot;joined_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
-        <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
+                <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+                <span class="nt">&quot;flags&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">i</span><span class="kc">nt</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+                <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+                <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">trstr</span>
+                <span class="nt">&quot;icon&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+                <span class="nt">&quot;header&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+                <span class="nt">&quot;presence&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;roles&quot;</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="err">//</span> <span class="err">Role</span> <span class="err">Objec</span><span class="kc">t</span>
+                <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
+                <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+                <span class="nt">&quot;level&quot;</span><span class="p">:</span> <span class="err">i</span><span class="kc">nt</span><span class="p">,</span>
+                <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+                <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+                <span class="nt">&quot;deny&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span><span class="p">,</span>
+                <span class="nt">&quot;color&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span> <span class="err">//</span> <span class="err">hex</span>
+                <span class="nt">&quot;allow&quot;</span><span class="p">:</span> <span class="err">bi</span><span class="kc">ts</span> 
+            <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
+            <span class="nt">&quot;last_permission_update&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span> <span class="err">|</span> <span class="err">No</span><span class="kc">ne</span><span class="p">,</span>
+            <span class="nt">&quot;joined_at&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
+            <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
         <span class="p">}</span>
     <span class="p">}</span> <span class="err">...</span> <span class="p">],</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span>
@@ -2007,7 +2047,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
 </code></pre></div>
 </details>
 <h2 id="house_entities_update"><code>HOUSE_ENTITIES_UPDATE</code><a class="headerlink" href="#house_entities_update" title="Permanent link">&para;</a></h2>
-<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update">Docs · <code>on_house_entity_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entities_update">Docs · <code>on_house_entities_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="err">s</span><span class="kc">tr</span><span class="p">,</span>
@@ -2067,7 +2107,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
 </code></pre></div>
 </details>
 <h2 id="house_entity_update"><code>HOUSE_ENTITY_UPDATE</code><a class="headerlink" href="#house_entity_update" title="Permanent link">&para;</a></h2>
-<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update">Docs · <code>on_house_entity_update()</code></a></p>
+<p><a href="../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entities_update">Docs · <code>on_house_entities_update()</code></a></p>
 <details class="abstract"><summary>Expected json-data</summary><div class="highlight"><pre><span></span><code><span class="nt">&quot;op&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="nt">&quot;d&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;entities&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -2190,7 +2230,7 @@ Meaning initialisation WILL NOT be done while this listener method has not retur
 <div class="md-source-date">
   <small>
     
-      Last update: 2021-08-30
+      Last update: 2021-09-12
     
   </small>
 </div>

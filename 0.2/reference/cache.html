@@ -650,6 +650,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.add_or_update_house_member" class="md-nav__link">
+    add_or_update_house_member()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.add_or_update_private_room" class="md-nav__link">
     add_or_update_private_room()
   </a>
@@ -708,6 +715,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.remove_house" class="md-nav__link">
     remove_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_house_member" class="md-nav__link">
+    remove_house_member()
   </a>
   
 </li>
@@ -1107,6 +1121,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.add_or_update_house_member" class="md-nav__link">
+    add_or_update_house_member()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.add_or_update_private_room" class="md-nav__link">
     add_or_update_private_room()
   </a>
@@ -1165,6 +1186,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.client.cache.ClientCache.remove_house" class="md-nav__link">
     remove_house()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.client.cache.ClientCache.remove_house_member" class="md-nav__link">
+    remove_house_member()
   </a>
   
 </li>
@@ -1320,7 +1348,7 @@ cache more easily and use functions for better readability.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a entity to the cache and updates the storage
+      <p>Adds or updates a entity to the cache and updates the storage
 appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1342,7 +1370,7 @@ appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a entity to the cache and updates the storage</span>
+<span class="sd">    Adds or updates a entity to the cache and updates the storage</span>
 <span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the Entity class</span>
@@ -1360,11 +1388,12 @@ appropriately</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new entity to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1386,7 +1415,7 @@ appropriately</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a house to the cache and updates the storage
+      <p>Adds or updates a house to the cache and updates the storage
 appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1408,7 +1437,7 @@ appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a house to the cache and updates the storage</span>
+<span class="sd">    Adds or updates a house to the cache and updates the storage</span>
 <span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the House class</span>
@@ -1419,17 +1448,17 @@ appropriately</p>
         <span class="n">id_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">room</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">]:</span>
             <span class="n">room</span><span class="p">[</span><span class="s1">&#39;house_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_</span>
-            <span class="n">room</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">TextRoom</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_room</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">]:</span>
             <span class="n">member</span><span class="p">[</span><span class="s1">&#39;house_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_</span>
+
+            <span class="c1"># Adding the users already</span>
             <span class="n">user</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">member</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
             <span class="n">entity</span><span class="p">[</span><span class="s1">&#39;house_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_</span>
-            <span class="n">entity</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Entity</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">House</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -1446,6 +1475,10 @@ appropriately</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">id_</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
+        <span class="c1"># After the House was created altering the cached data</span>
+        <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_house_member</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">data</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1453,8 +1486,87 @@ appropriately</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
+        <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.add_or_update_house_member" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_or_update_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.add_or_update_house_member" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds or updates a member inside a House storage</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>The validated data using <code>format_obj_data</code> of the Member class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds or updates a member inside a House storage</span>
+
+<span class="sd">    :return: The validated data using `format_obj_data` of the Member class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># If not dict -&gt; User property was replaced -</span>
+        <span class="c1"># house.format_obj_data() replaced it with the ids of the</span>
+        <span class="c1"># corresponding users</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_user</span><span class="p">(</span><span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span>
+
+        <span class="n">member</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Member</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">item_data</span><span class="p">)</span>
+
+        <span class="n">mem_id</span> <span class="o">=</span> <span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">item_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)</span> \
+            <span class="k">else</span> <span class="n">item_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+        <span class="n">house_id</span> <span class="o">=</span> <span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;house_id&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">mem_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">house_id</span><span class="p">][</span><span class="s1">&#39;members&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">house_id</span><span class="p">][</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="n">mem_id</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">house_id</span><span class="p">][</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="n">mem_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">member</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">member</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new member to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1476,7 +1588,7 @@ appropriately</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a private room to the cache and updates the storage
+      <p>Adds or updates a private room to the cache and updates the storage
 appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1498,7 +1610,7 @@ appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_private_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a private room to the cache and updates the storage</span>
+<span class="sd">    Adds or updates a private room to the cache and updates the storage</span>
 <span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the</span>
@@ -1527,11 +1639,12 @@ appropriately</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new private room to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1553,7 +1666,7 @@ appropriately</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a client relationship to the cache and updates the
+      <p>Adds or updates a client relationship to the cache and updates the
 storage appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1575,7 +1688,7 @@ storage appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a client relationship to the cache and updates the</span>
+<span class="sd">    Adds or updates a client relationship to the cache and updates the</span>
 <span class="sd">    storage appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the Relationship</span>
@@ -1584,7 +1697,19 @@ storage appropriately</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">item_data</span><span class="p">)</span>
-        <span class="n">id_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;user_id&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s1">&#39;id&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">):</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+                <span class="s2">&quot;The data does not contain any correct id item&quot;</span>
+                <span class="s2">&quot; or user field&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span>
+            <span class="p">)</span>  <span class="c1"># how?</span>
 
         <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_or_update_user</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span>
@@ -1598,11 +1723,12 @@ storage appropriately</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new relationship to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1624,7 +1750,7 @@ storage appropriately</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a room to the cache and updates the storage
+      <p>Adds or updates a room to the cache and updates the storage
 appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1646,7 +1772,7 @@ appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a room to the cache and updates the storage</span>
+<span class="sd">    Adds or updates a room to the cache and updates the storage</span>
 <span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the Room class</span>
@@ -1664,11 +1790,12 @@ appropriately</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new room to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1690,7 +1817,7 @@ appropriately</p>
 
     <div class="doc doc-contents ">
 
-      <p>Adds or Updates a user to the cache and updates the storage
+      <p>Adds or updates a user to the cache and updates the storage
 appropriately</p>
 
 <p><strong>Returns:</strong></p>
@@ -1712,7 +1839,7 @@ appropriately</p>
           <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_or_update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds or Updates a user to the cache and updates the storage</span>
+<span class="sd">    Adds or updates a user to the cache and updates the storage</span>
 <span class="sd">    appropriately</span>
 
 <span class="sd">    :return: The validated data using `format_obj_data` of the User class</span>
@@ -1734,11 +1861,12 @@ appropriately</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new house to the Client cache:&quot;</span><span class="p">,</span>
+            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to add a new user to the Client cache:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">InitializationError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to update the cache due to an exception occurring&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidPassedDataError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to update the cache due to faulty data being passed&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">item_data</span>
         <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 </code></pre></div>
         </details>
@@ -1905,10 +2033,46 @@ method!</p>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_house</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Removes a house from the cache &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
 
+    <span class="k">for</span> <span class="n">room</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">][</span><span class="s1">&#39;rooms&#39;</span><span class="p">]:</span>
+        <span class="n">room</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_room</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
+        <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">_id</span><span class="p">]</span>
     <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]:</span> <span class="nb">list</span>
     <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;house_ids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="openhivenpy.client.cache.ClientCache.remove_house_member" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">,</span> <span class="n">house_id</span><span class="p">)</span></code>
+
+
+<a href="#openhivenpy.client.cache.ClientCache.remove_house_member" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes a house from the cache </p>
+
+        <details class="quote">
+          <summary>Source code in <code>openhivenpy\client\cache.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">remove_house_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">house_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Removes a house from the cache &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_if_initialised</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="n">house_id</span><span class="p">][</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="n">member_id</span><span class="p">]</span>
 </code></pre></div>
         </details>
     </div>

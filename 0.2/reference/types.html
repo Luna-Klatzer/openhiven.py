@@ -748,6 +748,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.author_id" class="md-nav__link">
+    author_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.context.Context.house" class="md-nav__link">
     house
   </a>
@@ -755,8 +762,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.house_id" class="md-nav__link">
+    house_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.context.Context.room" class="md-nav__link">
     room
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.room_id" class="md-nav__link">
+    room_id
   </a>
   
 </li>
@@ -1636,6 +1657,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.mention.Mention-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.mention.Mention.author" class="md-nav__link">
     author
   </a>
@@ -1667,6 +1696,11 @@
   <a href="#openhivenpy.types.mention.Mention.user_id" class="md-nav__link">
     user_id
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1914,6 +1948,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.types.message.Message.mentions" class="md-nav__link">
     mentions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.message.Message.recipient_ids" class="md-nav__link">
+    recipient_ids
   </a>
   
 </li>
@@ -2668,13 +2709,6 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.types.user.User.format_obj_data" class="md-nav__link">
     format_obj_data()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#openhivenpy.types.user.User.get_cached_data" class="md-nav__link">
-    get_cached_data()
   </a>
   
 </li>
@@ -3343,6 +3377,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.author_id" class="md-nav__link">
+    author_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.context.Context.house" class="md-nav__link">
     house
   </a>
@@ -3350,8 +3391,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.house_id" class="md-nav__link">
+    house_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.context.Context.room" class="md-nav__link">
     room
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.context.Context.room_id" class="md-nav__link">
+    room_id
   </a>
   
 </li>
@@ -4231,6 +4286,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#openhivenpy.types.mention.Mention-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#openhivenpy.types.mention.Mention.author" class="md-nav__link">
     author
   </a>
@@ -4262,6 +4325,11 @@
   <a href="#openhivenpy.types.mention.Mention.user_id" class="md-nav__link">
     user_id
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -4509,6 +4577,13 @@
           <li class="md-nav__item">
   <a href="#openhivenpy.types.message.Message.mentions" class="md-nav__link">
     mentions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openhivenpy.types.message.Message.recipient_ids" class="md-nav__link">
+    recipient_ids
   </a>
   
 </li>
@@ -5268,13 +5343,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#openhivenpy.types.user.User.get_cached_data" class="md-nav__link">
-    get_cached_data()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#openhivenpy.types.user.User.json_validator" class="md-nav__link">
     json_validator()
   </a>
@@ -5564,6 +5632,18 @@
                 
                 <h1 id="hiven-types">Hiven Types<a class="headerlink" href="#hiven-types" title="Permanent link">&para;</a></h1>
 <hr />
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Note that each type has a property that is <em>cached</em>! Meaning when you 
+access one, it is stored forever without any changes (deletions or updates)
+being applied to it.</p>
+<p>For example: When you access the <em>rooms</em> property of the House class and
+use it for a longer time and in the meantime one of them gets deleted. 
+The library will be unable to correctly delete it, since it's now stored
+by the user themselves. Therefore watch out for the proper existance!</p>
+<p>In the next releases a property <code>exists()</code> will be added to validate 
+the existance of objects to not possibly use an outdated one!</p>
+</div>
 <h2 id="list-of-represented-types">List of represented Types<a class="headerlink" href="#list-of-represented-types" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5971,6 +6051,29 @@ prior</p>
 
 
 
+<h4 id="openhivenpy.types.context.Context.author_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">author_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.context.Context.author_id" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>ID of the author </p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
 <h4 id="openhivenpy.types.context.Context.house" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">house</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">House</span><span class="p">]</span></code>
 
@@ -5994,6 +6097,29 @@ prior</p>
 
 
 
+<h4 id="openhivenpy.types.context.Context.house_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">house_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.context.Context.house_id" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>ID of the room </p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
 <h4 id="openhivenpy.types.context.Context.room" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">room</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextRoom</span><span class="p">]</span></code>
 
@@ -6007,6 +6133,29 @@ prior</p>
     <div class="doc doc-contents ">
 
       <p>Room object of the Context Class </p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="openhivenpy.types.context.Context.room_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">room_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.context.Context.room_id" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>ID of the room </p>
     </div>
 
   </div>
@@ -6095,8 +6244,11 @@ registered prior</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_room</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;room&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_room_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;room_id&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_author</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_author_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;author_id&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_house</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;house&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_house_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;house_id&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
 </code></pre></div>
@@ -6989,7 +7141,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;entities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -7477,7 +7629,6 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
             <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
         <span class="p">)</span>
         <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-
         <span class="n">data</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
 
         <span class="c1"># Fetching all existing ids</span>
@@ -7495,8 +7646,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to create category &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; in house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -7556,6 +7706,21 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
     </tr>
   </tbody>
 </table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">create_invite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_uses</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Invite</span><span class="p">]:</span>
@@ -7564,6 +7729,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
 
 <span class="sd">    :param max_uses: Maximal uses for the invite code</span>
 <span class="sd">    :return: The invite url if successful.</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Invite</span>
@@ -7582,8 +7748,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to create invite for house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -7620,17 +7785,36 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
   <tbody>
     <tr>
       <td><code>Optional[TextRoom]</code></td>
-      <td><p>A Room Instance for the Hiven Room that was created if successful else None</p></td>
+      <td><p>A Room Instance for the Hiven Room that was created if successful</p></td>
     </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">create_room</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_entity_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextRoom</span><span class="p">]:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">create_room</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_entity_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextRoom</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Room in the house with the specified name. </span>
 
-<span class="sd">    :return: A Room Instance for the Hiven Room that was created if successful else None</span>
+<span class="sd">    :return: A Room Instance for the Hiven Room that was created if</span>
+<span class="sd">     successful</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">TextRoom</span>
@@ -7641,7 +7825,9 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
         <span class="p">}</span>
 
         <span class="c1"># Creating the room using the api</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="si">}</span><span class="s2">/rooms&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json</span><span class="p">)</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="si">}</span><span class="s2">/rooms&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json</span>
+        <span class="p">)</span>
         <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">TextRoom</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span>
@@ -7652,8 +7838,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to create room &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; in house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -7679,7 +7864,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
 
       <p>Deletes the house if permissions are sufficient!</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -7688,31 +7873,29 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>Optional[str]</code></td>
-      <td><p>The house ID if successful else None</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes the house if permissions are sufficient!</span>
 
-<span class="sd">    :return: The house ID if successful else None</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to delete House </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -7739,7 +7922,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
       <p>Changes the houses data on Hiven.</p>
 <p>Available options: name, icon(base64)</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -7748,21 +7931,21 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Changes the houses data on Hiven.</span>
 
 <span class="sd">    Available options: name, icon(base64)</span>
 
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -7770,7 +7953,6 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
                     <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">data</span><span class="p">}</span>
                 <span class="p">)</span>
-                <span class="k">return</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span>
                     <span class="s2">&quot;The passed value does not exist in the House!&quot;</span>
@@ -7784,8 +7966,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed edit request of values &#39;</span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s2">&#39; in house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -7851,7 +8032,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
 <span class="sd">    :param entity_id: The id of the entity which should be fetched</span>
 <span class="sd">    :return: The data in the cache if it was found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;entities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_entity</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -7888,7 +8069,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
       <tr>
         <td><code>member_id</code></td>
         <td><code>str</code></td>
-        <td><p>The id of the member which should be fetched</p></td>
+        <td><p>The id of the Member which should be fetched</p></td>
         <td><em>required</em></td>
       </tr>
   </tbody>
@@ -7904,20 +8085,22 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
   <tbody>
     <tr>
       <td><code>Optional[dict]</code></td>
-      <td><p>The data in the cache if it was found</p></td>
+      <td><p>The dictionary of the member if it was found</p></td>
     </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">find_member</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches the raw data of a member</span>
 
-<span class="sd">    :param member_id: The id of the member which should be fetched</span>
-<span class="sd">    :return: The data in the cache if it was found</span>
+<span class="sd">    :param member_id: The id of the Member which should be fetched</span>
+<span class="sd">    :return: The dictionary of the member if it was found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_member_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_house_member</span><span class="p">(</span><span class="n">member_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -7983,7 +8166,7 @@ are also available in the standard <a href="##openhivenpy.types.house.House"><co
 <span class="sd">    :param room_id: The id of the room which should be fetched</span>
 <span class="sd">    :return: The data in the cache if it was found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;house&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">room_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_room</span><span class="p">(</span><span class="n">room_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -8108,21 +8291,7 @@ required for the creation of an instance.</p>
 
 <span class="sd">    :return: The Entity Instance if it exists else returns None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Entity</span>
-        <span class="n">cached_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_entity</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cached_entity</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Entity</span><span class="p">(</span><span class="n">cached_entity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to get the member with id </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_entity</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -8145,6 +8314,25 @@ required for the creation of an instance.</p>
 
       <p>Fetches a member from the cache based on the id</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>member_id</code></td>
+        <td><code>str</code></td>
+        <td><p>The id of the Member which should be fetched</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
 <p><strong>Returns:</strong></p>
 <table>
   <thead>
@@ -8162,28 +8350,16 @@ required for the creation of an instance.</p>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Member</span><span class="p">]:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_member</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Member</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a member from the cache based on the id</span>
 
+<span class="sd">    :param member_id: The id of the Member which should be fetched</span>
 <span class="sd">    :return: The Member Instance if it exists else returns None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Member</span>
-
-        <span class="n">cached_member</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_member</span><span class="p">(</span><span class="n">member_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cached_member</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Member</span><span class="p">(</span><span class="n">cached_member</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to get the member with id </span><span class="si">{</span><span class="n">member_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">raise</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_house_member</span><span class="p">(</span><span class="n">member_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -8229,21 +8405,7 @@ required for the creation of an instance.</p>
 
 <span class="sd">    :return: The Room Instance if it exists else returns None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">TextRoom</span>
-        <span class="n">cached_room</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_room</span><span class="p">(</span><span class="n">room_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cached_room</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">TextRoom</span><span class="p">(</span><span class="n">cached_room</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to get the room with id </span><span class="si">{</span><span class="n">room_id</span><span class="si">}</span><span class="s2"> in house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_room</span><span class="p">(</span><span class="n">room_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -8288,7 +8450,7 @@ required for the creation of an instance.</p>
 
       <p>Leaves the house</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -8297,31 +8459,31 @@ required for the creation of an instance.</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if it was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\house.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">leave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">leave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Leaves the house</span>
 
-<span class="sd">    :return: True if it was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/users/@me/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/users/@me/houses/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to leave </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -8731,8 +8893,11 @@ Only exceptions are member objects which are unique in every house</p>
         <span class="n">members</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">]</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">member_</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
-            <span class="n">id_</span> <span class="o">=</span> <span class="n">member_</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">member_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">member_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="n">id_</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">update_and_return</span><span class="p">(</span><span class="n">member_</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">id_</span><span class="p">)</span>
+            <span class="n">id_</span> <span class="o">=</span> <span class="n">member_</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">member_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)</span> \
+                <span class="k">else</span> <span class="n">member_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;members&#39;</span><span class="p">][</span><span class="n">id_</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">update_and_return</span><span class="p">(</span>
+                <span class="n">member_</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">id_</span>  <span class="c1"># replacing the object with an id ref</span>
+            <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;roles&#39;</span><span class="p">))</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
         <span class="n">roles</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;roles&#39;</span><span class="p">]</span>
@@ -8782,7 +8947,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;houses&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_house</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -9658,24 +9823,7 @@ required for the creation of an instance.</p>
     <div class="doc doc-contents ">
 
       <p>Kicks a user from the house.</p>
-<p>The client needs permissions to kick, or else this will raise
-<code>HivenException.Forbidden</code></p>
 
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful</p></td>
-    </tr>
-  </tbody>
-</table>
 <p><strong>Exceptions:</strong></p>
 <table>
   <thead>
@@ -9686,42 +9834,36 @@ required for the creation of an instance.</p>
   </thead>
   <tbody>
       <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
+      <tr>
         <td><code>Forbidden</code></td>
-        <td><p>If the request failed to execute</p></td>
+        <td><p>If the client does not have the permissions to execute this command</p></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\member.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">kick</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">kick</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kicks a user from the house.</span>
 
-<span class="sd">    The client needs permissions to kick, or else this will raise</span>
-<span class="sd">    `HivenException.Forbidden`</span>
-
-<span class="sd">    :return: True if the request was successful</span>
-<span class="sd">    :raises Forbidden: If the request failed to execute</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
+<span class="sd">    :raises Forbidden: If the client does not have the permissions to</span>
+<span class="sd">     execute this command</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_house_id</span><span class="si">}</span><span class="s2">/members/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_user_id</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">HTTPForbiddenError</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">except</span> <span class="n">HTTPForbiddenError</span><span class="p">:</span>
-        <span class="k">raise</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_house_id</span><span class="si">}</span><span class="s2">/members/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_user_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
 
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">HTTPForbiddenError</span><span class="p">,</span> <span class="n">HTTPFailedRequestError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to kick the member due to an exception &quot;</span>
                   <span class="s2">&quot;occurring:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -9763,7 +9905,7 @@ required for the creation of an instance.</p>
 
 
 
-
+<h3 id="openhivenpy.types.mention.Mention-attributes">Attributes<a href="#openhivenpy.types.mention.Mention-attributes" class="headerlink" title="Permanent link">&para;</a></h3>
 
   <div class="doc doc-object doc-attribute">
 
@@ -9781,6 +9923,7 @@ required for the creation of an instance.</p>
 
     <div class="doc doc-contents ">
 
+      <p>The author of the message containing the mention </p>
     </div>
 
   </div>
@@ -9825,6 +9968,7 @@ required for the creation of an instance.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Returns the timestamp when the mention was made </p>
     </div>
 
   </div>
@@ -9847,6 +9991,7 @@ required for the creation of an instance.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Returns the User mentioned </p>
     </div>
 
   </div>
@@ -9869,6 +10014,7 @@ required for the creation of an instance.</p>
 
     <div class="doc doc-contents ">
 
+      <p>The id of the user mentioned </p>
     </div>
 
   </div>
@@ -10689,6 +10835,29 @@ if the message was sent inside a House</p>
 
 
 
+<h4 id="openhivenpy.types.message.Message.recipient_ids" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">recipient_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#openhivenpy.types.message.Message.recipient_ids" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+      <p>A list of all recipients in the room - unique for the private rooms</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
 <h4 id="openhivenpy.types.message.Message.room" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">room</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextRoom</span><span class="p">]</span></code>
 
@@ -10820,6 +10989,7 @@ if the message was sent inside a House</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bucket&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_device_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;device_id&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_exploding_age</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exploding_age&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_recipient_ids</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;recipient_ids&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
 </code></pre></div>
         </details>
@@ -10930,7 +11100,7 @@ if the message was sent inside a House</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -10939,40 +11109,35 @@ if the message was sent inside a House</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>A DeletedMessage object if successful</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\message.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes the message. Raises Forbidden if not allowed.</span>
 
 <span class="sd">    :param delay: Delay until deleting the message as read (in seconds)</span>
-<span class="sd">    :return: A DeletedMessage object if successful</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
 
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
             <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">room_id</span><span class="si">}</span><span class="s2">/messages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">HTTPForbiddenError</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to delete the message </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -10998,7 +11163,7 @@ if the message was sent inside a House</p>
 
       <p>Edits a message on Hiven</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -11007,33 +11172,32 @@ if the message was sent inside a House</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\message.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Edits a message on Hiven</span>
 
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
             <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">room_id</span><span class="si">}</span><span class="s2">/messages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="n">content</span><span class="p">}</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to edit message </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -11243,7 +11407,7 @@ clients.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -11252,21 +11416,21 @@ clients.</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\message.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">mark_as_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">mark_as_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Marks the message as read. This doesn&#39;t need to be done for bot</span>
 <span class="sd">    clients.</span>
 
 <span class="sd">    :param delay: Delay until marking the message as read (in seconds)</span>
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -11274,14 +11438,13 @@ clients.</p>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
             <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">room_id</span><span class="si">}</span><span class="s2">/messages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/ack&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to mark message as read </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -11740,7 +11903,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;single&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_private_room</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -11837,30 +12000,9 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    :param delay: Delay until sending the message (in seconds)</span>
 <span class="sd">    :return: Returns a Message Instance if successful.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># TODO! Requires functionality check!</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/messages&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">content</span><span class="p">}</span>
-        <span class="p">)</span>
-
-        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-
-        <span class="c1"># Raw_data not in correct format =&gt; needs to access data field</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
-
-        <span class="n">data</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">msg</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to send message in room </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+        <span class="s2">&quot;This is not implemented yet for Private Rooms&quot;</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -11884,8 +12026,8 @@ to the object not being updated unlike the cache.</p>
 
     <div class="doc doc-contents ">
 
-      <p>openhivenpy.types.PrivateRoom.start_call()</p>
-<p>Starts a call with the user in the private room</p>
+      <p>Starts a call with the user in the private room</p>
+<p><em>Not implemented</em></p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -11906,50 +12048,19 @@ to the object not being updated unlike the cache.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if successful</p></td>
-    </tr>
-  </tbody>
-</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\private_room.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;openhivenpy.types.PrivateRoom.start_call()</span>
-
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Starts a call with the user in the private room</span>
 
+<span class="sd">    *Not implemented*</span>
+
 <span class="sd">    :param delay: Delay until calling (in seconds)</span>
-<span class="sd">    :return: True if successful</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
-
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/call&quot;</span><span class="p">)</span>
-
-        <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to start call in room </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+        <span class="s2">&quot;This is not implemented yet for Private Rooms&quot;</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -12379,7 +12490,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;private&#39;</span><span class="p">][</span><span class="s1">&#39;group&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_private_group_room</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -12423,6 +12534,7 @@ to the object not being updated unlike the cache.</p>
     <div class="doc doc-contents ">
 
       <p>Sends a message in the private room.</p>
+<p><em>Not implemented</em></p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -12472,34 +12584,15 @@ to the object not being updated unlike the cache.</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sends a message in the private room.</span>
 
+<span class="sd">    *Not implemented*</span>
+
 <span class="sd">    :param content: Content of the message</span>
 <span class="sd">    :param delay: Seconds to wait until sending the message (in seconds)</span>
 <span class="sd">    :return: A Message instance if successful else None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="n">endpoint</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/messages&quot;</span><span class="p">,</span>
-            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">content</span><span class="p">}</span>
-        <span class="p">)</span>
-
-        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-
-        <span class="c1"># Raw_data not in correct format =&gt; needs to access data field</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
-
-        <span class="n">data</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">msg</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to send message in room </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+        <span class="s2">&quot;This is not implemented yet for Private Rooms&quot;</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -12523,8 +12616,8 @@ to the object not being updated unlike the cache.</p>
 
     <div class="doc doc-contents ">
 
-      <p>openhivenpy.types.PrivateGroupRoom.start_call()</p>
-<p>Starts a call with the user in the private room</p>
+      <p>Starts a call with the user in the private room</p>
+<p><em>Not implemented</em></p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -12545,7 +12638,7 @@ to the object not being updated unlike the cache.</p>
       </tr>
   </tbody>
 </table>
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -12554,35 +12647,26 @@ to the object not being updated unlike the cache.</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if successful</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\private_room.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;openhivenpy.types.PrivateGroupRoom.start_call()</span>
-
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Starts a call with the user in the private room</span>
 
-<span class="sd">    :param delay: Delay until calling (in seconds)</span>
-<span class="sd">    :return: True if successful</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/call&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+<span class="sd">    *Not implemented*</span>
 
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
-            <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to start call in </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
-            <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+<span class="sd">    :param delay: Delay until calling (in seconds)</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+        <span class="s2">&quot;This is not implemented yet for Private Rooms&quot;</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -12941,7 +13025,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;relationships&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_relationship</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -13290,7 +13374,7 @@ to the object not being updated unlike the cache.</p>
       <p>Changes the rooms data on Hiven</p>
 <p>Available options: emoji, name, description</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -13299,21 +13383,21 @@ to the object not being updated unlike the cache.</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\textroom.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Changes the rooms data on Hiven</span>
 
 <span class="sd">    Available options: emoji, name, description</span>
 
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -13321,8 +13405,6 @@ to the object not being updated unlike the cache.</p>
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)}</span>
                 <span class="p">)</span>
-
-                <span class="k">return</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span>
                     <span class="s2">&quot;The passed value does not exist in the Room!&quot;</span>
@@ -13336,8 +13418,7 @@ to the object not being updated unlike the cache.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to change the values </span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s2"> in room </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -13463,7 +13544,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;rooms&#39;</span><span class="p">][</span><span class="s1">&#39;house&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_room</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -13504,6 +13585,21 @@ to the object not being updated unlike the cache.</p>
     </tr>
   </tbody>
 </table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\textroom.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">get_recent_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]]:</span>
@@ -13511,10 +13607,13 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    Gets the recent messages from the current room</span>
 
 <span class="sd">    :return: A list of all messages in form of Message instances if</span>
-<span class="sd">    successful.</span>
+<span class="sd">     successful.</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/messages&quot;</span><span class="p">)</span>
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/messages&quot;</span>
+        <span class="p">)</span>
         <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
@@ -13531,8 +13630,7 @@ to the object not being updated unlike the cache.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to create invite for house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -13646,8 +13744,7 @@ to the object not being updated unlike the cache.</p>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to send message in room </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -13673,7 +13770,7 @@ to the object not being updated unlike the cache.</p>
 
       <p>Adds the client to the list of users typing</p>
 
-<p><strong>Returns:</strong></p>
+<p><strong>Exceptions:</strong></p>
 <table>
   <thead>
     <tr>
@@ -13682,32 +13779,29 @@ to the object not being updated unlike the cache.</p>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>bool</code></td>
-      <td><p>True if the request was successful else False</p></td>
-    </tr>
+      <tr>
+        <td><code>HTTPError</code></td>
+        <td><p>If any HTTP error is raised while executing</p></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>openhivenpy\types\textroom.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">start_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds the client to the list of users typing</span>
 
-<span class="sd">    :return: True if the request was successful else False</span>
+<span class="sd">    :raise HTTPError: If any HTTP error is raised while executing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/rooms/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/typing&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">log_traceback</span><span class="p">(</span>
             <span class="n">brief</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed to create invite for house </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="p">)</span>
-        <span class="c1"># TODO! Raise exception</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">raise</span> <span class="n">e</span>
 </code></pre></div>
         </details>
     </div>
@@ -14037,40 +14131,6 @@ required for the creation of an instance.</p>
     <span class="n">data</span> <span class="o">=</span> <span class="n">LazyUser</span><span class="o">.</span><span class="n">format_obj_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">data</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h4 id="openhivenpy.types.user.User.get_cached_data" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_cached_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
-
-
-<a href="#openhivenpy.types.user.User.get_cached_data" class="headerlink" title="Permanent link">&para;</a></h4>
-
-    <div class="doc doc-contents ">
-
-      <p>Fetches the most recent data from the cache based on the instance id.</p>
-<p>If updated while the object exists, the data might differentiate, due
-to the object not being updated unlike the cache.</p>
-
-        <details class="quote">
-          <summary>Source code in <code>openhivenpy\types\user.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_cached_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fetches the most recent data from the cache based on the instance id.</span>
-
-<span class="sd">    If updated while the object exists, the data might differentiate, due</span>
-<span class="sd">    to the object not being updated unlike the cache.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;users&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 </code></pre></div>
         </details>
     </div>
@@ -14590,7 +14650,7 @@ to the object not being updated unlike the cache.</p>
 <span class="sd">    If updated while the object exists, the data might differentiate, due</span>
 <span class="sd">    to the object not being updated unlike the cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="s1">&#39;users&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">find_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -14926,7 +14986,7 @@ to the object not being updated unlike the cache.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: 2021-08-22
+      Last update: 2021-09-12
     
   </small>
 </div>
