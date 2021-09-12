@@ -8,11 +8,13 @@ from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
     from .client import HivenClient
+    from .types.message import Message
 
 __all__ = [
-    "HivenObject",
-    "DataClassObject",
-    "BaseUser"
+    'HivenObject',
+    'DataClassObject',
+    'BaseUser',
+    'BaseRoom'
 ]
 
 
@@ -38,10 +40,10 @@ class DataClassObject(HivenObject):
         """ Validates the data using the local class json_validator """
         try:
             return getattr(cls, 'json_validator')(data, *args, **kwargs)
-        except Exception:
+        except Exception as e:
             from . import utils
             utils.log_validation_traceback(cls, data, sys.exc_info())
-            raise
+            raise e
 
     def __str__(self) -> str:
         return repr(self)
@@ -146,3 +148,56 @@ class BaseUser(DataClassObject):
     def application(self) -> Optional[bool]:
         """ Returns the application string passed. Currently client-limited """
         return getattr(self, '_application', None)
+
+
+class BaseRoom(DataClassObject):
+    """ Base Room representing a Room where messages can be sent """
+
+    @property
+    @abstractmethod
+    def id(self) -> Optional[str]:
+        """ Returns the id of the Room """
+        return getattr(self, '_id', None)
+
+    @property
+    @abstractmethod
+    def last_message_id(self) -> Optional[str]:
+        """ Returns the id of the last message inside the Room """
+        return getattr(self, '_last_message_id', None)
+
+    @property
+    @abstractmethod
+    def name(self) -> Optional[str]:
+        """ Returns the name of the Room """
+        return getattr(self, '_name', None)
+
+    @property
+    @abstractmethod
+    def description(self) -> Optional[int]:
+        """ Returns the description of the Room """
+        return getattr(self, '_description', None)
+
+    @property
+    @abstractmethod
+    def emoji(self) -> Optional[str]:
+        """ Returns the emoji of this Room if it exists """
+        return getattr(self, '_emoji', None)
+
+    @property
+    @abstractmethod
+    def type(self) -> Optional[int]:
+        """ Returns the type of this Room """
+        return getattr(self, '_type', None)
+
+    @abstractmethod
+    async def send(
+            self, content: str, delay: float = None
+    ) -> Optional[Message]:
+        """
+        Sends a message in the private room.
+
+        :param content: Content of the message
+        :param delay: Seconds to wait until sending the message (in seconds)
+        :return: A Message instance if successful else None
+        """
+        ...

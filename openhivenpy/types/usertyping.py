@@ -87,8 +87,16 @@ class UserTyping(DataClassObject):
     @property
     def author(self) -> Optional[User]:
         """ Author object of the User-Typing Class """
-        if type(self._author) is str:
-            data = self._client.storage['users'].get(self._author)
+        from .user import User
+        if type(self._author) is str and self._author:
+            author_id = self._author
+        elif type(self.author_id) is str and self.author_id:
+            author_id = self.author_id
+        else:
+            author_id = None
+
+        if author_id:
+            data = self._client.find_user(author_id)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -103,7 +111,14 @@ class UserTyping(DataClassObject):
     @property
     def house(self) -> Optional[House]:
         """ House object of the Context Class """
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
+            house_id = self._house
+        elif type(self.house_id) is str and self.house_id:
+            house_id = self.house_id
+        else:
+            house_id = None
+
+        if house_id:
             data = self._client.storage['houses'].get(self._house)
             if data:
                 self._house = House(data=data, client=self._client)
@@ -119,8 +134,24 @@ class UserTyping(DataClassObject):
     @property
     def room(self) -> Optional[TextRoom]:
         """ Room object of the Context Class """
-        if type(self._room) is str:
-            data = self._client.storage['rooms']['house'].get(self._room)
+        from .textroom import TextRoom
+        if type(self._room) is str and self._room:
+            room_id = self._room
+        elif type(self.room_id) is str and self.room_id:
+            room_id = self.room_id
+        else:
+            room_id = None
+
+        if room_id:
+            # House msg
+            data = self._client.find_room(room_id)
+            if not data:
+                # Private room msg
+                data = self._client.find_private_room(room_id)
+                if not data:
+                    # Private group room msg
+                    data = self._client.find_private_group_room(room_id)
+
             if data:
                 self._room = TextRoom(data=data, client=self._client)
                 return self._room

@@ -98,7 +98,7 @@ class TextRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['house'][self.id]
+        return self._client.find_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -150,9 +150,9 @@ class TextRoom(DataClassObject):
     def house(self) -> Optional[House]:
         """ The parent house object """
         from . import House
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
             house_id = self._house
-        elif type(self.house_id) is str:
+        elif type(self.house_id) is str and self.house_id:
             house_id = self.house_id
         else:
             house_id = None
@@ -217,16 +217,15 @@ class TextRoom(DataClassObject):
                 brief=f"Failed to send message in room {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e
 
-    async def edit(self, **kwargs) -> bool:
+    async def edit(self, **kwargs) -> None:
         """
         Changes the rooms data on Hiven
 
         Available options: emoji, name, description
 
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             for key in kwargs.keys():
@@ -234,8 +233,6 @@ class TextRoom(DataClassObject):
                     await self._client.http.patch(
                         f"/rooms/{self.id}", json={key: kwargs.get(key)}
                     )
-
-                    return True
                 else:
                     raise NameError(
                         "The passed value does not exist in the Room!"
@@ -249,37 +246,36 @@ class TextRoom(DataClassObject):
                 brief=f"Failed to change the values {keys} in room {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return False
+            raise e
 
-    async def start_typing(self) -> bool:
+    async def start_typing(self) -> None:
         """
         Adds the client to the list of users typing
             
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             await self._client.http.post(f"/rooms/{self.id}/typing")
-
-            return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to create invite for house {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return False
+            raise e
 
     async def get_recent_messages(self) -> Optional[List[Message]]:
         """
         Gets the recent messages from the current room
             
         :return: A list of all messages in form of Message instances if
-        successful.
+         successful.
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
-            raw_data = await self._client.http.get(f"/rooms/{self.id}/messages")
+            raw_data = await self._client.http.get(
+                f"/rooms/{self.id}/messages"
+            )
             raw_data = await raw_data.json()
 
             data = raw_data.get('data')
@@ -296,5 +292,4 @@ class TextRoom(DataClassObject):
                 brief=f"Failed to create invite for house {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return None
+            raise e

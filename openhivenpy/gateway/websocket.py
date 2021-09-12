@@ -31,6 +31,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import sys
 import time
 from enum import IntEnum
 # Only importing the Objects for the purpose of type hinting and not actual use
@@ -41,6 +42,7 @@ import aiohttp
 from yarl import URL
 
 from .messagebroker import MessageBroker
+from .. import utils
 from ..base_types import HivenObject
 from ..exceptions import (RestartSessionError, SessionCreateError,
                           WebSocketClosedError,
@@ -301,15 +303,13 @@ class HivenWebSocket(HivenObject):
 
         if msg.type == aiohttp.WSMsgType.TEXT:
             return await self._received_message(
-                msg) if handler is None else await handler(msg)
+                msg
+            ) if handler is None else await handler(msg)
 
         elif msg.type == aiohttp.WSMsgType.BINARY:
-            if type(msg) is bytes:
-                msg = msg.data.decode("utf-8")
-            else:
-                raise
             return await self._received_message(
-                msg) if handler is None else await handler(msg)
+                msg
+            ) if handler is None else await handler(msg)
 
         self._open = False
         self._ready = False
@@ -344,7 +344,11 @@ class HivenWebSocket(HivenObject):
 
     async def _received_message(self, msg: aiohttp.WSMessage) -> None:
         """ Awaits a new incoming message and handles it """
-        msg = msg.json()
+        if type(msg) is bytes:
+            msg = json.loads(msg.data.decode('utf8'))
+        else:
+            msg = msg.json()
+
         opcode, event, data = extract_event(msg)
 
         if opcode == self.OPCode.CONNECTION_START:
@@ -357,8 +361,14 @@ class HivenWebSocket(HivenObject):
             if event == 'INIT_STATE':
                 await self._received_init(msg)
             else:
-                await self.parsers.dispatch(event, data)
-            return
+                try:
+                    await self.parsers.dispatch(event, data)
+                except Exception:
+                    utils.log_traceback(
+                        level='error',
+                        brief=f"Failed to handle event: {event}",
+                        exc_info=sys.exc_info()
+                    )
 
         else:
             logger.warning(

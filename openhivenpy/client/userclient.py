@@ -32,7 +32,6 @@ from typing import Union, overload
 from .hivenclient import HivenClient
 from .. import types
 from .. import utils
-from ..exceptions import HTTPFailedRequestError
 
 __all__ = ['UserClient']
 
@@ -43,23 +42,21 @@ class UserClient(HivenClient):
     """ Class for the specific use of a user account on Hiven """
 
     @overload
-    async def cancel_friend_request(self, user: types.User) -> bool:
+    async def cancel_friend_request(self, user: types.User) -> None:
         ...
 
     @overload
-    async def cancel_friend_request(self, user: int) -> bool:
+    async def cancel_friend_request(self, user: int) -> None:
         ...
 
-    async def cancel_friend_request(self, user) -> bool:
+    async def cancel_friend_request(self, user) -> None:
         """
         Cancels an open friend request if it exists
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful
         :raises TypeError: If the passed user is not one of the types: int or
          types.User
-        :raises HTTPError: If the request was unsuccessful and an error was
-         encountered
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if type(user) is int:
@@ -71,10 +68,9 @@ class UserClient(HivenClient):
                     f"Expected openhivenpy.types.User or int! Not {type(user)}"
                 )
 
-            resp = await self.http.delete(
-                endpoint=f"/relationships/@me/friend-requests/{user_id}"
+            await self.http.delete(
+                f"/relationships/@me/friend-requests/{user_id}"
             )
-            return True
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -82,16 +78,17 @@ class UserClient(HivenClient):
                 brief=f"Failed to cancel the friend request of a user with id {user_id}:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e
 
     async def fetch_current_friend_requests(self) -> Union[dict, None]:
         """
         Fetches all open friend requests on Hiven
         
-        :return: Returns a dict with all active friend requests if successful else it will raise an exception
+        :return: Returns a dict with all active friend requests if successful
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
-            resp = await self.http.get(endpoint=f"/relationships/@me/friend-requests")
+            resp = await self.http.get(f"/relationships/@me/friend-requests")
             resp = await resp.json()
 
             data = resp.get('data')
@@ -118,24 +115,22 @@ class UserClient(HivenClient):
                 brief="Failed to fetch the current open friend requests:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e
 
     @overload
-    async def block_user(self, user: types.User) -> bool:
+    async def block_user(self, user: types.User) -> None:
         ...
 
     @overload
-    async def block_user(self, user: int) -> bool:
+    async def block_user(self, user: int) -> None:
         ...
 
-    async def block_user(self, user) -> bool:
+    async def block_user(self, user) -> None:
         """
         Blocks a user on Hiven
 
         :param user: Int or User Object used for the request
-        :return: True if the request was successful
-        :raises HTTPError: If the request was unsuccessful and an error was
-         encountered
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if type(user) is int:
@@ -145,9 +140,7 @@ class UserClient(HivenClient):
             else:
                 raise TypeError(f"Expected User or int! Not {type(user)}")
 
-            resp = await self.http.put(endpoint=f"/relationships/@me/blocked/{user_id}")
-
-            return True
+            await self.http.put(f"/relationships/@me/blocked/{user_id}")
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -155,24 +148,22 @@ class UserClient(HivenClient):
                 brief=f"Failed to block user with id {user_id}:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e
 
     @overload
-    async def unblock_user(self, user: types.User) -> bool:
+    async def unblock_user(self, user: types.User) -> None:
         ...
 
     @overload
-    async def unblock_user(self, user: int) -> bool:
+    async def unblock_user(self, user: int) -> None:
         ...
 
-    async def unblock_user(self, user) -> bool:
+    async def unblock_user(self, user) -> None:
         """
         Unblocks a user if the user is blocked
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful
-        :raises HTTPError: If the request was unsuccessful and an error was
-         encountered
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if type(user) is int:
@@ -182,8 +173,9 @@ class UserClient(HivenClient):
             else:
                 raise TypeError(f"Expected User or int! Not {type(user)}")
 
-            resp = await self.http.delete(endpoint=f"/relationships/@me/blocked/{user_id}")
-            return True
+            await self.http.delete(
+                f"/relationships/@me/blocked/{user_id}"
+            )
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -191,24 +183,22 @@ class UserClient(HivenClient):
                 brief=f"Failed to unblock a user with id {user_id}:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e
 
     @overload
-    async def send_friend_request(self, user: types.User) -> bool:
+    async def send_friend_request(self, user: types.User) -> None:
         ...
 
     @overload
-    async def send_friend_request(self, user: int) -> bool:
+    async def send_friend_request(self, user: int) -> None:
         ...
 
-    async def send_friend_request(self, user) -> bool:
+    async def send_friend_request(self, user) -> None:
         """
         Sends a friend request to a user
         
         :param user: Int or User Object used for the request
-        :return: True if the request was successful
-        :raises HTTPError: If the request was unsuccessful and an error was
-         encountered
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if type(user) is int:
@@ -218,14 +208,10 @@ class UserClient(HivenClient):
             else:
                 raise TypeError(f"Expected User or int! Not {type(user)}")
 
-            resp = await self.http.post(
-                endpoint=f"/relationships/@me/friend-requests", json={'user_id': f'{user_id}'}
+            await self.http.post(
+                endpoint=f"/relationships/@me/friend-requests",
+                json={'user_id': user_id}
             )
-
-            if resp.status < 300:
-                return True
-            else:
-                raise HTTPFailedRequestError()
 
         except Exception as e:
             user_id = user if user is not None else getattr(user, 'id', None)
@@ -233,4 +219,4 @@ class UserClient(HivenClient):
                 brief=f"Failed to send a friend request a user with id {user_id}:",
                 exc_info=sys.exc_info()
             )
-            raise
+            raise e

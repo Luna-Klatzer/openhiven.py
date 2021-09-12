@@ -41,7 +41,7 @@ from .hiven_type_schemas import MessageSchema, get_compiled_validator, \
     DeletedMessageSchema
 from .. import utils
 from ..base_types import DataClassObject
-from ..exceptions import InvalidPassedDataError, HTTPForbiddenError
+from ..exceptions import InvalidPassedDataError
 from ..utils import log_type_exception
 
 if TYPE_CHECKING:
@@ -132,6 +132,7 @@ class Message(DataClassObject):
         self._bucket = data.get('bucket')
         self._device_id = data.get('device_id')
         self._exploding_age = data.get('exploding_age')
+        self._recipient_ids = data.get('recipient_ids')
         self._client = client
 
     def __str__(self) -> str:
@@ -245,15 +246,15 @@ class Message(DataClassObject):
     def author(self) -> Optional[User]:
         """ Returns the Author parent object instance """
         from .user import User
-        if type(self._author) is str:
+        if type(self._author) is str and self._author:
             author_id = self._author
-        elif type(self.author_id) is str:
+        elif type(self.author_id) is str and self.author_id:
             author_id = self.author_id
         else:
             author_id = None
 
-        if type(author_id) is str:
-            data = self._client.storage['users'].get(author_id)
+        if author_id:
+            data = self._client.find_house(author_id)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author
@@ -290,6 +291,13 @@ class Message(DataClassObject):
         return getattr(self, '_exploding', None)
 
     @property
+    def recipient_ids(self) -> Optional[List[str]]:
+        """
+        A list of all recipients in the room - unique for the private rooms
+        """
+        return getattr(self, '_exploding', None)
+
+    @property
     def edited_at(self) -> Optional[str]:
         """ Returns the date the message was edited (unix-timestamp) """
         return getattr(self, '_edited_at', None)
@@ -298,8 +306,23 @@ class Message(DataClassObject):
     def room(self) -> Optional[TextRoom]:
         """ Returns the Room parent object the message was sent in """
         from . import TextRoom
-        if type(self._room) is str:
-            data = self._client.storage['rooms']['house'].get(self._room)
+        if type(self._room) is str and self._room:
+            room_id = self._room
+        elif type(self.room_id) is str and self.room_id:
+            room_id = self.room_id
+        else:
+            room_id = None
+
+        if room_id:
+            if self.recipient_ids is not None:
+                # Private room msg
+                data = self._client.find_private_room(room_id)
+                if not data:
+                    # Private group room msg
+                    data = self._client.find_private_group_room(room_id)
+            else:
+                # House msg
+                data = self._client.find_room(room_id)
             if data:
                 self._room = TextRoom(data=data, client=self._client)
                 return self._room
@@ -317,8 +340,8 @@ class Message(DataClassObject):
         Returns the House parent object, if the message was sent inside a House
         """
         from .house import House
-        if type(self._house) is str:
-            data = self._client.storage['houses'].get(self._house)
+        if type(self._house) is str and self._house:
+            data = self._client.find_house(self.house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
@@ -334,7 +357,7 @@ class Message(DataClassObject):
     def attachment(self) -> Optional[Attachment]:
         """ Returns the Attachment of the message, if it has one """
         from .attachment import Attachment
-        if type(self._attachment) is dict:
+        if type(self._attachment) is dict and self._attachment:
             self._attachment: Union[Attachment, dict] = Attachment(
                 data=self._attachment, client=self._client
             )
@@ -413,13 +436,13 @@ class Message(DataClassObject):
         """ Returns the exploding age of the message """
         return getattr(self, '_exploding_age', None)
 
-    async def mark_as_read(self, delay: float = None) -> bool:
+    async def mark_as_read(self, delay: float = None) -> None:
         """
         Marks the message as read. This doesn't need to be done for bot
         clients.
         
         :param delay: Delay until marking the message as read (in seconds)
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if delay is not None:
@@ -427,58 +450,51 @@ class Message(DataClassObject):
             await self._client.http.post(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}/ack"
             )
-            return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to mark message as read {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
+            raise e
 
-    async def delete(self, delay: float = None) -> bool:
+    async def delete(self, delay: float = None) -> None:
         """
         Deletes the message. Raises Forbidden if not allowed.
         
         :param delay: Delay until deleting the message as read (in seconds)
-        :return: A DeletedMessage object if successful
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             if delay is not None:
                 await asyncio.sleep(delay=delay)
 
-            resp = await self._client.http.delete(
+            await self._client.http.delete(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}"
             )
-
-            if not resp.status < 300:
-                raise HTTPForbiddenError()
-            else:
-                return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to delete the message {repr(self)}:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
+            raise e
 
-    async def edit(self, content: str) -> bool:
+    async def edit(self, content: str) -> None:
         """
         Edits a message on Hiven
             
-        :return: True if the request was successful else False
+        :raise HTTPError: If any HTTP error is raised while executing
         """
         try:
             await self._client.http.patch(
                 endpoint=f"/rooms/{self.room_id}/messages/{self.id}",
                 json={'content': content}
             )
-            return True
 
         except Exception as e:
             utils.log_traceback(
                 brief=f"Failed to edit message {repr(self)}",
                 exc_info=sys.exc_info()
             )
-            return False
+            raise e

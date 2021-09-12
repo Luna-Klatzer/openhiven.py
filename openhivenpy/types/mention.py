@@ -112,6 +112,7 @@ class Mention(DataClassObject):
 
     @property
     def timestamp(self) -> Optional[datetime.datetime]:
+        """ Returns the timestamp when the mention was made """
         if utils.convertible(int, self._timestamp):
             # Converting to seconds because it's in milliseconds
             self._timestamp = datetime.datetime.fromtimestamp(utils.safe_convert(int, self._timestamp) / 1000)
@@ -123,6 +124,8 @@ class Mention(DataClassObject):
 
     @property
     def user(self) -> Optional[User]:
+        """ Returns the User mentioned """
+        from .user import User
         if type(self._user) is str:
             user_id = self._user
         elif type(self.user_id) is str:
@@ -131,7 +134,7 @@ class Mention(DataClassObject):
             user_id = None
 
         if type(user_id) is str:
-            data = self._client.storage['users'].get(user_id)
+            data = self._client.find_user(user_id)
             if data:
                 self._user = User(data=data, client=self._client)
                 return self._user
@@ -145,11 +148,14 @@ class Mention(DataClassObject):
 
     @property
     def user_id(self) -> Optional[str]:
+        """ The id of the user mentioned """
         return getattr(self, '_user_id', None)
 
     @property
     def author(self) -> Optional[User]:
-        if type(self._author) is str:
+        """ The author of the message containing the mention """
+        from .user import User
+        if type(self._author) is str and self._author:
             author_id = self._author
         elif type(self.author_id) is str:
             author_id = self.author_id
@@ -157,7 +163,7 @@ class Mention(DataClassObject):
             author_id = None
 
         if type(author_id) is str:
-            data = self._client.storage['users'].get(author_id)
+            data = self._client.find_user(author_id)
             if data:
                 self._author = User(data=data, client=self._client)
                 return self._author

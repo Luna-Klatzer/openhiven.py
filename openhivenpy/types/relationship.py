@@ -96,7 +96,7 @@ class Relationship(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['relationships'][self.user_id]
+        return self._client.find_relationship(self.user_id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -142,15 +142,15 @@ class Relationship(DataClassObject):
     @property
     def user(self) -> Optional[User]:
         """ Target User Object """
-        if type(self._user) is str:
+        if type(self._user) is str and self._user:
             user_id = self._user
-        elif type(self.user_id) is str:
+        elif type(self.user_id) is str and self.user_id:
             user_id = self.user_id
         else:
             user_id = None
 
         if type(user_id) is str:
-            data = self._client.storage['users'].get(user_id)
+            data = self._client.find_user(user_id)
             if data:
                 self._user = User(data=data, client=self._client)
                 return self._user

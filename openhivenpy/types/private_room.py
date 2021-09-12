@@ -29,17 +29,14 @@ SOFTWARE.
 # Used for type hinting and not having to use annotations for the objects
 from __future__ import annotations
 
-import asyncio
 import logging
-import sys
 from typing import Optional, List
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
 
-from . import message
 from .hiven_type_schemas import PrivateRoomSchema, get_compiled_validator
 from .. import utils
-from ..base_types import DataClassObject
+from ..base_types import DataClassObject, BaseRoom
 from ..exceptions import InvalidPassedDataError
 from ..utils import log_type_exception
 
@@ -52,7 +49,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['PrivateGroupRoom', 'PrivateRoom']
 
 
-class PrivateGroupRoom(DataClassObject):
+class PrivateGroupRoom(BaseRoom):
     """ Represents a private group chat room with multiple users """
     _json_schema: dict = PrivateRoomSchema
     json_validator = get_compiled_validator(_json_schema)
@@ -88,7 +85,7 @@ class PrivateGroupRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['private']['group'][self.id]
+        return self._client.find_private_group_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -184,66 +181,37 @@ class PrivateGroupRoom(DataClassObject):
         """ Returns the type of this PrivateGroupRoom """
         return getattr(self, '_type', None)
 
-    # TODO! Implement Base Room class (ABC)
     async def send(
             self, content: str, delay: float = None
     ) -> Optional[Message]:
         """
         Sends a message in the private room.
 
+        *Not implemented*
+
         :param content: Content of the message
         :param delay: Seconds to wait until sending the message (in seconds)
         :return: A Message instance if successful else None
         """
-        try:
-            if delay is not None:
-                await asyncio.sleep(delay=delay)
-            resp = await self._client.http.post(
-                endpoint=f"/rooms/{self.id}/messages",
-                json={"content": content}
-            )
-
-            raw_data = await resp.json()
-
-            # Raw_data not in correct format => needs to access data field
-            data = raw_data.get('data')
-
-            data = message.Message.format_obj_data(data)
-            msg = message.Message(data, self._client)
-            return msg
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to send message in room {repr(self)}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return None
+        raise NotImplementedError(
+            "This is not implemented yet for Private Rooms"
+        )
 
     async def start_call(self, delay: float = None) -> bool:
-        """openhivenpy.types.PrivateGroupRoom.start_call()
-
+        """
         Starts a call with the user in the private room
 
+        *Not implemented*
+
         :param delay: Delay until calling (in seconds)
-        :return: True if successful
+        :raise HTTPError: If any HTTP error is raised while executing
         """
-        try:
-            if delay is not None:
-                await asyncio.sleep(delay=delay)
-            await self._client.http.post(f"/rooms/{self.id}/call")
-            return True
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to start call in {repr(self)}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return False
+        raise NotImplementedError(
+            "This is not implemented yet for Private Rooms"
+        )
 
 
-class PrivateRoom(DataClassObject):
+class PrivateRoom(BaseRoom):
     """ Represents a private chat room with only one user """
     _json_schema: dict = PrivateRoomSchema
     json_validator = get_compiled_validator(_json_schema)
@@ -277,7 +245,7 @@ class PrivateRoom(DataClassObject):
         If updated while the object exists, the data might differentiate, due
         to the object not being updated unlike the cache.
         """
-        return self._client.storage['rooms']['private']['single'][self.id]
+        return self._client.find_private_room(self.id)
 
     @classmethod
     def format_obj_data(cls, data: dict) -> dict:
@@ -395,35 +363,6 @@ class PrivateRoom(DataClassObject):
         """ The type of the PrivateRoom """
         return getattr(self, '_type', None)
 
-    async def start_call(self, delay: float = None) -> bool:
-        """openhivenpy.types.PrivateRoom.start_call()
-
-        Starts a call with the user in the private room
-    
-        :param delay: Delay until calling (in seconds)
-        :return: True if successful
-        """
-        try:
-            if delay is not None:
-                await asyncio.sleep(delay=delay)
-
-            resp = await self._client.http.post(f"/rooms/{self.id}/call")
-
-            data = await resp.json()
-            if data.get('data'):
-                return True
-            else:
-                return False
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to start call in room {repr(self)}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return False
-
-    # TODO! Implement Base Room class (ABC)
     async def send(
             self, content: str, delay: float = None
     ) -> Optional[Message]:
@@ -434,27 +373,18 @@ class PrivateRoom(DataClassObject):
         :param delay: Delay until sending the message (in seconds)
         :return: Returns a Message Instance if successful.
         """
-        # TODO! Requires functionality check!
-        try:
-            if delay is not None:
-                await asyncio.sleep(delay=delay)
-            resp = await self._client.http.post(
-                endpoint=f"/rooms/{self.id}/messages", json={"content": content}
-            )
+        raise NotImplementedError(
+            "This is not implemented yet for Private Rooms"
+        )
 
-            raw_data = await resp.json()
+    async def start_call(self, delay: float = None) -> bool:
+        """
+        Starts a call with the user in the private room
 
-            # Raw_data not in correct format => needs to access data field
-            data = raw_data.get('data')
+        *Not implemented*
 
-            data = message.Message.format_obj_data(data)
-            msg = message.Message(data, self._client)
-            return msg
-
-        except Exception as e:
-            utils.log_traceback(
-                brief=f"Failed to send message in room {repr(self)}:",
-                exc_info=sys.exc_info()
-            )
-            # TODO! Raise exception
-            return None
+        :param delay: Delay until calling (in seconds)
+        """
+        raise NotImplementedError(
+            "This is not implemented yet for Private Rooms"
+        )

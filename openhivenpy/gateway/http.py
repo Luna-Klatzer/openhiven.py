@@ -42,11 +42,12 @@ __all__ = ['HTTP']
 
 from ..base_types import HivenObject
 from .. import utils
-from ..exceptions import (HTTPError, SessionCreateError,
+from ..exceptions import (SessionCreateError,
                           HTTPFailedRequestError, HTTPRequestTimeoutError,
                           HTTPReceivedNoDataError, HTTPSessionNotReadyError,
                           HTTPNotFoundError, HTTPInternalServerError,
-                          HTTPRateLimitError)
+                          HTTPRateLimitError, HTTPForbiddenError,
+                          HTTPInvalidRequest)
 
 # Only importing the Objects for the purpose of type hinting and not actual use
 from typing import TYPE_CHECKING
@@ -61,6 +62,8 @@ request_url_format = "https://{0}/{1}"
 
 
 class HTTPTraceback(HivenObject):
+    """ Class storing the HTTP Traceback methods """
+
     @staticmethod
     async def on_request_start(session, trace_config_ctx, params):
         logger.debug(
@@ -132,10 +135,12 @@ class HTTP:
 
     @property
     def token(self) -> Optional[str]:
+        """ Returns the Client Token used for Authorisation """
         return getattr(self.client, 'token', None)
 
     @property
     def ready(self) -> Optional[bool]:
+        """ Returns whether the HTTP session is ready """
         return getattr(self, '_ready', False)
 
     @property
@@ -256,7 +261,12 @@ class HTTP:
                 http_resp_code = _resp.status
                 data = await _resp.read()  # Raw response data
 
-                if http_resp_code == 404:
+                if http_resp_code == 401 or http_resp_code == 403:
+                    raise HTTPForbiddenError(
+                        "The client was forbidden to execute a certain task "
+                        f"or function! [Code: {http_resp_code}]"
+                    )
+                elif http_resp_code == 404:
                     raise HTTPNotFoundError()
                 elif http_resp_code == 429:
                     logger.debug(
@@ -284,6 +294,11 @@ class HTTP:
                     # min additional 0.1s
                     await asyncio.sleep(retry_after + 0.1)
                     continue
+                elif 400 <= http_resp_code <= 451:
+                    raise HTTPInvalidRequest(
+                        "The client failed to perform the request due to an "
+                        f"error! [Code: {http_resp_code}]"
+                    )
                 elif http_resp_code >= 500:
                     raise HTTPInternalServerError(
                         f"Failed to perform request due to Hiven internal "
@@ -397,10 +412,7 @@ class HTTP:
                       f"{self.host}{endpoint}:",
                 exc_info=sys.exc_info()
             )
-            raise HTTPError(
-                f"HTTP '{method.upper()}' failed with endpoint: "
-                f"{self.host}{endpoint}: "
-            ) from e
+            raise e
 
         # Returning the response instance
         return http_client_response

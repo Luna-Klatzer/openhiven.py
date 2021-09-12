@@ -9,7 +9,7 @@
         - [Install (PyPi Specific Version)](#install-pypi-specific-version)
         - [Install (Github Build)](#install-github-build)
     - [Documentation](#documentation)
-        - [Usage Example (v0.2.dev3)](#usage-example-v02dev3)
+        - [Usage Example)](#usage-example)
     - [Development](#development)
         - [Testing](#testing)
         - [Building](#building)
@@ -66,27 +66,7 @@ python3 -m pip install -U https://github.com/Luna-Klatzer/openhiven.py/archive/m
 For the full documentation visit the documentation build
 [here](https://Luna-Klatzer.github.io/docs_openhiven.py/)
 
-### Usage Example (v0.2.dev3)
-
-*The following listeners will not pass args to the listener until 0.2:*
-
-- room_create
-- room_update
-- room_delete
-- house_member_join
-- house_member_leave
-- house_member_enter
-- house_member_exit
-- house_member_update
-- house_member_chunk
-- batch_house_member_update
-- house_entity_update
-- relationship_update
-- presence_update
-- message_create
-- message_update
-- message_delete
-- typing_start
+### Usage Example
 
 **A simple UserClient Bot for quick usage:**
 

@@ -2,6 +2,20 @@
 
 ---
 
+!!! Important 
+
+    Note that each type has a property that is *cached*! Meaning when you 
+    access one, it is stored forever without any changes (deletions or updates)
+    being applied to it.
+
+    For example: When you access the *rooms* property of the House class and
+    use it for a longer time and in the meantime one of them gets deleted. 
+    The library will be unable to correctly delete it, since it's now stored
+    by the user themselves. Therefore watch out for the proper existance!
+
+    In the next releases a property `exists()` will be added to validate 
+    the existance of objects to not possibly use an outdated one!
+
 ## List of represented Types
 
 | List of Type                                                               | Description                                                                                 |

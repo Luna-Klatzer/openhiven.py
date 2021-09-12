@@ -40,7 +40,7 @@ from .user import User
 from .. import utils
 from ..base_types import DataClassObject
 from ..exceptions import (HTTPForbiddenError,
-                          InvalidPassedDataError)
+                          InvalidPassedDataError, HTTPFailedRequestError)
 from ..utils import log_type_exception
 
 if TYPE_CHECKING:
@@ -145,15 +145,15 @@ class Member(User):
     def house(self) -> Optional[House]:
         """ Parent House object instance of this class """
         from . import House
-        if type(self._house) is str:
+        if type(self._house) is str and self._house:
             house_id = self._house
-        elif type(self.house_id) is str:
+        elif type(self.house_id) is str and self.house_id:
             house_id = self.house_id
         else:
             house_id = None
 
         if house_id:
-            data = self._client.storage['houses'].get(house_id)
+            data = self._client.find_house(house_id)
             if data:
                 self._house = House(data=data, client=self._client)
                 return self._house
@@ -175,32 +175,22 @@ class Member(User):
         """ Returns the roles of the Member """
         return getattr(self, '_roles', None)
 
-    async def kick(self) -> bool:
+    async def kick(self) -> None:
         """
         Kicks a user from the house.
 
-        The client needs permissions to kick, or else this will raise
-        `HivenException.Forbidden`
-            
-        :return: True if the request was successful
-        :raises Forbidden: If the request failed to execute
+        :raise HTTPError: If any HTTP error is raised while executing
+        :raises Forbidden: If the client does not have the permissions to
+         execute this command
         """
         try:
-            resp = await self._client.http.delete(
-                f"/{self._house_id}/members/{self._user_id}"
-            )
-            if not resp.status < 300:
-                raise HTTPForbiddenError()
-            else:
-                return True
-        except HTTPForbiddenError:
-            raise
+            endpoint = f"/{self._house_id}/members/{self._user_id}"
+            await self._client.http.delete(endpoint)
 
-        except Exception as e:
+        except (HTTPForbiddenError, HTTPFailedRequestError) as e:
             utils.log_traceback(
                 brief=f"Failed to kick the member due to an exception "
                       "occurring:",
                 exc_info=sys.exc_info()
             )
-            # TODO! Raise exception
-            return False
+            raise e

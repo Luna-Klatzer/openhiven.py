@@ -13,8 +13,58 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
+
 ### Changed
+ 
 ### Removed
+
+## [v0.2] - 2021-09-12
+
+### Added
+- Support for private rooms and private group rooms in other type objects.
+  (Added proper checking of the existence of the id and finding)
+- `recipient_ids` in the object `Message`.
+- Property `room_id`, `house_id` and `author_id` to the `Context` class.
+- New Base Type `BaseRoom` for the rooms `TextRoom`, `PrivateRoom` and `PrivateGroupRoom`.
+- Added new methods `find_house_member()` and `get_house_member()` to the `HivenClient`.
+- Added new method to the class `ClientCache`: `add_or_update_house_member()` 
+  and `remove_house_member()`.
+- Added new HTTP Exception `HTTPInvalidRequest`.
+- Added proper Support for the Member Class in the cache, meaning removal and 
+  addition are now properly managed.
+- Listeners and proper data management for these listeners:
+  - `on_room_create`
+  - `on_room_update`
+  - `on_room_delete`
+  - `on_house_member_join`
+  - `on_house_member_leave`
+  - `on_house_member_online` / `on_house_member_enter`
+  - `on_house_member_offline` / `on_house_member_exit`
+  - `on_house_member_update`
+  - `on_house_member_chunk`
+  - `on_batch_house_member_update`
+  - `on_house_entities_update`
+  - `on_relationship_update`
+  - `on_presence_update`
+  - `on_message_update`
+  - `on_typing_start`
+- Added new decorator to the Event Parsers in `event_parsers.py` and added
+  additional data log to allow for better reporting for bugs and errors in the 
+  parsers. This also includes avoiding that the Connection class errors as well,
+  when one of the Parsers errors.
+### Changed
+- Integrated usage of the `HivenClient.find_*` methods, instead of direct
+  access of the storage in the type properties.
+- Updated HTTP Client behaviour handling exceptions. Exceptions will be now 
+  re-raised from the Client and not wrapped with a new `HTTPError` exception,
+  to allow for easier error handling. This also means the functions implementing
+  the HTTP Methods will be not handling their own exception handling anymore.
+- Properly updated fetching methods in the class `House`: `get_room`, `find_room`,
+  `get_member` and `find_member`.
+- Updated `remove_house()` to also properly remove entities and rooms.  
+### Removed
+- Code from methods `start_call` and `send` in `PrivateRoom` and `PrivateGroupRoom`, as
+  they are not functional and therefore not working yet! (Raises now `NotImplementedError`)
 
 ## [v0.2.dev4] - 2021-09-03
 
@@ -217,7 +267,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   handling
 - `username` option for `Client.edit(**kwargs)`
 - `create_private_group_room` as method in the class `HivenClient`
-- Until now missing entity object to the event `on_house_entity_update`
+- Until now missing entity object to the event `on_house_entities_update`
 
 ### Changed
 
@@ -258,7 +308,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ping` from the HivenClient (Will be added back later but with better
   implementation)
 
-[unreleased]: https://github.com/Para-C/Para-C/compare/0.2.dev4...v0.2.dev
+[unreleased]: https://github.com/Para-C/Para-C/compare/0.2...v0.2.dev
+
+[v0.2]: https://github.com/Para-C/Para-C/compare/0.2.dev4...0.2
 
 [v0.2.dev4]: https://github.com/Para-C/Para-C/compare/0.2.dev3...0.2.dev4
 

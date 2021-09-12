@@ -39,15 +39,15 @@ class TestUtils:
         logging.basicConfig(level=logging.DEBUG)
         try:
             raise ValueError("test")
-        except ValueError as e:
+        except ValueError:
             utils.log_traceback()
 
         try:
             raise ValueError("test")
-        except ValueError as e:
+        except ValueError:
             try:
                 utils.log_traceback(level=None)
-            except TypeError as e:
+            except TypeError:
                 pass
             else:
                 assert False, "Expected exception"
@@ -63,7 +63,7 @@ class TestUtils:
 
         try:
             utils.safe_convert(int, "x")
-        except ValueError as e:
+        except ValueError:
             pass
         else:
             assert False

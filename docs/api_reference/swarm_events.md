@@ -196,7 +196,7 @@ The user logged successfully into the account, and the init data is sent with it
 ## `MESSAGE_CREATE`
 [Docs · `on_message_create()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_message_create)
 
-??? abstract "Expected json-data"
+??? abstract "Expected json-data - HOUSE MESSAGE "
 
     ```json
     "op": 0,
@@ -244,7 +244,7 @@ The user logged successfully into the account, and the init data is sent with it
         },
         "id": str,
         "house_id": str,
-        "exploding_age": int,
+        "exploding_age": int | None,
         "exploding": bool,
         "device_id": str,
         "content": str,
@@ -270,6 +270,46 @@ The user logged successfully into the account, and the init data is sent with it
                 "height": int
             }
         }
+    }
+    ```
+
+??? abstract "Expected json-data - HOUSE MESSAGE "
+
+    ```json
+    {
+        "author": {
+            // User Object
+            "username": str,
+            "flags": str | int | None,
+            "name": str,
+            "id": str,
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
+        },
+        "author_id": str,
+        "bucket": int,
+        "content": str,
+        "device_id": str,
+        "exploding": bool,
+        "exploding_age": int | None,
+        "id": str,
+        "mentions": [{
+            // Mention object aka. user object
+            "username": str,
+            "flags": str | int | None,
+            "name": str,
+            "id": str,
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None,
+            "bot": bool | None
+        } ... ],
+        "recipient_ids": [
+            // List of user ids - str
+        ],
+        "room_id": str,
+        "timestamp": int
     }
     ```
 
@@ -311,7 +351,7 @@ The user logged successfully into the account, and the init data is sent with it
         }, ...],
         "id": str,
         "house_id": str,
-        "exploding_age": int,
+        "exploding_age": int | None,
         "exploding": bool,
         "embed": {
             // Embed Object
@@ -580,10 +620,13 @@ The user logged successfully into the account, and the init data is sent with it
         } ... ],
         "length": int
         "user": {
-            "id": str,
-            "name": str,
-            "flags": str | int | None,
             "username": str,
+            "flags": str | int | None,
+            "name": str,
+            "id": str,
+            "icon": str | None,
+            "header": str | None,
+            "presence": str | None
         }
     }
     ```
@@ -596,12 +639,12 @@ The user logged successfully into the account, and the init data is sent with it
     ```json
     "op": 0,
     "d": {
-        house_id: str,
-        id: str,
-        joined_at: str,
-        last_permission_update: str,
-        presence: str,
-        roles: [{
+        "house_id": str,
+        "id": str,
+        "joined_at": str,
+        "last_permission_update": str,
+        "presence": str,
+        "roles": [{
             // Role Object
             "position": int,
             "name": str,
@@ -612,14 +655,14 @@ The user logged successfully into the account, and the init data is sent with it
             "color": str, // hex
             "allow": bits 
         } ... ],
-        user: { 
+        "user": { 
             bot: bool,
             id: str,
             name: str,
             flags: str,
             username: str,
         },
-        user_id: str
+        "user_id": str
     }
     ```
 
@@ -732,28 +775,28 @@ Chunked House Member Update
             "id": {
                 "user_id": str,
                 "user": {
-                "username": str,
-                "flags": str | int | None,
-                "name": str,
-                "id": strstr
-                "icon": str | None,
-                "header": str | None,
-                "presence": str | None
-            },
-            "roles": [{
-                // Role Object
-                "position": int,
-                "name": str,
-                "level": int,
-                "id": str,
-                "house_id": str,
-                "deny": bits,
-                "color": str, // hex
-                "allow": bits 
-            } ... ],
-            "last_permission_update": str | None,
-            "joined_at": str,
-            "house_id": str
+                    "username": str,
+                    "flags": str | int | None,
+                    "name": str,
+                    "id": strstr
+                    "icon": str | None,
+                    "header": str | None,
+                    "presence": str | None
+                },
+                "roles": [{
+                    // Role Object
+                    "position": int,
+                    "name": str,
+                    "level": int,
+                    "id": str,
+                    "house_id": str,
+                    "deny": bits,
+                    "color": str, // hex
+                    "allow": bits 
+                } ... ],
+                "last_permission_update": str | None,
+                "joined_at": str,
+                "house_id": str
             }
         } ... ],
         "house_id": str
@@ -761,7 +804,7 @@ Chunked House Member Update
     ```
 
 ## `HOUSE_ENTITIES_UPDATE`
-[Docs · `on_house_entity_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update)
+[Docs · `on_house_entities_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entities_update)
 
 ??? abstract "Expected json-data"
 
@@ -829,7 +872,7 @@ Chunked House Member Update
     ```
 
 ## `HOUSE_ENTITY_UPDATE`
-[Docs · `on_house_entity_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entity_update)
+[Docs · `on_house_entities_update()`](../reference/hiven_parsers.html#openhivenpy.events.event_parsers.HivenParsers.on_house_entities_update)
 
 ??? abstract "Expected json-data"
 
