@@ -1016,69 +1016,69 @@
 <p>If you receive this error response that means it is an issue relating the authentication which is either not passed 
 in the headers or is not correct!</p>
 <p>More info on <a href="./hiven_restapi.html#authentication-header"><code>Authentication Header</code></a></p>
-<p>!!! <strong>Example Exception Response:</strong></p>
-<div class="highlight"><pre><span></span><code>```json
-    {
-        &quot;success&quot;: false,
-        &quot;error&quot;: {
-            &quot;code&quot;: &quot;no_auth&quot;,
-            &quot;message&quot;: &quot;Authorization is required for this route&quot;
-        }
-    }
-```
+<div class="admonition example exception response">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code>    <span class="p">{</span>
+        <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;no_auth&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Authorization is required for this route&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
 </code></pre></div>
+</div>
 <h2 id="400-bad-request-parent_entity_doesnt_exist"><code>400 Bad Request</code> - parent_entity_doesnt_exist<a class="headerlink" href="#400-bad-request-parent_entity_doesnt_exist" title="Permanent link">&para;</a></h2>
 <p>The chosen parent_entity in the request does not exist in the house! </p>
 <p>(Usually for rooms or entities)</p>
-<p>!!! <strong>Example Exception Response:</strong></p>
-<div class="highlight"><pre><span></span><code>```json
-    {
-        &quot;success&quot;: false,
-        &quot;error&quot;: {
-            &quot;code&quot;: &quot;parent_entity_doesnt_exist&quot;,
-            &quot;message&quot;: &quot;Parent entity does not exist in this house&quot;
-        }
-    }
-```
+<div class="admonition example exception response">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code>    <span class="p">{</span>
+        <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;parent_entity_doesnt_exist&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Parent entity does not exist in this house&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
 </code></pre></div>
+</div>
 <h2 id="404-not-found-not_found"><code>404 Not Found</code> - not_found<a class="headerlink" href="#404-not-found-not_found" title="Permanent link">&para;</a></h2>
 <p>The 404 Exception is a classic exception in the Web-Area and means here the Hiven API did not find the endpoint you
 specified.</p>
-<p>!!! <strong>Example Exception Response:</strong></p>
-<div class="highlight"><pre><span></span><code>```json
-{
-    &quot;success&quot;: false,
-    &quot;error&quot;: {
-        &quot;code&quot;: &quot;not_found&quot;,
-        &quot;message&quot;: &quot;Not found&quot;
-    }
-}
-```
+<div class="admonition example exception response">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;not_found&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Not found&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
+</div>
 <h2 id="415-unsupported-media-type-internal_server_error"><code>415 Unsupported Media Type</code> - internal_server_error<a class="headerlink" href="#415-unsupported-media-type-internal_server_error" title="Permanent link">&para;</a></h2>
 <p>If you receive this error, the server encountered an internal error due to a header-issue where some data that you 
 passed, or a specification causes the server to fail to perform the request.</p>
-<p>!!! <strong>Example Exception Response:</strong></p>
-<div class="highlight"><pre><span></span><code>```json
-{
-    &quot;success&quot;: false,
-    &quot;error&quot;: {
-        &quot;code&quot;: &quot;internal_server_error&quot;,
-        &quot;message&quot;: &quot;Something went wrong interally&quot;
-    }
-}
-```
+<div class="admonition example exception response">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;internal_server_error&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Something went wrong interally&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
+</div>
 <h2 id="429-rate-limit-rate_limit"><code>429 Rate Limit</code> - rate_limit<a class="headerlink" href="#429-rate-limit-rate_limit" title="Permanent link">&para;</a></h2>
 <p>If you receive this error, your client has sent too many requests, and it is
 rate-limiting you to wait until you can send a request again.</p>
-<p>!!! <strong>Example Exception Response:</strong></p>
-<div class="highlight"><pre><span></span><code>```json
-{ 
-  &quot;expires_at&quot;: &quot;&lt;unix-timestamp&gt;&quot;
-}
-```
+<div class="admonition example exception response">
+<p class="admonition-title">Example</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span> 
+  <span class="nt">&quot;expires_at&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;unix-timestamp&gt;&quot;</span>
+<span class="p">}</span>
 </code></pre></div>
+</div>
                 
                   
                     
