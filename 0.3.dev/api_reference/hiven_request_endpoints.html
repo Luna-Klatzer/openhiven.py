@@ -819,6 +819,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#housesid" class="md-nav__link">
+    /houses/:id
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1141,6 +1148,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#housesid" class="md-nav__link">
+    /houses/:id
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1255,7 +1269,7 @@ meaning generic ones are not added to avoid making the docs messy!</p>
 </details>
 </div>
 <input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">PATCH</label><div class="tabbed-content">
-<p>Alters your user accounts data</p>
+<p>Edits your user accounts data</p>
 <p><strong>Required body:</strong></p>
 <table>
 <thead>
@@ -1311,7 +1325,8 @@ meaning generic ones are not added to avoid making the docs messy!</p>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
 <span class="p">}</span>
 </code></pre></div>
-<details class="success"><summary>200</summary><p>Patch was successful and the data was changed! The response will containt the updated data of the User</p>
+<details class="success"><summary>200</summary><p>Patch was successful and the data was changed! 
+The response will containt the updated data of the User</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="err">True</span><span class="p">,</span>
     <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1538,7 +1553,7 @@ will change no value. Still the result will be 200 and the user-data will be sen
 </tr>
 </tbody>
 </table>
-<p>*<em>At least one is required for the correct creation</em></p>
+<p>*<em>At least one is required for the correct execution of the request</em></p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
@@ -1609,7 +1624,7 @@ will change no value. Still the result will be 200 and the user-data will be sen
 </tr>
 </tbody>
 </table>
-<p>*<em>At least one is required for the correct creation</em></p>
+<p>*<em>At least one is required for the correct execution of the request</em></p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
@@ -1685,13 +1700,126 @@ returned.</p>
 <details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
 <div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1"><code>invalid_schema</code></label><div class="tabbed-content">
 <p>The field <code>name</code> is missing (Required)</p>
-<div class="highlight"><pre><span></span><code>{
-    &quot;success&quot;: false,
-    &quot;error&quot;: {
-        &quot;code&quot;: &quot;invalid_schema&quot;,
-        &quot;message&quot;: &quot;Required fields (name) not met&quot;
-    }
-}
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;invalid_schema&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Required fields (name) not met&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</details>
+</div>
+</div>
+<h4 id="housesid"><code>/houses/:id</code><a class="headerlink" href="#housesid" title="Permanent link">&para;</a></h4>
+<p>Endpoint for a specific house based on its id.</p>
+<div class="tabbed-set" data-tabs="13:2"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><label for="__tabbed_13_1">PATCH</label><div class="tabbed-content">
+<p>Edits the house if the permissions are sufficient.</p>
+<p><strong>Required body:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Name of the House</td>
+<td>No*</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code>str</code> (base64 encoded img)</td>
+<td>Icon image of the House</td>
+<td>No*</td>
+</tr>
+</tbody>
+</table>
+<p>*<em>At least one is required for the correct execution of the request</em></p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+    <span class="nt">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>200</summary><p>Patch was successful and the data was changed! 
+The response will containt the updated value of the House</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;test2&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;house_id&quot;</span><span class="p">:</span> <span class="s2">&quot;289393198252424847&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</details>
+<details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
+<div class="tabbed-set" data-tabs="14:2"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><label for="__tabbed_14_1"><code>invalid_schema</code></label><div class="tabbed-content">
+<p>The field <code>name</code> is missing (Required)</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;invalid_schema&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Required fields (name) not met&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_14_2" name="__tabbed_14" type="radio" /><label for="__tabbed_14_2"><code>invalid_icon_file_format</code></label><div class="tabbed-content">
+<p>The passed image base64 string was not in the correct format.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;invalid_icon_file_format&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Your icon must be an image&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</details>
+<details class="fail"><summary>500</summary><p><strong>Possible Exceptions:</strong>        </p>
+<div class="tabbed-set" data-tabs="15:1"><input checked="checked" id="__tabbed_15_1" name="__tabbed_15" type="radio" /><label for="__tabbed_15_1"><code>internal_server_error</code></label><div class="tabbed-content">
+<p><em>Possibly</em> caused by a faulty base64 string, which could not be
+processed.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;invalid_schema&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Required fields (name) not met&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</details>
+</div>
+<input id="__tabbed_13_2" name="__tabbed_13" type="radio" /><label for="__tabbed_13_2">DELETE</label><div class="tabbed-content">
+<p>Deletes the house if the permissions are sufficient.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>204</summary><p>House Deletion was successful.</p>
+</details>
+<details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
+<div class="tabbed-set" data-tabs="16:1"><input checked="checked" id="__tabbed_16_1" name="__tabbed_16" type="radio" /><label for="__tabbed_16_1"><code>no_permission</code></label><div class="tabbed-content">
+<p>You do not have the permissions to delete this House.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;no_permission&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;You do not have permission to do this&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
 </div>
 </div>
