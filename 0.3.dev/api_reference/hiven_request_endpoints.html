@@ -1569,69 +1569,69 @@ will change no value. Still the result will be 200 and the user-data will be sen
 <h4 id="usersmeroomsid"><code>/users/@me/rooms/:id</code><a class="headerlink" href="#usersmeroomsid" title="Permanent link">&para;</a></h4>
 <p>Endpoint for a specific private room based on the id.</p>
 <div class="tabbed-set" data-tabs="8:1"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">DELETE</label><div class="tabbed-content">
-<p>Leaves a private room or private group room.</p>
+<p>Leaves a private group room.</p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
 <span class="p">}</span>
 </code></pre></div>
-<details class="success"><summary>200</summary><p><em>In work</em></p>
+<details class="success"><summary>204</summary><p>Successfully left the private group room.</p>
 </details>
-<details class="fail"><summary>400</summary><p><em>In work</em></p>
+<details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
+<div class="tabbed-set" data-tabs="9:1"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1"><code>method_not_allowed_on_room_type</code></label><div class="tabbed-content">
+<p>This method is not allowed on a private room, but only private
+group rooms.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;method_not_allowed_on_room_type&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;This endpoint can only be called on private group rooms (room type 2&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
 </details>
 </div>
 </div>
 <h4 id="usersmehousesid"><code>/users/@me/houses/:id</code><a class="headerlink" href="#usersmehousesid" title="Permanent link">&para;</a></h4>
 <p>Endpoint for a specific House where you are member in.</p>
-<div class="tabbed-set" data-tabs="9:1"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1">DELETE</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="10:1"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><label for="__tabbed_10_1">DELETE</label><div class="tabbed-content">
 <p>Leaves a house.</p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
 <span class="p">}</span>
 </code></pre></div>
-<details class="success"><summary>200</summary><p><em>In work</em></p>
+<details class="success"><summary>204</summary><p>Successfully left the house</p>
 </details>
-<details class="fail"><summary>400</summary><p><em>In work</em></p>
+<details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
+<div class="tabbed-set" data-tabs="11:1"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1"><code>out_of_scope</code></label><div class="tabbed-content">
+<p>The House is out of scope! You can not leave a house you are not
+in.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nt">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;out_of_scope&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;you are not part of this house, so you can&#39;t leave it&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
 </details>
 </div>
 </div>
 <h4 id="relationshipsmefriendsid"><code>/relationships/@me/friends/:id</code><a class="headerlink" href="#relationshipsmefriendsid" title="Permanent link">&para;</a></h4>
-<div class="tabbed-set" data-tabs="10:1"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><label for="__tabbed_10_1">DELETE</label><div class="tabbed-content">
-<p>Creates a new private room or private group room.</p>
-<p><strong>Required body:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>recipient</code></td>
-<td><code>str</code> (user id)</td>
-<td>Recipient that should be added to the DM room</td>
-<td>No*</td>
-</tr>
-<tr>
-<td><code>recipients</code></td>
-<td><code>List[str]</code> (user ids)</td>
-<td>Recipients that should be added to the DM room (Group Channel)</td>
-<td>No*</td>
-</tr>
-</tbody>
-</table>
-<p>*<em>At least one is required for the correct execution of the request</em></p>
+<p>Endpoint for a user you are friends with.</p>
+<div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1">DELETE</label><div class="tabbed-content">
+<p>Unfriends someone.</p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
-    <span class="nt">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
-<details class="success"><summary>200</summary><p><em>In work</em></p>
+<details class="success"><summary>204</summary><p>Succesfully unfriended the user.</p>
 </details>
 <details class="fail"><summary>400</summary><p><em>In work</em></p>
 </details>
@@ -1641,7 +1641,7 @@ will change no value. Still the result will be 200 and the user-data will be sen
 <h4 id="houses"><code>/houses</code><a class="headerlink" href="#houses" title="Permanent link">&para;</a></h4>
 <p>Endpoint for the general house collection. Only used for house creation
 at the moment.</p>
-<div class="tabbed-set" data-tabs="11:1"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1">POST</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="13:1"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><label for="__tabbed_13_1">POST</label><div class="tabbed-content">
 <p>Creates a new House with the passed data.</p>
 <p><strong>Required body:</strong></p>
 <table>
@@ -1698,7 +1698,7 @@ returned.</p>
 </code></pre></div>
 </details>
 <details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
-<div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1"><code>invalid_schema</code></label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="14:1"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><label for="__tabbed_14_1"><code>invalid_schema</code></label><div class="tabbed-content">
 <p>The field <code>name</code> is missing (Required)</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
@@ -1715,7 +1715,7 @@ returned.</p>
 </div>
 <h4 id="housesid"><code>/houses/:id</code><a class="headerlink" href="#housesid" title="Permanent link">&para;</a></h4>
 <p>Endpoint for a specific house based on its id.</p>
-<div class="tabbed-set" data-tabs="13:2"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><label for="__tabbed_13_1">PATCH</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="15:2"><input checked="checked" id="__tabbed_15_1" name="__tabbed_15" type="radio" /><label for="__tabbed_15_1">PATCH</label><div class="tabbed-content">
 <p>Edits the house if the permissions are sufficient.</p>
 <p><strong>Required body:</strong></p>
 <table>
@@ -1761,7 +1761,7 @@ The response will containt the updated value of the House</p>
 </code></pre></div>
 </details>
 <details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
-<div class="tabbed-set" data-tabs="14:2"><input checked="checked" id="__tabbed_14_1" name="__tabbed_14" type="radio" /><label for="__tabbed_14_1"><code>invalid_schema</code></label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="16:2"><input checked="checked" id="__tabbed_16_1" name="__tabbed_16" type="radio" /><label for="__tabbed_16_1"><code>invalid_schema</code></label><div class="tabbed-content">
 <p>The field <code>name</code> is missing (Required)</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
@@ -1772,7 +1772,7 @@ The response will containt the updated value of the House</p>
 <span class="p">}</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_14_2" name="__tabbed_14" type="radio" /><label for="__tabbed_14_2"><code>invalid_icon_file_format</code></label><div class="tabbed-content">
+<input id="__tabbed_16_2" name="__tabbed_16" type="radio" /><label for="__tabbed_16_2"><code>invalid_icon_file_format</code></label><div class="tabbed-content">
 <p>The passed image base64 string was not in the correct format.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
@@ -1786,7 +1786,7 @@ The response will containt the updated value of the House</p>
 </div>
 </details>
 <details class="fail"><summary>500</summary><p><strong>Possible Exceptions:</strong>        </p>
-<div class="tabbed-set" data-tabs="15:1"><input checked="checked" id="__tabbed_15_1" name="__tabbed_15" type="radio" /><label for="__tabbed_15_1"><code>internal_server_error</code></label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="17:1"><input checked="checked" id="__tabbed_17_1" name="__tabbed_17" type="radio" /><label for="__tabbed_17_1"><code>internal_server_error</code></label><div class="tabbed-content">
 <p><em>Possibly</em> caused by a faulty base64 string, which could not be
 processed.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1801,7 +1801,7 @@ processed.</p>
 </div>
 </details>
 </div>
-<input id="__tabbed_13_2" name="__tabbed_13" type="radio" /><label for="__tabbed_13_2">DELETE</label><div class="tabbed-content">
+<input id="__tabbed_15_2" name="__tabbed_15" type="radio" /><label for="__tabbed_15_2">DELETE</label><div class="tabbed-content">
 <p>Deletes the house if the permissions are sufficient.</p>
 <p><strong>Required header:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1811,7 +1811,7 @@ processed.</p>
 <details class="success"><summary>204</summary><p>House Deletion was successful.</p>
 </details>
 <details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
-<div class="tabbed-set" data-tabs="16:1"><input checked="checked" id="__tabbed_16_1" name="__tabbed_16" type="radio" /><label for="__tabbed_16_1"><code>no_permission</code></label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="18:1"><input checked="checked" id="__tabbed_18_1" name="__tabbed_18" type="radio" /><label for="__tabbed_18_1"><code>no_permission</code></label><div class="tabbed-content">
 <p>You do not have the permissions to delete this House.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
