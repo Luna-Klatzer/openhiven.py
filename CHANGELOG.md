@@ -13,7 +13,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## Unreleased
 
 ### Added
-
+- Added `Permissions(ENUM)` class
+- Added `hiven_type_schemas` file import to the `permissions.py` file
 ### Changed
  
 ### Removed

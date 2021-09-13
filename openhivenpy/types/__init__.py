@@ -44,9 +44,12 @@ __all__ = [
     'Invite',
     'Mention',
     'Embed',
-    'Relationship'
+    'Relationship',
+    'Permissions',
+    'hiven_type_schemas'
 ]
 
+from . import hiven_type_schemas
 from .attachment import *
 from .context import *
 from .embed import *
@@ -57,6 +60,7 @@ from .invite import *
 from .member import *
 from .mention import *
 from .message import *
+from .permissions import *
 from .private_room import *
 from .relationship import *
 from .textroom import *
