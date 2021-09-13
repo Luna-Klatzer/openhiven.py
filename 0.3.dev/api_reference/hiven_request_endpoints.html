@@ -752,14 +752,14 @@
         
           <li class="md-nav__item">
   <a href="#usersusername" class="md-nav__link">
-    /users/username
+    /users/:username
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#usersid" class="md-nav__link">
-    /users/id
+    /users/:id
   </a>
   
 </li>
@@ -774,6 +774,27 @@
           <li class="md-nav__item">
   <a href="#usersmerooms" class="md-nav__link">
     /users/@me/rooms
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usersmeroomsid" class="md-nav__link">
+    /users/@me/rooms/:id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usersmehousesid" class="md-nav__link">
+    /users/@me/houses/:id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relationshipsmefriendsid" class="md-nav__link">
+    /relationships/@me/friends/:id
   </a>
   
 </li>
@@ -1053,14 +1074,14 @@
         
           <li class="md-nav__item">
   <a href="#usersusername" class="md-nav__link">
-    /users/username
+    /users/:username
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#usersid" class="md-nav__link">
-    /users/id
+    /users/:id
   </a>
   
 </li>
@@ -1075,6 +1096,27 @@
           <li class="md-nav__item">
   <a href="#usersmerooms" class="md-nav__link">
     /users/@me/rooms
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usersmeroomsid" class="md-nav__link">
+    /users/@me/rooms/:id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usersmehousesid" class="md-nav__link">
+    /users/@me/houses/:id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relationshipsmefriendsid" class="md-nav__link">
+    /relationships/@me/friends/:id
   </a>
   
 </li>
@@ -1165,13 +1207,19 @@
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>The possible return codes and exceptions only contain <em>unique</em> exceptions,
-meaning generic ones are not added to avoid to make the docs messy!</p>
+meaning generic ones are not added to avoid making the docs messy!</p>
 <p>For generic exceptions go <a href="./hiven_exceptions.html">here</a></p>
 </div>
 <h3 id="user-endpoints">User Endpoints<a class="headerlink" href="#user-endpoints" title="Permanent link">&para;</a></h3>
 <h4 id="usersme"><code>/users/@me</code><a class="headerlink" href="#usersme" title="Permanent link">&para;</a></h4>
-<p>Default user endpoint for accessing the user-data of the owner of the passed token in the header.</p>
+<p>Default user endpoint for accessing the user assigned to the passed token.</p>
 <div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">GET</label><div class="tabbed-content">
+<p>Fetches your own user data.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
 <details class="success"><summary>200</summary><p>Authorisation was successful and the body contains the requested data</p>
 <p>Expected Response:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1207,6 +1255,7 @@ meaning generic ones are not added to avoid to make the docs messy!</p>
 </details>
 </div>
 <input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">PATCH</label><div class="tabbed-content">
+<p>Alters your user accounts data</p>
 <p><strong>Required body:</strong></p>
 <table>
 <thead>
@@ -1257,6 +1306,11 @@ meaning generic ones are not added to avoid to make the docs messy!</p>
 </tbody>
 </table>
 <p>*<em>At least one value must be passed!</em></p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
 <details class="success"><summary>200</summary><p>Patch was successful and the data was changed! The response will containt the updated data of the User</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;success&quot;</span><span class="p">:</span> <span class="err">True</span><span class="p">,</span>
@@ -1285,12 +1339,18 @@ will change no value. Still the result will be 200 and the user-data will be sen
 </details>
 </div>
 </div>
-<h4 id="usersusername"><code>/users/username</code><a class="headerlink" href="#usersusername" title="Permanent link">&para;</a></h4>
-<p>Endpoint for a specific user based on their username. Will return the user if they were found.</p>
+<h4 id="usersusername"><code>/users/:username</code><a class="headerlink" href="#usersusername" title="Permanent link">&para;</a></h4>
+<p>Endpoint for a specific user.</p>
 <div class="tabbed-set" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">GET</label><div class="tabbed-content">
+<p>Fetches the user and returns the data.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
 <div class="admonition example">
 <p class="admonition-title">Example</p>
-<p>GET <code>/users/&lt;user&gt;</code></p>
+<p>GET <code>/users/testname</code></p>
 </div>
 <details class="success"><summary>200</summary><p>Authorisation was successful and the body contains the requested data</p>
 <p>Expected Response:</p>
@@ -1333,12 +1393,18 @@ will change no value. Still the result will be 200 and the user-data will be sen
 </details>
 </div>
 </div>
-<h4 id="usersid"><code>/users/id</code><a class="headerlink" href="#usersid" title="Permanent link">&para;</a></h4>
-<p>Endpoint for a specific user based on their id. Will return the user if they were found.</p>
+<h4 id="usersid"><code>/users/:id</code><a class="headerlink" href="#usersid" title="Permanent link">&para;</a></h4>
+<p>Endpoint for a specific user based on their id. </p>
 <div class="tabbed-set" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">GET</label><div class="tabbed-content">
+<p>Fetches the user and returns the data.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
 <div class="admonition example">
 <p class="admonition-title">Example</p>
-<p>GET <code>/users/675697072878514388</code></p>
+<p>GET <code>/users/123456789123456789</code></p>
 </div>
 <details class="success"><summary>200</summary><p>Authorisation was successful and the body contains the requested data</p>
 <p>!!! Expected Response:</p>
@@ -1386,6 +1452,12 @@ will change no value. Still the result will be 200 and the user-data will be sen
 <h4 id="streamsmementions"><code>/streams/@me/mentions</code><a class="headerlink" href="#streamsmementions" title="Permanent link">&para;</a></h4>
 <p>Endpoint for fetching your mentions in the Houses and rooms of your scope.</p>
 <div class="tabbed-set" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">GET</label><div class="tabbed-content">
+<p>Fetches the mentions in your scope.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
 <details class="success"><summary>200</summary><p>Returns a list with all mentions wrapped in a message Hiven object</p>
 <p>Expected Response:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1440,14 +1512,121 @@ will change no value. Still the result will be 200 and the user-data will be sen
 <h4 id="usersmerooms"><code>/users/@me/rooms</code><a class="headerlink" href="#usersmerooms" title="Permanent link">&para;</a></h4>
 <p>Endpoint for private rooms that are not related to any House.</p>
 <div class="tabbed-set" data-tabs="7:1"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><label for="__tabbed_7_1">POST</label><div class="tabbed-content">
-<details class="success"><summary>200</summary></details>
-<details class="fail"><summary>400</summary></details>
+<p>Creates a new private room or private group room.</p>
+<p><strong>Required body:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recipient</code></td>
+<td><code>str</code> (user id)</td>
+<td>Recipient that should be added to the DM room</td>
+<td>No*</td>
+</tr>
+<tr>
+<td><code>recipients</code></td>
+<td><code>List[str]</code> (user ids)</td>
+<td>Recipients that should be added to the DM room (Group Channel)</td>
+<td>No*</td>
+</tr>
+</tbody>
+</table>
+<p>*<em>At least one is required for the correct creation</em></p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+    <span class="nt">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>200</summary><p><em>In work</em></p>
+</details>
+<details class="fail"><summary>400</summary><p><em>In work</em></p>
+</details>
+</div>
+</div>
+<h4 id="usersmeroomsid"><code>/users/@me/rooms/:id</code><a class="headerlink" href="#usersmeroomsid" title="Permanent link">&para;</a></h4>
+<p>Endpoint for a specific private room based on the id.</p>
+<div class="tabbed-set" data-tabs="8:1"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">DELETE</label><div class="tabbed-content">
+<p>Leaves a private room or private group room.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>200</summary><p><em>In work</em></p>
+</details>
+<details class="fail"><summary>400</summary><p><em>In work</em></p>
+</details>
+</div>
+</div>
+<h4 id="usersmehousesid"><code>/users/@me/houses/:id</code><a class="headerlink" href="#usersmehousesid" title="Permanent link">&para;</a></h4>
+<p>Endpoint for a specific House where you are member in.</p>
+<div class="tabbed-set" data-tabs="9:1"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1">DELETE</label><div class="tabbed-content">
+<p>Leaves a house.</p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>200</summary><p><em>In work</em></p>
+</details>
+<details class="fail"><summary>400</summary><p><em>In work</em></p>
+</details>
+</div>
+</div>
+<h4 id="relationshipsmefriendsid"><code>/relationships/@me/friends/:id</code><a class="headerlink" href="#relationshipsmefriendsid" title="Permanent link">&para;</a></h4>
+<div class="tabbed-set" data-tabs="10:1"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><label for="__tabbed_10_1">DELETE</label><div class="tabbed-content">
+<p>Creates a new private room or private group room.</p>
+<p><strong>Required body:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recipient</code></td>
+<td><code>str</code> (user id)</td>
+<td>Recipient that should be added to the DM room</td>
+<td>No*</td>
+</tr>
+<tr>
+<td><code>recipients</code></td>
+<td><code>List[str]</code> (user ids)</td>
+<td>Recipients that should be added to the DM room (Group Channel)</td>
+<td>No*</td>
+</tr>
+</tbody>
+</table>
+<p>*<em>At least one is required for the correct creation</em></p>
+<p><strong>Required header:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;*************&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">e</span><span class="kc">nter</span> <span class="err">your</span> <span class="err">ow</span><span class="kc">n</span> <span class="kc">t</span><span class="err">oke</span><span class="kc">n</span>
+    <span class="nt">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<details class="success"><summary>200</summary><p><em>In work</em></p>
+</details>
+<details class="fail"><summary>400</summary><p><em>In work</em></p>
+</details>
 </div>
 </div>
 <h3 id="house-endpoints">House Endpoints<a class="headerlink" href="#house-endpoints" title="Permanent link">&para;</a></h3>
 <h4 id="houses"><code>/houses</code><a class="headerlink" href="#houses" title="Permanent link">&para;</a></h4>
-<p>Endpoint for private rooms that are not related to any House.</p>
-<div class="tabbed-set" data-tabs="8:1"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">POST</label><div class="tabbed-content">
+<p>Endpoint for the general house collection. Only used for house creation
+at the moment.</p>
+<div class="tabbed-set" data-tabs="11:1"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1">POST</label><div class="tabbed-content">
 <p>Creates a new House with the passed data.</p>
 <p><strong>Required body:</strong></p>
 <table>
@@ -1504,7 +1683,7 @@ returned.</p>
 </code></pre></div>
 </details>
 <details class="fail"><summary>400</summary><p><strong>Possible Exceptions:</strong>        </p>
-<div class="tabbed-set" data-tabs="9:1"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1"><code>invalid_schema</code></label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1"><code>invalid_schema</code></label><div class="tabbed-content">
 <p>The field <code>name</code> is missing (Required)</p>
 <div class="highlight"><pre><span></span><code>{
     &quot;success&quot;: false,
