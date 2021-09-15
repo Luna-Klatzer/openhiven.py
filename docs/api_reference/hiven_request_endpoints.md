@@ -142,13 +142,7 @@ Endpoint for a specific user.
 
     Fetches the user and returns the data.
 
-    **Required header:**
-
-    ```json
-    {
-        "Authorization": "*************", // enter your own token
-    }
-    ```
+    **No Required header**
 
     !!! Example
 
@@ -208,13 +202,7 @@ Endpoint for a specific user based on their id.
 
     Fetches the user and returns the data.
 
-    **Required header:**
-
-    ```json
-    {
-        "Authorization": "*************", // enter your own token
-    }
-    ```
+    **No Required header**
 
     !!! Example
         GET `/users/123456789123456789`
