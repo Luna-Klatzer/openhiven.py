@@ -4,7 +4,7 @@ Pygments
 mkdocs
 mike
 markdown
-mkdocs-material<7.2.7
+mkdocs-material<8.2.9
 mkdocs-material-extensions
 mkdocs-redirects
 mkdocs-htmlproofer-plugin
