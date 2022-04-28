@@ -1,5 +1,15 @@
 ![openhiven.py](https://socialify.git.ci/Luna-Klatzer/openhiven.py/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2FLuna-Klatzer%2Fopenhiven.py%2Fmain%2Fdocs%2Fassets%2Fimages%2Fopenhivenpy.png&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Light)
 
+---
+
+# Important info!
+
+This repository will from now (the day of writing) on be read-only and there will not be any further releases or development. The Hiven platform seems to give off no live signals since months, so there seems to be no good reason to continue this project. You are welcome to fork this repo, but for now this project is retired.
+
+Luna Klatzer, 28.4.2022
+
+---
+
 # [Content](#content)
 
 - [The Hiven API-Wrapper](#the-hiven-api-wrapper-openhivenpy)
